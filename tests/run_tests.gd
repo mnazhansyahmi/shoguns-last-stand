@@ -6,10 +6,18 @@ extends SceneTree
 const TEST_SCRIPTS: Array[String] = [
 	"res://tests/unit/test_health_component.gd",
 	"res://tests/unit/test_combat_components.gd",
+	"res://tests/unit/test_summoning.gd",
+	"res://tests/unit/test_wave_director.gd",
 ]
 
 
 func _initialize() -> void:
+	_run_all()
+
+
+func _run_all() -> void:
+	# Wait one frame so the root is inside the tree and added nodes get _ready().
+	await process_frame
 	var total: int = 0
 	var failed: int = 0
 	for path: String in TEST_SCRIPTS:

@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="AllyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ally_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/resources/attack_profile.gd" id="2_attack"]
+
+[sub_resource type="Resource" id="Resource_attack"]
+script = ExtResource("2_attack")
+damage_multiplier = 1.0
+windup = 0.3
+active_time = 0.1
+recovery = 0.35
+cooldown = 0.4
+knockback = 140.0
+hitbox_offset = Vector2(62, -55)
+hitbox_size = Vector2(96, 70)
+lunge_speed = 0.0
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Ashigaru"
+cost = 30.0
+summon_cooldown = 2.0
+max_health = 120.0
+attack_damage = 14.0
+move_speed = 120.0
+knockback_resistance = 0.0
+interruptible = true
+hurt_duration = 0.25
+aggro_range = 600.0
+attack_range = 75.0
+spawn_duration = 0.4
+attack = SubResource("Resource_attack")
+is_ranged = false
+body_size = Vector2(42, 100)
+body_color = Color(0.55, 0.42, 0.28, 1)
+head_color = Color(0.93, 0.8, 0.65, 1)
+weapon_length = 92.0
+headgear = 2

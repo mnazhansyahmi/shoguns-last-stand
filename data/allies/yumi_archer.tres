@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="AllyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ally_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/resources/attack_profile.gd" id="2_attack"]
+
+[sub_resource type="Resource" id="Resource_attack"]
+script = ExtResource("2_attack")
+damage_multiplier = 1.0
+windup = 0.5
+active_time = 0.05
+recovery = 0.6
+cooldown = 0.5
+knockback = 80.0
+hitbox_offset = Vector2(40, -60)
+hitbox_size = Vector2(40, 40)
+lunge_speed = 0.0
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Yumi Archer"
+cost = 45.0
+summon_cooldown = 3.0
+max_health = 70.0
+attack_damage = 12.0
+move_speed = 110.0
+knockback_resistance = 0.0
+interruptible = true
+hurt_duration = 0.25
+aggro_range = 650.0
+attack_range = 480.0
+spawn_duration = 0.4
+attack = SubResource("Resource_attack")
+is_ranged = true
+projectile_speed = 900.0
+projectile_range = 700.0
+body_size = Vector2(38, 96)
+body_color = Color(0.24, 0.45, 0.3, 1)
+head_color = Color(0.93, 0.8, 0.65, 1)
+weapon_length = 40.0
+headgear = 0

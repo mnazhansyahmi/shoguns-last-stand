@@ -5,6 +5,13 @@
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="3_player"]
 [ext_resource type="Script" path="res://scripts/systems/enemy_spawner.gd" id="4_spawner"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_hud.tscn" id="5_hud"]
+[ext_resource type="Script" path="res://scripts/systems/spirit_energy.gd" id="6_energy"]
+[ext_resource type="Script" path="res://scripts/systems/summon_manager.gd" id="7_summoner"]
+[ext_resource type="Script" path="res://scripts/resources/ally_data.gd" id="8_ally_data"]
+[ext_resource type="Resource" path="res://data/allies/ashigaru.tres" id="9_ashigaru"]
+[ext_resource type="Resource" path="res://data/allies/yumi_archer.tres" id="10_archer"]
+[ext_resource type="Script" path="res://scripts/systems/wave_director.gd" id="11_waves"]
+[ext_resource type="Resource" path="res://data/stages/stage_1.tres" id="12_stage"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(3200, 400)
@@ -82,6 +89,23 @@ text = "SPAWN"
 horizontal_alignment = 1
 
 [node name="Enemies" type="Node2D" parent="World"]
+
+[node name="SpiritEnergy" type="Node" parent="World"]
+script = ExtResource("6_energy")
+
+[node name="SummonManager" type="Node2D" parent="World" node_paths=PackedStringArray("energy", "container")]
+position = Vector2(340, 880)
+script = ExtResource("7_summoner")
+ally_slots = Array[ExtResource("8_ally_data")]([ExtResource("9_ashigaru"), ExtResource("10_archer")])
+energy = NodePath("../SpiritEnergy")
+container = NodePath("../Allies")
+
+[node name="Allies" type="Node2D" parent="World"]
+
+[node name="WaveDirector" type="Node" parent="World" node_paths=PackedStringArray("spawner")]
+script = ExtResource("11_waves")
+stage = ExtResource("12_stage")
+spawner = NodePath("../EnemySpawner")
 
 [node name="Player" parent="World" instance=ExtResource("3_player")]
 position = Vector2(420, 880)

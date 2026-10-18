@@ -33,4 +33,4 @@ body_size = Vector2(100, 190)
 body_color = Color(0.62, 0.16, 0.14, 1)
 head_color = Color(0.78, 0.25, 0.2, 1)
 weapon_length = 85.0
-show_horns = true
+headgear = 1

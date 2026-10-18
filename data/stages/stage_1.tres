@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="StageData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="1_stage"]
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="2_wave"]
+[ext_resource type="Resource" path="res://data/stages/stage_1/wave_1.tres" id="3_wave1"]
+[ext_resource type="Resource" path="res://data/stages/stage_1/wave_2.tres" id="4_wave2"]
+[ext_resource type="Resource" path="res://data/stages/stage_1/wave_3.tres" id="5_wave3"]
+
+[resource]
+script = ExtResource("1_stage")
+display_name = "Stage 1 - The Village Gate"
+waves = Array[ExtResource("2_wave")]([ExtResource("3_wave1"), ExtResource("4_wave2"), ExtResource("5_wave3")])
+first_wave_delay = 3.0
+break_duration = 5.0

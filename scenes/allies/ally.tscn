@@ -1,0 +1,56 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/allies/ally.gd" id="1_ally"]
+[ext_resource type="Script" path="res://scripts/components/placeholder_visual.gd" id="2_visual"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="3_health"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox_component.gd" id="4_hurtbox"]
+[ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="5_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/world_health_bar.gd" id="6_bar"]
+
+[node name="Ally" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 1
+script = ExtResource("1_ally")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+
+[node name="Visual" type="Node2D" parent="."]
+script = ExtResource("2_visual")
+weapon_rest_angle = -1.1
+weapon_windup_angle = -2.0
+weapon_strike_angle = 0.1
+
+[node name="Rig" type="Node2D" parent="Visual"]
+
+[node name="Body" type="Polygon2D" parent="Visual/Rig"]
+
+[node name="Head" type="Polygon2D" parent="Visual/Rig"]
+
+[node name="Eye" type="Polygon2D" parent="Visual/Rig"]
+color = Color(0.08, 0.08, 0.1, 1)
+
+[node name="Headgear" type="Polygon2D" parent="Visual/Rig"]
+
+[node name="Weapon" type="Node2D" parent="Visual/Rig"]
+rotation = -1.1
+
+[node name="Blade" type="Polygon2D" parent="Visual/Rig/Weapon"]
+color = Color(0.62, 0.45, 0.25, 1)
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("3_health")
+
+[node name="Hurtbox" type="Area2D" parent="." node_paths=PackedStringArray("health_component")]
+script = ExtResource("4_hurtbox")
+health_component = NodePath("../HealthComponent")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+
+[node name="Hitbox" type="Area2D" parent="."]
+script = ExtResource("5_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+
+[node name="HealthBar" type="Node2D" parent="."]
+script = ExtResource("6_bar")
+fill_color = Color(0.35, 0.75, 0.95, 1)

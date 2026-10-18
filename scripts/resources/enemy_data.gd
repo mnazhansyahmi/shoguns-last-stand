@@ -32,4 +32,4 @@ enum TargetKind { PLAYER, ALLY, GATE }
 @export var body_color: Color = Color(0.45, 0.5, 0.45)
 @export var head_color: Color = Color(0.75, 0.75, 0.68)
 @export var weapon_length: float = 50.0
-@export var show_horns: bool = false
+@export var headgear: UnitRig.Headgear = UnitRig.Headgear.NONE

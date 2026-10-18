@@ -310,51 +310,8 @@ func _set_facing(direction: int) -> void:
 # --- Placeholder visuals from data -----------------------------------------
 
 func _apply_data() -> void:
-	var size: Vector2 = data.body_size
-	var body_rect: RectangleShape2D = RectangleShape2D.new()
-	body_rect.size = size
-	_body_shape.shape = body_rect
-	_body_shape.position = Vector2(0.0, -size.y * 0.5)
-
-	var hurt_rect: RectangleShape2D = RectangleShape2D.new()
-	hurt_rect.size = size
-	_hurtbox_shape.shape = hurt_rect
-	_hurtbox_shape.position = _body_shape.position
-
-	var hit_rect: RectangleShape2D = RectangleShape2D.new()
-	hit_rect.size = _attack.hitbox_size
-	_hitbox_shape.shape = hit_rect
-
-	var half: float = size.x * 0.5
-	var torso_top: float = -size.y * 0.78
-	var head_size: float = size.x * 0.55
-	var body: Polygon2D = $Visual/Rig/Body
-	body.color = data.body_color
-	body.polygon = PackedVector2Array([
-		Vector2(-half, 0.0), Vector2(half, 0.0),
-		Vector2(half * 0.85, torso_top), Vector2(-half * 0.85, torso_top)])
-	var head: Polygon2D = $Visual/Rig/Head
-	head.color = data.head_color
-	head.polygon = _rect(-head_size * 0.5, torso_top - head_size, head_size * 0.5, torso_top)
-	var eye: Polygon2D = $Visual/Rig/Eye
-	eye.polygon = _rect(head_size * 0.1, torso_top - head_size * 0.7, head_size * 0.35, torso_top - head_size * 0.5)
-	var horns: Polygon2D = $Visual/Rig/Horns
-	horns.visible = data.show_horns
-	var horn_base: float = torso_top - head_size
-	horns.polygon = PackedVector2Array([
-		Vector2(-head_size * 0.5, horn_base), Vector2(-head_size * 0.25, horn_base),
-		Vector2(-head_size * 0.55, horn_base - head_size * 0.6),
-		Vector2(head_size * 0.25, horn_base), Vector2(head_size * 0.5, horn_base),
-		Vector2(head_size * 0.55, horn_base - head_size * 0.6)])
-	var weapon: Node2D = $Visual/Rig/Weapon
-	weapon.position = Vector2(half * 0.6, torso_top * 0.75)
-	var blade: Polygon2D = $Visual/Rig/Weapon/Blade
-	var thickness: float = maxf(3.0, size.x * 0.06)
-	blade.polygon = _rect(-8.0, -thickness, data.weapon_length, thickness)
-
-	_health_bar.position = Vector2(0.0, torso_top - head_size - 22.0)
-	_health_bar.bar_size = Vector2(clampf(size.x * 1.4, 56.0, 140.0), 8.0)
-
-
-func _rect(x0: float, y0: float, x1: float, y1: float) -> PackedVector2Array:
-	return PackedVector2Array([Vector2(x0, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x0, y1)])
+	UnitRig.build_collision(_body_shape, _hurtbox_shape, _hitbox_shape, data.body_size, _attack.hitbox_size)
+	var head_top: float = UnitRig.build_visual($Visual/Rig, data.body_size, data.body_color,
+			data.head_color, data.weapon_length, data.headgear)
+	_health_bar.position = Vector2(0.0, head_top - 22.0)
+	_health_bar.bar_size = Vector2(clampf(data.body_size.x * 1.4, 56.0, 140.0), 8.0)

@@ -9,7 +9,7 @@ scenes/          .tscn scenes plus the scene's own script beside it
   main_menu/, battlefield/, player/, enemies/, allies/, gate/, ui/
 scripts/         reusable code that isn't tied to one scene
   components/    health, hitbox, hurtbox, cooldown, faction, placeholder visual
-  systems/       enemy spawner (later: wave director, summon manager, save manager)
+  systems/       enemy spawner, wave director, summon manager, spirit energy (later: save manager)
   resources/     custom Resource classes for data (EnemyData, AllyData...)
   ui/            shared UI widgets
 data/            .tres data instances: enemies/, allies/, stages/, upgrades/
@@ -50,11 +50,22 @@ Actors:
 - `Player` runs a time-based state machine: IDLE, RUN, ATTACK, DASH, SPIRIT_SLASH, HURT, DEAD. Pressing attack during a combo hit queues the next hit, which cancels the current hit's recovery. Dash can cancel an attack. Getting hit interrupts any action. The dash is distance-based, so it always covers exactly 135 px. After dying, the player respawns in 5 s (handled by the battlefield). Only the gate's destruction causes defeat.
 - `Enemy` uses one generic scene configured by `EnemyData`. Its FSM is SPAWN → ADVANCE → ACQUIRE_TARGET → ATTACK → RECOVER, with HURT (skipped by non-interruptible enemies like the Oni) and DEAD. When choosing a target, it takes the nearest valid target of the first kind in its priority list that's within aggro range. The gate is the fallback once it's in range.
 - `VillageGate` has 1000 HP, a world health bar, and emits `destroyed`.
-- `EnemySpawner` spawns enemies and enforces a cap on how many are alive (40). It's used by the F1/F2 debug keys now and will be used by the WaveDirector in Phase 3.
+- `EnemySpawner` spawns enemies and enforces a cap on how many are alive (40). It's used by the WaveDirector and by the F1/F2 debug keys.
+
+## Summoning and waves (Phase 3)
+
+- `SpiritEnergy` (in `World`) holds up to 150 energy and regenerates 5/s. It starts at 50 (my choice; the spec doesn't say). It emits `energy_changed`.
+- `SummonManager` sits in front of the gate (x = 340). `request_summon(slot)` checks, in order: valid slot, unit cap (6), slot cooldown, enough energy, and a spawn position at least 50 px from any living enemy (it tries up to 5 offsets). Energy is spent only after every check passes. It returns a `Result` and emits `summon_failed(slot, result)`, which the HUD shows as a message. Each ally's slot is freed by its `defeated` or `tree_exiting` signal, whichever fires first.
+- `Ally` uses one generic scene configured by `AllyData` (`data/allies/`). Its FSM is SPAWN → IDLE (holds its summon position) → ADVANCE → ATTACK → RECOVER, plus HURT and DEAD. It engages the nearest living enemy within aggro range, stops at attack range, and attacks. Archers (`is_ranged`) fire a single-hit `Arrow`. Melee allies queue behind each other. Allies persist between waves. Enemies already target the `allies` group.
+- `UnitRig` builds the collision shapes and placeholder Polygon2D rig shared by enemies and allies.
+- `WaveDirector` runs a `StageData` (`data/stages/stage_1.tres`), which lists `WaveData` resources (`data/stages/stage_1/wave_*.tres`). Each wave is a list of `WaveEntry` items (enemy, count, start_delay, spawn_interval). The phases are BREAK → SPAWNING → CLEARING → (next BREAK | COMPLETE).
+  - **Softlock protection:** every spawned enemy is tracked by instance id and released by its `defeated` or `tree_exiting` signal, whichever fires first. Nothing is counted by polling, so an enemy freed by any path still completes the wave. If the spawner refuses a spawn because the enemy cap is reached, the enemy stays pending and is retried after 0.5 s.
+  - The battlefield calls `start()` after connecting the director's signals.
+- The battlefield shows a "Wave N" banner (and "Wave N cleared"), the wave and remaining-enemy count, and the next-wave countdown. VICTORY or DEFEAT pauses the tree. The F1/F2 debug spawns only work when `OS.is_debug_build()` is true.
 
 ## Tests
 
-Run `godot_console --headless --path . -s res://tests/run_tests.gd`. It covers HealthComponent, hitbox/hurtbox rules, and the cooldown timer.
+Run `godot_console --headless --path . -s res://tests/run_tests.gd`. It covers HealthComponent, hitbox/hurtbox rules, the cooldown timer, Spirit Energy and summon validation, and WaveDirector flow (completion on death, completion when an enemy is freed, no double counting, and the break between waves).
 
 ## Scene flow
 

@@ -28,8 +28,7 @@ weapon_windup_angle = -2.4
 [node name="Eye" type="Polygon2D" parent="Visual/Rig"]
 color = Color(1, 0.35, 0.2, 1)
 
-[node name="Horns" type="Polygon2D" parent="Visual/Rig"]
-color = Color(0.92, 0.88, 0.75, 1)
+[node name="Headgear" type="Polygon2D" parent="Visual/Rig"]
 
 [node name="Weapon" type="Node2D" parent="Visual/Rig"]
 rotation = -0.6
