@@ -24,7 +24,6 @@ window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/handheld/orientation=0
 
 [input]
 
@@ -88,6 +87,8 @@ pointing/emulate_touch_from_mouse=true
 2d_physics/layer_4="enemies"
 2d_physics/layer_5="gate"
 2d_physics/layer_6="projectiles"
+2d_physics/layer_7="hurtbox_defenders"
+2d_physics/layer_8="hurtbox_enemies"
 
 [rendering]
 

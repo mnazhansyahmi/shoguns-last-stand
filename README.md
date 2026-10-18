@@ -8,7 +8,7 @@ A 2D side-scrolling samurai defense game made in Godot 4. You play a samurai hol
 
 ## Status
 
-Phase 1 (foundation) is done: project setup, input map, main menu, and a placeholder battlefield. Gameplay starts in Phase 2. The full plan is in [docs/MASTER_PROMPT.md](docs/MASTER_PROMPT.md).
+Phase 2 (combat) is done. The samurai can move, chain a 3-hit combo, heavy attack, dash, and use Spirit Slash. Hollow Soldier and Oni Brute enemies are in, and the gate can be destroyed (defeat). Waves come in Phase 3; for now, use the debug keys **F1** (Hollow Soldier) and **F2** (Oni Brute). The full plan is in [docs/MASTER_PROMPT.md](docs/MASTER_PROMPT.md).
 
 ## Running
 
@@ -22,6 +22,12 @@ Phase 1 (foundation) is done: project setup, input map, main menu, and a placeho
 
    ```bash
    godot_console --headless --import
+   ```
+
+3. Tests:
+
+   ```bash
+   godot_console --headless --path . -s res://tests/run_tests.gd
    ```
 
 ## Controls (keyboard)

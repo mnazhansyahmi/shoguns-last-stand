@@ -1,0 +1,73 @@
+[gd_resource type="Resource" script_class="PlayerStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/player_stats.gd" id="1_stats"]
+[ext_resource type="Script" path="res://scripts/resources/attack_profile.gd" id="2_attack"]
+
+[sub_resource type="Resource" id="Resource_hit1"]
+script = ExtResource("2_attack")
+damage_multiplier = 1.0
+windup = 0.08
+active_time = 0.1
+recovery = 0.22
+knockback = 140.0
+hitbox_offset = Vector2(58, -62)
+hitbox_size = Vector2(90, 80)
+lunge_speed = 120.0
+
+[sub_resource type="Resource" id="Resource_hit2"]
+script = ExtResource("2_attack")
+damage_multiplier = 1.0
+windup = 0.08
+active_time = 0.1
+recovery = 0.22
+knockback = 160.0
+hitbox_offset = Vector2(58, -62)
+hitbox_size = Vector2(95, 80)
+lunge_speed = 140.0
+
+[sub_resource type="Resource" id="Resource_hit3"]
+script = ExtResource("2_attack")
+damage_multiplier = 1.5
+windup = 0.14
+active_time = 0.12
+recovery = 0.35
+knockback = 320.0
+hitbox_offset = Vector2(66, -62)
+hitbox_size = Vector2(115, 96)
+lunge_speed = 220.0
+
+[sub_resource type="Resource" id="Resource_heavy"]
+script = ExtResource("2_attack")
+damage_multiplier = 2.5
+windup = 0.35
+active_time = 0.14
+recovery = 0.4
+knockback = 480.0
+hitbox_offset = Vector2(74, -66)
+hitbox_size = Vector2(140, 110)
+lunge_speed = 160.0
+
+[resource]
+script = ExtResource("1_stats")
+max_health = 200.0
+hurt_duration = 0.25
+hurt_invulnerability = 0.7
+knockback_resistance = 0.0
+move_speed = 210.0
+acceleration = 2400.0
+dash_distance = 135.0
+dash_duration = 0.15
+dash_cooldown = 3.0
+base_damage = 20.0
+combo_hit_1 = SubResource("Resource_hit1")
+combo_hit_2 = SubResource("Resource_hit2")
+combo_hit_3 = SubResource("Resource_hit3")
+heavy_attack = SubResource("Resource_heavy")
+heavy_cooldown = 1.5
+spirit_slash_damage = 45.0
+spirit_slash_speed = 950.0
+spirit_slash_range = 1100.0
+spirit_slash_knockback = 220.0
+spirit_slash_cooldown = 6.0
+spirit_slash_windup = 0.15
+spirit_slash_recovery = 0.25

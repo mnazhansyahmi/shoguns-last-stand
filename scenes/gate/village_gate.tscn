@@ -1,0 +1,73 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/gate/village_gate.gd" id="1_gate"]
+[ext_resource type="Script" path="res://scripts/components/placeholder_visual.gd" id="2_visual"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="3_health"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox_component.gd" id="4_hurtbox"]
+[ext_resource type="Script" path="res://scripts/components/world_health_bar.gd" id="5_bar"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gate"]
+size = Vector2(180, 320)
+
+[node name="VillageGate" type="Node2D"]
+script = ExtResource("1_gate")
+
+[node name="Visual" type="Node2D" parent="."]
+script = ExtResource("2_visual")
+
+[node name="Rig" type="Node2D" parent="Visual"]
+
+[node name="Wall" type="Polygon2D" parent="Visual/Rig"]
+color = Color(0.45, 0.4, 0.34, 1)
+polygon = PackedVector2Array(-820, 0, -90, 0, -90, -220, -820, -220)
+
+[node name="WallRoof" type="Polygon2D" parent="Visual/Rig"]
+color = Color(0.2, 0.2, 0.24, 1)
+polygon = PackedVector2Array(-840, -220, -90, -220, -90, -250, -820, -250)
+
+[node name="Door" type="Polygon2D" parent="Visual/Rig"]
+color = Color(0.4, 0.26, 0.15, 1)
+polygon = PackedVector2Array(-60, 0, 60, 0, 60, -250, -60, -250)
+
+[node name="LeftPost" type="Polygon2D" parent="Visual/Rig"]
+color = Color(0.72, 0.16, 0.12, 1)
+polygon = PackedVector2Array(-90, 0, -60, 0, -60, -320, -90, -320)
+
+[node name="RightPost" type="Polygon2D" parent="Visual/Rig"]
+color = Color(0.72, 0.16, 0.12, 1)
+polygon = PackedVector2Array(60, 0, 90, 0, 90, -320, 60, -320)
+
+[node name="Nuki" type="Polygon2D" parent="Visual/Rig"]
+color = Color(0.72, 0.16, 0.12, 1)
+polygon = PackedVector2Array(-120, -275, 120, -275, 120, -250, -120, -250)
+
+[node name="Kasagi" type="Polygon2D" parent="Visual/Rig"]
+color = Color(0.12, 0.1, 0.1, 1)
+polygon = PackedVector2Array(-130, -320, 130, -320, 150, -355, -150, -355)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -100.0
+offset_top = -450.0
+offset_right = 100.0
+offset_bottom = -400.0
+theme_override_font_sizes/font_size = 32
+text = "GATE"
+horizontal_alignment = 1
+
+[node name="HealthBar" type="Node2D" parent="."]
+position = Vector2(0, -385)
+script = ExtResource("5_bar")
+bar_size = Vector2(260, 18)
+fill_color = Color(0.35, 0.8, 0.35, 1)
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("3_health")
+max_health = 1000.0
+
+[node name="Hurtbox" type="Area2D" parent="." node_paths=PackedStringArray("health_component")]
+script = ExtResource("4_hurtbox")
+health_component = NodePath("../HealthComponent")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -160)
+shape = SubResource("RectangleShape2D_gate")

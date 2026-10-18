@@ -11,6 +11,7 @@ Godot 4.7.2 game, typed GDScript. The full spec is `docs/MASTER_PROMPT.md`. Work
 - Godot CLI on this machine: `godot_console`
 - Import / parse check: `godot_console --headless --import`
 - Boot check: `godot_console --headless --quit`
+- Tests: `godot_console --headless --path . -s res://tests/run_tests.gd` (add new test files to `TEST_SCRIPTS` in `tests/run_tests.gd`)
 
 ## Conventions
 
