@@ -111,8 +111,9 @@ func get_state_name() -> String:
 	return State.keys()[_state]
 
 
+## Current target, or null if there is none or it has been freed.
 func get_target() -> Node2D:
-	return _target
+	return _target if _has_valid_target() else null
 
 
 func get_half_width() -> float:
@@ -129,7 +130,7 @@ func select_target() -> Node2D:
 		var best_distance: float = data.aggro_range
 		for node: Node in get_tree().get_nodes_in_group(group):
 			var candidate: Node2D = node as Node2D
-			if not _is_valid_target(candidate):
+			if not _is_valid_candidate(candidate):
 				continue
 			var distance: float = absf(_target_x(candidate) - global_position.x)
 			if distance <= best_distance:
@@ -161,8 +162,7 @@ func _process_acquire_target(delta: float) -> void:
 		var preferred: Node2D = select_target()
 		if preferred != null:
 			_target = preferred
-	if not _is_valid_target(_target):
-		_target = null
+	if not _has_valid_target():
 		_change_state(State.ADVANCE)
 		return
 	var dx: float = _target_x(_target) - global_position.x
@@ -203,10 +203,9 @@ func _process_attack(delta: float) -> void:
 
 
 func _resume() -> void:
-	if _is_valid_target(_target):
+	if _has_valid_target():
 		_change_state(State.ACQUIRE_TARGET)
 	else:
-		_target = null
 		_change_state(State.ADVANCE)
 	_visual.play_state(&"idle")
 
@@ -249,8 +248,18 @@ func _is_blocked_by_other_enemy(direction: int) -> bool:
 
 # --- Targets ----------------------------------------------------------------
 
-func _is_valid_target(target: Node2D) -> bool:
-	if target == null or not is_instance_valid(target) or not target.is_inside_tree():
+## True if the stored target still exists and is targetable; clears it otherwise.
+## Checks the member directly: passing a freed object to a typed parameter is a script error.
+func _has_valid_target() -> bool:
+	if not is_instance_valid(_target) or not _is_valid_candidate(_target):
+		_target = null
+		return false
+	return true
+
+
+## For live candidates from the scene tree, or a target already checked with is_instance_valid.
+func _is_valid_candidate(target: Node2D) -> bool:
+	if target == null or not target.is_inside_tree():
 		return false
 	if target.has_method("is_targetable"):
 		return target.call("is_targetable")

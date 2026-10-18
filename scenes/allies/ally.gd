@@ -123,13 +123,18 @@ func get_health() -> HealthComponent:
 	return _health
 
 
+## Current target, or null if there is none or it has been freed.
+func get_target() -> Enemy:
+	return _target if _has_valid_target() else null
+
+
 ## Nearest living enemy within aggro range, or null.
 func select_target() -> Enemy:
 	var best: Enemy = null
 	var best_distance: float = data.aggro_range
 	for node: Node in get_tree().get_nodes_in_group("enemies"):
 		var enemy: Enemy = node as Enemy
-		if not _is_valid_target(enemy):
+		if not _is_valid_enemy(enemy):
 			continue
 		var distance: float = absf(enemy.global_position.x - global_position.x)
 		if distance <= best_distance:
@@ -165,8 +170,7 @@ func _process_advance(delta: float) -> void:
 		var nearest: Enemy = select_target()
 		if nearest != null:
 			_target = nearest
-	if not _is_valid_target(_target):
-		_target = null
+	if not _has_valid_target():
 		_change_state(State.IDLE)
 		return
 	var dx: float = _target.global_position.x - global_position.x
@@ -217,10 +221,9 @@ func _fire_arrow() -> void:
 
 
 func _resume() -> void:
-	if _is_valid_target(_target):
+	if _has_valid_target():
 		_change_state(State.ADVANCE)
 	else:
-		_target = null
 		_change_state(State.IDLE)
 	_visual.play_state(&"idle")
 
@@ -260,8 +263,18 @@ func _is_blocked_by_other_ally(direction: int) -> bool:
 	return false
 
 
-func _is_valid_target(enemy: Enemy) -> bool:
-	return enemy != null and is_instance_valid(enemy) and enemy.is_inside_tree() and not enemy.is_dead()
+## True if the stored target is still a living enemy; clears it otherwise.
+## Checks the member directly: passing a freed object to a typed parameter is a script error.
+func _has_valid_target() -> bool:
+	if not is_instance_valid(_target) or not _target.is_inside_tree() or _target.is_dead():
+		_target = null
+		return false
+	return true
+
+
+## For live candidates from the scene tree (never a stored reference).
+func _is_valid_enemy(enemy: Enemy) -> bool:
+	return enemy != null and enemy.is_inside_tree() and not enemy.is_dead()
 
 
 # --- Signal handlers --------------------------------------------------------

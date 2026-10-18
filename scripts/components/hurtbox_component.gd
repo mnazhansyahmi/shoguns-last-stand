@@ -45,7 +45,7 @@ func receive_hit(hitbox: HitboxComponent) -> bool:
 	if health_component == null or health_component.is_dead() or health_component.is_invulnerable():
 		return false
 	var direction_x: float = hitbox.get_knockback_direction_x(global_position.x)
-	var hit: HitData = HitData.new(hitbox.damage, Vector2(direction_x * hitbox.knockback, 0.0), hitbox.source)
+	var hit: HitData = HitData.new(hitbox.damage, Vector2(direction_x * hitbox.knockback, 0.0), hitbox.get_source())
 	var applied: float = health_component.take_damage(hit.damage, hit.source)
 	if applied <= 0.0:
 		return false

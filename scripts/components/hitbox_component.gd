@@ -76,11 +76,16 @@ func try_hit(hurtbox: HurtboxComponent) -> bool:
 	return true
 
 
+## The damage source, or null if it has been freed (e.g. an archer died mid-flight).
+func get_source() -> Node:
+	return source if is_instance_valid(source) else null
+
+
 func get_knockback_direction_x(target_x: float) -> float:
 	if knockback_direction_x != 0.0:
 		return signf(knockback_direction_x)
 	var origin_x: float = global_position.x
-	var source_2d: Node2D = source as Node2D
-	if source_2d != null and is_instance_valid(source_2d):
+	var source_2d: Node2D = get_source() as Node2D
+	if source_2d != null:
 		origin_x = source_2d.global_position.x
 	return 1.0 if target_x >= origin_x else -1.0

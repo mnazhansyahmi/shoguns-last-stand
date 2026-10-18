@@ -24,4 +24,5 @@ Godot 4.7.2 game, typed GDScript. The full spec is `docs/MASTER_PROMPT.md`. Work
 - Visuals are placeholder geometric shapes (Polygon2D/ColorRect). No third-party assets.
 - Text files use LF line endings (enforced by `.gitattributes`).
 - Commit `*.uid` files; ignore `.godot/`.
-- Never report test or validation results that weren't actually run.
+- Stored node references (targets, projectile sources) can be freed at any time. Check `is_instance_valid(member)` on the member itself before using it or passing it on: passing a freed object into a typed parameter is a script error. Clear the reference when it's invalid.
+- Never report test or validation results that weren't actually run. The test runner fails any test that logs an engine or script error.

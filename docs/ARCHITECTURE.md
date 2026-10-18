@@ -65,7 +65,7 @@ Actors:
 
 ## Tests
 
-Run `godot_console --headless --path . -s res://tests/run_tests.gd`. It covers HealthComponent, hitbox/hurtbox rules, the cooldown timer, Spirit Energy and summon validation, and WaveDirector flow (completion on death, completion when an enemy is freed, no double counting, and the break between waves).
+Run `godot_console --headless --path . -s res://tests/run_tests.gd`. It covers HealthComponent, hitbox/hurtbox rules, the cooldown timer, Spirit Energy and summon validation, and WaveDirector flow (completion on death, completion when an enemy is freed, no double counting, and the break between waves). It also covers units whose target, or a projectile whose source, is freed mid-fight. The runner registers a `Logger`, and any test that logs an engine or script error fails, even if its assertions passed.
 
 ## Scene flow
 

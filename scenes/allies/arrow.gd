@@ -31,7 +31,7 @@ func setup(direction: float, damage: float, speed: float, max_range: float, knoc
 func _ready() -> void:
 	global_position = spawn_position
 	scale.x = _direction
-	if _source != null:
+	if is_instance_valid(_source):
 		_hitbox.source = _source
 	_hitbox.knockback_direction_x = _direction
 	_hitbox.hit_landed.connect(_on_hit_landed)
