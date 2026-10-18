@@ -1,0 +1,124 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/battlefield/battlefield.gd" id="1_field"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(3200, 400)
+
+[node name="Battlefield" type="Node2D"]
+script = ExtResource("1_field")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(960, 540)
+
+[node name="Background" type="Node2D" parent="."]
+
+[node name="Sky" type="Polygon2D" parent="Background"]
+color = Color(0.16, 0.14, 0.24, 1)
+polygon = PackedVector2Array(-640, -400, 2560, -400, 2560, 900, -640, 900)
+
+[node name="Moon" type="Polygon2D" parent="Background"]
+position = Vector2(1500, 220)
+color = Color(0.88, 0.84, 0.72, 1)
+polygon = PackedVector2Array(0, -70, 50, -50, 70, 0, 50, 50, 0, 70, -50, 50, -70, 0, -50, -50)
+
+[node name="FarMountains" type="Polygon2D" parent="Background"]
+color = Color(0.22, 0.2, 0.32, 1)
+polygon = PackedVector2Array(-640, 880, -300, 520, 100, 760, 520, 440, 900, 720, 1300, 480, 1700, 740, 2100, 500, 2560, 760, 2560, 880)
+
+[node name="NearHills" type="Polygon2D" parent="Background"]
+color = Color(0.17, 0.2, 0.22, 1)
+polygon = PackedVector2Array(-640, 880, -200, 760, 400, 820, 1000, 740, 1600, 810, 2200, 750, 2560, 800, 2560, 880)
+
+[node name="Ground" type="StaticBody2D" parent="."]
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+position = Vector2(960, 1080)
+shape = SubResource("RectangleShape2D_ground")
+
+[node name="Dirt" type="Polygon2D" parent="Ground"]
+color = Color(0.32, 0.24, 0.17, 1)
+polygon = PackedVector2Array(-640, 880, 2560, 880, 2560, 1480, -640, 1480)
+
+[node name="Grass" type="Polygon2D" parent="Ground"]
+color = Color(0.3, 0.42, 0.22, 1)
+polygon = PackedVector2Array(-640, 880, 2560, 880, 2560, 900, -640, 900)
+
+[node name="VillageGate" type="Marker2D" parent="."]
+position = Vector2(180, 880)
+
+[node name="Wall" type="Polygon2D" parent="VillageGate"]
+color = Color(0.45, 0.4, 0.34, 1)
+polygon = PackedVector2Array(-820, 0, -90, 0, -90, -220, -820, -220)
+
+[node name="WallRoof" type="Polygon2D" parent="VillageGate"]
+color = Color(0.2, 0.2, 0.24, 1)
+polygon = PackedVector2Array(-840, -220, -90, -220, -90, -250, -820, -250)
+
+[node name="Door" type="Polygon2D" parent="VillageGate"]
+color = Color(0.4, 0.26, 0.15, 1)
+polygon = PackedVector2Array(-60, 0, 60, 0, 60, -250, -60, -250)
+
+[node name="LeftPost" type="Polygon2D" parent="VillageGate"]
+color = Color(0.72, 0.16, 0.12, 1)
+polygon = PackedVector2Array(-90, 0, -60, 0, -60, -320, -90, -320)
+
+[node name="RightPost" type="Polygon2D" parent="VillageGate"]
+color = Color(0.72, 0.16, 0.12, 1)
+polygon = PackedVector2Array(60, 0, 90, 0, 90, -320, 60, -320)
+
+[node name="Nuki" type="Polygon2D" parent="VillageGate"]
+color = Color(0.72, 0.16, 0.12, 1)
+polygon = PackedVector2Array(-120, -275, 120, -275, 120, -250, -120, -250)
+
+[node name="Kasagi" type="Polygon2D" parent="VillageGate"]
+color = Color(0.12, 0.1, 0.1, 1)
+polygon = PackedVector2Array(-130, -320, 130, -320, 150, -355, -150, -355)
+
+[node name="Label" type="Label" parent="VillageGate"]
+offset_left = -100.0
+offset_top = -420.0
+offset_right = 100.0
+offset_bottom = -370.0
+theme_override_font_sizes/font_size = 32
+text = "GATE"
+horizontal_alignment = 1
+
+[node name="PlayerSpawnPoint" type="Marker2D" parent="."]
+position = Vector2(420, 880)
+
+[node name="EnemySpawnPoint" type="Marker2D" parent="."]
+position = Vector2(1800, 880)
+
+[node name="Portal" type="Polygon2D" parent="EnemySpawnPoint"]
+color = Color(0.5, 0.18, 0.62, 0.75)
+polygon = PackedVector2Array(0, -240, 42, -205, 60, -120, 42, -35, 0, 0, -42, -35, -60, -120, -42, -205)
+
+[node name="PortalCore" type="Polygon2D" parent="EnemySpawnPoint"]
+color = Color(0.12, 0.04, 0.16, 0.9)
+polygon = PackedVector2Array(0, -200, 24, -175, 34, -120, 24, -65, 0, -40, -24, -65, -34, -120, -24, -175)
+
+[node name="Label" type="Label" parent="EnemySpawnPoint"]
+offset_left = -100.0
+offset_top = -310.0
+offset_right = 100.0
+offset_bottom = -260.0
+theme_override_font_sizes/font_size = 32
+text = "SPAWN"
+horizontal_alignment = 1
+
+[node name="HintLayer" type="CanvasLayer" parent="."]
+
+[node name="Hint" type="Label" parent="HintLayer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -72.0
+offset_right = 900.0
+offset_bottom = -24.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 0.7)
+theme_override_font_sizes/font_size = 28
+text = "Phase 1 placeholder battlefield  -  Esc: back to menu"
