@@ -16,6 +16,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="14_touch"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="15_pause"]
 [ext_resource type="Script" path="res://scripts/systems/battle_feedback.gd" id="16_feedback"]
+[ext_resource type="PackedScene" path="res://scenes/backdrops/bamboo_outskirts.tscn" id="17_backdrop"]
+[ext_resource type="Script" path="res://scripts/visuals/spawn_portal_visual.gd" id="18_portal"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(3200, 400)
@@ -30,24 +32,7 @@ position = Vector2(960, 540)
 [node name="World" type="Node2D" parent="."]
 process_mode = 1
 
-[node name="Background" type="Node2D" parent="World"]
-
-[node name="Sky" type="Polygon2D" parent="World/Background"]
-color = Color(0.16, 0.14, 0.24, 1)
-polygon = PackedVector2Array(-640, -400, 2560, -400, 2560, 900, -640, 900)
-
-[node name="Moon" type="Polygon2D" parent="World/Background"]
-position = Vector2(1500, 220)
-color = Color(0.88, 0.84, 0.72, 1)
-polygon = PackedVector2Array(0, -70, 50, -50, 70, 0, 50, 50, 0, 70, -50, 50, -70, 0, -50, -50)
-
-[node name="FarMountains" type="Polygon2D" parent="World/Background"]
-color = Color(0.22, 0.2, 0.32, 1)
-polygon = PackedVector2Array(-640, 880, -300, 520, 100, 760, 520, 440, 900, 720, 1300, 480, 1700, 740, 2100, 500, 2560, 760, 2560, 880)
-
-[node name="NearHills" type="Polygon2D" parent="World/Background"]
-color = Color(0.17, 0.2, 0.22, 1)
-polygon = PackedVector2Array(-640, 880, -200, 760, 400, 820, 1000, 740, 1600, 810, 2200, 750, 2560, 800, 2560, 880)
+[node name="Backdrop" parent="World" instance=ExtResource("17_backdrop")]
 
 [node name="Ground" type="StaticBody2D" parent="World"]
 collision_mask = 0
@@ -55,14 +40,6 @@ collision_mask = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/Ground"]
 position = Vector2(960, 1080)
 shape = SubResource("RectangleShape2D_ground")
-
-[node name="Dirt" type="Polygon2D" parent="World/Ground"]
-color = Color(0.32, 0.24, 0.17, 1)
-polygon = PackedVector2Array(-640, 880, 2560, 880, 2560, 1480, -640, 1480)
-
-[node name="Grass" type="Polygon2D" parent="World/Ground"]
-color = Color(0.3, 0.42, 0.22, 1)
-polygon = PackedVector2Array(-640, 880, 2560, 880, 2560, 900, -640, 900)
 
 [node name="VillageGate" parent="World" instance=ExtResource("2_gate")]
 position = Vector2(180, 880)
@@ -75,22 +52,8 @@ position = Vector2(1800, 880)
 script = ExtResource("4_spawner")
 container = NodePath("../Enemies")
 
-[node name="Portal" type="Polygon2D" parent="World/EnemySpawner"]
-color = Color(0.5, 0.18, 0.62, 0.75)
-polygon = PackedVector2Array(0, -240, 42, -205, 60, -120, 42, -35, 0, 0, -42, -35, -60, -120, -42, -205)
-
-[node name="PortalCore" type="Polygon2D" parent="World/EnemySpawner"]
-color = Color(0.12, 0.04, 0.16, 0.9)
-polygon = PackedVector2Array(0, -200, 24, -175, 34, -120, 24, -65, 0, -40, -24, -65, -34, -120, -24, -175)
-
-[node name="Label" type="Label" parent="World/EnemySpawner"]
-offset_left = -100.0
-offset_top = -310.0
-offset_right = 100.0
-offset_bottom = -260.0
-theme_override_font_sizes/font_size = 32
-text = "SPAWN"
-horizontal_alignment = 1
+[node name="Portal" type="Node2D" parent="World/EnemySpawner"]
+script = ExtResource("18_portal")
 
 [node name="Enemies" type="Node2D" parent="World"]
 

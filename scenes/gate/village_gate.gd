@@ -11,7 +11,7 @@ signal health_changed(current: float, maximum: float)
 
 @onready var _health: HealthComponent = $HealthComponent
 @onready var _hurtbox: HurtboxComponent = $Hurtbox
-@onready var _visual: PlaceholderVisual = $Visual
+@onready var _visual: GateVisual = $Visual
 @onready var _health_bar: WorldHealthBar = $HealthBar
 
 var _destroyed: bool = false
@@ -56,11 +56,12 @@ func _on_hit_received(_hit: HitData) -> void:
 
 func _on_health_changed(current: float, maximum: float) -> void:
 	_health_bar.set_values(current, maximum)
+	_visual.set_damage(1.0 - current / maxf(maximum, 0.001))
 	health_changed.emit(current, maximum)
 
 
 func _on_died() -> void:
 	_destroyed = true
 	_hurtbox.set_enabled(false)
-	_visual.set_tint(Color(0.35, 0.33, 0.33))
+	_visual.set_destroyed()
 	destroyed.emit()

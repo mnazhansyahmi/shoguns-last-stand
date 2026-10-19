@@ -170,3 +170,59 @@ func test_facing_mirrors_the_figure() -> void:
 	assert_almost_eq(visual.scale.x, -1.0, "facing left mirrors the figure")
 	visual.set_facing(0)
 	assert_almost_eq(visual.scale.x, -1.0, "zero keeps the current facing")
+
+
+# --- Backdrop and environment -----------------------------------------------
+
+const BACKDROP_SCENE: PackedScene = preload("res://scenes/backdrops/bamboo_outskirts.tscn")
+const GATE_SCENE: PackedScene = preload("res://scenes/gate/village_gate.tscn")
+
+
+func test_parallax_follows_camera_by_depth() -> void:
+	var reference: Vector2 = Vector2(960.0, 540.0)
+	var lifted: Vector2 = reference + Vector2(0.0, 210.0)
+	assert_eq(BackdropLayer.parallax_offset(lifted, reference, 0.0), Vector2(0.0, 210.0), "sky stays fixed on screen")
+	assert_eq(BackdropLayer.parallax_offset(lifted, reference, 1.0), Vector2.ZERO, "ground stays on the battlefield")
+	assert_eq(BackdropLayer.parallax_offset(lifted, reference, 0.5), Vector2(0.0, 105.0), "mid layer moves half as much")
+
+
+func test_backdrop_layers_go_back_to_front() -> void:
+	var backdrop: Node = add_to_tree(BACKDROP_SCENE.instantiate())
+	var layers: Array[BackdropLayer] = []
+	for child: Node in backdrop.get_children():
+		if child is BackdropLayer:
+			layers.append(child)
+	assert_eq(layers.size(), BambooOutskirtsPainter.Layer.size(), "one node per backdrop layer")
+	var drifting: int = 0
+	for i: int in layers.size():
+		if i > 0:
+			assert_true(layers[i].depth >= layers[i - 1].depth, "%s is not behind the layer before it" % layers[i].name)
+		if layers[i].drift_speed != 0.0:
+			drifting += 1
+			assert_almost_eq(layers[i].tile_width, BambooOutskirtsPainter.FOG_TILE, "%s repeats where its art repeats" % layers[i].name)
+	assert_true(drifting >= 2, "at least two fog layers drift")
+	var front: BackdropLayer = backdrop.get_node("FrontFog")
+	assert_true(front.z_index > 0, "front fog is drawn over the fighters")
+
+
+func test_fog_drift_wraps() -> void:
+	var fog: BackdropLayer = BackdropLayer.new()
+	fog.layer = BambooOutskirtsPainter.Layer.MIST_LOW
+	fog.drift_speed = 300.0
+	add_to_tree(fog)
+	fog.set_process(false)
+	for i: int in 900:
+		fog.call(&"_process", FRAME)
+	var shift: float = fog.position.x - BackdropLayer.parallax_offset(fog.view_center(), fog.reference_center, fog.depth).x
+	assert_true(shift <= 0.0 and shift > -fog.tile_width, "drift stays within one tile (got %.1f)" % shift)
+
+
+func test_gate_shows_damage_and_goes_dark() -> void:
+	var gate: VillageGate = add_to_tree(GATE_SCENE.instantiate()) as VillageGate
+	var visual: GateVisual = gate.get_node("Visual") as GateVisual
+	assert_almost_eq(visual.get_damage(), 0.0, "new gate is undamaged")
+	gate.get_health().take_damage(gate.get_health().max_health * 0.5)
+	assert_almost_eq(visual.get_damage(), 0.5, "gate visual tracks damage taken")
+	assert_true(visual.is_lit(), "lanterns burn while the gate stands")
+	gate.get_health().take_damage(gate.get_health().max_health)
+	assert_true(not visual.is_lit(), "lanterns go out when the gate falls")

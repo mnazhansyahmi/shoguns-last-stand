@@ -79,6 +79,42 @@ static func stroke(ci: CanvasItem, points: PackedVector2Array, w0: float, w1: fl
 	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices, PackedColorArray([color]))
 
 
+## Fills the area between a ridge line (`tops`, ordered left to right) and `bottom_y`, shading
+## from `top_color` at the ridge to `bottom_color` at the bottom (ink-wash fade into mist).
+static func ridge_fill(ci: CanvasItem, tops: PackedVector2Array, bottom_y: float, top_color: Color,
+		bottom_color: Color) -> void:
+	var count: int = tops.size()
+	if count < 2:
+		return
+	var vertices: PackedVector2Array = PackedVector2Array()
+	var colors: PackedColorArray = PackedColorArray()
+	vertices.resize(count * 2)
+	colors.resize(count * 2)
+	for i: int in count:
+		vertices[i * 2] = tops[i]
+		vertices[i * 2 + 1] = Vector2(tops[i].x, bottom_y)
+		colors[i * 2] = top_color
+		colors[i * 2 + 1] = bottom_color
+	var indices: PackedInt32Array = PackedInt32Array()
+	indices.resize((count - 1) * 6)
+	for i: int in count - 1:
+		var k: int = i * 2
+		var j: int = i * 6
+		indices[j] = k
+		indices[j + 1] = k + 1
+		indices[j + 2] = k + 2
+		indices[j + 3] = k + 1
+		indices[j + 4] = k + 3
+		indices[j + 5] = k + 2
+	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices, colors)
+
+
+## A rectangle shaded from `top_color` to `bottom_color`.
+static func gradient_rect(ci: CanvasItem, rect: Rect2, top_color: Color, bottom_color: Color) -> void:
+	ridge_fill(ci, PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y)]), rect.end.y,
+			top_color, bottom_color)
+
+
 static func ellipse(ci: CanvasItem, center: Vector2, radii: Vector2, color: Color, segments: int = 18) -> void:
 	fill_convex(ci, ellipse_points(center, radii, segments), color)
 

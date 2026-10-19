@@ -1,0 +1,64 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/visuals/backdrop_layer.gd" id="1_layer"]
+
+[node name="BambooOutskirts" type="Node2D"]
+
+[node name="Sky" type="Node2D" parent="."]
+script = ExtResource("1_layer")
+layer = 0
+depth = 0.0
+
+[node name="Moon" type="Node2D" parent="."]
+script = ExtResource("1_layer")
+layer = 1
+depth = 0.04
+
+[node name="DistantMountains" type="Node2D" parent="."]
+script = ExtResource("1_layer")
+layer = 2
+depth = 0.1
+
+[node name="Mountains" type="Node2D" parent="."]
+script = ExtResource("1_layer")
+layer = 3
+depth = 0.18
+
+[node name="MistHigh" type="Node2D" parent="."]
+script = ExtResource("1_layer")
+layer = 4
+depth = 0.22
+drift_speed = 6.0
+
+[node name="Hills" type="Node2D" parent="."]
+script = ExtResource("1_layer")
+layer = 5
+depth = 0.35
+
+[node name="BambooFar" type="Node2D" parent="."]
+script = ExtResource("1_layer")
+layer = 6
+depth = 0.55
+
+[node name="MistLow" type="Node2D" parent="."]
+script = ExtResource("1_layer")
+layer = 7
+depth = 0.62
+drift_speed = 14.0
+
+[node name="BambooNear" type="Node2D" parent="."]
+script = ExtResource("1_layer")
+layer = 8
+depth = 0.85
+
+[node name="Ground" type="Node2D" parent="."]
+script = ExtResource("1_layer")
+layer = 9
+depth = 1.0
+
+[node name="FrontFog" type="Node2D" parent="."]
+z_index = 5
+script = ExtResource("1_layer")
+layer = 10
+depth = 1.05
+drift_speed = 24.0

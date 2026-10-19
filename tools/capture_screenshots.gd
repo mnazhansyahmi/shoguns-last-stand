@@ -14,6 +14,7 @@ const DATA_DIR: String = "user://screenshots"
 
 var _out_dir: String = "user://screenshots"
 var _tag: String = ""
+var _battle: Node
 
 
 func _initialize() -> void:
@@ -71,6 +72,7 @@ func _run() -> void:
 	if oni != null:
 		oni.global_position.x += 60.0
 	player.global_position.x = 900.0
+	_battle = field
 	await _frames(150)
 	Input.action_press("attack")
 	await _frames(14)
@@ -132,8 +134,11 @@ func _tick(visuals: Array[Node], frames: int) -> void:
 			node.call(&"_process", 1.0 / 60.0)
 
 
+## The battlefield pauses itself when the window loses focus; keep the staged battle running.
 func _frames(count: int) -> void:
 	for i: int in count:
+		if is_instance_valid(_battle) and paused:
+			_battle.call(&"_resume")
 		await process_frame
 
 
