@@ -338,3 +338,55 @@ func test_spirit_slash_glow_keeps_the_hitbox() -> void:
 	for point: Vector2 in points:
 		bounds = bounds.expand(point)
 	assert_true(absf(bounds.size.y - shape.size.y) < 20.0, "the crescent is about as tall as the hitbox")
+
+
+# --- UI theme ---------------------------------------------------------------
+
+const MENU_SCENES: Array[String] = ["res://scenes/main_menu/main_menu.tscn", "res://scenes/stage_select/stage_select.tscn",
+		"res://scenes/upgrade_menu/upgrade_menu.tscn", "res://scenes/ui/pause_menu.tscn", "res://scenes/ui/settings_panel.tscn",
+		"res://scenes/ui/result_screen.tscn", "res://scenes/ui/game_hud.tscn"]
+
+
+func test_project_uses_the_one_ink_theme() -> void:
+	assert_eq(ProjectSettings.get_setting("gui/theme/custom", ""), InkThemeBuilder.THEME_PATH, "project custom theme is the ink theme")
+	var saved: Theme = load(InkThemeBuilder.THEME_PATH) as Theme
+	assert_true(saved != null, "the saved theme loads")
+	if saved == null:
+		return
+	var built: Theme = InkThemeBuilder.build()
+	for variation: StringName in InkThemeBuilder.LABEL_VARIATIONS + InkThemeBuilder.BUTTON_VARIATIONS:
+		assert_true(saved.get_type_variation_base(variation) != &"", "saved theme has %s (re-run tools/make_ui_theme.gd)" % variation)
+		if saved.has_color(&"font_color", variation):
+			assert_eq(saved.get_color(&"font_color", variation), built.get_color(&"font_color", variation), "%s colour is up to date" % variation)
+	var button: StyleBoxFlat = saved.get_stylebox(&"normal", &"Button") as StyleBoxFlat
+	assert_true(button != null and button.bg_color.is_equal_approx(InkPalette.UI_BUTTON), "buttons are charcoal")
+	assert_eq(saved.get_color(&"font_color", &"Label"), InkPalette.PARCHMENT, "text is parchment")
+
+
+func test_menus_use_theme_variations_not_colour_overrides() -> void:
+	var known: Array[StringName] = InkThemeBuilder.LABEL_VARIATIONS + InkThemeBuilder.BUTTON_VARIATIONS
+	for path: String in MENU_SCENES:
+		var text: String = FileAccess.get_file_as_string(path)
+		assert_true(not text.contains("theme_override_colors"), "%s has no colour overrides" % path.get_file())
+		assert_true(not text.contains("theme_override_styles"), "%s has no style overrides" % path.get_file())
+		var node: Node = (load(path) as PackedScene).instantiate()
+		track(node)
+		for child: Node in node.find_children("*", "Control", true, false):
+			var variation: StringName = (child as Control).theme_type_variation
+			if variation != &"":
+				assert_true(known.has(variation), "%s: %s uses a known variation (%s)" % [path.get_file(), child.name, variation])
+
+
+func test_title_samurai_stands_against_the_moon() -> void:
+	var menu: Node = (load("res://scenes/main_menu/main_menu.tscn") as PackedScene).instantiate()
+	menu.set("save_path", "user://test_saves/title_save.json")
+	menu.set("settings_path", "user://test_saves/title_settings.cfg")
+	add_to_tree(menu)
+	var art: Control = menu.get_node("TitleArt")
+	var samurai: InkFigure = art.get_node("Samurai") as InkFigure
+	var moon: Vector2 = art.call(&"get_moon_position")
+	var head_top: float = samurai.position.y + samurai.get_head_top_y()
+	assert_true(absf(samurai.position.x - moon.x) < 40.0, "samurai stands under the moon")
+	assert_true(head_top > moon.y - 80.0 and head_top < moon.y + 40.0, "the samurai's head is against the moon disc")
+	var fog: CanvasItem = menu.get_node("Backdrop/FrontFog")
+	assert_true(not fog.visible, "front fog is off behind the menu so it never covers buttons")

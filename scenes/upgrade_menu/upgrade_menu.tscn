@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="PackedScene" path="res://scenes/backdrops/bamboo_outskirts.tscn" id="90_backdrop"]
 [ext_resource type="Script" path="res://scenes/upgrade_menu/upgrade_menu.gd" id="1_upgrades"]
 
 [node name="UpgradeMenu" type="Control"]
@@ -11,6 +12,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_upgrades")
 
+[node name="Backdrop" parent="." instance=ExtResource("90_backdrop")]
+front_fog = false
+
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -19,7 +23,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.08, 0.06, 0.11, 1)
+color = Color(0.11, 0.102, 0.122, 0.86)
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -43,24 +47,24 @@ theme_override_constants/separation = 48
 
 [node name="Title" type="Label" parent="Margin/VBox/Header"]
 layout_mode = 2
+theme_type_variation = &"HeaderLabel"
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.96, 0.87, 0.62, 1)
 theme_override_font_sizes/font_size = 72
 text = "Upgrades"
 
 [node name="LevelLabel" type="Label" parent="Margin/VBox/Header"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"SpiritLabel"
 size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.6, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 34
 text = "Level 1   (0 / 100 XP)"
 
 [node name="GoldLabel" type="Label" parent="Margin/VBox/Header"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"GoldLabel"
 size_flags_vertical = 4
-theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
 theme_override_font_sizes/font_size = 44
 text = "Gold: 0"
 
@@ -82,7 +86,7 @@ theme_override_constants/separation = 18
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.75, 0.4, 1)
+theme_type_variation = &"WarningLabel"
 theme_override_font_sizes/font_size = 30
 horizontal_alignment = 1
 
@@ -94,7 +98,7 @@ theme_override_constants/separation = 32
 unique_name_in_owner = true
 custom_minimum_size = Vector2(340, 124)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.5, 0.45, 1)
+theme_type_variation = &"DangerButton"
 theme_override_font_sizes/font_size = 34
 text = "Reset Progress"
 

@@ -33,7 +33,7 @@ layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Samurai"
-fill_color = Color(0.8, 0.22, 0.2, 1)
+fill_color = Color(0.843, 0.216, 0.169, 1)
 font_size = 28
 
 [node name="EnergyBar" type="Control" parent="Margin/TopLeft"]
@@ -43,7 +43,7 @@ layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Spirit"
-fill_color = Color(0.25, 0.6, 0.85, 1)
+fill_color = Color(0.184, 0.525, 0.722, 1)
 segments = 5
 
 [node name="GateBar" type="Control" parent="Margin/TopLeft"]
@@ -53,7 +53,7 @@ layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Gate"
-fill_color = Color(0.3, 0.65, 0.3, 1)
+fill_color = Color(0.31, 0.561, 0.388, 1)
 font_size = 24
 segments = 10
 
@@ -70,7 +70,7 @@ layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Dash"
-fill_color = Color(0.2, 0.45, 0.7, 1)
+fill_color = Color(0.29, 0.435, 0.647, 1)
 font_size = 20
 
 [node name="HeavyBar" type="Control" parent="Margin/TopLeft/AbilityRow"]
@@ -80,7 +80,7 @@ layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Heavy"
-fill_color = Color(0.6, 0.25, 0.12, 1)
+fill_color = Color(0.722, 0.196, 0.165, 1)
 font_size = 20
 
 [node name="SlashBar" type="Control" parent="Margin/TopLeft/AbilityRow"]
@@ -90,7 +90,7 @@ layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Slash"
-fill_color = Color(0.25, 0.65, 0.75, 1)
+fill_color = Color(0.184, 0.525, 0.722, 1)
 font_size = 20
 
 [node name="WaveBox" type="VBoxContainer" parent="Margin"]
@@ -103,9 +103,7 @@ mouse_filter = 2
 [node name="WaveLabel" type="Label" parent="Margin/WaveBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.96, 0.87, 0.62, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 8
+theme_type_variation = &"HudTitleLabel"
 theme_override_font_sizes/font_size = 40
 text = "Wave 1 / 3"
 horizontal_alignment = 1
@@ -113,8 +111,7 @@ horizontal_alignment = 1
 [node name="RemainingLabel" type="Label" parent="Margin/WaveBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 6
+theme_type_variation = &"HudLabel"
 theme_override_font_sizes/font_size = 28
 text = "Enemies remaining: 0"
 horizontal_alignment = 1
@@ -139,9 +136,7 @@ mouse_filter = 2
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.96, 0.87, 0.62, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 14
+theme_type_variation = &"HudBannerLabel"
 theme_override_font_sizes/font_size = 88
 text = "Wave 1"
 horizontal_alignment = 1
@@ -150,9 +145,7 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.3, 0.25, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 14
+theme_type_variation = &"HudBannerLabel"
 theme_override_font_sizes/font_size = 72
 text = "Samurai down"
 horizontal_alignment = 1
@@ -166,9 +159,7 @@ mouse_filter = 2
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.75, 0.4, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 6
+theme_type_variation = &"HudMessageLabel"
 theme_override_font_sizes/font_size = 30
 text = "Not enough Spirit Energy"
 horizontal_alignment = 1
@@ -176,9 +167,7 @@ horizontal_alignment = 1
 [node name="SummonLabel" type="Label" parent="Margin/BottomBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 8
+theme_type_variation = &"HudLabel"
 theme_override_font_sizes/font_size = 32
 text = "[1] Ashigaru (30)    [2] Yumi Archer (45)    Allies 0 / 6"
 horizontal_alignment = 1
@@ -186,9 +175,7 @@ horizontal_alignment = 1
 [node name="HintLabel" type="Label" parent="Margin/BottomBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.75)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 6
+theme_type_variation = &"HudDimLabel"
 theme_override_font_sizes/font_size = 24
 text = "A/D move   J attack (x3 combo)   K heavy   L dash   U spirit slash   1/2 summon   Esc pause"
 horizontal_alignment = 1
@@ -196,9 +183,7 @@ horizontal_alignment = 1
 [node name="DebugHintLabel" type="Label" parent="Margin/BottomBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.5, 0.75)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 6
+theme_type_variation = &"HudDimLabel"
 theme_override_font_sizes/font_size = 22
 text = "DEBUG BUILD: F1 spawn Hollow Soldier   F2 spawn Oni Brute"
 horizontal_alignment = 1

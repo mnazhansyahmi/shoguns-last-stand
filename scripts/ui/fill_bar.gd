@@ -5,8 +5,8 @@ extends Control
 
 @export var caption: String = ""
 @export var fill_color: Color = Color(0.85, 0.25, 0.22)
-@export var back_color: Color = Color(0.0, 0.0, 0.0, 0.55)
-@export var border_color: Color = Color(1.0, 1.0, 1.0, 0.85)
+@export var back_color: Color = Color(InkPalette.UI_CHARCOAL, 0.8)
+@export var border_color: Color = Color(InkPalette.GOLD, 0.85)
 @export var font_size: int = 26
 ## Number of segments marked with ticks (0 = none).
 @export var segments: int = 0
@@ -35,7 +35,7 @@ func _draw() -> void:
 	if segments > 1:
 		for i: int in range(1, segments):
 			var x: float = size.x * float(i) / float(segments)
-			draw_line(Vector2(x, 0.0), Vector2(x, size.y), Color(0.0, 0.0, 0.0, 0.5), 2.0)
+			draw_line(Vector2(x, 0.0), Vector2(x, size.y), Color(InkPalette.INK, 0.5), 2.0)
 	draw_rect(rect, border_color, false, 3.0)
 
 	var font: Font = get_theme_default_font()
@@ -48,5 +48,5 @@ func _draw() -> void:
 func _draw_text(font: Font, text: String, origin: Vector2, width: float, alignment: HorizontalAlignment) -> void:
 	if text.is_empty():
 		return
-	draw_string_outline(font, origin, text, alignment, width, font_size, 6, Color(0.0, 0.0, 0.0, 0.9))
-	draw_string(font, origin, text, alignment, width, font_size, Color.WHITE)
+	draw_string_outline(font, origin, text, alignment, width, font_size, 6, Color(InkPalette.INK, 0.9))
+	draw_string(font, origin, text, alignment, width, font_size, InkPalette.PARCHMENT)

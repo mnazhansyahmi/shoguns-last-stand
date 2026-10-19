@@ -49,5 +49,5 @@ func _apply_animation() -> void:
 func _draw() -> void:
 	var font: Font = ThemeDB.fallback_font
 	var origin: Vector2 = Vector2(-80.0, 0.0)
-	draw_string_outline(font, origin, text, HORIZONTAL_ALIGNMENT_CENTER, 160.0, FONT_SIZE, 8, Color(0.0, 0.0, 0.0, 0.9))
+	draw_string_outline(font, origin, text, HORIZONTAL_ALIGNMENT_CENTER, 160.0, FONT_SIZE, 8, Color(InkPalette.INK, 0.9))
 	draw_string(font, origin, text, HORIZONTAL_ALIGNMENT_CENTER, 160.0, FONT_SIZE, color)

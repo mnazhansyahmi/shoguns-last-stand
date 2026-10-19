@@ -3,8 +3,8 @@ extends Control
 ## Also hosts the "Reset Progress" option behind a confirmation dialog.
 
 const UPGRADE_CATALOG: UpgradeCatalog = preload("res://data/upgrades/upgrade_catalog.tres")
-const AFFORDABLE_COLOR: Color = Color(1.0, 0.9, 0.55)
-const UNAFFORDABLE_COLOR: Color = Color(1.0, 0.45, 0.4)
+const AFFORDABLE_COLOR: Color = InkPalette.GOLD_BRIGHT
+const UNAFFORDABLE_COLOR: Color = InkPalette.EMBER_TEXT
 const ROW_FONT_SIZE: int = 32
 
 ## Overridable so automated runs never touch the player's real save.

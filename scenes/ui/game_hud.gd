@@ -114,7 +114,7 @@ func show_message(text: String, duration: float = 1.2) -> void:
 	_message_tween = _show_fading(_message_label, text, duration, _message_tween)
 
 
-func show_status(text: String, color: Color = Color(1.0, 0.3, 0.25)) -> void:
+func show_status(text: String, color: Color = InkPalette.EMBER_TEXT) -> void:
 	_banner_label.visible = false
 	_status_label.text = text
 	_status_label.add_theme_color_override("font_color", color)

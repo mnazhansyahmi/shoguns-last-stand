@@ -1,8 +1,10 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/visuals/backdrop_layer.gd" id="1_layer"]
+[ext_resource type="Script" path="res://scripts/visuals/region_backdrop.gd" id="2_root"]
 
 [node name="BambooOutskirts" type="Node2D"]
+script = ExtResource("2_root")
 
 [node name="Sky" type="Node2D" parent="."]
 script = ExtResource("1_layer")

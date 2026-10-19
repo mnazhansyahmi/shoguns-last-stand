@@ -98,16 +98,16 @@ func _send(action: StringName, strength: float, is_left: bool) -> void:
 func _draw() -> void:
 	var center: Vector2 = size * 0.5
 	var radius: float = minf(size.x, size.y) * 0.5 - 4.0
-	draw_circle(center, radius, Color(0.08, 0.06, 0.12, 0.45))
-	draw_arc(center, radius, 0.0, TAU, 64, Color(1.0, 1.0, 1.0, 0.8), 4.0, true)
-	draw_arc(center, radius * dead_zone, 0.0, TAU, 32, Color(1.0, 1.0, 1.0, 0.25), 2.0, true)
+	draw_circle(center, radius, Color(InkPalette.UI_CHARCOAL, 0.6))
+	draw_arc(center, radius, 0.0, TAU, 64, Color(InkPalette.GOLD, 0.85), 4.0, true)
+	draw_arc(center, radius * dead_zone, 0.0, TAU, 32, Color(InkPalette.PARCHMENT, 0.25), 2.0, true)
 	# Direction arrows: the shape shows what the stick does, not just color.
 	for side: float in [-1.0, 1.0]:
 		var tip: Vector2 = center + Vector2(side * radius * 0.82, 0.0)
 		var back: Vector2 = center + Vector2(side * radius * 0.62, 0.0)
 		draw_colored_polygon(PackedVector2Array([tip, back + Vector2(0.0, -radius * 0.14),
-				back + Vector2(0.0, radius * 0.14)]), Color(1.0, 1.0, 1.0, 0.55))
+				back + Vector2(0.0, radius * 0.14)]), Color(InkPalette.PARCHMENT, 0.55))
 	var knob_radius: float = radius * 0.4
 	var knob_center: Vector2 = center + _vector * (radius - knob_radius)
-	draw_circle(knob_center, knob_radius, Color(0.85, 0.9, 1.0, 0.85 if is_held() else 0.6))
-	draw_arc(knob_center, knob_radius, 0.0, TAU, 48, Color(1.0, 1.0, 1.0, 0.95), 3.0, true)
+	draw_circle(knob_center, knob_radius, Color(InkPalette.PARCHMENT, 0.85 if is_held() else 0.6))
+	draw_arc(knob_center, knob_radius, 0.0, TAU, 48, InkPalette.GOLD_BRIGHT, 3.0, true)

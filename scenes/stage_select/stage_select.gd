@@ -4,9 +4,9 @@ extends Control
 
 const HOLLOW_SOLDIER: EnemyData = preload("res://data/enemies/hollow_soldier.tres")
 const ONI_BRUTE: EnemyData = preload("res://data/enemies/oni_brute.tres")
-const CLEARED_COLOR: Color = Color(0.6, 1.0, 0.65)
-const NEW_COLOR: Color = Color(1.0, 0.85, 0.35)
-const LOCKED_COLOR: Color = Color(0.6, 0.6, 0.65)
+const CLEARED_COLOR: Color = InkPalette.JADE
+const NEW_COLOR: Color = InkPalette.GOLD_BRIGHT
+const LOCKED_COLOR: Color = InkPalette.UI_DISABLED
 
 ## Overridable so automated runs never touch the player's real save.
 @export var save_path: String = SaveManager.DEFAULT_PATH

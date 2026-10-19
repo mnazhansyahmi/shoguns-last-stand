@@ -1,0 +1,112 @@
+extends Control
+## Title screen artwork over the Bamboo Outskirts backdrop: a dark wash behind the menu column,
+## an ink rock outcrop, the samurai standing on it silhouetted against the moon with the scarf
+## streaming in the wind, and bamboo leaves drifting across. Drawn by code; ignores input.
+
+## The backdrop's moon (BambooOutskirtsPainter) and its layer depth, to line the samurai up with it.
+const MOON_POSITION: Vector2 = Vector2(1480.0, 230.0)
+const MOON_DEPTH: float = 0.04
+const DESIGN_CENTER: Vector2 = Vector2(960.0, 540.0)
+const SAMURAI_HEIGHT: float = 320.0
+## How far below the moon's centre the samurai's feet stand.
+const LEDGE_DROP: float = 330.0
+const LEAF_COUNT: int = 14
+
+var _figure: InkFigure
+var _clock: float = 0.0
+var _leaf_seeds: PackedVector4Array = PackedVector4Array()
+
+
+func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_figure = InkFigure.new()
+	_figure.name = "Samurai"
+	_figure.height = SAMURAI_HEIGHT
+	_figure.kind = InkFigure.Kind.SAMURAI
+	_figure.scale.x = -1.0
+	add_child(_figure)
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 7
+	for i: int in LEAF_COUNT:
+		_leaf_seeds.append(Vector4(rng.randf(), rng.randf(), rng.randf_range(0.6, 1.4), rng.randf() * TAU))
+	resized.connect(_place_figure)
+	_place_figure()
+	_pose_figure()
+
+
+func _process(delta: float) -> void:
+	_clock += delta
+	_pose_figure()
+	queue_redraw()
+
+
+## Where the moon is drawn on this screen (the backdrop shifts it on wide screens).
+func get_moon_position() -> Vector2:
+	return MOON_POSITION + BackdropLayer.parallax_offset(size * 0.5, DESIGN_CENTER, MOON_DEPTH)
+
+
+func get_ledge_position() -> Vector2:
+	return get_moon_position() + Vector2(10.0, LEDGE_DROP)
+
+
+func _place_figure() -> void:
+	if _figure != null:
+		_figure.position = get_ledge_position()
+
+
+## Calm guard with the blade lowered toward the menu; breathing, and the scarf in the wind.
+func _pose_figure() -> void:
+	var pose: FigurePose = _figure.pose
+	pose.lean = 0.03 + 0.01 * sin(_clock * 1.9)
+	pose.crouch = 1.0
+	pose.grip = Vector2(12.0, -9.0)
+	pose.blade = 1.2 + 0.03 * sin(_clock * 1.3)
+	pose.head_tilt = 0.06
+	_figure.breath = sin(_clock * TAU * 0.25)
+	_figure.trail = 0.85 + 0.15 * sin(_clock * 0.7)
+	_figure.clock = _clock
+	_figure.refresh()
+
+
+func _draw() -> void:
+	# Dark wash behind the menu column (left) and along the bottom, so text reads on the art.
+	var wash: Color = InkPalette.UI_CHARCOAL
+	draw_polygon(PackedVector2Array([Vector2(0.0, 0.0), Vector2(size.x * 0.55, 0.0), Vector2(size.x * 0.55, size.y), Vector2(0.0, size.y)]),
+			PackedColorArray([Color(wash, 0.9), Color(wash, 0.0), Color(wash, 0.0), Color(wash, 0.9)]))
+	InkBrush.gradient_rect(self, Rect2(0.0, size.y * 0.72, size.x, size.y * 0.28), Color(wash, 0.0), Color(wash, 0.75))
+	_draw_outcrop()
+	_draw_leaves()
+
+
+func _draw_outcrop() -> void:
+	var ledge: Vector2 = get_ledge_position()
+	var base_y: float = maxf(size.y, ledge.y + 200.0) + 10.0
+	var rock: PackedVector2Array = PackedVector2Array([
+		Vector2(ledge.x - 330.0, base_y), Vector2(ledge.x - 250.0, ledge.y + 190.0), Vector2(ledge.x - 210.0, ledge.y + 120.0),
+		Vector2(ledge.x - 150.0, ledge.y + 60.0), Vector2(ledge.x - 120.0, ledge.y + 8.0), Vector2(ledge.x - 60.0, ledge.y - 4.0),
+		Vector2(ledge.x + 40.0, ledge.y - 2.0), Vector2(ledge.x + 110.0, ledge.y + 10.0), Vector2(ledge.x + 160.0, ledge.y + 70.0),
+		Vector2(ledge.x + 250.0, ledge.y + 110.0), Vector2(ledge.x + 300.0, ledge.y + 210.0), Vector2(size.x + 40.0, ledge.y + 260.0),
+		Vector2(size.x + 40.0, base_y)])
+	InkBrush.fill(self, rock, InkPalette.INK)
+	# A few dry-brush cracks in the stone.
+	var crack: Color = InkPalette.INK_DETAIL
+	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-90.0, 30.0), ledge + Vector2(-70.0, 90.0), ledge + Vector2(-110.0, 160.0)]), 4.0, 1.5, crack)
+	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(70.0, 40.0), ledge + Vector2(120.0, 120.0), ledge + Vector2(100.0, 200.0)]), 4.0, 1.5, crack)
+	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-200.0, 160.0), ledge + Vector2(-160.0, 230.0)]), 3.0, 1.5, crack)
+
+
+func _draw_leaves() -> void:
+	var color: Color = Color(InkPalette.BAMBOO_NEAR, 0.85)
+	for i: int in _leaf_seeds.size():
+		var seed_value: Vector4 = _leaf_seeds[i]
+		var speed: float = seed_value.z
+		var travel: float = _clock * 70.0 * speed
+		var x: float = fposmod(seed_value.x * (size.x + 400.0) - travel * 1.4, size.x + 400.0) - 200.0
+		var y: float = fposmod(seed_value.y * (size.y + 200.0) + travel, size.y + 200.0) - 100.0
+		var angle: float = seed_value.w + _clock * 1.5 * speed
+		var length: float = 26.0 + 10.0 * speed
+		var direction: Vector2 = Vector2.from_angle(angle)
+		var normal: Vector2 = direction.orthogonal() * (3.5 + 1.5 * absf(sin(angle * 2.0)))
+		var base: Vector2 = Vector2(x, y) - direction * length * 0.5
+		InkBrush.fill_convex(self, PackedVector2Array([base, base + direction * length * 0.32 + normal,
+				base + direction * length, base + direction * length * 0.32 - normal]), color)

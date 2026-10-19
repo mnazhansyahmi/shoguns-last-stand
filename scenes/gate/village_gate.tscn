@@ -19,7 +19,7 @@ script = ExtResource("2_visual")
 position = Vector2(0, -440)
 script = ExtResource("5_bar")
 bar_size = Vector2(260, 18)
-fill_color = Color(0.35, 0.8, 0.35, 1)
+fill_color = Color(0.561, 0.796, 0.608, 1)
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("3_health")

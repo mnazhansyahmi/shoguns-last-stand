@@ -13,9 +13,9 @@ const MAX_DAMAGE_NUMBERS: int = 40
 const MAX_HIT_SPARKS: int = 24
 ## Sparks appear this far below the hurtbox's top edge (the report position), at the body.
 const SPARK_DROP: float = 40.0
-const ENEMY_DAMAGE_COLOR: Color = Color(1.0, 0.95, 0.75)
-const HEAVY_DAMAGE_COLOR: Color = Color(1.0, 0.62, 0.2)
-const DEFENDER_DAMAGE_COLOR: Color = Color(1.0, 0.38, 0.32)
+const ENEMY_DAMAGE_COLOR: Color = InkPalette.PARCHMENT
+const HEAVY_DAMAGE_COLOR: Color = InkPalette.GOLD_BRIGHT
+const DEFENDER_DAMAGE_COLOR: Color = InkPalette.EMBER_TEXT
 
 static var active: BattleFeedback
 

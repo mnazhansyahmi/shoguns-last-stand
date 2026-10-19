@@ -7,10 +7,10 @@ signal upgrades_requested
 signal main_menu_requested
 signal next_stage_requested
 
-const VICTORY_COLOR: Color = Color(0.5, 1.0, 0.55)
-const DEFEAT_COLOR: Color = Color(1.0, 0.35, 0.3)
-const WARNING_COLOR: Color = Color(1.0, 0.6, 0.3)
-const OK_COLOR: Color = Color(0.7, 0.75, 0.8)
+const VICTORY_COLOR: Color = InkPalette.GOLD_BRIGHT
+const DEFEAT_COLOR: Color = InkPalette.EMBER_TEXT
+const WARNING_COLOR: Color = InkPalette.EMBER_TEXT
+const OK_COLOR: Color = InkPalette.PARCHMENT_DIM
 
 @onready var _title_label: Label = %TitleLabel
 @onready var _subtitle_label: Label = %SubtitleLabel

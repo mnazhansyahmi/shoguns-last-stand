@@ -3,18 +3,6 @@
 [ext_resource type="Script" path="res://scenes/ui/pause_menu.gd" id="1_pause"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="2_settings"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.09, 0.07, 0.12, 0.96)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.96, 0.87, 0.62, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-
 [node name="PauseMenu" type="CanvasLayer"]
 process_mode = 3
 layer = 20
@@ -49,7 +37,6 @@ grow_vertical = 2
 [node name="Panel" type="PanelContainer" parent="Menu/Center"]
 custom_minimum_size = Vector2(620, 0)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="Margin" type="MarginContainer" parent="Menu/Center/Panel"]
 layout_mode = 2
@@ -64,7 +51,7 @@ theme_override_constants/separation = 20
 
 [node name="Title" type="Label" parent="Menu/Center/Panel/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.96, 0.87, 0.62, 1)
+theme_type_variation = &"HeaderLabel"
 theme_override_font_sizes/font_size = 72
 text = "Paused"
 horizontal_alignment = 1

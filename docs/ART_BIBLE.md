@@ -81,7 +81,10 @@ Back to front:
 | Disabled text | `#7A7266` | `UI_DISABLED` |
 | Borders, highlights, rewards | `#C9A24A` | `GOLD` |
 | Focus ring, title | `#E8C46A` | `GOLD_BRIGHT` |
-| Danger, primary call to action | `#B8322A` | `CRIMSON` |
+| Danger buttons (border) | `#B8322A` | `CRIMSON` |
+| Warning / defeat text on charcoal | `#E8795F` | `EMBER_TEXT` |
+| Success / cleared text on charcoal | `#8FCB9B` | `JADE` |
+| Spirit energy bar fill | `#2F86B8` | `SPIRIT_DEEP` |
 
 ## Value and contrast rules (phone readability)
 
@@ -176,8 +179,17 @@ Effects never deal damage, never block input, and free themselves.
 - Buttons: charcoal, parchment text, gold border on hover and focus, and a darker press state.
   Touch targets keep their existing minimum sizes (see ARCHITECTURE.md).
 - Text always has a dark outline when it sits on the battlefield (HUD, damage numbers).
-- Named variations (`theme_type_variation`) replace per-scene colour overrides: `TitleLabel`,
-  `HeaderLabel`, `GoldLabel`, `DimLabel`, `WarningLabel`, `DangerButton`.
+- Named variations (`theme_type_variation`) replace per-scene colour overrides:
+  - Labels: `TitleLabel` and `HeaderLabel` (serif, gold), `GoldLabel`, `DimLabel`, `WarningLabel`, `SuccessLabel`, `SpiritLabel`.
+  - Battlefield labels with an ink outline: `HudLabel`, `HudDimLabel`, `HudTitleLabel`, `HudBannerLabel`, `HudMessageLabel`.
+  - Buttons: `PrimaryButton` (the screen's main action), `ToggleButton` (lit gold when on), `DangerButton` (reset progress).
+- Titles use a serif system font (Yu Mincho / Hiragino Mincho / Noto Serif / Georgia, whichever the device
+  has). Nothing is downloaded; if none is installed, Godot falls back to its default font.
+- Drawn widgets (HUD bars, touch buttons, joystick, world health bars, damage numbers) take their colours
+  from `InkPalette`. Touch buttons are charcoal discs with a gold rim and the action's colour as a ring.
+- **Title screen:** the Bamboo Outskirts backdrop with a dark wash behind the menu column, an ink rock
+  outcrop, and the samurai silhouetted against the moon, scarf in the wind, with bamboo leaves drifting
+  past. The menu screens reuse the backdrop behind a charcoal veil.
 
 ## Adding new art
 

@@ -43,6 +43,11 @@ const UI_DISABLED: Color = Color("#7a7266")
 const GOLD: Color = Color("#c9a24a")
 const GOLD_BRIGHT: Color = Color("#e8c46a")
 const CRIMSON: Color = Color("#b8322a")
+## Readable on charcoal: warnings / defeat text, success / cleared text.
+const EMBER_TEXT: Color = Color("#e8795f")
+const JADE: Color = Color("#8fcb9b")
+## Spirit energy bar fill (deep enough for parchment text on top).
+const SPIRIT_DEEP: Color = Color("#2f86b8")
 
 ## Backdrop colours that can appear behind a fighter (checked for contrast against INK).
 const ACTION_BAND_BACKDROP: Array[Color] = [SKY_HORIZON, MOUNTAIN_FAR, MIST, MOUNTAIN_MID, BAMBOO_FAR, GROUND_TOP]

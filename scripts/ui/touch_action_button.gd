@@ -7,7 +7,7 @@ extends Control
 @export var action: StringName = &"attack"
 @export var caption: String = ""
 @export var sub_caption: String = ""
-@export var base_color: Color = Color(0.75, 0.2, 0.18)
+@export var base_color: Color = InkPalette.SAMURAI_RED
 @export var font_size: int = 30
 
 ## Remaining cooldown as a fraction (1 = just used, 0 = ready).
@@ -116,16 +116,18 @@ func _draw() -> void:
 	var center: Vector2 = size * 0.5
 	var radius: float = minf(size.x, size.y) * 0.5 - 4.0
 	var held: bool = is_held()
-	draw_circle(center, radius, Color(0.08, 0.06, 0.12, 0.55))
-	var fill: Color = base_color.lightened(0.35) if held else base_color
-	fill.a = 0.8 if held else 0.55
-	draw_circle(center, radius * (0.86 if held else 0.92), fill)
+	# Charcoal disc, the action's colour as a ring and wash, gold rim (docs/ART_BIBLE.md, UI).
+	draw_circle(center, radius, Color(InkPalette.UI_CHARCOAL, 0.72))
+	var fill: Color = base_color.lightened(0.2) if held else base_color
+	fill.a = 0.55 if held else 0.3
+	draw_circle(center, radius * (0.86 if held else 0.9), fill)
+	draw_arc(center, radius * 0.86, 0.0, TAU, 64, Color(base_color, 0.95), 5.0, true)
 	if cooldown_ratio > 0.0:
-		_draw_sector(center, radius * 0.92, cooldown_ratio, Color(0.0, 0.0, 0.0, 0.65))
+		_draw_sector(center, radius * 0.92, cooldown_ratio, Color(InkPalette.INK, 0.7))
 	if not available:
 		var reach: float = radius * 0.62
-		draw_line(center + Vector2(-reach, reach), center + Vector2(reach, -reach), Color(1.0, 1.0, 1.0, 0.6), 6.0, true)
-	draw_arc(center, radius, 0.0, TAU, 64, Color(1.0, 1.0, 1.0, 0.9), 4.0 if held else 3.0, true)
+		draw_line(center + Vector2(-reach, reach), center + Vector2(reach, -reach), Color(InkPalette.PARCHMENT, 0.6), 6.0, true)
+	draw_arc(center, radius, 0.0, TAU, 64, InkPalette.GOLD_BRIGHT if held else Color(InkPalette.GOLD, 0.9), 4.0 if held else 3.0, true)
 
 	var font: Font = get_theme_default_font()
 	var width: float = size.x
@@ -141,8 +143,8 @@ func _draw() -> void:
 
 
 func _draw_text(font: Font, text: String, origin: Vector2, width: float, text_size: int) -> void:
-	draw_string_outline(font, origin, text, HORIZONTAL_ALIGNMENT_CENTER, width, text_size, 6, Color(0.0, 0.0, 0.0, 0.9))
-	draw_string(font, origin, text, HORIZONTAL_ALIGNMENT_CENTER, width, text_size, Color.WHITE)
+	draw_string_outline(font, origin, text, HORIZONTAL_ALIGNMENT_CENTER, width, text_size, 6, Color(InkPalette.INK, 0.9))
+	draw_string(font, origin, text, HORIZONTAL_ALIGNMENT_CENTER, width, text_size, InkPalette.PARCHMENT)
 
 
 ## Pie slice for the remaining cooldown, starting at 12 o'clock.

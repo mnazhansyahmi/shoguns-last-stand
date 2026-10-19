@@ -12,6 +12,8 @@ Godot 4.7.2 game, typed GDScript. The full spec is `docs/MASTER_PROMPT.md`. Work
 - Import / parse check: `godot_console --headless --import`
 - Boot check: `godot_console --headless --quit`
 - Tests: `godot_console --headless --path . -s res://tests/run_tests.gd` (add new test files to `TEST_SCRIPTS` in `tests/run_tests.gd`)
+- Regenerate the UI theme after changing `InkThemeBuilder` or `InkPalette`: `godot_console --headless --path . -s res://tools/make_ui_theme.gd`
+- Screenshots (needs a real renderer, so no `--headless`): `godot_console --path . -s res://tools/capture_screenshots.gd -- --out=<dir> [--size=WxH] [--tag=name]`
 
 ## Conventions
 
@@ -22,7 +24,7 @@ Godot 4.7.2 game, typed GDScript. The full spec is `docs/MASTER_PROMPT.md`. Work
 - Systems talk through signals; avoid hardcoded cross-scene node paths.
 - Avoid autoload singletons unless a later phase justifies one (document it in `docs/ARCHITECTURE.md`). The only one is `Audio` (`AudioManager`). Call `AudioManager.play(id)`; it is a no-op without the autoload, so scenes and tests must not depend on it.
 - Sound effects: ids live in `data/audio/sfx_library.tres`. Placeholders come from `tools/generate_sfx.gd`. Call `AudioManager.shutdown_audio(tree)` before quitting, or Godot reports still-playing streams as leaked.
-- Visuals are placeholder geometric shapes (Polygon2D/ColorRect). No third-party assets.
+- All art is drawn by code (`scripts/visuals/`, style guide `docs/ART_BIBLE.md`). No image files, downloads or third-party assets. Colours come from `InkPalette`; UI colours come from the theme's variations, not per-node overrides.
 - Text files use LF line endings (enforced by `.gitattributes`).
 - Commit `*.uid` files; ignore `.godot/`.
 - Stored node references (targets, projectile sources) can be freed at any time. Check `is_instance_valid(member)` on the member itself before using it or passing it on: passing a freed object into a typed parameter is a script error. Clear the reference when it's invalid.
