@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StageData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="1_stage"]
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="2_wave"]
+[ext_resource type="Resource" path="res://data/stages/stage_2/wave_1.tres" id="w1"]
+[ext_resource type="Resource" path="res://data/stages/stage_2/wave_2.tres" id="w2"]
+[ext_resource type="Resource" path="res://data/stages/stage_2/wave_3.tres" id="w3"]
+[ext_resource type="Resource" path="res://data/stages/stage_2/wave_4.tres" id="w4"]
+
+[resource]
+script = ExtResource("1_stage")
+stage_id = "stage_2"
+display_name = "Bamboo Path"
+waves = Array[ExtResource("2_wave")]([ExtResource("w1"), ExtResource("w2"), ExtResource("w3"), ExtResource("w4")])
+first_wave_delay = 3.0
+break_duration = 5.0
+clear_gold_bonus = 200
+clear_xp_bonus = 70
+defeat_reward_ratio = 0.5
+replay_gold_multiplier = 0.5
+description = "Soldiers slip through the bamboo in longer lines. One Oni Brute."

@@ -117,7 +117,16 @@ layout_mode = 2
 [node name="Buttons" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
 alignment = 1
-theme_override_constants/separation = 32
+theme_override_constants/separation = 24
+
+[node name="NextButton" type="Button" parent="Center/Panel/Margin/VBox/Buttons"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(340, 124)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 1, 0.65, 1)
+theme_override_font_sizes/font_size = 38
+text = "Next Stage"
 
 [node name="RetryButton" type="Button" parent="Center/Panel/Margin/VBox/Buttons"]
 unique_name_in_owner = true

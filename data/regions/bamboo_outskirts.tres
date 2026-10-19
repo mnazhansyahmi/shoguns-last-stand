@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RegionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/region_data.gd" id="1_region"]
+[ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="2_stage"]
+[ext_resource type="Resource" path="res://data/stages/stage_1.tres" id="s1"]
+[ext_resource type="Resource" path="res://data/stages/stage_2.tres" id="s2"]
+[ext_resource type="Resource" path="res://data/stages/stage_3.tres" id="s3"]
+[ext_resource type="Resource" path="res://data/stages/stage_4.tres" id="s4"]
+[ext_resource type="Resource" path="res://data/stages/stage_5.tres" id="s5"]
+
+[resource]
+script = ExtResource("1_region")
+region_id = "bamboo_outskirts"
+display_name = "Bamboo Outskirts"
+stages = Array[ExtResource("2_stage")]([ExtResource("s1"), ExtResource("s2"), ExtResource("s3"), ExtResource("s4"), ExtResource("s5")])

@@ -92,8 +92,8 @@ func test_catalog_has_the_six_spec_upgrades() -> void:
 
 func test_costs_rise_with_level() -> void:
 	var upgrade: UpgradeData = CATALOG.find("samurai_max_health")
-	assert_eq(upgrade.get_cost(0), 100, "level 1 costs 100")
-	assert_eq(upgrade.get_cost(1), 120, "level 2 costs 120")
+	assert_eq(upgrade.get_cost(0), 140, "level 1 costs 140")
+	assert_eq(upgrade.get_cost(1), 170, "level 2 costs 170")
 	assert_true(upgrade.get_cost(2) > upgrade.get_cost(1), "costs keep rising")
 	assert_eq(upgrade.get_cost(upgrade.max_level), -1, "no cost when maxed")
 
@@ -103,19 +103,19 @@ func test_purchase_succeeds_with_enough_gold() -> void:
 	progress.gold = 500
 	var upgrade: UpgradeData = CATALOG.find("samurai_max_health")
 	assert_eq(UpgradeShop.purchase(progress, upgrade), UpgradeShop.Result.OK, "purchase OK")
-	assert_eq(progress.gold, 400, "100 gold spent")
+	assert_eq(progress.gold, 360, "140 gold spent")
 	assert_eq(progress.get_upgrade_level("samurai_max_health"), 1, "level 1")
 	assert_eq(UpgradeShop.purchase(progress, upgrade), UpgradeShop.Result.OK, "second purchase OK")
-	assert_eq(progress.gold, 280, "120 gold spent for level 2")
+	assert_eq(progress.gold, 190, "170 gold spent for level 2")
 	assert_eq(progress.get_upgrade_level("samurai_max_health"), 2, "level 2")
 
 
 func test_purchase_rejected_without_enough_gold() -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
-	progress.gold = 99
+	progress.gold = 139
 	var upgrade: UpgradeData = CATALOG.find("samurai_max_health")
 	assert_eq(UpgradeShop.purchase(progress, upgrade), UpgradeShop.Result.NOT_ENOUGH_GOLD, "rejected")
-	assert_eq(progress.gold, 99, "gold unchanged")
+	assert_eq(progress.gold, 139, "gold unchanged")
 	assert_eq(progress.get_upgrade_level("samurai_max_health"), 0, "level unchanged")
 
 

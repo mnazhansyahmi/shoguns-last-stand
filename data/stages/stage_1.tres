@@ -9,10 +9,12 @@
 [resource]
 script = ExtResource("1_stage")
 stage_id = "stage_1"
-display_name = "Stage 1 - The Village Gate"
+display_name = "The Village Gate"
 waves = Array[ExtResource("2_wave")]([ExtResource("3_wave1"), ExtResource("4_wave2"), ExtResource("5_wave3")])
 first_wave_delay = 3.0
 break_duration = 5.0
 clear_gold_bonus = 150
 clear_xp_bonus = 50
 defeat_reward_ratio = 0.5
+replay_gold_multiplier = 0.5
+description = "The first attack on the village. Learn to fight and summon allies."

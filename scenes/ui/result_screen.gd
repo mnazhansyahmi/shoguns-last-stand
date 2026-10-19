@@ -5,6 +5,7 @@ extends CanvasLayer
 signal retry_requested
 signal upgrades_requested
 signal main_menu_requested
+signal next_stage_requested
 
 const VICTORY_COLOR: Color = Color(0.5, 1.0, 0.55)
 const DEFEAT_COLOR: Color = Color(1.0, 0.35, 0.3)
@@ -22,6 +23,7 @@ const OK_COLOR: Color = Color(0.7, 0.75, 0.8)
 @onready var _retry_button: Button = %RetryButton
 @onready var _upgrades_button: Button = %UpgradesButton
 @onready var _menu_button: Button = %MenuButton
+@onready var _next_button: Button = %NextButton
 
 
 func _ready() -> void:
@@ -29,9 +31,13 @@ func _ready() -> void:
 	_retry_button.pressed.connect(retry_requested.emit)
 	_upgrades_button.pressed.connect(upgrades_requested.emit)
 	_menu_button.pressed.connect(main_menu_requested.emit)
+	_next_button.pressed.connect(next_stage_requested.emit)
+	_next_button.visible = false
 
 
-func show_result(reward: BattleReward, progress: PlayerProgress, levels_gained: int, save_error: Error) -> void:
+## `next_stage_name` non-empty shows the Next Stage button (only after a first clear).
+func show_result(reward: BattleReward, progress: PlayerProgress, levels_gained: int, save_error: Error,
+		next_stage_name: String = "") -> void:
 	if reward.victory:
 		_title_label.text = "VICTORY"
 		_title_label.add_theme_color_override("font_color", VICTORY_COLOR)
@@ -45,6 +51,8 @@ func show_result(reward: BattleReward, progress: PlayerProgress, levels_gained: 
 		var percent: int = roundi(reward.kill_ratio * 100.0)
 		_gold_label.text = "Gold earned: +%d   (%d%% of enemy rewards)" % [reward.gold, percent]
 		_xp_label.text = "XP earned: +%d   (%d%% of enemy rewards)" % [reward.xp, percent]
+	if reward.replay:
+		_gold_label.text += "   - replay: %d%% gold" % roundi(reward.replay_multiplier * 100.0)
 	_kills_label.text = "Enemies defeated: %d" % reward.enemies_defeated
 
 	var level: int = progress.get_level()
@@ -60,5 +68,10 @@ func show_result(reward: BattleReward, progress: PlayerProgress, levels_gained: 
 		_save_label.text = "Could not save progress (error %d). Rewards are lost if you quit." % save_error
 		_save_label.add_theme_color_override("font_color", WARNING_COLOR)
 
+	_next_button.visible = not next_stage_name.is_empty()
+	_next_button.text = "Next: %s" % next_stage_name if not next_stage_name.is_empty() else "Next Stage"
 	visible = true
-	_retry_button.grab_focus()
+	if _next_button.visible:
+		_next_button.grab_focus()
+	else:
+		_retry_button.grab_focus()

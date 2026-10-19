@@ -166,6 +166,7 @@ func test_menu_controls_meet_44pt_minimum() -> void:
 		"settings panel": "res://scenes/ui/settings_panel.tscn",
 		"result screen": "res://scenes/ui/result_screen.tscn",
 		"hud": "res://scenes/ui/game_hud.tscn",
+		"stage select": "res://scenes/stage_select/stage_select.tscn",
 	}
 	for label: String in scenes:
 		var node: Node = (load(scenes[label]) as PackedScene).instantiate()

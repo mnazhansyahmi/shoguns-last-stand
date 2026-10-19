@@ -166,38 +166,49 @@ func test_vibration_needs_setting_and_phone() -> void:
 
 # --- Balance ----------------------------------------------------------------
 
-## Simulates repeated full stage-1 clears, buying the cheapest available upgrade each time.
-func test_stage_clear_buys_about_two_upgrades() -> void:
-	var kills: Array[EnemyData] = []
-	for wave: WaveData in STAGE_1.waves:
-		for entry: WaveEntry in wave.entries:
-			for i: int in entry.count:
-				kills.append(entry.enemy)
-	var clear_gold: int = RewardCalculator.calculate(kills, STAGE_1, true).gold
+## Region 1 economy: clearing each stage once (full gold) then once more (replay gold), buying the
+## cheapest upgrade whenever affordable. Stages 1-4 should make the player strong enough for stage 5
+## without maxing everything; stage 5 finishes the set.
+func test_region_economy_curve() -> void:
+	var region: RegionData = StageProgression.default_region()
 	var progress: PlayerProgress = PlayerProgress.new()
-	var per_clear: Array[int] = []
 	var total_levels: int = 0
 	for upgrade: UpgradeData in CATALOG.upgrades:
 		total_levels += upgrade.max_level
-	while per_clear.size() < 100:
-		progress.gold += clear_gold
-		var bought: int = 0
-		while true:
-			var cheapest: UpgradeData = null
-			for upgrade: UpgradeData in CATALOG.upgrades:
-				var level: int = progress.get_upgrade_level(upgrade.id)
-				if not upgrade.is_maxed(level) and (cheapest == null or upgrade.get_cost(level) < cheapest.get_cost(progress.get_upgrade_level(cheapest.id))):
-					cheapest = upgrade
-			if cheapest == null or UpgradeShop.purchase(progress, cheapest) != UpgradeShop.Result.OK:
-				break
-			bought += 1
-		per_clear.append(bought)
-		var owned: int = 0
+	var owned_after: Array[int] = []
+	var first_clear_purchases: int = -1
+	for stage: StageData in region.stages:
+		for multiplier: float in [1.0, stage.replay_gold_multiplier]:
+			progress.gold += floori(stage.get_full_clear_gold() * multiplier)
+			var bought: int = _buy_cheapest(progress)
+			if first_clear_purchases < 0:
+				first_clear_purchases = bought
+		owned_after.append(_owned(progress))
+	var before_final: float = float(owned_after[3]) / total_levels
+	assert_true(first_clear_purchases >= 2, "first stage 1 clear buys at least 2 upgrades (%d)" % first_clear_purchases)
+	assert_true(before_final >= 0.55 and before_final <= 0.8,
+			"clearing stages 1-4 twice owns %d%% of upgrade levels before stage 5 (target 55-80%%)" % roundi(before_final * 100.0))
+	assert_true(owned_after[4] >= total_levels - 2, "stage 5 clears finish (nearly) everything (%d/%d)" % [owned_after[4], total_levels])
+	for i: int in range(1, owned_after.size()):
+		assert_true(owned_after[i] > owned_after[i - 1], "every stage adds upgrades (%s)" % str(owned_after))
+
+
+func _buy_cheapest(progress: PlayerProgress) -> int:
+	var bought: int = 0
+	while true:
+		var cheapest: UpgradeData = null
 		for upgrade: UpgradeData in CATALOG.upgrades:
-			owned += progress.get_upgrade_level(upgrade.id)
-		if owned >= total_levels:
-			break
-	var average: float = float(total_levels) / per_clear.size()
-	assert_true(per_clear[0] >= 2, "first clear buys at least 2 upgrades (bought %d)" % per_clear[0])
-	assert_true(average >= 1.7 and average <= 2.4,
-			"about 2 upgrades per clear over the whole progression (%.2f over %d clears)" % [average, per_clear.size()])
+			var level: int = progress.get_upgrade_level(upgrade.id)
+			if not upgrade.is_maxed(level) and (cheapest == null or upgrade.get_cost(level) < cheapest.get_cost(progress.get_upgrade_level(cheapest.id))):
+				cheapest = upgrade
+		if cheapest == null or UpgradeShop.purchase(progress, cheapest) != UpgradeShop.Result.OK:
+			return bought
+		bought += 1
+	return bought
+
+
+func _owned(progress: PlayerProgress) -> int:
+	var total: int = 0
+	for upgrade: UpgradeData in CATALOG.upgrades:
+		total += progress.get_upgrade_level(upgrade.id)
+	return total

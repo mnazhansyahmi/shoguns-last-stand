@@ -38,11 +38,19 @@ Enemies were buffed after playtesting showed summoned allies could win stage 1 w
 | Ashigaru | 120 | 14 | 30 | Melee |
 | Yumi Archer | 70 | 12 | 45 | Projectile |
 
-## Stage 1 waves
+## Region 1: Bamboo Outskirts
 
-1. 6 × Hollow Soldier, one every 1.0 s
-2. 9 × Hollow Soldier, every 0.7 s
-3. 10 × Hollow Soldier every 0.6 s, then 1 × Oni Brute
+Stages unlock in order (stage N needs stage N-1 cleared) and are picked on the stage select screen (Start). Only Hollow Soldiers and Oni Brutes appear. Oni Brutes head for the gate once it is in range (target priority gate → allies → player).
+
+| # | Stage | Waves | Soldiers | Oni | Fastest spawn | First clear gold | Replay gold |
+|---|---|---|---|---|---|---|---|
+| 1 | The Village Gate | 3 | 25 | 1 | 0.6 s | 340 | 170 |
+| 2 | Bamboo Path | 4 | 38 | 1 | 0.55 s | 468 | 234 |
+| 3 | Misty Grove | 4 | 44 | 5 | 0.5 s | 724 | 362 |
+| 4 | Broken Shrine | 5 | 72 | 10 | 0.4 s | 1162 | 581 |
+| 5 | Oni's Hollow | 5 (last = boss: 6 Oni + 12 soldiers) | 76 | 16 | 0.35 s | 1546 | 773 |
+
+Replays (stage already cleared) pay 50% gold; XP is unchanged. After a first clear the result screen offers **Next Stage**.
 
 ## Village gate
 
@@ -50,20 +58,30 @@ Enemies were buffed after playtesting showed summoned allies could win stage 1 w
 
 ## Rewards
 
-Hollow Soldier: 6 gold, 10 XP. Oni Brute: 40 gold, 50 XP. Clearing a stage adds 150 gold and 50 XP. A defeat keeps 50% of kill rewards. A full stage 1 clear (25 soldiers + 1 Oni) pays **340 gold** and 300 XP.
+Hollow Soldier: 6 gold, 10 XP. Oni Brute: 40 gold, 50 XP. Each stage adds its own clear bonus (150 / 200 / 260 / 330 / 450 gold). A defeat keeps 50% of kill rewards; a replay pays 50% gold.
 
 ## Upgrades (5 levels each; cost grows ×1.2 per level, rounded to 5)
 
 | Upgrade | Per level | Level costs |
 |---|---|---|
-| Samurai max HP | +20 HP | 100, 120, 145, 175, 205 |
-| Samurai attack damage | +3 | 120, 145, 175, 205, 250 |
-| Ashigaru HP | +20 HP | 80, 95, 115, 140, 165 |
-| Ashigaru damage | +3 | 80, 95, 115, 140, 165 |
-| Archer damage | +3 | 100, 120, 145, 175, 205 |
-| Spirit regeneration | +1 energy/s | 120, 145, 175, 205, 250 |
+| Samurai max HP | +20 HP | 140, 170, 200, 240, 290 |
+| Samurai attack damage | +3 | 170, 205, 245, 295, 355 |
+| Ashigaru HP | +20 HP | 110, 130, 160, 190, 230 |
+| Ashigaru damage | +3 | 110, 130, 160, 190, 230 |
+| Archer damage | +3 | 140, 170, 200, 240, 290 |
+| Spirit regeneration | +1 energy/s | 170, 205, 245, 295, 355 |
 
-**Pacing target:** about 2 upgrades per stage clear. If you always buy the cheapest upgrade, early clears buy about 3, later ones 1–2, and everything is maxed after about 15 clears (it was 38 before Phase 7). A test checks this.
+**Economy curve** (clear each stage once, then replay it once, always buying the cheapest upgrade; checked by a test and by `tools/balance_sim.gd -- curve`):
+
+| After | Upgrade levels owned (of 30) |
+|---|---|
+| Stage 1 ×2 | 4 |
+| Stage 2 ×2 | 8 |
+| Stage 3 ×2 | 14 |
+| Stage 4 ×2 | 22 (≈ 73%, going into stage 5) |
+| Stage 5 ×2 | 30 |
+
+The first stage 1 clear buys 2 upgrades. Stage 1 is winnable with no upgrades.
 
 ## Game feel
 

@@ -39,6 +39,8 @@ var _settings_store: SettingsStore
 var _settings: GameSettings
 var _kills: Array[EnemyData] = []
 var _camera_base_y: float = 0.0
+## The stage was already cleared before this battle (replay rewards, no Next Stage button).
+var _was_cleared_before: bool = false
 
 
 func _ready() -> void:
@@ -48,6 +50,10 @@ func _ready() -> void:
 	_apply_upgrades()
 	_settings_store = SettingsStore.new(settings_path)
 	_settings = _settings_store.load_settings()
+	if SceneRoutes.battle_stage != null:
+		_wave_director.stage = SceneRoutes.battle_stage
+	if _wave_director.stage != null:
+		_was_cleared_before = _progress.is_stage_cleared(_wave_director.stage.stage_id)
 
 	_player.health_changed.connect(_hud.set_player_health)
 	_player.died.connect(_on_player_died)
@@ -68,7 +74,8 @@ func _ready() -> void:
 	_pause_menu.main_menu_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.MAIN_MENU))
 	_pause_menu.settings_changed.connect(_on_settings_changed)
 	_pause_menu.settings_closed.connect(_on_settings_closed)
-	_result_screen.retry_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.BATTLEFIELD))
+	_result_screen.retry_requested.connect(_on_retry_requested)
+	_result_screen.next_stage_requested.connect(_on_next_stage_requested)
 	_result_screen.upgrades_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.UPGRADE_MENU))
 	_result_screen.main_menu_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.MAIN_MENU))
 	get_viewport().size_changed.connect(_apply_layout)
@@ -285,6 +292,20 @@ func _on_player_died() -> void:
 	_respawn_time_left = PLAYER_RESPAWN_DELAY
 
 
+func get_stage() -> StageData:
+	return _wave_director.stage
+
+
+func _on_retry_requested() -> void:
+	SceneRoutes.go_to_battle(get_tree(), _wave_director.stage)
+
+
+func _on_next_stage_requested() -> void:
+	var next: StageData = StageProgression.next_stage(StageProgression.default_region(), _wave_director.stage)
+	if next != null:
+		SceneRoutes.go_to_battle(get_tree(), next)
+
+
 func _on_ally_summoned(_ally: Ally, _slot: int) -> void:
 	AudioManager.play(&"summon")
 
@@ -337,8 +358,13 @@ func _end_battle(victory: bool) -> void:
 	_pause_menu.close()
 	_hud.hide_status()
 	var stage: StageData = _wave_director.stage
-	var reward: BattleReward = RewardCalculator.calculate(_kills, stage, victory)
+	var reward: BattleReward = RewardCalculator.calculate(_kills, stage, victory, _was_cleared_before)
 	var levels_gained: int = _progress.record_battle(reward, stage.stage_id if stage != null else "")
 	var save_error: Error = _save_manager.save_progress(_progress)
-	_result_screen.show_result(reward, _progress, levels_gained, save_error)
+	var next_name: String = ""
+	if victory and not _was_cleared_before:
+		var next: StageData = StageProgression.next_stage(StageProgression.default_region(), stage)
+		if next != null:
+			next_name = next.display_name
+	_result_screen.show_result(reward, _progress, levels_gained, save_error, next_name)
 	get_tree().paused = true

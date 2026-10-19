@@ -7,6 +7,10 @@ extends SceneTree
 ##                                            allies: player stands still, only summons
 ##   runs=3                                   battles per stage/mode
 ##   upgrades=samurai_damage:2,ashigaru_health:1   upgrade levels for the run
+##   curve      economy curve: plays every Region 1 stage in order with one persistent save,
+##              retrying until a win (max `runs` attempts), replaying each cleared stage once,
+##              and buying the cheapest upgrades after every battle
+##   zero       plays every Region 1 stage once with no upgrades (difficulty spread)
 ## Uses its own save/settings under user://balance_sim (never the player's real save).
 ## The bot is a proxy for a reasonable player, not a perfect one: treat results as trends.
 
@@ -17,6 +21,7 @@ const MAX_GAME_SECONDS: float = 900.0
 const ENGAGE_LIMIT_X: float = 1450.0
 const HOME_X: float = 450.0
 const TAP_ACTIONS: Array[StringName] = [&"attack", &"heavy_attack", &"spirit_slash"]
+const CATALOG: UpgradeCatalog = preload("res://data/upgrades/upgrade_catalog.tres")
 
 
 ## Accumulates scaled game time (pauses with the world).
@@ -41,6 +46,7 @@ func _run() -> void:
 	var mode: String = "bot"
 	var runs: int = 3
 	var upgrades: Dictionary = {}
+	var special: String = ""
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("stage="):
 			stages.append(arg.substr(6))
@@ -52,30 +58,45 @@ func _run() -> void:
 			for pair: String in arg.substr(9).split(",", false):
 				var parts: PackedStringArray = pair.split(":")
 				upgrades[parts[0]] = int(parts[1])
+		elif arg == "curve" or arg == "zero":
+			special = arg
+	if special == "curve":
+		await _run_curve(runs)
+	elif special == "zero":
+		for stage: StageData in StageProgression.default_region().stages:
+			var result: Dictionary = await run_battle(stage, "bot", PlayerProgress.new())
+			_print_summary(stage, "bot", {}, [result])
+	if not special.is_empty():
+		_cleanup_files()
+		await AudioManager.shutdown_audio(self)
+		quit()
+		return
 	if stages.is_empty():
 		stages.append("res://data/stages/stage_1.tres")
 	for stage_path: String in stages:
 		var stage: StageData = load(stage_path) as StageData
 		var results: Array[Dictionary] = []
+		var start: PlayerProgress = PlayerProgress.new()
+		for id: String in upgrades:
+			start.set_upgrade_level(id, upgrades[id])
 		for r: int in runs:
-			results.append(await run_battle(stage, mode, upgrades))
+			results.append(await run_battle(stage, mode, start))
 		_print_summary(stage, mode, upgrades, results)
 	_cleanup_files()
 	await AudioManager.shutdown_audio(self)
 	quit()
 
 
-## Plays one battle to the end. Returns outcome metrics.
-func run_battle(stage: StageData, mode: String, upgrades: Dictionary) -> Dictionary:
-	var progress: PlayerProgress = PlayerProgress.new()
-	for id: String in upgrades:
-		progress.set_upgrade_level(id, upgrades[id])
+## Plays one battle to the end starting from `progress` (written to the sim save first).
+## Returns outcome metrics; "progress" holds the save after the battle (rewards, clears).
+func run_battle(stage: StageData, mode: String, progress: PlayerProgress) -> Dictionary:
 	SaveManager.new(SAVE_PATH).save_progress(progress)
 	var settings: GameSettings = GameSettings.new()
 	settings.touch_mode = GameSettings.TouchMode.OFF
 	settings.screen_shake = false
 	SettingsStore.new(SETTINGS_PATH).save_settings(settings)
 
+	SceneRoutes.battle_stage = stage
 	var field: Node = BATTLEFIELD.instantiate()
 	field.set("save_path", SAVE_PATH)
 	field.set("settings_path", SETTINGS_PATH)
@@ -114,8 +135,10 @@ func run_battle(stage: StageData, mode: String, upgrades: Dictionary) -> Diction
 		"player_deaths": stats["player_deaths"],
 		"allies_summoned": stats["allies_summoned"],
 		"allies_lost": stats["allies_lost"],
-		"gold": SaveManager.new(SAVE_PATH).load_progress().gold - progress.gold,
 	}
+	var after: PlayerProgress = SaveManager.new(SAVE_PATH).load_progress()
+	outcome["gold"] = after.gold - progress.gold
+	outcome["progress"] = after
 	field.free()
 	paused = false
 	Engine.time_scale = 1.0
@@ -209,6 +232,54 @@ func _release_all() -> void:
 		Input.action_release(action)
 	_pressed.clear()
 	_taps_this_frame.clear()
+
+
+# --- Economy curve ----------------------------------------------------------
+
+func _run_curve(max_attempts: int) -> void:
+	var progress: PlayerProgress = PlayerProgress.new()
+	print("stage    | try | result  | gate | deaths | gold earned | upgrades bought | levels owned | gold left")
+	for stage: StageData in StageProgression.default_region().stages:
+		var attempts: int = 0
+		var replayed: bool = false
+		while attempts < max_attempts:
+			attempts += 1
+			var result: Dictionary = await run_battle(stage, "bot", progress)
+			progress = result["progress"]
+			var bought: int = _buy_cheapest(progress)
+			print("%-8s | %3d | %-7s | %3.0f%% | %6d | %11d | %15d | %12d | %d" % [stage.stage_id, attempts,
+					"WIN" if result["victory"] else ("TIMEOUT" if result["timeout"] else "LOSS"),
+					result["gate_hp"] * 100.0, result["player_deaths"], result["gold"], bought, _owned(progress), progress.gold])
+			if result["victory"]:
+				if replayed:
+					break
+				replayed = true
+		if not progress.is_stage_cleared(stage.stage_id):
+			print("  stuck on %s after %d attempts" % [stage.stage_id, max_attempts])
+			return
+
+
+func _buy_cheapest(progress: PlayerProgress) -> int:
+	var bought: int = 0
+	while true:
+		var cheapest: UpgradeData = null
+		for upgrade: UpgradeData in CATALOG.upgrades:
+			var level: int = progress.get_upgrade_level(upgrade.id)
+			if upgrade.is_maxed(level):
+				continue
+			if cheapest == null or upgrade.get_cost(level) < cheapest.get_cost(progress.get_upgrade_level(cheapest.id)):
+				cheapest = upgrade
+		if cheapest == null or UpgradeShop.purchase(progress, cheapest) != UpgradeShop.Result.OK:
+			return bought
+		bought += 1
+	return bought
+
+
+func _owned(progress: PlayerProgress) -> int:
+	var total: int = 0
+	for upgrade: UpgradeData in CATALOG.upgrades:
+		total += progress.get_upgrade_level(upgrade.id)
+	return total
 
 
 # --- Output -----------------------------------------------------------------

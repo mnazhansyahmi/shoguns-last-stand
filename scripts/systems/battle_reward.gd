@@ -12,3 +12,6 @@ var bonus_xp: int = 0
 var kill_ratio: float = 1.0
 var gold: int = 0
 var xp: int = 0
+## The stage had been cleared before this battle, so gold was multiplied by replay_multiplier.
+var replay: bool = false
+var replay_multiplier: float = 1.0

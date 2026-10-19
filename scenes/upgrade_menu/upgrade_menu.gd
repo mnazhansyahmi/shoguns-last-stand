@@ -30,7 +30,7 @@ func _ready() -> void:
 	_progress = _save_manager.load_progress()
 	_build_rows()
 	_style_reset_dialog()
-	_battle_button.pressed.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.BATTLEFIELD))
+	_battle_button.pressed.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.STAGE_SELECT))
 	_back_button.pressed.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.MAIN_MENU))
 	_reset_button.pressed.connect(_reset_dialog.popup_centered)
 	_reset_dialog.confirmed.connect(_on_reset_confirmed)

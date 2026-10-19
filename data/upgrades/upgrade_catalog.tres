@@ -11,7 +11,7 @@ target = 0
 stat = 0
 amount_per_level = 20.0
 max_level = 5
-base_cost = 100
+base_cost = 140
 cost_growth = 1.2
 effect_format = "+%s HP"
 
@@ -23,7 +23,7 @@ target = 0
 stat = 1
 amount_per_level = 3.0
 max_level = 5
-base_cost = 120
+base_cost = 170
 cost_growth = 1.2
 effect_format = "+%s damage"
 
@@ -36,7 +36,7 @@ ally_id = "ashigaru"
 stat = 0
 amount_per_level = 20.0
 max_level = 5
-base_cost = 80
+base_cost = 110
 cost_growth = 1.2
 effect_format = "+%s HP"
 
@@ -49,7 +49,7 @@ ally_id = "ashigaru"
 stat = 1
 amount_per_level = 3.0
 max_level = 5
-base_cost = 80
+base_cost = 110
 cost_growth = 1.2
 effect_format = "+%s damage"
 
@@ -62,7 +62,7 @@ ally_id = "yumi_archer"
 stat = 1
 amount_per_level = 3.0
 max_level = 5
-base_cost = 100
+base_cost = 140
 cost_growth = 1.2
 effect_format = "+%s damage"
 
@@ -74,7 +74,7 @@ target = 2
 stat = 2
 amount_per_level = 1.0
 max_level = 5
-base_cost = 120
+base_cost = 170
 cost_growth = 1.2
 effect_format = "+%s energy/s"
 

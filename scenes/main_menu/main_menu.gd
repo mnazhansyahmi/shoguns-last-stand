@@ -1,5 +1,5 @@
 extends Control
-## Title screen: Start, Upgrades, Settings, Quit, plus a summary of saved progress.
+## Title screen: Start (stage select), Upgrades, Settings, Quit, plus a summary of saved progress.
 
 ## Overridable so automated runs never touch the player's real save/settings.
 @export var save_path: String = SaveManager.DEFAULT_PATH
@@ -18,7 +18,7 @@ var _settings: GameSettings
 
 
 func _ready() -> void:
-	_start_button.pressed.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.BATTLEFIELD))
+	_start_button.pressed.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.STAGE_SELECT))
 	_upgrades_button.pressed.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.UPGRADE_MENU))
 	_settings_button.pressed.connect(_open_settings)
 	_quit_button.pressed.connect(_on_quit_pressed)

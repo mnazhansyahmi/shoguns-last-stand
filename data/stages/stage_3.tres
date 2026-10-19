@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StageData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="1_stage"]
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="2_wave"]
+[ext_resource type="Resource" path="res://data/stages/stage_3/wave_1.tres" id="w1"]
+[ext_resource type="Resource" path="res://data/stages/stage_3/wave_2.tres" id="w2"]
+[ext_resource type="Resource" path="res://data/stages/stage_3/wave_3.tres" id="w3"]
+[ext_resource type="Resource" path="res://data/stages/stage_3/wave_4.tres" id="w4"]
+
+[resource]
+script = ExtResource("1_stage")
+stage_id = "stage_3"
+display_name = "Misty Grove"
+waves = Array[ExtResource("2_wave")]([ExtResource("w1"), ExtResource("w2"), ExtResource("w3"), ExtResource("w4")])
+first_wave_delay = 3.0
+break_duration = 5.0
+clear_gold_bonus = 260
+clear_xp_bonus = 90
+defeat_reward_ratio = 0.5
+replay_gold_multiplier = 0.5
+description = "Thick mist and faster packs. Oni Brutes start heading for the gate."
