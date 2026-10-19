@@ -17,6 +17,9 @@ const ENEMY_DAMAGE_COLOR: Color = InkPalette.PARCHMENT
 const HEAVY_DAMAGE_COLOR: Color = InkPalette.GOLD_BRIGHT
 const DEFENDER_DAMAGE_COLOR: Color = InkPalette.EMBER_TEXT
 
+## Every validated hit, for systems that react to damage (the Ultimate meter).
+signal hit_reported(victim: Node, hit: HitData)
+
 static var active: BattleFeedback
 
 @export var camera: Camera2D
@@ -73,6 +76,7 @@ func configure(settings: GameSettings) -> void:
 
 
 func handle_hit(victim: Node, position: Vector2, hit: HitData) -> void:
+	hit_reported.emit(victim, hit)
 	spawn_damage_number(position, hit, victim is Enemy)
 	spawn_hit_spark(victim, position, hit)
 	if victim is VillageGate:

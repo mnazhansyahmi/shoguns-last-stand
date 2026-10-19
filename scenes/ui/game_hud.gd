@@ -21,6 +21,7 @@ const INDICATOR_GAP: float = 14.0
 @onready var _player_bar: FillBar = %PlayerBar
 @onready var _energy_bar: FillBar = %EnergyBar
 @onready var _gate_bar: FillBar = %GateBar
+@onready var _ultimate_bar: FillBar = %UltimateBar
 @onready var _ability_row: HBoxContainer = %AbilityRow
 @onready var _ability_bars: Dictionary = {"dash": %DashBar, "heavy": %HeavyBar, "slash": %SlashBar}
 @onready var _wave_label: Label = %WaveLabel
@@ -69,6 +70,15 @@ func set_gate_health(current: float, maximum: float) -> void:
 
 func set_energy(current: float, maximum: float) -> void:
 	_energy_bar.set_ratio_text(current / maxf(maximum, 0.001), "%d / %d" % [floori(current), roundi(maximum)])
+
+
+## The Ultimate meter: fills as he fights, pulses when it can be used.
+func set_ultimate(ratio: float, is_ready: bool) -> void:
+	var text: String = "%d%%" % floori(ratio * 100.0)
+	if is_ready:
+		text = "READY" if _touch_mode else "READY - press I"
+	_ultimate_bar.set_ratio_text(ratio, text)
+	_ultimate_bar.set_pulsing(is_ready)
 
 
 ## cooldowns: {"dash": Vector2(seconds_left, total), "heavy": ..., "slash": ...}

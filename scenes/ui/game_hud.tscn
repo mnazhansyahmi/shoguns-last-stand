@@ -57,6 +57,16 @@ fill_color = Color(0.31, 0.561, 0.388, 1)
 font_size = 24
 segments = 10
 
+[node name="UltimateBar" type="Control" parent="Margin/TopLeft"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(460, 38)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("2_bar")
+caption = "Ultimate"
+fill_color = Color(0.788, 0.635, 0.29, 1)
+font_size = 24
+
 [node name="AbilityRow" type="HBoxContainer" parent="Margin/TopLeft"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -177,7 +187,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HudDimLabel"
 theme_override_font_sizes/font_size = 24
-text = "A/D move   J attack (x3 combo)   K heavy   L dash   U spirit slash   1/2 summon   Esc pause"
+text = "A/D move   J attack (x3 combo)   K heavy   L dash   U spirit slash   I ultimate   1/2 summon   Esc pause"
 horizontal_alignment = 1
 
 [node name="DebugHintLabel" type="Label" parent="Margin/BottomBox"]
@@ -185,7 +195,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HudDimLabel"
 theme_override_font_sizes/font_size = 22
-text = "DEBUG BUILD: F1 spawn Hollow Soldier   F2 spawn Oni Brute"
+text = "DEBUG BUILD: F1 spawn Hollow Soldier   F2 spawn Oni Brute   F3 charge Ultimate"
 horizontal_alignment = 1
 
 [node name="TouchSpacer" type="Control" parent="Margin/BottomBox"]

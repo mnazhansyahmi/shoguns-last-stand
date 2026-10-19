@@ -19,6 +19,8 @@
 [ext_resource type="PackedScene" path="res://scenes/backdrops/bamboo_outskirts.tscn" id="17_backdrop"]
 [ext_resource type="Script" path="res://scripts/visuals/spawn_portal_visual.gd" id="18_portal"]
 [ext_resource type="Script" path="res://scripts/systems/battle_camera.gd" id="19_camera"]
+[ext_resource type="Script" path="res://scripts/systems/ultimate_meter.gd" id="20_ultimate_meter"]
+[ext_resource type="Script" path="res://scripts/systems/ultimate_skill.gd" id="21_ultimate_skill"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(3200, 400)
@@ -78,6 +80,12 @@ spawner = NodePath("../EnemySpawner")
 
 [node name="Player" parent="World" instance=ExtResource("3_player")]
 position = Vector2(420, 880)
+
+[node name="UltimateMeter" type="Node" parent="World"]
+script = ExtResource("20_ultimate_meter")
+
+[node name="UltimateSkill" type="Node" parent="World"]
+script = ExtResource("21_ultimate_skill")
 
 [node name="Projectiles" type="Node2D" parent="World"]
 

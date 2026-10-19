@@ -29,7 +29,7 @@ script = ExtResource("2_joystick")
 
 [node name="ActionCluster" type="Control" parent="Root"]
 layout_mode = 0
-offset_left = 1414.0
+offset_left = 1344.0
 offset_top = 694.0
 offset_right = 1884.0
 offset_bottom = 1044.0
@@ -37,9 +37,9 @@ mouse_filter = 2
 
 [node name="AttackButton" type="Control" parent="Root/ActionCluster"]
 layout_mode = 0
-offset_left = 280.0
+offset_left = 350.0
 offset_top = 160.0
-offset_right = 470.0
+offset_right = 540.0
 offset_bottom = 350.0
 mouse_filter = 2
 script = ExtResource("3_button")
@@ -51,9 +51,9 @@ font_size = 34
 
 [node name="HeavyButton" type="Control" parent="Root/ActionCluster"]
 layout_mode = 0
-offset_left = 110.0
+offset_left = 180.0
 offset_top = 200.0
-offset_right = 260.0
+offset_right = 330.0
 offset_bottom = 350.0
 mouse_filter = 2
 script = ExtResource("3_button")
@@ -63,8 +63,8 @@ base_color = Color(0.722, 0.196, 0.165, 1)
 
 [node name="DashButton" type="Control" parent="Root/ActionCluster"]
 layout_mode = 0
-offset_left = 300.0
-offset_right = 450.0
+offset_left = 370.0
+offset_right = 520.0
 offset_bottom = 150.0
 mouse_filter = 2
 script = ExtResource("3_button")
@@ -74,9 +74,9 @@ base_color = Color(0.29, 0.435, 0.647, 1)
 
 [node name="SlashButton" type="Control" parent="Root/ActionCluster"]
 layout_mode = 0
-offset_left = 120.0
+offset_left = 190.0
 offset_top = 30.0
-offset_right = 270.0
+offset_right = 340.0
 offset_bottom = 180.0
 mouse_filter = 2
 script = ExtResource("3_button")
@@ -84,6 +84,18 @@ action = &"spirit_slash"
 caption = "Spirit"
 sub_caption = "slash"
 base_color = Color(0.184, 0.525, 0.722, 1)
+
+[node name="UltimateButton" type="Control" parent="Root/ActionCluster"]
+layout_mode = 0
+offset_top = 105.0
+offset_right = 170.0
+offset_bottom = 275.0
+mouse_filter = 2
+script = ExtResource("3_button")
+action = &"ultimate"
+caption = "Ultimate"
+base_color = Color(0.788, 0.635, 0.29, 1)
+font_size = 28
 
 [node name="SummonCluster" type="Control" parent="Root"]
 layout_mode = 0

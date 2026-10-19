@@ -20,7 +20,11 @@ Battle (3 waves) → rewards (gold, XP) → upgrades → next battle.
 | Dash distance | 135 px |
 | Dash cooldown | 3 s |
 
-Moves: a 3-hit combo, a heavy attack, a dash, and the Spirit Slash special.
+Moves: a 3-hit combo, a heavy attack, a dash, the Spirit Slash special, and the Ultimate.
+
+## Ultimate (key I, touch button beside the other skills)
+
+An area attack charged through combat. The meter (`UltimateMeter`, 100 points, empty at the start of every battle) fills from damage: 0.1 per point the samurai deals, 0.03 per point his allies deal, 0.25 per point he takes. When full the HUD bar and the touch button glow and pulse. Using it: the samurai raises his blade (0.35 s, invulnerable for the whole move), then an ink-brush stroke sweeps across the screen, the game freezes for 0.4 s (a short dramatic pause) while every enemy in view takes 9x his attack damage as a heavy hit (180 at base: it kills a Hollow Soldier, and takes 20% off an Oni Brute). It can be used from any state except dead (a panic button) and empties the meter.
 
 ## Enemies
 
@@ -85,7 +89,7 @@ The first stage 1 clear buys 2 upgrades. Stage 1 is winnable with no upgrades.
 
 ## Game feel
 
-- **Sounds:** sword swing, hit, heavy hit, dash, spirit slash, summon, enemy death, gate hit, victory, defeat and button click. They're synthetic placeholders made by `tools/generate_sfx.gd`.
+- **Sounds:** sword swing, hit, heavy hit, dash, spirit slash, summon, enemy death, gate hit, victory, defeat and button click. They're synthetic placeholders (also ultimate, ultimate ready, heal and magic burst) made by `tools/generate_sfx.gd`.
 - **Hit-stop:** heavy attacks (the samurai's heavy attack and the Oni Brute's slam) and kills freeze the game for about 50 ms.
 - **Screen shake:** player hits, gate hits, heavy hits and kills, if Screen shake is on.
 - **Damage numbers:** float up from every hit. Pale yellow means damage to enemies, orange "N!" a heavy hit, and red damage to the samurai, allies or gate.

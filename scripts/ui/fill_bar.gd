@@ -13,6 +13,24 @@ extends Control
 
 var ratio: float = 1.0
 var value_text: String = ""
+## Pulses its fill and border (something the bar stands for is ready).
+var pulsing: bool = false
+
+
+func _ready() -> void:
+	set_process(false)
+
+
+func set_pulsing(enabled: bool) -> void:
+	if enabled == pulsing:
+		return
+	pulsing = enabled
+	set_process(enabled)
+	queue_redraw()
+
+
+func _process(_delta: float) -> void:
+	queue_redraw()
 
 
 func set_value(current: float, maximum: float) -> void:
@@ -30,8 +48,11 @@ func set_ratio_text(new_ratio: float, text: String) -> void:
 
 func _draw() -> void:
 	var rect: Rect2 = Rect2(Vector2.ZERO, size)
+	var glow: float = 0.5 + 0.5 * sin(float(Time.get_ticks_msec()) * 0.009) if pulsing else 0.0
 	draw_rect(rect, back_color)
-	draw_rect(Rect2(Vector2.ZERO, Vector2(size.x * ratio, size.y)), fill_color)
+	draw_rect(Rect2(Vector2.ZERO, Vector2(size.x * ratio, size.y)), fill_color.lerp(InkPalette.PAPER, glow * 0.4))
+	if pulsing:
+		draw_rect(rect.grow(3.0 + glow * 4.0), Color(InkPalette.GOLD_BRIGHT, 0.35 + glow * 0.5), false, 4.0)
 	if segments > 1:
 		for i: int in range(1, segments):
 			var x: float = size.x * float(i) / float(segments)

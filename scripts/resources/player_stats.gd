@@ -32,6 +32,20 @@ extends Resource
 @export var spirit_slash_windup: float = 0.15
 @export var spirit_slash_recovery: float = 0.25
 
+@export_group("Ultimate")
+## Damage to every enemy on screen = base_damage x this (so attack upgrades raise it too).
+@export var ultimate_damage_multiplier: float = 9.0
+@export var ultimate_knockback: float = 520.0
+## The samurai raises his blade this long (invulnerable), then the sweep lands.
+@export var ultimate_windup: float = 0.35
+@export var ultimate_recovery: float = 0.4
+## Charge needed, and how fast it fills (see UltimateMeter).
+@export var ultimate_charge_max: float = 100.0
+@export var ultimate_charge_per_damage_dealt: float = 0.1
+@export var ultimate_charge_per_damage_taken: float = 0.25
+## Damage dealt by allies counts this fraction of the samurai's own toward the charge.
+@export_range(0.0, 1.0) var ultimate_ally_share: float = 0.3
+
 
 ## Combo hits in order. Missing entries are replaced by defaults with an error.
 func get_combo() -> Array[AttackProfile]:

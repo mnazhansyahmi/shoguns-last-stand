@@ -24,6 +24,8 @@ const GATE_ALERT_MSEC: int = 1500
 @onready var _energy: SpiritEnergy = $World/SpiritEnergy
 @onready var _summoner: SummonManager = $World/SummonManager
 @onready var _wave_director: WaveDirector = $World/WaveDirector
+@onready var _ultimate_meter: UltimateMeter = $World/UltimateMeter
+@onready var _ultimate: UltimateSkill = $World/UltimateSkill
 @onready var _feedback: BattleFeedback = $World/BattleFeedback
 @onready var _player_spawn_point: Marker2D = $World/PlayerSpawnPoint
 @onready var _camera: BattleCamera = $Camera2D
@@ -64,6 +66,11 @@ func _ready() -> void:
 	_gate.health_changed.connect(_on_gate_health_changed)
 	_gate.destroyed.connect(_on_gate_destroyed)
 	_energy.energy_changed.connect(_hud.set_energy)
+	_ultimate_meter.configure(_player.stats)
+	_ultimate.setup(_player, _camera, _ultimate_meter)
+	_ultimate_meter.became_ready.connect(_on_ultimate_ready)
+	_ultimate.not_ready.connect(_on_ultimate_not_ready)
+	_feedback.hit_reported.connect(_on_hit_reported)
 	_summoner.summon_failed.connect(_on_summon_failed)
 	_summoner.ally_summoned.connect(_on_ally_summoned)
 	_wave_director.wave_started.connect(_on_wave_started)
@@ -110,6 +117,8 @@ func _process(delta: float) -> void:
 		for slot: int in SUMMON_ACTIONS.size():
 			if Input.is_action_just_pressed(SUMMON_ACTIONS[slot]):
 				_summoner.request_summon(slot)
+		if Input.is_action_just_pressed("ultimate"):
+			_ultimate.request()
 	_update_cooldown_displays()
 	_hud.set_summon_text(_build_summon_text())
 	_update_wave_text()
@@ -255,6 +264,8 @@ func _handle_debug_input(event: InputEvent) -> void:
 			_spawner.spawn(DEBUG_HOLLOW_SOLDIER)
 		KEY_F2:
 			_spawner.spawn(DEBUG_ONI_BRUTE)
+		KEY_F3:
+			_ultimate_meter.add_charge(_ultimate_meter.max_charge)
 		_:
 			return
 	get_viewport().set_input_as_handled()
@@ -273,6 +284,8 @@ func _apply_upgrades() -> void:
 
 
 func _update_cooldown_displays() -> void:
+	_hud.set_ultimate(_ultimate_meter.get_ratio(), _ultimate_meter.is_ready())
+	_touch.set_ultimate_charge(_ultimate_meter.get_ratio(), _ultimate_meter.is_ready())
 	var cooldowns: Dictionary = _player.get_ability_cooldowns()
 	_hud.set_ability_cooldowns(cooldowns)
 	for key: String in cooldowns:
@@ -345,6 +358,26 @@ func _on_next_stage_requested() -> void:
 	var next: StageData = StageProgression.next_stage(StageProgression.default_region(), _wave_director.stage)
 	if next != null:
 		SceneRoutes.go_to_battle(get_tree(), next)
+
+
+## Fighting charges the Ultimate: damage the samurai deals (allies count less) and damage he takes.
+func _on_hit_reported(victim: Node, hit: HitData) -> void:
+	if victim is Enemy:
+		if is_instance_valid(hit.source) and hit.source is Player:
+			_ultimate_meter.add_damage_dealt(hit.damage)
+		elif is_instance_valid(hit.source) and hit.source is Ally:
+			_ultimate_meter.add_damage_dealt(hit.damage, true)
+	elif victim is Player:
+		_ultimate_meter.add_damage_taken(hit.damage)
+
+
+func _on_ultimate_ready() -> void:
+	AudioManager.play(&"ultimate_ready")
+	_hud.show_message("Ultimate ready!", 1.8)
+
+
+func _on_ultimate_not_ready(ratio: float) -> void:
+	_hud.show_message("Ultimate charging - %d%%" % floori(ratio * 100.0))
 
 
 func _on_ally_summoned(_ally: Ally, _slot: int) -> void:

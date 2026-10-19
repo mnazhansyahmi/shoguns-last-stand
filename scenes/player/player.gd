@@ -7,8 +7,12 @@ signal died
 signal respawned
 signal health_changed(current: float, maximum: float)
 signal projectile_fired(projectile: Node2D)
+## The Ultimate began: the blade is going up.
+signal ultimate_started
+## The Ultimate's sweep lands now (origin = the samurai, facing = -1 or 1).
+signal ultimate_released(origin: Vector2, facing: int)
 
-enum State { IDLE, RUN, ATTACK, DASH, SPIRIT_SLASH, HURT, DEAD }
+enum State { IDLE, RUN, ATTACK, DASH, SPIRIT_SLASH, HURT, DEAD, ULTIMATE }
 enum AttackPhase { WINDUP, ACTIVE, RECOVERY }
 
 const SPIRIT_SLASH_SCENE: PackedScene = preload("res://scenes/player/spirit_slash.tscn")
@@ -43,6 +47,7 @@ var _attack_buffered: bool = false
 var _dash_direction: int = 1
 var _dash_distance_left: float = 0.0
 var _slash_fired: bool = false
+var _ultimate_released: bool = false
 var _hitbox_rect: RectangleShape2D
 
 
@@ -79,6 +84,8 @@ func _physics_process(delta: float) -> void:
 			_process_dash(delta)
 		State.SPIRIT_SLASH:
 			_process_spirit_slash(delta)
+		State.ULTIMATE:
+			_process_ultimate(delta)
 		State.HURT:
 			_process_hurt(delta)
 		State.DEAD:
@@ -88,7 +95,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _process(_delta: float) -> void:
-	_visual.set_blinking(_health.is_invulnerable() and _state != State.DASH and _state != State.DEAD)
+	_visual.set_blinking(_health.is_invulnerable() and _state != State.DASH and _state != State.DEAD
+			and _state != State.ULTIMATE)
 
 
 # --- Public API -------------------------------------------------------------
@@ -128,6 +136,26 @@ func is_targetable() -> bool:
 
 func is_dead() -> bool:
 	return _health.is_dead()
+
+
+## The Ultimate can be started from any state except dead or already in it (a panic button).
+func can_use_ultimate() -> bool:
+	return _state != State.DEAD and _state != State.ULTIMATE and not _health.is_dead()
+
+
+## Raises the blade; after `stats.ultimate_windup` the sweep lands (ultimate_released) and he
+## recovers. He cannot be hurt for the whole move. Returns false if he cannot use it now.
+func start_ultimate() -> bool:
+	if not can_use_ultimate():
+		return false
+	_hitbox.deactivate()
+	_combo_index = 0
+	_ultimate_released = false
+	_health.set_invulnerable_for(stats.ultimate_windup + stats.ultimate_recovery + 0.25)
+	_change_state(State.ULTIMATE)
+	_visual.play_state(&"cast")
+	ultimate_started.emit()
+	return true
 
 
 func get_health() -> HealthComponent:
@@ -289,6 +317,17 @@ func _process_spirit_slash(delta: float) -> void:
 		_fire_spirit_slash()
 		_visual.play_state(&"strike")
 	if _state_time >= stats.spirit_slash_windup + stats.spirit_slash_recovery:
+		_change_state(State.IDLE)
+		_visual.play_state(&"idle")
+
+
+func _process_ultimate(delta: float) -> void:
+	velocity.x = move_toward(velocity.x, 0.0, stats.acceleration * delta)
+	if not _ultimate_released and _state_time >= stats.ultimate_windup:
+		_ultimate_released = true
+		_visual.play_ultimate_strike()
+		ultimate_released.emit(global_position, facing)
+	if _ultimate_released and _state_time >= stats.ultimate_windup + stats.ultimate_recovery:
 		_change_state(State.IDLE)
 		_visual.play_state(&"idle")
 

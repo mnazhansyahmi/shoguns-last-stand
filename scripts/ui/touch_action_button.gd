@@ -15,6 +15,10 @@ var cooldown_ratio: float = 0.0
 var cooldown_seconds: float = 0.0
 var available: bool = true
 var unavailable_text: String = ""
+## Charge meter around the rim (0..1; 0 = no meter), for the Ultimate.
+var charge_ratio: float = 0.0
+## Pulses with a golden glow (the Ultimate is ready).
+var glowing: bool = false
 
 var _touch_index: int = -1
 var _press_physics_frame: int = -1
@@ -23,6 +27,7 @@ var _release_pending: bool = false
 
 func _ready() -> void:
 	set_physics_process(false)
+	set_process(false)
 	_update_opacity()
 
 
@@ -68,9 +73,26 @@ func is_held() -> bool:
 	return _touch_index != -1
 
 
-## Semi-transparent at rest so the battle shows through; fully opaque while pressed.
+## Semi-transparent at rest so the battle shows through; fully opaque while pressed or glowing.
 func _update_opacity() -> void:
-	modulate.a = 1.0 if is_held() else TouchLayout.IDLE_OPACITY
+	modulate.a = 1.0 if is_held() or glowing else TouchLayout.IDLE_OPACITY
+
+
+## The charge meter around the rim; `ready` makes the button glow and pulse.
+func set_charge(ratio: float, is_ready: bool) -> void:
+	var new_ratio: float = clampf(ratio, 0.0, 1.0)
+	if is_equal_approx(new_ratio, charge_ratio) and is_ready == glowing:
+		return
+	charge_ratio = new_ratio
+	if is_ready != glowing:
+		glowing = is_ready
+		set_process(glowing)
+		_update_opacity()
+	queue_redraw()
+
+
+func _process(_delta: float) -> void:
+	queue_redraw()
 
 
 func set_cooldown(ratio: float, seconds: float) -> void:
@@ -117,9 +139,14 @@ func _draw() -> void:
 	var radius: float = minf(size.x, size.y) * 0.5 - 4.0
 	var held: bool = is_held()
 	# Charcoal disc, the action's colour as a ring and wash, gold rim (docs/ART_BIBLE.md, UI).
+	var pulse: float = 0.5 + 0.5 * sin(float(Time.get_ticks_msec()) * 0.009) if glowing else 0.0
+	if glowing:
+		# A pulsing golden halo around a ready button.
+		draw_circle(center, radius * (1.1 + pulse * 0.08), Color(InkPalette.GOLD_BRIGHT, 0.18 + pulse * 0.22))
+		draw_arc(center, radius * (1.04 + pulse * 0.05), 0.0, TAU, 64, Color(InkPalette.GOLD_BRIGHT, 0.5 + pulse * 0.4), 5.0, true)
 	draw_circle(center, radius, Color(InkPalette.UI_CHARCOAL, 0.72))
 	var fill: Color = base_color.lightened(0.2) if held else base_color
-	fill.a = 0.55 if held else 0.3
+	fill.a = 0.55 if held else (0.3 + pulse * 0.3)
 	draw_circle(center, radius * (0.86 if held else 0.9), fill)
 	draw_arc(center, radius * 0.86, 0.0, TAU, 64, Color(base_color, 0.95), 5.0, true)
 	if cooldown_ratio > 0.0:
@@ -128,6 +155,10 @@ func _draw() -> void:
 		var reach: float = radius * 0.62
 		draw_line(center + Vector2(-reach, reach), center + Vector2(reach, -reach), Color(InkPalette.PARCHMENT, 0.6), 6.0, true)
 	draw_arc(center, radius, 0.0, TAU, 64, InkPalette.GOLD_BRIGHT if held else Color(InkPalette.GOLD, 0.9), 4.0 if held else 3.0, true)
+	if charge_ratio > 0.0:
+		# The meter: a bright arc from 12 o'clock clockwise on the rim.
+		draw_arc(center, radius - 9.0, -PI * 0.5, -PI * 0.5 + TAU * charge_ratio, maxi(8, ceili(64.0 * charge_ratio)),
+				Color(InkPalette.GOLD_BRIGHT, 0.95), 8.0, true)
 
 	var font: Font = get_theme_default_font()
 	var width: float = size.x

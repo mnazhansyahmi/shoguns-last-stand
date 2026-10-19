@@ -103,6 +103,11 @@ func is_dead() -> bool:
 	return _state == State.DEAD
 
 
+## The hurtbox that receives hits (area attacks like the Ultimate hit through it).
+func get_hurtbox() -> HurtboxComponent:
+	return _hurtbox
+
+
 func get_state() -> State:
 	return _state
 

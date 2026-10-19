@@ -13,14 +13,16 @@ const GROUND_CLEARANCE: float = 24.0
 ## Touch widgets at rest are drawn at this opacity; held widgets are fully opaque.
 const IDLE_OPACITY: float = 0.6
 const JOYSTICK_SIZE: Vector2 = Vector2(320.0, 320.0)
-const ACTION_CLUSTER_SIZE: Vector2 = Vector2(470.0, 350.0)
+const ACTION_CLUSTER_SIZE: Vector2 = Vector2(540.0, 350.0)
 const SUMMON_CLUSTER_SIZE: Vector2 = Vector2(380.0, 170.0)
 ## Right-handed positions inside the action cluster (Attack nearest the thumb's corner).
 const ACTION_BUTTONS: Dictionary = {
-	"attack": Rect2(280.0, 160.0, 190.0, 190.0),
-	"heavy": Rect2(110.0, 200.0, 150.0, 150.0),
-	"dash": Rect2(300.0, 0.0, 150.0, 150.0),
-	"slash": Rect2(120.0, 30.0, 150.0, 150.0),
+	"attack": Rect2(350.0, 160.0, 190.0, 190.0),
+	"heavy": Rect2(180.0, 200.0, 150.0, 150.0),
+	"dash": Rect2(370.0, 0.0, 150.0, 150.0),
+	"slash": Rect2(190.0, 30.0, 150.0, 150.0),
+	# The Ultimate sits apart, beside the other skills: big, and it glows when it is ready.
+	"ultimate": Rect2(0.0, 105.0, 170.0, 170.0),
 }
 const SUMMON_BUTTONS: Dictionary = {
 	"summon_1": Rect2(0.0, 0.0, 170.0, 170.0),

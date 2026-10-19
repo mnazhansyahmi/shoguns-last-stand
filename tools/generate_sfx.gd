@@ -55,6 +55,10 @@ func _initialize() -> void:
 		"victory": _victory,
 		"defeat": _defeat,
 		"button_click": _button_click,
+		"ultimate": _ultimate,
+		"ultimate_ready": _ultimate_ready,
+		"heal": _heal,
+		"magic_burst": _magic_burst,
 	}
 	var failures: int = 0
 	for id: String in sounds:
@@ -197,6 +201,69 @@ func _button_click() -> PackedFloat32Array:
 	for i: int in out.size():
 		var t: float = _t(i)
 		out[i] = sin(TAU * 1250.0 * t) * exp(-t * 95.0) + _noise() * exp(-t * 300.0) * 0.3
+	return _normalize(out)
+
+
+## The Ultimate: a rising swell while the blade goes up (0.35 s), then a huge low boom with a
+## crack and a shimmering tail at the moment the sweep lands.
+func _ultimate() -> PackedFloat32Array:
+	var swell: float = 0.35
+	var out: PackedFloat32Array = _buffer(1.5)
+	var phase: float = 0.0
+	var boom_phase: float = 0.0
+	var low_a: float = 0.0
+	var low_b: float = 0.0
+	var air: float = 0.0
+	for i: int in out.size():
+		var t: float = _t(i)
+		var noise: float = _noise()
+		if t < swell:
+			var k: float = t / swell
+			phase += TAU * lerpf(140.0, 720.0, k * k) / MIX_RATE
+			var cutoff: float = lerpf(300.0, 3800.0, k)
+			low_a = _lowpass(low_a, noise, cutoff)
+			low_b = _lowpass(low_b, noise, cutoff * 0.35)
+			out[i] = ((low_a - low_b) * 1.4 + sin(phase) * 0.5) * k * k
+		else:
+			var u: float = t - swell
+			boom_phase += TAU * lerpf(95.0, 34.0, minf(u / 0.5, 1.0)) / MIX_RATE
+			air = _lowpass(air, noise, 1400.0)
+			var boom: float = tanh(sin(boom_phase) * exp(-u * 3.2) * 2.6)
+			var crack: float = noise * exp(-u * 38.0) * 0.9
+			var tail: float = (sin(TAU * 880.0 * u) * 0.12 + sin(TAU * 1320.0 * u) * 0.08) * exp(-u * 3.5)
+			out[i] = boom + crack + air * exp(-u * 9.0) * 0.8 + tail
+	return _normalize(out)
+
+
+## Two bright rising chime notes: the Ultimate is ready.
+func _ultimate_ready() -> PackedFloat32Array:
+	return _notes([783.99, 1174.66], 0.11, 0.38, 0.6, 0.32)
+
+
+## A gentle rising bell arpeggio: a healing blessing.
+func _heal() -> PackedFloat32Array:
+	return _notes([523.25, 659.25, 783.99, 1046.5], 0.08, 0.34, 0.75, 0.15)
+
+
+## An onmyoji's spell: rising shimmer, then a soft thump of spirit energy.
+func _magic_burst() -> PackedFloat32Array:
+	var out: PackedFloat32Array = _buffer(0.8)
+	var phase: float = 0.0
+	var thump_phase: float = 0.0
+	var low_a: float = 0.0
+	var low_b: float = 0.0
+	for i: int in out.size():
+		var t: float = _t(i)
+		var noise: float = _noise()
+		var k: float = minf(t / 0.3, 1.0)
+		low_a = _lowpass(low_a, noise, lerpf(500.0, 3000.0, k))
+		low_b = _lowpass(low_b, noise, lerpf(500.0, 3000.0, k) * 0.4)
+		phase += TAU * (lerpf(520.0, 1560.0, k) + 18.0 * sin(TAU * 22.0 * t)) / MIX_RATE
+		var swell: float = ((low_a - low_b) * 0.8 + sin(phase) * 0.4 + sin(phase * 1.5) * 0.18) * (k * k if t < 0.3 else exp(-(t - 0.3) * 5.0))
+		var u: float = maxf(t - 0.28, 0.0)
+		thump_phase += TAU * lerpf(140.0, 52.0, minf(u / 0.25, 1.0)) / MIX_RATE
+		var thump: float = sin(thump_phase) * exp(-u * 11.0) * (1.0 if t >= 0.28 else 0.0)
+		out[i] = swell + thump * 1.1
 	return _normalize(out)
 
 

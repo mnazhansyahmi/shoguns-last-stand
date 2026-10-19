@@ -114,9 +114,43 @@ func _run() -> void:
 		(node.get_node("HealthComponent") as HealthComponent).take_damage(12.0)
 	await _frames(120)
 	await _capture("battle_later")
+	await _capture_ultimate(field, spawner)
 	field.free()
 	await _frames(2)
 	quit(0)
+
+
+## The Ultimate: the meter filling, the glowing button/bar when ready, and the brush sweep
+## frozen in the middle of the dramatic pause.
+func _capture_ultimate(field: Node, spawner: EnemySpawner) -> void:
+	var meter: UltimateMeter = field.get_node("World/UltimateMeter")
+	var skill: UltimateSkill = field.get_node("World/UltimateSkill")
+	var player: Node2D = field.get_node("World/Player")
+	for node: Node in field.get_tree().get_nodes_in_group("enemies"):
+		(node.get_node("HealthComponent") as HealthComponent).take_damage(100000.0)
+	await _frames(60)
+	player.global_position.x = 700.0
+	meter.add_charge(meter.max_charge * 0.55)
+	await _frames(4)
+	await _capture("ultimate_charging")
+	meter.add_charge(meter.max_charge)
+	await _frames(30)
+	await _capture("ultimate_ready")
+	for i: int in 5:
+		var enemy: Enemy = spawner.spawn(HOLLOW)
+		if enemy != null:
+			enemy.global_position.x = 1000.0 + float(i) * 150.0
+	await _frames(20)
+	skill.request()
+	# The wind-up is 0.35 s (21 frames); the sweep lands, then the game freezes for 0.4 s.
+	await _frames(24)
+	await _capture("ultimate_flash")
+	await _frames(8)
+	await _capture("ultimate_sweep")
+	await _frames(14)
+	await _capture("ultimate_hold")
+	await _frames(60)
+	await _capture("ultimate_after")
 
 
 ## Every figure kind in every animation state, on the mist colour fighters stand against.

@@ -13,6 +13,7 @@ extends CanvasLayer
 	"heavy": $Root/ActionCluster/HeavyButton,
 	"dash": $Root/ActionCluster/DashButton,
 	"slash": $Root/ActionCluster/SlashButton,
+	"ultimate": $Root/ActionCluster/UltimateButton,
 	"summon_1": $Root/SummonCluster/Summon1Button,
 	"summon_2": $Root/SummonCluster/Summon2Button,
 }
@@ -79,7 +80,7 @@ func is_left_handed() -> bool:
 	return _left_handed
 
 
-## Global rect of a widget: "joystick", "attack", "heavy", "dash", "slash", "summon_1", "summon_2".
+## Global rect of a widget: "joystick", "attack", "heavy", "dash", "slash", "ultimate", "summon_1", "summon_2".
 func get_widget_rect(widget: String) -> Rect2:
 	if widget == "joystick":
 		return _joystick.get_global_rect()
@@ -91,6 +92,15 @@ func set_ability_cooldown(widget: String, ratio: float, seconds: float) -> void:
 	var button: TouchActionButton = _buttons.get(widget)
 	if button != null:
 		button.set_cooldown(ratio, seconds)
+
+
+## The Ultimate button's charge ring and glow.
+func set_ultimate_charge(ratio: float, is_ready: bool) -> void:
+	var button: TouchActionButton = _buttons.get("ultimate")
+	if button == null:
+		return
+	button.set_charge(ratio, is_ready)
+	button.set_captions("Ultimate", "READY" if is_ready else "%d%%" % floori(ratio * 100.0))
 
 
 func set_summon_state(slot: int, name: String, cost: int, ratio: float, seconds: float, affordable: bool) -> void:

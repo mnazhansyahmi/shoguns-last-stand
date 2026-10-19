@@ -13,6 +13,10 @@
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/victory.wav" id="s8_victory"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/defeat.wav" id="s9_defeat"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/button_click.wav" id="s10_button_click"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ultimate.wav" id="s11_ultimate"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ultimate_ready.wav" id="s12_ultimate_ready"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/heal.wav" id="s13_heal"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/magic_burst.wav" id="s14_magic_burst"]
 
 [sub_resource type="Resource" id="Entry_sword_swing"]
 script = ExtResource("2_entry")
@@ -102,6 +106,38 @@ volume_db = -6.0
 pitch_variation = 0.04
 min_interval = 0.03
 
+[sub_resource type="Resource" id="Entry_ultimate"]
+script = ExtResource("2_entry")
+id = &"ultimate"
+stream = ExtResource("s11_ultimate")
+volume_db = -1.0
+pitch_variation = 0.0
+min_interval = 0.5
+
+[sub_resource type="Resource" id="Entry_ultimate_ready"]
+script = ExtResource("2_entry")
+id = &"ultimate_ready"
+stream = ExtResource("s12_ultimate_ready")
+volume_db = -3.0
+pitch_variation = 0.0
+min_interval = 0.3
+
+[sub_resource type="Resource" id="Entry_heal"]
+script = ExtResource("2_entry")
+id = &"heal"
+stream = ExtResource("s13_heal")
+volume_db = -4.0
+pitch_variation = 0.03
+min_interval = 0.2
+
+[sub_resource type="Resource" id="Entry_magic_burst"]
+script = ExtResource("2_entry")
+id = &"magic_burst"
+stream = ExtResource("s14_magic_burst")
+volume_db = -3.0
+pitch_variation = 0.05
+min_interval = 0.15
+
 [resource]
 script = ExtResource("1_library")
-entries = Array[ExtResource("2_entry")]([SubResource("Entry_sword_swing"), SubResource("Entry_hit"), SubResource("Entry_heavy_hit"), SubResource("Entry_dash"), SubResource("Entry_spirit_slash"), SubResource("Entry_summon"), SubResource("Entry_enemy_death"), SubResource("Entry_gate_hit"), SubResource("Entry_victory"), SubResource("Entry_defeat"), SubResource("Entry_button_click")])
+entries = Array[ExtResource("2_entry")]([SubResource("Entry_sword_swing"), SubResource("Entry_hit"), SubResource("Entry_heavy_hit"), SubResource("Entry_dash"), SubResource("Entry_spirit_slash"), SubResource("Entry_summon"), SubResource("Entry_enemy_death"), SubResource("Entry_gate_hit"), SubResource("Entry_victory"), SubResource("Entry_defeat"), SubResource("Entry_button_click"), SubResource("Entry_ultimate"), SubResource("Entry_ultimate_ready"), SubResource("Entry_heal"), SubResource("Entry_magic_burst")])

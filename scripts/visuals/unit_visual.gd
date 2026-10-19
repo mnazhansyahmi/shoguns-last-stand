@@ -139,6 +139,12 @@ func play_state(state: StringName) -> void:
 		_pose.blend_toward(_target, 0.55)
 
 
+## The Ultimate's cut: the wide heavy strike, coming from the raised blade of `cast`.
+func play_ultimate_strike() -> void:
+	_heavy = true
+	play_state(&"strike")
+
+
 ## Brief paper-white flash so damage is visible.
 func flash_hit() -> void:
 	_figure.flash = 1.0
