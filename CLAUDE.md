@@ -25,5 +25,7 @@ Godot 4.7.2 game, typed GDScript. The full spec is `docs/MASTER_PROMPT.md`. Work
 - Text files use LF line endings (enforced by `.gitattributes`).
 - Commit `*.uid` files; ignore `.godot/`.
 - Stored node references (targets, projectile sources) can be freed at any time. Check `is_instance_valid(member)` on the member itself before using it or passing it on: passing a freed object into a typed parameter is a script error. Clear the reference when it's invalid.
-- Battlefield, upgrade menu and main menu expose `save_path`. Automated runs must point it at a test file under `user://` so they never touch the player's real save.
+- Battlefield, upgrade menu and main menu expose `save_path` (and battlefield/main menu also expose `settings_path`). Automated runs must point them at test files under `user://` so they never touch the player's real save or settings.
+- Godot 4.7 has built-in classes with common names (e.g. `VirtualJoystick`). A `class_name` that collides is a parse error, so check before naming a class.
+- Touch input: widgets call `Input.action_press/release` on the existing Input Map actions. Gameplay reads input state only. Events injected with `Input.parse_input_event` use window pixels, not canvas units.
 - Never report test or validation results that weren't actually run. The test runner fails any test that logs an engine or script error.

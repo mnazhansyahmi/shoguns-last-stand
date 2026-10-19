@@ -138,6 +138,15 @@ func get_state_name() -> String:
 	return State.keys()[_state]
 
 
+## {"dash"|"heavy"|"slash": Vector2(seconds_left, total_duration)} for HUD/touch cooldown fills.
+func get_ability_cooldowns() -> Dictionary:
+	return {
+		"dash": Vector2(_dash_cooldown.time_left, _dash_cooldown.duration),
+		"heavy": Vector2(_heavy_cooldown.time_left, _heavy_cooldown.duration),
+		"slash": Vector2(_spirit_slash_cooldown.time_left, _spirit_slash_cooldown.duration),
+	}
+
+
 func get_dash_cooldown_left() -> float:
 	return _dash_cooldown.time_left
 

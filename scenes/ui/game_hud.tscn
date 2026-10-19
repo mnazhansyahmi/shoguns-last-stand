@@ -1,8 +1,9 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scenes/ui/debug_hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scenes/ui/game_hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scripts/ui/fill_bar.gd" id="2_bar"]
 
-[node name="DebugHud" type="CanvasLayer"]
+[node name="GameHud" type="CanvasLayer"]
 script = ExtResource("1_hud")
 
 [node name="Margin" type="MarginContainer" parent="."]
@@ -17,47 +18,83 @@ theme_override_constants/margin_top = 24
 theme_override_constants/margin_right = 32
 theme_override_constants/margin_bottom = 24
 
-[node name="Stats" type="VBoxContainer" parent="Margin"]
+[node name="TopLeft" type="VBoxContainer" parent="Margin"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 mouse_filter = 2
+theme_override_constants/separation = 10
 
-[node name="PlayerHealthLabel" type="Label" parent="Margin/Stats"]
+[node name="PlayerBar" type="Control" parent="Margin/TopLeft"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(460, 48)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("2_bar")
+caption = "Samurai"
+fill_color = Color(0.8, 0.22, 0.2, 1)
+font_size = 28
+
+[node name="EnergyBar" type="Control" parent="Margin/TopLeft"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(460, 42)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("2_bar")
+caption = "Spirit"
+fill_color = Color(0.25, 0.6, 0.85, 1)
+segments = 5
+
+[node name="GateBar" type="Control" parent="Margin/TopLeft"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(460, 36)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("2_bar")
+caption = "Gate"
+fill_color = Color(0.3, 0.65, 0.3, 1)
+font_size = 24
+segments = 10
+
+[node name="AbilityRow" type="HBoxContainer" parent="Margin/TopLeft"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 36
-text = "Samurai HP: 200 / 200"
+mouse_filter = 2
+theme_override_constants/separation = 10
 
-[node name="GateHealthLabel" type="Label" parent="Margin/Stats"]
+[node name="DashBar" type="Control" parent="Margin/TopLeft/AbilityRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(146, 34)
 layout_mode = 2
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 36
-text = "Gate HP: 1000 / 1000"
+mouse_filter = 2
+script = ExtResource("2_bar")
+caption = "Dash"
+fill_color = Color(0.2, 0.45, 0.7, 1)
+font_size = 20
 
-[node name="EnergyLabel" type="Label" parent="Margin/Stats"]
+[node name="HeavyBar" type="Control" parent="Margin/TopLeft/AbilityRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(146, 34)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.9, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 36
-text = "Spirit Energy: 50 / 150"
+mouse_filter = 2
+script = ExtResource("2_bar")
+caption = "Heavy"
+fill_color = Color(0.6, 0.25, 0.12, 1)
+font_size = 20
 
-[node name="CooldownLabel" type="Label" parent="Margin/Stats"]
+[node name="SlashBar" type="Control" parent="Margin/TopLeft/AbilityRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(146, 34)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 26
-text = "Dash: ready   Heavy: ready   Spirit Slash: ready"
+mouse_filter = 2
+script = ExtResource("2_bar")
+caption = "Slash"
+fill_color = Color(0.25, 0.65, 0.75, 1)
+font_size = 20
 
 [node name="WaveBox" type="VBoxContainer" parent="Margin"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -81,6 +118,16 @@ theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 28
 text = "Enemies remaining: 0"
 horizontal_alignment = 1
+
+[node name="PauseButton" type="Button" parent="Margin"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+focus_mode = 0
+theme_override_font_sizes/font_size = 56
+text = "II"
 
 [node name="CenterBox" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
@@ -106,8 +153,8 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.3, 0.25, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 14
-theme_override_font_sizes/font_size = 96
-text = "DEFEAT"
+theme_override_font_sizes/font_size = 72
+text = "Samurai down"
 horizontal_alignment = 1
 
 [node name="BottomBox" type="VBoxContainer" parent="Margin"]
@@ -122,7 +169,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.75, 0.4, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 30
 text = "Not enough Spirit Energy"
 horizontal_alignment = 1
 
@@ -137,12 +184,14 @@ text = "[1] Ashigaru (30)    [2] Yumi Archer (45)    Allies 0 / 6"
 horizontal_alignment = 1
 
 [node name="HintLabel" type="Label" parent="Margin/BottomBox"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 24
-text = "A/D move   J attack (x3 combo)   K heavy   L dash   U spirit slash   1/2 summon   Esc menu"
+text = "A/D move   J attack (x3 combo)   K heavy   L dash   U spirit slash   1/2 summon   Esc pause"
+horizontal_alignment = 1
 
 [node name="DebugHintLabel" type="Label" parent="Margin/BottomBox"]
 unique_name_in_owner = true
@@ -151,4 +200,10 @@ theme_override_colors/font_color = Color(1, 0.85, 0.5, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 22
-text = "DEBUG BUILD: F1 spawn Hollow Soldier   F2 spawn Oni Brute (not counted in waves)"
+text = "DEBUG BUILD: F1 spawn Hollow Soldier   F2 spawn Oni Brute"
+horizontal_alignment = 1
+
+[node name="TouchSpacer" type="Control" parent="Margin/BottomBox"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2

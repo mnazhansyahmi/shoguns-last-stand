@@ -8,7 +8,13 @@ A 2D side-scrolling samurai defense game made in Godot 4. You play a samurai hol
 
 ## Status
 
-Phase 4 (gameplay loop) is done. Battles pay gold and XP; victory and defeat each show a result screen with Retry, Upgrades and Main Menu buttons. Six upgrades can be bought with gold and apply in battle. Progress is saved to `user://savegame.json` (versioned JSON with a backup), and the upgrade menu has a Reset Progress option. Debug builds also have **F1** (Hollow Soldier) and **F2** (Oni Brute) spawns. The full plan is in [docs/MASTER_PROMPT.md](docs/MASTER_PROMPT.md).
+Phase 5 (mobile) is done.
+- **Touch controls:** a virtual joystick and Attack/Heavy/Dash/Spirit Slash buttons, plus summon buttons that show cost and cooldown. Multitouch works, so you can move and attack at once, and the buttons press the same Input Map actions as the keyboard.
+- **HUD:** a pause button, bars that show values by fill and text, and a layout that respects the safe area.
+- **Pause menu:** Resume, Restart, Settings and Main Menu.
+- **Saved settings:** volume, vibration, screen shake, UI scale, left-handed layout, and when to show touch controls.
+
+On Windows, set **Settings → Touch controls → Always** and play with the mouse. Earlier phases added waves, summons, rewards, upgrades and saving. The full plan is in [docs/MASTER_PROMPT.md](docs/MASTER_PROMPT.md).
 
 ## Running
 
@@ -40,7 +46,7 @@ Phase 4 (gameplay loop) is done. Battles pay gold and XP; victory and defeat eac
 | Dash | L |
 | Spirit Slash | U |
 | Summon Ashigaru / Yumi Archer | 1 / 2 |
-| Pause | Esc |
+| Pause | Esc (or the II button) |
 
 ## Docs
 

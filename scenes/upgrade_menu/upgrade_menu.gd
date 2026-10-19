@@ -66,7 +66,7 @@ func _build_rows() -> void:
 		var effect_label: Label = _make_label("", 0.0)
 		effect_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var button: Button = Button.new()
-		button.custom_minimum_size = Vector2(300.0, 88.0)
+		button.custom_minimum_size = Vector2(300.0, 124.0)
 		button.add_theme_font_size_override("font_size", ROW_FONT_SIZE)
 		button.pressed.connect(_on_buy_pressed.bind(upgrade))
 		row.add_child(name_label)
@@ -146,5 +146,5 @@ func _on_reset_confirmed() -> void:
 func _style_reset_dialog() -> void:
 	_reset_dialog.get_label().add_theme_font_size_override("font_size", 32)
 	for button: Button in [_reset_dialog.get_ok_button(), _reset_dialog.get_cancel_button()]:
-		button.custom_minimum_size = Vector2(220.0, 80.0)
+		button.custom_minimum_size = Vector2(240.0, 124.0)
 		button.add_theme_font_size_override("font_size", 32)

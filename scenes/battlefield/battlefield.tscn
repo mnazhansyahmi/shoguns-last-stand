@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/gate/village_gate.tscn" id="2_gate"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="3_player"]
 [ext_resource type="Script" path="res://scripts/systems/enemy_spawner.gd" id="4_spawner"]
-[ext_resource type="PackedScene" path="res://scenes/ui/debug_hud.tscn" id="5_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="5_hud"]
 [ext_resource type="Script" path="res://scripts/systems/spirit_energy.gd" id="6_energy"]
 [ext_resource type="Script" path="res://scripts/systems/summon_manager.gd" id="7_summoner"]
 [ext_resource type="Script" path="res://scripts/resources/ally_data.gd" id="8_ally_data"]
@@ -13,6 +13,9 @@
 [ext_resource type="Script" path="res://scripts/systems/wave_director.gd" id="11_waves"]
 [ext_resource type="Resource" path="res://data/stages/stage_1.tres" id="12_stage"]
 [ext_resource type="PackedScene" path="res://scenes/ui/result_screen.tscn" id="13_result"]
+[ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="14_touch"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="15_pause"]
+[ext_resource type="Script" path="res://scripts/systems/battle_feedback.gd" id="16_feedback"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(3200, 400)
@@ -113,6 +116,14 @@ position = Vector2(420, 880)
 
 [node name="Projectiles" type="Node2D" parent="World"]
 
-[node name="DebugHud" parent="." instance=ExtResource("5_hud")]
+[node name="BattleFeedback" type="Node" parent="World" node_paths=PackedStringArray("camera")]
+script = ExtResource("16_feedback")
+camera = NodePath("../../Camera2D")
+
+[node name="Hud" parent="." instance=ExtResource("5_hud")]
+
+[node name="TouchControls" parent="." instance=ExtResource("14_touch")]
 
 [node name="ResultScreen" parent="." instance=ExtResource("13_result")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("15_pause")]

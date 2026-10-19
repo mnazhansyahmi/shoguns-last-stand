@@ -1,16 +1,20 @@
 extends Node2D
-## Battlefield: wires player, gate, waves, summoning, HUD and result screen together via signals.
-## Loads progression at start (upgrades apply to this battle's stats) and saves rewards at the end.
-## Gameplay lives under World (pausable); this root and the overlays keep processing while paused.
-## Pause temporarily returns to the main menu (no rewards) until the pause menu exists.
+## Battlefield: wires player, gate, waves, summoning, HUD, touch controls, pause menu and
+## result screen together via signals. Loads progression (upgrades apply to this battle) and
+## settings at start; saves rewards at the end. Gameplay lives under World (pausable); this
+## root and the overlays keep processing while paused.
+## Input: summon and pause are read from the Input Map state each frame, so keyboard keys and
+## touch buttons (which press the same actions) behave identically.
 
 const UPGRADE_CATALOG: UpgradeCatalog = preload("res://data/upgrades/upgrade_catalog.tres")
 const DEBUG_HOLLOW_SOLDIER: EnemyData = preload("res://data/enemies/hollow_soldier.tres")
 const DEBUG_ONI_BRUTE: EnemyData = preload("res://data/enemies/oni_brute.tres")
 const PLAYER_RESPAWN_DELAY: float = 5.0
+const SUMMON_ACTIONS: Array[StringName] = [&"summon_1", &"summon_2"]
 
-## Overridable so automated runs never touch the player's real save.
+## Overridable so automated runs never touch the player's real save/settings.
 @export var save_path: String = SaveManager.DEFAULT_PATH
+@export var settings_path: String = SettingsStore.DEFAULT_PATH
 
 @onready var _player: Player = $World/Player
 @onready var _gate: VillageGate = $World/VillageGate
@@ -18,15 +22,20 @@ const PLAYER_RESPAWN_DELAY: float = 5.0
 @onready var _energy: SpiritEnergy = $World/SpiritEnergy
 @onready var _summoner: SummonManager = $World/SummonManager
 @onready var _wave_director: WaveDirector = $World/WaveDirector
+@onready var _feedback: BattleFeedback = $World/BattleFeedback
 @onready var _player_spawn_point: Marker2D = $World/PlayerSpawnPoint
 @onready var _projectiles: Node2D = $World/Projectiles
-@onready var _hud: DebugHud = $DebugHud
+@onready var _hud: GameHud = $Hud
+@onready var _touch: TouchControls = $TouchControls
+@onready var _pause_menu: PauseMenu = $PauseMenu
 @onready var _result_screen: ResultScreen = $ResultScreen
 
 var _is_game_over: bool = false
 var _respawn_time_left: float = -1.0
 var _save_manager: SaveManager
 var _progress: PlayerProgress
+var _settings_store: SettingsStore
+var _settings: GameSettings
 var _kills: Array[EnemyData] = []
 
 
@@ -34,12 +43,16 @@ func _ready() -> void:
 	_save_manager = SaveManager.new(save_path)
 	_progress = _save_manager.load_progress()
 	_apply_upgrades()
+	_settings_store = SettingsStore.new(settings_path)
+	_settings = _settings_store.load_settings()
 
 	_player.health_changed.connect(_hud.set_player_health)
 	_player.died.connect(_on_player_died)
 	_player.projectile_fired.connect(_on_projectile_fired)
+	_player.get_health().damaged.connect(_on_player_damaged)
 	_gate.health_changed.connect(_hud.set_gate_health)
 	_gate.destroyed.connect(_on_gate_destroyed)
+	_gate.get_health().damaged.connect(_on_gate_damaged)
 	_energy.energy_changed.connect(_hud.set_energy)
 	_summoner.summon_failed.connect(_on_summon_failed)
 	_wave_director.wave_started.connect(_on_wave_started)
@@ -47,9 +60,16 @@ func _ready() -> void:
 	_wave_director.remaining_changed.connect(_hud.set_remaining)
 	_wave_director.stage_cleared.connect(_on_stage_cleared)
 	_spawner.enemy_spawned.connect(_on_enemy_spawned)
+	_hud.pause_requested.connect(_on_pause_pressed)
+	_pause_menu.resume_requested.connect(_resume)
+	_pause_menu.restart_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.BATTLEFIELD))
+	_pause_menu.main_menu_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.MAIN_MENU))
+	_pause_menu.settings_changed.connect(_on_settings_changed)
+	_pause_menu.settings_closed.connect(_on_settings_closed)
 	_result_screen.retry_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.BATTLEFIELD))
 	_result_screen.upgrades_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.UPGRADE_MENU))
 	_result_screen.main_menu_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.MAIN_MENU))
+	get_viewport().size_changed.connect(_apply_layout)
 
 	var player_health: HealthComponent = _player.get_health()
 	_hud.set_player_health(player_health.current_health, player_health.max_health)
@@ -59,37 +79,88 @@ func _ready() -> void:
 	_hud.set_remaining(0)
 	_hud.set_debug_hint_visible(OS.is_debug_build())
 	_hud.hide_status()
-	if not _save_manager.last_warning.is_empty():
-		_hud.show_message(_save_manager.last_warning, 4.0)
+	_apply_settings()
+	for warning: String in [_save_manager.last_warning, _settings_store.last_warning]:
+		if not warning.is_empty():
+			_hud.show_message(warning, 4.0)
 
 	# Started after the signals above are connected so no wave event is missed.
 	_wave_director.start()
 
 
 func _process(delta: float) -> void:
-	_hud.set_cooldowns(_player.get_dash_cooldown_left(), _player.get_heavy_cooldown_left(),
-			_player.get_spirit_slash_cooldown_left())
+	if Input.is_action_just_pressed("pause"):
+		_on_pause_pressed()
+	if not get_tree().paused and not _is_game_over:
+		for slot: int in SUMMON_ACTIONS.size():
+			if Input.is_action_just_pressed(SUMMON_ACTIONS[slot]):
+				_summoner.request_summon(slot)
+	_update_cooldown_displays()
 	_hud.set_summon_text(_build_summon_text())
 	_update_wave_text()
 	_update_respawn(delta)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause"):
-		get_viewport().set_input_as_handled()
-		SceneRoutes.go_to(get_tree(), SceneRoutes.MAIN_MENU)
-		return
-	if _is_game_over:
-		return
-	if event.is_action_pressed("summon_1"):
-		_summoner.request_summon(0)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("summon_2"):
-		_summoner.request_summon(1)
-		get_viewport().set_input_as_handled()
-	elif OS.is_debug_build():
+	if OS.is_debug_build() and not _is_game_over and not get_tree().paused:
 		_handle_debug_input(event)
 
+
+# --- Pause and settings -----------------------------------------------------
+
+func _on_pause_pressed() -> void:
+	if _is_game_over:
+		SceneRoutes.go_to(get_tree(), SceneRoutes.MAIN_MENU)
+	elif _pause_menu.is_settings_open():
+		_pause_menu.close_settings()
+	elif get_tree().paused:
+		_resume()
+	else:
+		_pause()
+
+
+func _pause() -> void:
+	get_tree().paused = true
+	_touch.release_all()
+	_pause_menu.open(_settings)
+
+
+func _resume() -> void:
+	_pause_menu.close()
+	get_tree().paused = false
+
+
+func _on_settings_changed(settings: GameSettings) -> void:
+	_settings = settings
+	_apply_settings()
+
+
+func _on_settings_closed(settings: GameSettings) -> void:
+	_settings = settings
+	_apply_settings()
+	var error: Error = _settings_store.save_settings(settings)
+	if error != OK:
+		_hud.show_message("Could not save settings (error %d)." % error, 3.0)
+
+
+func _apply_settings() -> void:
+	_settings.apply_audio()
+	_feedback.configure(_settings)
+	var show_touch: bool = _settings.should_show_touch_controls(DisplayServer.is_touchscreen_available())
+	_touch.set_active(show_touch and not _is_game_over)
+	_hud.set_touch_mode(show_touch)
+	_apply_layout()
+
+
+## Re-run on viewport resize and settings changes (safe area, UI scale, handedness).
+func _apply_layout() -> void:
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var safe_rect: Rect2 = TouchLayout.get_safe_rect(get_viewport())
+	_touch.apply_layout(viewport_size, safe_rect, _settings.ui_scale, _settings.left_handed)
+	_hud.apply_layout(safe_rect, viewport_size, _settings.ui_scale)
+
+
+# --- Debug ------------------------------------------------------------------
 
 ## Debug-only spawns. These enemies are not part of any wave.
 func _handle_debug_input(event: InputEvent) -> void:
@@ -106,6 +177,8 @@ func _handle_debug_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
+# --- HUD updates ------------------------------------------------------------
+
 ## Replaces this battle's stats with upgraded copies. Base .tres resources stay untouched.
 func _apply_upgrades() -> void:
 	_player.apply_stats(UpgradeApplier.build_player_stats(_player.stats, _progress, UPGRADE_CATALOG))
@@ -114,6 +187,21 @@ func _apply_upgrades() -> void:
 		upgraded_slots.append(UpgradeApplier.build_ally_data(data, _progress, UPGRADE_CATALOG) if data != null else null)
 	_summoner.ally_slots = upgraded_slots
 	_energy.regen_per_second = UpgradeApplier.build_spirit_regen(_energy.regen_per_second, _progress, UPGRADE_CATALOG)
+
+
+func _update_cooldown_displays() -> void:
+	var cooldowns: Dictionary = _player.get_ability_cooldowns()
+	_hud.set_ability_cooldowns(cooldowns)
+	for key: String in cooldowns:
+		var info: Vector2 = cooldowns[key]
+		_touch.set_ability_cooldown(key, info.x / maxf(info.y, 0.001), info.x)
+	for slot: int in _summoner.get_slot_count():
+		var data: AllyData = _summoner.get_slot_data(slot)
+		if data == null:
+			continue
+		var left: float = _summoner.get_cooldown_left(slot)
+		_touch.set_summon_state(slot, data.display_name.get_slice(" ", data.display_name.get_slice_count(" ") - 1),
+				roundi(data.cost), left / maxf(data.summon_cooldown, 0.001), left, _energy.can_afford(data.cost))
 
 
 func _build_summon_text() -> String:
@@ -125,7 +213,7 @@ func _build_summon_text() -> String:
 		var status: String = ""
 		var cooldown: float = _summoner.get_cooldown_left(slot)
 		if cooldown > 0.0:
-			status = " - %s" % DebugHud.format_cooldown(cooldown)
+			status = " - %s" % GameHud.format_cooldown(cooldown)
 		elif not _energy.can_afford(data.cost):
 			status = " - need energy"
 		parts.append("[%d] %s (%d)%s" % [slot + 1, data.display_name, roundi(data.cost), status])
@@ -145,7 +233,7 @@ func _update_wave_text() -> void:
 
 
 func _update_respawn(delta: float) -> void:
-	if _respawn_time_left < 0.0 or _is_game_over:
+	if _respawn_time_left < 0.0 or _is_game_over or get_tree().paused:
 		return
 	_respawn_time_left -= delta
 	if _respawn_time_left <= 0.0:
@@ -156,8 +244,18 @@ func _update_respawn(delta: float) -> void:
 		_hud.show_status("Samurai down - respawn in %d" % ceili(_respawn_time_left))
 
 
+# --- Gameplay events --------------------------------------------------------
+
 func _on_player_died() -> void:
 	_respawn_time_left = PLAYER_RESPAWN_DELAY
+
+
+func _on_player_damaged(_amount: float, _source: Node) -> void:
+	_feedback.on_player_hit()
+
+
+func _on_gate_damaged(_amount: float, _source: Node) -> void:
+	_feedback.on_gate_hit()
 
 
 func _on_projectile_fired(projectile: Node2D) -> void:
@@ -201,6 +299,8 @@ func _end_battle(victory: bool) -> void:
 	_is_game_over = true
 	_respawn_time_left = -1.0
 	_wave_director.stop()
+	_touch.set_active(false)
+	_pause_menu.close()
 	_hud.hide_status()
 	var stage: StageData = _wave_director.stage
 	var reward: BattleReward = RewardCalculator.calculate(_kills, stage, victory)

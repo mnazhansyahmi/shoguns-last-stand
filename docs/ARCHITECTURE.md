@@ -75,9 +75,32 @@ Actors:
   - `reset_progress()` deletes the save, backup and temp files and writes a fresh save. The upgrade menu asks for confirmation first.
 - **Screens:** `ResultScreen` (CanvasLayer, keeps running while paused) shows the reward breakdown, totals, level-up and save status, with Retry, Upgrades and Main Menu buttons. The upgrade menu builds one row per catalog entry (level, current → next effect, cost); unaffordable purchases are rejected with a reason. The main menu shows saved gold and level.
 
+## Mobile controls and settings (Phase 5)
+
+- **Touch input** (`scripts/ui/`, `scenes/ui/touch_controls.tscn`):
+  - `TouchControls` is a pausable CanvasLayer. It routes `InputEventScreenTouch`/`Drag` in `_input` by **touch index**: `TouchJoystick` and each `TouchActionButton` claim one finger, so moving and attacking work at the same time.
+  - Widgets call `Input.action_press/release` on the existing actions (`move_left/right` with analog strength, `attack`, `heavy_attack`, `dash`, `spirit_slash`, `summon_1/2`). Gameplay and the battlefield only read Input Map state, so keyboard and touch behave identically.
+  - A tap shorter than one physics tick is held until the next tick, so `is_action_just_pressed` still sees it.
+  - Pausing or hiding the controls releases every held action.
+  - Controls ignore the mouse. With `emulate_touch_from_mouse` they can be tested on Windows.
+- **Layout:** `TouchLayout` is pure math, so it's unit-tested.
+  - It computes the cluster rects from the viewport size, the safe area (`DisplayServer.get_display_safe_area()` converted to canvas units on mobile, the full rect on desktop), the UI scale (0.9–1.4), and handedness. Left-handed mirrors the joystick and action clusters and the buttons inside the cluster. Summons stay centered and move up if they would overlap.
+  - Clusters are placed with corner anchors plus offsets, and are recomputed on viewport resize.
+  - **44 pt rule:** iPhone 16 landscape is 393 pt tall and the canvas is 1080 units tall, so 44 pt ≈ 121 units. The smallest touch button is 150 units × 0.9 minimum scale = 135. Every menu button and slider is at least 124 units, and a test checks every menu scene.
+- **HUD** (`GameHud`, which replaces the debug HUD):
+  - `FillBar` shows samurai HP, Spirit Energy (5 segments = one Ashigaru each), gate HP, and keyboard-mode ability cooldowns. Each bar shows its value as a fill plus a number.
+  - Touch buttons show cooldown as a shrinking pie plus seconds, and "can't afford" as a crossed-out button plus "need N". None of this relies on color alone.
+  - The HUD also has a top-right pause button, keeps its margins inside the safe area, and scales its corner clusters around their corners.
+- **Pause:** `PauseMenu` (Resume, Restart, Settings, Main Menu) replaces Esc-to-menu. The battlefield reads the `pause` action each frame. Esc closes the settings first, then resumes. On the result screen, Esc goes to the main menu.
+- **Settings:** `GameSettings` (RefCounted) is saved by `SettingsStore` to `user://settings.cfg`, a versioned ConfigFile written as temp then renamed. Each invalid key falls back to its default.
+  - `SettingsPanel` is shared by the main menu and the pause menu. Changes apply live and are saved on close.
+  - The volume settings drive the Music/SFX buses from `default_bus_layout.tres`. **There is no audio content yet**, so the sliders have nothing audible to control.
+  - `BattleFeedback` handles screen shake (camera offset) and vibration (`Input.vibrate_handheld`, mobile only), each behind its setting.
+  - Still no autoload: each scene loads settings when it starts, and audio bus state is global anyway.
+
 ## Tests
 
-Run `godot_console --headless --path . -s res://tests/run_tests.gd`. It covers HealthComponent, hitbox/hurtbox rules, the cooldown timer, Spirit Energy and summon validation, and WaveDirector flow (completion on death, completion when an enemy is freed, no double counting, and the break between waves). It also covers rewards, upgrade purchases, upgrades reaching battle units, and SaveManager round-trip, backup, corruption fallback, validation and reset (using `user://test_saves/`). It also covers units whose target, or a projectile whose source, is freed mid-fight. The runner registers a `Logger`, and any test that logs an engine or script error fails, even if its assertions passed.
+Run `godot_console --headless --path . -s res://tests/run_tests.gd`. It covers HealthComponent, hitbox/hurtbox rules, the cooldown timer, Spirit Energy and summon validation, and WaveDirector flow (completion on death, completion when an enemy is freed, no double counting, and the break between waves). It also covers settings round-trip and validation, touch layout mirroring, the safe area, minimum touch target sizes (including every menu control), multitouch move + attack, and release on pause. It also covers rewards, upgrade purchases, upgrades reaching battle units, and SaveManager round-trip, backup, corruption fallback, validation and reset (using `user://test_saves/`). It also covers units whose target, or a projectile whose source, is freed mid-fight. The runner registers a `Logger`, and any test that logs an engine or script error fails, even if its assertions passed.
 
 ## Scene flow
 

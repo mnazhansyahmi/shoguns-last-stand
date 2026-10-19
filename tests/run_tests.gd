@@ -13,6 +13,8 @@ const TEST_SCRIPTS: Array[String] = [
 	"res://tests/unit/test_target_lifetime.gd",
 	"res://tests/unit/test_progression.gd",
 	"res://tests/unit/test_save_manager.gd",
+	"res://tests/unit/test_settings.gd",
+	"res://tests/unit/test_touch_controls.gd",
 ]
 
 

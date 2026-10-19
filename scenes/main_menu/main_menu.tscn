@@ -1,6 +1,7 @@
 [gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scenes/main_menu/main_menu.gd" id="1_menu"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="2_settings"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -44,7 +45,7 @@ grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer"]
 layout_mode = 2
-theme_override_constants/separation = 36
+theme_override_constants/separation = 24
 
 [node name="Title" type="Label" parent="CenterContainer/VBox"]
 layout_mode = 2
@@ -77,12 +78,12 @@ theme_override_font_sizes/font_size = 26
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="CenterContainer/VBox"]
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 
 [node name="StartButton" type="Button" parent="CenterContainer/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(440, 112)
+custom_minimum_size = Vector2(460, 124)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 52
@@ -90,16 +91,28 @@ text = "Start"
 
 [node name="UpgradesButton" type="Button" parent="CenterContainer/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(440, 112)
+custom_minimum_size = Vector2(460, 124)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 52
 text = "Upgrades"
 
+[node name="SettingsButton" type="Button" parent="CenterContainer/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(460, 124)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 52
+text = "Settings"
+
 [node name="QuitButton" type="Button" parent="CenterContainer/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(440, 112)
+custom_minimum_size = Vector2(460, 124)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 52
 text = "Quit"
+
+[node name="SettingsPanel" parent="." instance=ExtResource("2_settings")]
+unique_name_in_owner = true
+layout_mode = 1
