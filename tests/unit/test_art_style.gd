@@ -195,7 +195,8 @@ func test_backdrop_layers_go_back_to_front() -> void:
 	assert_eq(layers.size(), BambooOutskirtsPainter.Layer.size(), "one node per backdrop layer")
 	var drifting: int = 0
 	for i: int in layers.size():
-		if i > 0:
+		# The light rays stay at the sun's depth (so they start at the sun) but draw over the land.
+		if i > 0 and layers[i].layer != BambooOutskirtsPainter.Layer.RAYS and layers[i - 1].layer != BambooOutskirtsPainter.Layer.RAYS:
 			assert_true(layers[i].depth >= layers[i - 1].depth, "%s is not behind the layer before it" % layers[i].name)
 		if layers[i].drift_speed != 0.0:
 			drifting += 1

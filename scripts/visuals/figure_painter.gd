@@ -284,6 +284,10 @@ static func _build(kind: InkFigure.Kind) -> Dictionary:
 			_build_oni(parts)
 		_:
 			AllyFigurePainter.build(kind, parts)
+	# Every body part gets the sun's rim light (drawn once per part with the shared rim material).
+	for part_name: StringName in parts:
+		if part_name != &"shadow" and part_name != &"blade_glow":
+			parts[part_name] = (parts[part_name] as InkBatch).with_rim()
 	return parts
 
 

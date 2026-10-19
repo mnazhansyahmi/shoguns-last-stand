@@ -19,15 +19,40 @@ extends Node2D
 ## World point at the screen centre when the camera is at rest (battlefield camera position).
 @export var reference_center: Vector2 = Vector2(960.0, 540.0)
 @export var seed_value: int = 1
+## Reeds: a shader bends them in the wind (their vertices carry a sway weight in the colour alpha).
+@export var sway: bool = false
+## Light rays: drawn additively over what is behind them.
+@export var additive: bool = false
+
+## The theme to paint with; null = the current Atmosphere theme.
+var theme: AtmosphereTheme
 
 var _drift: float = 0.0
+var _sway_material: ShaderMaterial
 
 
 func _ready() -> void:
+	if sway:
+		_sway_material = ShaderMaterial.new()
+		_sway_material.shader = load("res://scripts/visuals/shaders/reed_sway.gdshader") as Shader
+		material = _sway_material
+	elif additive:
+		var blend: CanvasItemMaterial = CanvasItemMaterial.new()
+		blend.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		material = blend
+	queue_redraw()
+
+
+## Repaints this layer with a new theme.
+func apply_theme(new_theme: AtmosphereTheme) -> void:
+	theme = new_theme
 	queue_redraw()
 
 
 func _process(delta: float) -> void:
+	if _sway_material != null:
+		_sway_material.set_shader_parameter("wind", Atmosphere.wind_strength())
+		_sway_material.set_shader_parameter("time", Atmosphere.time)
 	if drift_speed != 0.0:
 		_drift = fposmod(_drift + drift_speed * delta, tile_width)
 	var viewport: Viewport = get_viewport()
@@ -63,10 +88,10 @@ static func layer_transform(center: Vector2, reference: Vector2, layer_depth: fl
 
 func _draw() -> void:
 	if drift_speed == 0.0:
-		BambooOutskirtsPainter.paint(self, layer, seed_value)
+		BambooOutskirtsPainter.paint(self, layer, seed_value, theme)
 		return
 	# Three copies so the drift wraps without a visible seam at either screen edge.
 	for copy: int in [-1, 0, 1]:
 		draw_set_transform(Vector2(tile_width * copy, 0.0))
-		BambooOutskirtsPainter.paint(self, layer, seed_value)
+		BambooOutskirtsPainter.paint(self, layer, seed_value, theme)
 	draw_set_transform(Vector2.ZERO)

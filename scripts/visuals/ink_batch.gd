@@ -8,6 +8,8 @@ extends RefCounted
 var vertices: PackedVector2Array = PackedVector2Array()
 var colors: PackedColorArray = PackedColorArray()
 var indices: PackedInt32Array = PackedInt32Array()
+## Optional per-vertex UVs (see with_rim()); empty for ordinary batches.
+var uvs: PackedVector2Array = PackedVector2Array()
 
 
 func is_empty() -> bool:
@@ -18,12 +20,36 @@ func clear() -> void:
 	vertices.resize(0)
 	colors.resize(0)
 	indices.resize(0)
+	uvs.resize(0)
 
 
 ## Issues the whole batch as one draw command on `ci` (call from its _draw / draw signal).
 func draw(ci: CanvasItem) -> void:
-	if not indices.is_empty():
+	if indices.is_empty():
+		return
+	if uvs.size() == vertices.size():
+		RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices, colors, uvs)
+	else:
 		RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices, colors)
+
+
+## A copy of this batch for the rim-light shader (scripts/visuals/shaders/rim_light.gdshader): the
+## shapes twice in one draw command, first a copy flagged with UV.x = 1 (which the shader pushes toward
+## the sun and tints), then the shapes themselves on top. One command and one material per part.
+func with_rim() -> InkBatch:
+	var lit: InkBatch = InkBatch.new()
+	var count: int = vertices.size()
+	lit.vertices = vertices.duplicate()
+	lit.vertices.append_array(vertices)
+	lit.colors = colors.duplicate()
+	lit.colors.append_array(colors)
+	lit.indices = indices.duplicate()
+	for index: int in indices:
+		lit.indices.append(index + count)
+	lit.uvs.resize(count * 2)
+	for i: int in count:
+		lit.uvs[i] = Vector2(1.0, 0.0)
+	return lit
 
 
 ## Draws and empties the batch (to keep draw order when other draws must come in between).

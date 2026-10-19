@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="1_stage"]
 [ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="2_wave"]
+[ext_resource type="Resource" path="res://data/atmosphere/misty_grove.tres" id="atmo"]
 [ext_resource type="Resource" path="res://data/stages/stage_3/wave_1.tres" id="w1"]
 [ext_resource type="Resource" path="res://data/stages/stage_3/wave_2.tres" id="w2"]
 [ext_resource type="Resource" path="res://data/stages/stage_3/wave_3.tres" id="w3"]
@@ -18,4 +19,5 @@ clear_gold_bonus = 260
 clear_xp_bonus = 90
 defeat_reward_ratio = 0.5
 replay_gold_multiplier = 0.5
+atmosphere = ExtResource("atmo")
 description = "Thick mist and faster packs. Oni Brutes start heading for the gate."

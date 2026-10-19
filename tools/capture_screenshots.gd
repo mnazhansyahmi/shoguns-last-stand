@@ -19,6 +19,8 @@ var _battle: Node
 var _touch: bool = false
 ## --only=samurai: render just the samurai sheets (poses, attack strip, close-up, run-and-stop strip), then quit.
 var _only: String = ""
+## --stage=N: play the staged battle on that Region 1 stage (its own sky theme).
+var _stage_number: int = 1
 
 
 func _initialize() -> void:
@@ -36,6 +38,8 @@ func _initialize() -> void:
 			_touch = true
 		elif arg.begins_with("--only="):
 			_only = arg.trim_prefix("--only=")
+		elif arg.begins_with("--stage="):
+			_stage_number = arg.trim_prefix("--stage=").to_int()
 	DirAccess.make_dir_recursive_absolute(_out_dir)
 	DirAccess.make_dir_recursive_absolute(DATA_DIR)
 	var settings: GameSettings = GameSettings.new()
@@ -59,6 +63,14 @@ func _run() -> void:
 		await _capture_samurai_run_strip()
 		quit(0)
 		return
+	if _only != "battle":
+		await _capture_sheets_and_menus()
+	await _capture_battle()
+	await _frames(2)
+	quit(0)
+
+
+func _capture_sheets_and_menus() -> void:
 	await _capture_figure_sheet("figures", Color.WHITE)
 	await _capture_ally_sheet("allies", Color.WHITE)
 	await _capture_ally_sheet("ally_silhouettes", Color.BLACK)
@@ -85,10 +97,14 @@ func _run() -> void:
 	await _capture("stage_select")
 	select.free()
 
+
+func _capture_battle() -> void:
 	# Every ally unlocked, so the battle shows the full summon bar and all six allies.
 	var progress: PlayerProgress = PlayerProgress.new()
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
+	var region: RegionData = StageProgression.default_region()
+	SceneRoutes.battle_stage = region.stages[clampi(_stage_number, 1, region.stages.size()) - 1]
 	var field: Node = BATTLEFIELD.instantiate()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
@@ -126,10 +142,9 @@ func _run() -> void:
 		(node.get_node("HealthComponent") as HealthComponent).take_damage(12.0)
 	await _frames(120)
 	await _capture("battle_later")
-	await _capture_ultimate(field, spawner)
+	if _only != "battle":
+		await _capture_ultimate(field, spawner)
 	field.free()
-	await _frames(2)
-	quit(0)
 
 
 ## The Ultimate: the meter filling, the glowing button/bar when ready, and the brush sweep

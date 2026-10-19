@@ -32,6 +32,7 @@ const GATE_ALERT_MSEC: int = 1500
 @onready var _player_spawn_point: Marker2D = $World/PlayerSpawnPoint
 @onready var _camera: BattleCamera = $Camera2D
 @onready var _projectiles: Node2D = $World/Projectiles
+@onready var _backdrop: RegionBackdrop = $World/Backdrop
 @onready var _hud: GameHud = $Hud
 @onready var _touch: TouchControls = $TouchControls
 @onready var _pause_menu: PauseMenu = $PauseMenu
@@ -60,6 +61,8 @@ func _ready() -> void:
 	if SceneRoutes.battle_stage != null:
 		_wave_director.stage = SceneRoutes.battle_stage
 	if _wave_director.stage != null:
+		# The stage's own sky, light and falling leaves.
+		_backdrop.apply_theme(_wave_director.stage.atmosphere)
 		_was_cleared_before = _progress.is_stage_cleared(_wave_director.stage.stage_id)
 
 	_player.health_changed.connect(_hud.set_player_health)

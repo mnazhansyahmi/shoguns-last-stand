@@ -330,6 +330,8 @@ func _build_parts() -> void:
 			_hem_part = part
 		else:
 			part.batch = FigurePainter.part(kind, part_name)
+			if part.batch != null and not part.batch.uvs.is_empty():
+				part.material = Atmosphere.rim_material()
 		if part_name == &"blade_glow":
 			_blade_glow_part = part
 			part.visible = false

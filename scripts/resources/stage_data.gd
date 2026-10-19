@@ -19,6 +19,9 @@ extends Resource
 ## Gold multiplier once this stage has been cleared before (replays pay less; XP is unchanged).
 @export_range(0.0, 1.0) var replay_gold_multiplier: float = 0.5
 
+## The sky, light and mood of this battle (the backdrop, the leaves and the rim light read it).
+@export var atmosphere: AtmosphereTheme
+
 ## Short line shown on the stage select screen.
 @export_multiline var description: String = ""
 

@@ -55,7 +55,28 @@ Defenders wear their accent as **cloth** (flat, opaque). Enemies wear theirs as 
 | Steel glint on blades | `#C9CED6` | `STEEL` |
 | Warm lantern and moon light | `#F3DDA4` | `MOON` |
 
-### Backdrop: Bamboo Outskirts (dusk)
+### Atmosphere: a sunset theme per stage
+
+The backdrop is a sunset, and each stage has its own colour theme (`AtmosphereTheme`, files in
+`data/atmosphere/`, named by `StageData.atmosphere`). A theme holds every backdrop colour, the sun, the
+clouds, the reeds, the leaves, the rays, the rim light and the wind. Painting code never uses a
+hard-coded backdrop colour; it reads the current theme (`Atmosphere.current()`).
+
+| Stage | Theme | Sky, top to horizon | Sun | Leaves and wind |
+| --- | --- | --- | --- | --- |
+| 1 The Village Gate | Golden Sunset | indigo, crimson, gold | pale gold disc | red maple, medium wind |
+| 2 Bamboo Path | Rose Dusk | violet, rose, peach | pink disc | rose petals and red leaves, light wind |
+| 3 Misty Grove | Misty Grove | deep teal, olive, pale gold | cream disc | amber leaves, calm |
+| 4 Broken Shrine | Broken Shrine | charcoal violet, blood red, ember | big red-orange disc | red and ash, strong wind |
+| 5 Oni's Hollow | Oni's Hollow | near-black indigo, crimson, ember | an eclipse: dark disc, burning ring | embers and red leaves, strongest wind |
+
+Rules every theme must keep (a test checks them): the sky gets lighter toward the horizon; everything
+that can stand behind a fighter (`sky_low`, `sky_horizon`, both mountain colours, far bamboo, reed
+stalks) is at least **3:1** against `INK`, and the mist and the ground's edge **4.5:1**; the reed
+plumes and the rim light are light colours; leaves are at least 2:1. The tables below are the original
+dusk values, kept in `InkPalette` as the fallback and for the title screen's base colours.
+
+### Backdrop: Bamboo Outskirts (original dusk values)
 
 Back to front:
 
@@ -89,6 +110,32 @@ Back to front:
 | Warning / defeat text on charcoal | `#E8795F` | `EMBER_TEXT` |
 | Success / cleared text on charcoal | `#8FCB9B` | `JADE` |
 | Spirit energy bar fill | `#2F86B8` | `SPIRIT_DEEP` |
+
+## Atmosphere in motion
+
+- **Wind** (`Atmosphere`): one wind drives everything. Its strength is the theme's base level plus slow,
+  uneven gusts (a few sine waves of different lengths), and a gust travels along the field as a wave, so
+  neighbouring stalks bend one after another instead of together.
+- **Pampas grass and reeds** (`ReedsBack`, `ReedsFront`): pale stalks with feathery plumes standing on the
+  ground line behind the fighters (light, so the dark fighters read in front), low grass below the
+  fighters' feet and tall pampas framing both edges in front. They are static geometry bent by a vertex
+  shader (`reed_sway.gdshader`): each vertex carries a sway weight (0 at the root, 1 at the tip) in its
+  colour alpha, so the tip leans most. Front grass never rises above the fighters' ankles in the middle of
+  the field.
+- **Falling leaves and petals** (`AtmosphereLeaves`): about 40 in two layers: small, dim ones behind the
+  fighters and a few big, fast, fully lit ones passing in front. They tumble (flip as they spin), sway,
+  sink and are carried downwind by the same gusts; one that leaves the screen is reborn above or upwind.
+- **Sky:** indigo to crimson to gold, with a sun (or an eclipse) and two drifting layers of layered
+  clouds: a shaded body with a gold-lit underside, flat below and lumpy above.
+- **Light rays:** nine thin additive beams fanned from the sun across the fog, fading with distance. The
+  layer breathes slowly and brightens a little in a gust. They only ever add light, so they lift the
+  backdrop behind the fighters and never lower the contrast.
+- **Rim light:** a thin sliver of the sun's colour on the upper-right edge of every character part. Each
+  part's triangles are drawn twice in one command (`InkBatch.with_rim()`): first a copy flagged in the UVs,
+  which the shared `rim_light.gdshader` pushes about 1.5 world pixels toward the sun (in world space, so it
+  stays on the sun's side however the part turns or the figure is mirrored) and tints with the theme's rim
+  colour, then the part itself on top. Only the edge that sticks out shows. The ground shadow and the
+  spirit glow are not lit.
 
 ## Value and contrast rules (phone readability)
 
@@ -230,6 +277,11 @@ Effects never deal damage, never block input, and free themselves.
 - Shapes that animate on their own (cloth, hems) should cycle through a few cached shapes when
   they can; only the cloth tails and sleeve flaps are redrawn every frame (each is one small strip).
 - New effects free themselves and stay short (≤ 0.6 s). Anything spawned per hit is capped.
+- The atmosphere costs almost nothing per frame: the sky, clouds, rays and reeds are static geometry
+  (the reeds are moved by a vertex shader, the rays by a modulate), the rim light is one shared material
+  and one draw command per part, and only the ~40 leaves are simulated and redrawn (one batch each).
+  Measured with `tools/perf_battle.gd` (30 enemies, 6 allies): about +0.3 ms. Keep the 30-enemy test
+  under 8 ms.
 
 ## Adding new art
 

@@ -81,10 +81,15 @@ def wave_tres(entries):
     return "\n".join(lines)
 
 
+# Each stage's atmosphere theme (data/atmosphere/<id>.tres).
+THEMES = {1: "golden_sunset", 2: "rose_dusk", 3: "misty_grove", 4: "broken_shrine", 5: "ember_hollow"}
+
+
 def stage_tres(stage, wave_paths):
     lines = ['[gd_resource type="Resource" script_class="StageData" format=3]', "",
              '[ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="1_stage"]',
-             '[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="2_wave"]']
+             '[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="2_wave"]',
+             '[ext_resource type="Resource" path="res://data/atmosphere/%s.tres" id="atmo"]' % THEMES[stage["number"]]]
     for n, path in enumerate(wave_paths):
         lines.append('[ext_resource type="Resource" path="%s" id="w%d"]' % (path, n + 1))
     lines += ["", "[resource]", 'script = ExtResource("1_stage")',
@@ -94,6 +99,7 @@ def stage_tres(stage, wave_paths):
               "first_wave_delay = 3.0", "break_duration = %s" % stage["break"],
               "clear_gold_bonus = %d" % stage["bonus_gold"], "clear_xp_bonus = %d" % stage["bonus_xp"],
               "defeat_reward_ratio = 0.5", "replay_gold_multiplier = 0.5",
+              'atmosphere = ExtResource("atmo")',
               'description = "%s"' % stage["description"], ""]
     return "\n".join(lines)
 

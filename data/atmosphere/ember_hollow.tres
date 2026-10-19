@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="AtmosphereTheme" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/atmosphere_theme.gd" id="1_theme"]
+
+[resource]
+script = ExtResource("1_theme")
+theme_id = "ember_hollow"
+display_name = "Oni's Hollow"
+sky_top = Color(0.0784, 0.0706, 0.1647, 1)
+sky_mid = Color(0.4157, 0.1020, 0.1882, 1)
+sky_low = Color(0.8157, 0.3765, 0.1647, 1)
+sky_horizon = Color(0.9333, 0.6039, 0.3137, 1)
+sun_core = Color(0.1020, 0.0510, 0.0941, 1)
+sun_halo = Color(1.0000, 0.4784, 0.2196, 1)
+sun_radius = 100.0
+eclipse = true
+cloud_lit = Color(1.0000, 0.4157, 0.1882, 1)
+cloud_shadow = Color(0.1647, 0.0706, 0.1882, 1)
+cloud_alpha = 0.85
+mountain_far = Color(0.6902, 0.4078, 0.4706, 1)
+mountain_mid = Color(0.5961, 0.3451, 0.4392, 1)
+mist = Color(0.8471, 0.5882, 0.4784, 1)
+ground_top = Color(0.6902, 0.5020, 0.4392, 1)
+ground_bottom = Color(0.1686, 0.1255, 0.1882, 1)
+bamboo_far = Color(0.5255, 0.3529, 0.4235, 1)
+bamboo_near = Color(0.2275, 0.1882, 0.3137, 1)
+ray_color = Color(1.0000, 0.4784, 0.2510, 1)
+rim_color = Color(1.0000, 0.5020, 0.2510, 1)
+reed_stalk = Color(0.7529, 0.4706, 0.2980, 1)
+reed_plume = Color(0.9098, 0.6902, 0.5020, 1)
+leaf_colors = PackedColorArray(0.7843, 0.1216, 0.0941, 1, 1.0000, 0.3529, 0.1333, 1, 0.6902, 0.1647, 0.1176, 1)
+petal_color = Color(0.8471, 0.7216, 0.6902, 1)
+wind_base = 0.55
+wind_gust = 0.55
+petal_share = 0.15
