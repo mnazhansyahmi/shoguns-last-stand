@@ -11,6 +11,8 @@ const TEST_SCRIPTS: Array[String] = [
 	"res://tests/unit/test_summoning.gd",
 	"res://tests/unit/test_wave_director.gd",
 	"res://tests/unit/test_target_lifetime.gd",
+	"res://tests/unit/test_progression.gd",
+	"res://tests/unit/test_save_manager.gd",
 ]
 
 

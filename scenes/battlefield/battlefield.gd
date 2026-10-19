@@ -1,13 +1,16 @@
 extends Node2D
-## Battlefield: wires player, gate, waves, summoning and the HUD together via signals.
-## Gameplay lives under World (pausable); this root and the HUD keep processing while paused.
-## Pause temporarily returns to the main menu until the pause menu exists.
+## Battlefield: wires player, gate, waves, summoning, HUD and result screen together via signals.
+## Loads progression at start (upgrades apply to this battle's stats) and saves rewards at the end.
+## Gameplay lives under World (pausable); this root and the overlays keep processing while paused.
+## Pause temporarily returns to the main menu (no rewards) until the pause menu exists.
 
-const MAIN_MENU_SCENE: String = "res://scenes/main_menu/main_menu.tscn"
+const UPGRADE_CATALOG: UpgradeCatalog = preload("res://data/upgrades/upgrade_catalog.tres")
 const DEBUG_HOLLOW_SOLDIER: EnemyData = preload("res://data/enemies/hollow_soldier.tres")
 const DEBUG_ONI_BRUTE: EnemyData = preload("res://data/enemies/oni_brute.tres")
 const PLAYER_RESPAWN_DELAY: float = 5.0
-const VICTORY_COLOR: Color = Color(0.5, 1.0, 0.55)
+
+## Overridable so automated runs never touch the player's real save.
+@export var save_path: String = SaveManager.DEFAULT_PATH
 
 @onready var _player: Player = $World/Player
 @onready var _gate: VillageGate = $World/VillageGate
@@ -18,12 +21,20 @@ const VICTORY_COLOR: Color = Color(0.5, 1.0, 0.55)
 @onready var _player_spawn_point: Marker2D = $World/PlayerSpawnPoint
 @onready var _projectiles: Node2D = $World/Projectiles
 @onready var _hud: DebugHud = $DebugHud
+@onready var _result_screen: ResultScreen = $ResultScreen
 
 var _is_game_over: bool = false
 var _respawn_time_left: float = -1.0
+var _save_manager: SaveManager
+var _progress: PlayerProgress
+var _kills: Array[EnemyData] = []
 
 
 func _ready() -> void:
+	_save_manager = SaveManager.new(save_path)
+	_progress = _save_manager.load_progress()
+	_apply_upgrades()
+
 	_player.health_changed.connect(_hud.set_player_health)
 	_player.died.connect(_on_player_died)
 	_player.projectile_fired.connect(_on_projectile_fired)
@@ -35,6 +46,10 @@ func _ready() -> void:
 	_wave_director.wave_cleared.connect(_on_wave_cleared)
 	_wave_director.remaining_changed.connect(_hud.set_remaining)
 	_wave_director.stage_cleared.connect(_on_stage_cleared)
+	_spawner.enemy_spawned.connect(_on_enemy_spawned)
+	_result_screen.retry_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.BATTLEFIELD))
+	_result_screen.upgrades_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.UPGRADE_MENU))
+	_result_screen.main_menu_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.MAIN_MENU))
 
 	var player_health: HealthComponent = _player.get_health()
 	_hud.set_player_health(player_health.current_health, player_health.max_health)
@@ -44,6 +59,8 @@ func _ready() -> void:
 	_hud.set_remaining(0)
 	_hud.set_debug_hint_visible(OS.is_debug_build())
 	_hud.hide_status()
+	if not _save_manager.last_warning.is_empty():
+		_hud.show_message(_save_manager.last_warning, 4.0)
 
 	# Started after the signals above are connected so no wave event is missed.
 	_wave_director.start()
@@ -60,7 +77,7 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause"):
 		get_viewport().set_input_as_handled()
-		_return_to_menu()
+		SceneRoutes.go_to(get_tree(), SceneRoutes.MAIN_MENU)
 		return
 	if _is_game_over:
 		return
@@ -87,6 +104,16 @@ func _handle_debug_input(event: InputEvent) -> void:
 		_:
 			return
 	get_viewport().set_input_as_handled()
+
+
+## Replaces this battle's stats with upgraded copies. Base .tres resources stay untouched.
+func _apply_upgrades() -> void:
+	_player.apply_stats(UpgradeApplier.build_player_stats(_player.stats, _progress, UPGRADE_CATALOG))
+	var upgraded_slots: Array[AllyData] = []
+	for data: AllyData in _summoner.ally_slots:
+		upgraded_slots.append(UpgradeApplier.build_ally_data(data, _progress, UPGRADE_CATALOG) if data != null else null)
+	_summoner.ally_slots = upgraded_slots
+	_energy.regen_per_second = UpgradeApplier.build_spirit_regen(_energy.regen_per_second, _progress, UPGRADE_CATALOG)
 
 
 func _build_summon_text() -> String:
@@ -150,26 +177,34 @@ func _on_wave_cleared(wave_number: int) -> void:
 		_hud.show_banner("Wave %d cleared" % wave_number)
 
 
+func _on_enemy_spawned(enemy: Enemy) -> void:
+	enemy.defeated.connect(_on_enemy_defeated)
+
+
+## Every enemy killed (wave or debug) is worth its reward.
+func _on_enemy_defeated(enemy: Enemy) -> void:
+	if not _is_game_over and enemy.data != null:
+		_kills.append(enemy.data)
+
+
 func _on_stage_cleared() -> void:
-	_end_battle("VICTORY\nThe village is safe.\nEsc: main menu", VICTORY_COLOR)
+	_end_battle(true)
 
 
 func _on_gate_destroyed() -> void:
-	_end_battle("DEFEAT\nThe village gate has fallen.\nEsc: main menu", Color(1.0, 0.3, 0.25))
+	_end_battle(false)
 
 
-func _end_battle(text: String, color: Color) -> void:
+func _end_battle(victory: bool) -> void:
 	if _is_game_over:
 		return
 	_is_game_over = true
 	_respawn_time_left = -1.0
 	_wave_director.stop()
-	_hud.show_status(text, color)
+	_hud.hide_status()
+	var stage: StageData = _wave_director.stage
+	var reward: BattleReward = RewardCalculator.calculate(_kills, stage, victory)
+	var levels_gained: int = _progress.record_battle(reward, stage.stage_id if stage != null else "")
+	var save_error: Error = _save_manager.save_progress(_progress)
+	_result_screen.show_result(reward, _progress, levels_gained, save_error)
 	get_tree().paused = true
-
-
-func _return_to_menu() -> void:
-	get_tree().paused = false
-	var error: Error = get_tree().change_scene_to_file(MAIN_MENU_SCENE)
-	if error != OK:
-		push_error("Battlefield: failed to load '%s' (error %d)" % [MAIN_MENU_SCENE, error])

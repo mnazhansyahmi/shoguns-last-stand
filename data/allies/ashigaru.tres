@@ -17,6 +17,7 @@ lunge_speed = 0.0
 
 [resource]
 script = ExtResource("1_data")
+id = "ashigaru"
 display_name = "Ashigaru"
 cost = 30.0
 summon_cooldown = 2.0

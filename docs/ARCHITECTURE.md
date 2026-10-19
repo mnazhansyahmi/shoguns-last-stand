@@ -9,7 +9,8 @@ scenes/          .tscn scenes plus the scene's own script beside it
   main_menu/, battlefield/, player/, enemies/, allies/, gate/, ui/
 scripts/         reusable code that isn't tied to one scene
   components/    health, hitbox, hurtbox, cooldown, faction, placeholder visual
-  systems/       enemy spawner, wave director, summon manager, spirit energy (later: save manager)
+  systems/       enemy spawner, wave director, summon manager, spirit energy,
+                 progression (save manager, rewards, upgrades, scene routes)
   resources/     custom Resource classes for data (EnemyData, AllyData...)
   ui/            shared UI widgets
 data/            .tres data instances: enemies/, allies/, stages/, upgrades/
@@ -22,7 +23,7 @@ docs/            design and architecture notes
 - **Compatibility renderer.** This is the safest choice for iOS and older GPUs, and it's enough for a 2D game.
 - **1920×1080 base, `canvas_items` stretch, `expand` aspect.** The UI scales cleanly, and wider or taller screens (like the iPhone 16) show extra space instead of black bars. The desktop window opens at 1280×720 for convenience.
 - **Mouse emulates touch** (`emulate_touch_from_mouse`) so touch controls can be tested on Windows.
-- **No autoloads so far.** Scene changes use `get_tree().change_scene_to_file()`, and systems find each other through groups (`player`, `allies`, `gate`, `enemies`) and signals, not node paths.
+- **No autoloads so far.** Scene changes go through `SceneRoutes.go_to()`. Each scene that needs progression (main menu, upgrade menu, battlefield) loads it through its own `SaveManager` and saves right after changing it, so no global state is needed. Systems find each other through groups (`player`, `allies`, `gate`, `enemies`) and signals, not node paths.
 - **Physics layers:** 1 world, 2 player, 3 allies, 4 enemies, 5 gate, 6 projectiles, 7 `hurtbox_defenders`, 8 `hurtbox_enemies`. Bodies only collide with the world. Units pass through each other, and enemies queue in code instead of stacking.
 - **Placeholder visuals:** `PlaceholderVisual` is the animation interface (`set_facing`, `play_state`, `flash_hit`, `set_blinking`, `set_tint`). Gameplay code only calls these methods, so sprites can replace the Polygon2D rig later.
 - **Pausing:** the Battlefield root and HUD run with `PROCESS_MODE_ALWAYS`, and gameplay lives under `World` (`PAUSABLE`). Defeat pauses the tree.
@@ -63,9 +64,20 @@ Actors:
   - The battlefield calls `start()` after connecting the director's signals.
 - The battlefield shows a "Wave N" banner (and "Wave N cleared"), the wave and remaining-enemy count, and the next-wave countdown. VICTORY or DEFEAT pauses the tree. The F1/F2 debug spawns only work when `OS.is_debug_build()` is true.
 
+## Progression and saving (Phase 4)
+
+- **Rewards:** `EnemyData.gold_reward`/`xp_reward` (Hollow Soldier 5/10, Oni Brute 30/50) and `StageData.clear_gold_bonus`/`clear_xp_bonus`/`defeat_reward_ratio` (100 / 50 / 0.5). `RewardCalculator.calculate(kills, stage, victory)` returns a `BattleReward`. A victory pays the full kill rewards plus the clear bonus; a defeat pays floor(kill rewards × 0.5) and no bonus. The battlefield counts every enemy that dies, including debug spawns. Leaving with Esc pays nothing.
+- **Progress:** `PlayerProgress` holds gold, XP (level L needs 100·L·(L−1)/2 XP), upgrade levels by id, cleared stage ids, and battle stats. `record_battle()` applies a reward and returns how many levels were gained.
+- **Upgrades:** `UpgradeData` (target SAMURAI/ALLY/SPIRIT_ENERGY, stat, amount per level, max level, base cost × growth^level rounded to 5) lives in `data/upgrades/upgrade_catalog.tres`. `UpgradeShop.purchase()` returns OK, NOT_ENOUGH_GOLD or MAX_LEVEL and changes nothing on failure. At battle start, `UpgradeApplier` builds upgraded **copies** of PlayerStats, each AllyData (matched by `AllyData.id`) and the spirit regen. The battlefield applies them through `Player.apply_stats()`, `SummonManager.ally_slots` and `SpiritEnergy.regen_per_second`. The shared `.tres` files are never modified.
+- **Saving:** `SaveManager` writes versioned JSON (`version`, `saved_at_unix`, `data`) to `user://savegame.json`.
+  - Each save writes `.tmp` and re-reads it to check it is valid. Only then does the previous main file become `.bak` (only if that file is itself valid, so a corrupt main never overwrites a good backup), and the temp file is renamed into place.
+  - Loading validates every field (types, whole non-negative numbers, version ≤ supported) and goes main → backup → fresh. Problems are reported with `push_warning` and `last_warning`, which the menus show, and never crash. `_migrate()` is the hook for future format versions.
+  - `reset_progress()` deletes the save, backup and temp files and writes a fresh save. The upgrade menu asks for confirmation first.
+- **Screens:** `ResultScreen` (CanvasLayer, keeps running while paused) shows the reward breakdown, totals, level-up and save status, with Retry, Upgrades and Main Menu buttons. The upgrade menu builds one row per catalog entry (level, current → next effect, cost); unaffordable purchases are rejected with a reason. The main menu shows saved gold and level.
+
 ## Tests
 
-Run `godot_console --headless --path . -s res://tests/run_tests.gd`. It covers HealthComponent, hitbox/hurtbox rules, the cooldown timer, Spirit Energy and summon validation, and WaveDirector flow (completion on death, completion when an enemy is freed, no double counting, and the break between waves). It also covers units whose target, or a projectile whose source, is freed mid-fight. The runner registers a `Logger`, and any test that logs an engine or script error fails, even if its assertions passed.
+Run `godot_console --headless --path . -s res://tests/run_tests.gd`. It covers HealthComponent, hitbox/hurtbox rules, the cooldown timer, Spirit Energy and summon validation, and WaveDirector flow (completion on death, completion when an enemy is freed, no double counting, and the break between waves). It also covers rewards, upgrade purchases, upgrades reaching battle units, and SaveManager round-trip, backup, corruption fallback, validation and reset (using `user://test_saves/`). It also covers units whose target, or a projectile whose source, is freed mid-fight. The runner registers a `Logger`, and any test that logs an engine or script error fails, even if its assertions passed.
 
 ## Scene flow
 

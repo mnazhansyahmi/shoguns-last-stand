@@ -15,6 +15,10 @@ enum TargetKind { PLAYER, ALLY, GATE }
 @export var interruptible: bool = true
 @export var hurt_duration: float = 0.3
 
+@export_group("Rewards")
+@export var gold_reward: int = 5
+@export var xp_reward: int = 10
+
 @export_group("AI")
 ## Horizontal distance at which a target is noticed.
 @export var aggro_range: float = 260.0

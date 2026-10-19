@@ -1,0 +1,83 @@
+[gd_resource type="Resource" script_class="UpgradeCatalog" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_catalog.gd" id="1_catalog"]
+[ext_resource type="Script" path="res://scripts/resources/upgrade_data.gd" id="2_upgrade"]
+
+[sub_resource type="Resource" id="Resource_samurai_hp"]
+script = ExtResource("2_upgrade")
+id = "samurai_max_health"
+display_name = "Samurai Max HP"
+target = 0
+stat = 0
+amount_per_level = 20.0
+max_level = 5
+base_cost = 100
+cost_growth = 1.5
+effect_format = "+%s HP"
+
+[sub_resource type="Resource" id="Resource_samurai_damage"]
+script = ExtResource("2_upgrade")
+id = "samurai_damage"
+display_name = "Samurai Attack Damage"
+target = 0
+stat = 1
+amount_per_level = 3.0
+max_level = 5
+base_cost = 120
+cost_growth = 1.5
+effect_format = "+%s damage"
+
+[sub_resource type="Resource" id="Resource_ashigaru_hp"]
+script = ExtResource("2_upgrade")
+id = "ashigaru_health"
+display_name = "Ashigaru HP"
+target = 1
+ally_id = "ashigaru"
+stat = 0
+amount_per_level = 20.0
+max_level = 5
+base_cost = 80
+cost_growth = 1.5
+effect_format = "+%s HP"
+
+[sub_resource type="Resource" id="Resource_ashigaru_damage"]
+script = ExtResource("2_upgrade")
+id = "ashigaru_damage"
+display_name = "Ashigaru Damage"
+target = 1
+ally_id = "ashigaru"
+stat = 1
+amount_per_level = 3.0
+max_level = 5
+base_cost = 80
+cost_growth = 1.5
+effect_format = "+%s damage"
+
+[sub_resource type="Resource" id="Resource_archer_damage"]
+script = ExtResource("2_upgrade")
+id = "archer_damage"
+display_name = "Archer Damage"
+target = 1
+ally_id = "yumi_archer"
+stat = 1
+amount_per_level = 3.0
+max_level = 5
+base_cost = 100
+cost_growth = 1.5
+effect_format = "+%s damage"
+
+[sub_resource type="Resource" id="Resource_spirit_regen"]
+script = ExtResource("2_upgrade")
+id = "spirit_regen"
+display_name = "Spirit Regeneration"
+target = 2
+stat = 2
+amount_per_level = 1.0
+max_level = 5
+base_cost = 120
+cost_growth = 1.5
+effect_format = "+%s energy/s"
+
+[resource]
+script = ExtResource("1_catalog")
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_samurai_hp"), SubResource("Resource_samurai_damage"), SubResource("Resource_ashigaru_hp"), SubResource("Resource_ashigaru_damage"), SubResource("Resource_archer_damage"), SubResource("Resource_spirit_regen")])

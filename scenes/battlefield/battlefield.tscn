@@ -12,6 +12,7 @@
 [ext_resource type="Resource" path="res://data/allies/yumi_archer.tres" id="10_archer"]
 [ext_resource type="Script" path="res://scripts/systems/wave_director.gd" id="11_waves"]
 [ext_resource type="Resource" path="res://data/stages/stage_1.tres" id="12_stage"]
+[ext_resource type="PackedScene" path="res://scenes/ui/result_screen.tscn" id="13_result"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(3200, 400)
@@ -113,3 +114,5 @@ position = Vector2(420, 880)
 [node name="Projectiles" type="Node2D" parent="World"]
 
 [node name="DebugHud" parent="." instance=ExtResource("5_hud")]
+
+[node name="ResultScreen" parent="." instance=ExtResource("13_result")]

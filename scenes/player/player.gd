@@ -54,19 +54,13 @@ func _ready() -> void:
 	if stats == null:
 		push_error("Player: could not load stats, using built-in defaults.")
 		stats = PlayerStats.new()
-	_combo = stats.get_combo()
-	_dash_cooldown.duration = stats.dash_cooldown
-	_heavy_cooldown.duration = stats.heavy_cooldown
-	_spirit_slash_cooldown.duration = stats.spirit_slash_cooldown
-
 	_hitbox_rect = RectangleShape2D.new()
 	_hitbox_shape.shape = _hitbox_rect
 
 	_health.health_changed.connect(_on_health_changed)
 	_health.died.connect(_on_died)
 	_hurtbox.hit_received.connect(_on_hit_received)
-	_health.max_health = stats.max_health
-	_health.reset()
+	apply_stats(stats)
 
 	_set_facing(facing)
 	_visual.play_state(&"idle")
@@ -98,6 +92,20 @@ func _process(_delta: float) -> void:
 
 
 # --- Public API -------------------------------------------------------------
+
+## Swaps in a stats resource (e.g. an upgraded copy for this battle) and refills health.
+func apply_stats(new_stats: PlayerStats) -> void:
+	if new_stats == null:
+		push_error("Player: apply_stats() called with null stats; keeping current stats.")
+		return
+	stats = new_stats
+	_combo = stats.get_combo()
+	_dash_cooldown.duration = stats.dash_cooldown
+	_heavy_cooldown.duration = stats.heavy_cooldown
+	_spirit_slash_cooldown.duration = stats.spirit_slash_cooldown
+	_health.max_health = stats.max_health
+	_health.reset()
+
 
 func respawn(at: Vector2) -> void:
 	global_position = at

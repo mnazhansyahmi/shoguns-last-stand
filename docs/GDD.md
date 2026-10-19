@@ -46,6 +46,17 @@ Moves: a 3-hit combo, a heavy attack, a dash, and the Spirit Slash special.
 
 1000 HP and a visible health bar. The battle is lost when it reaches 0.
 
-## Upgrades
+## Rewards
 
-Samurai max HP, samurai damage, Ashigaru HP, Ashigaru damage, Archer damage, and spirit regeneration.
+Hollow Soldier: 5 gold, 10 XP. Oni Brute: 30 gold, 50 XP. Clearing a stage adds 100 gold and 50 XP. A defeat keeps 50% of kill rewards. A full stage 1 clear pays 210 gold and 260 XP.
+
+## Upgrades (5 levels each; cost grows ×1.5 per level)
+
+| Upgrade | Per level | First level cost |
+|---|---|---|
+| Samurai max HP | +20 HP | 100 |
+| Samurai attack damage | +3 | 120 |
+| Ashigaru HP | +20 HP | 80 |
+| Ashigaru damage | +3 | 80 |
+| Archer damage | +3 | 100 |
+| Spirit regeneration | +1 energy/s | 120 |

@@ -2,6 +2,8 @@ class_name AllyData
 extends Resource
 ## Configuration for one summonable ally type. One generic ally scene reads this.
 
+## Stable key used by upgrades (UpgradeData.ally_id).
+@export var id: String = ""
 @export var display_name: String = "Ally"
 
 @export_group("Summon")

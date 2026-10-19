@@ -17,6 +17,7 @@ lunge_speed = 0.0
 
 [resource]
 script = ExtResource("1_data")
+id = "yumi_archer"
 display_name = "Yumi Archer"
 cost = 45.0
 summon_cooldown = 3.0
