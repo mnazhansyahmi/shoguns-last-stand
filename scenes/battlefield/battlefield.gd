@@ -24,6 +24,7 @@ const SUMMON_ACTIONS: Array[StringName] = [&"summon_1", &"summon_2"]
 @onready var _wave_director: WaveDirector = $World/WaveDirector
 @onready var _feedback: BattleFeedback = $World/BattleFeedback
 @onready var _player_spawn_point: Marker2D = $World/PlayerSpawnPoint
+@onready var _camera: Camera2D = $Camera2D
 @onready var _projectiles: Node2D = $World/Projectiles
 @onready var _hud: GameHud = $Hud
 @onready var _touch: TouchControls = $TouchControls
@@ -37,9 +38,11 @@ var _progress: PlayerProgress
 var _settings_store: SettingsStore
 var _settings: GameSettings
 var _kills: Array[EnemyData] = []
+var _camera_base_y: float = 0.0
 
 
 func _ready() -> void:
+	_camera_base_y = _camera.position.y
 	_save_manager = SaveManager.new(save_path)
 	_progress = _save_manager.load_progress()
 	_apply_upgrades()
@@ -101,6 +104,14 @@ func _process(delta: float) -> void:
 	_update_respawn(delta)
 
 
+## AUTO touch mode on desktop: show touch controls after the first real finger touch.
+func _input(event: InputEvent) -> void:
+	if not GameSettings.real_touch_detected and GameSettings.is_real_touch(event):
+		GameSettings.real_touch_detected = true
+		if _settings.touch_mode == GameSettings.TouchMode.AUTO:
+			_apply_settings()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if OS.is_debug_build() and not _is_game_over and not get_tree().paused:
 		_handle_debug_input(event)
@@ -146,7 +157,7 @@ func _on_settings_closed(settings: GameSettings) -> void:
 func _apply_settings() -> void:
 	_settings.apply_audio()
 	_feedback.configure(_settings)
-	var show_touch: bool = _settings.should_show_touch_controls(DisplayServer.is_touchscreen_available())
+	var show_touch: bool = _settings.should_show_touch_controls(GameSettings.detect_touchscreen())
 	_touch.set_active(show_touch and not _is_game_over)
 	_hud.set_touch_mode(show_touch)
 	_apply_layout()
@@ -158,6 +169,22 @@ func _apply_layout() -> void:
 	var safe_rect: Rect2 = TouchLayout.get_safe_rect(get_viewport())
 	_touch.apply_layout(viewport_size, safe_rect, _settings.ui_scale, _settings.left_handed)
 	_hud.apply_layout(safe_rect, viewport_size, _settings.ui_scale)
+	_update_camera_lift(viewport_size, safe_rect)
+
+
+## With touch controls on screen, move the camera down (the world up) so the ground, the
+## gate and every unit stay above the joystick and buttons.
+func _update_camera_lift(viewport_size: Vector2, safe_rect: Rect2) -> void:
+	var lift: float = 0.0
+	if _touch.is_active():
+		var rects: Dictionary = TouchLayout.compute(viewport_size, safe_rect, _settings.ui_scale, _settings.left_handed)
+		var ground_screen_y: float = _player_spawn_point.global_position.y - _camera_base_y + viewport_size.y * 0.5
+		lift = TouchLayout.ground_lift(rects, ground_screen_y)
+	_camera.position.y = _camera_base_y + lift
+
+
+func get_camera_lift() -> float:
+	return _camera.position.y - _camera_base_y
 
 
 # --- Debug ------------------------------------------------------------------

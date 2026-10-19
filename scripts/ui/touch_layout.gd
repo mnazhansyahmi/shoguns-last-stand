@@ -8,6 +8,10 @@ extends RefCounted
 
 const MARGIN: float = 36.0
 const MIN_TOUCH_TARGET: float = 121.0
+## Gap kept between the ground line (unit feet) and the top of the joystick/action clusters.
+const GROUND_CLEARANCE: float = 24.0
+## Touch widgets at rest are drawn at this opacity; held widgets are fully opaque.
+const IDLE_OPACITY: float = 0.6
 const JOYSTICK_SIZE: Vector2 = Vector2(320.0, 320.0)
 const ACTION_CLUSTER_SIZE: Vector2 = Vector2(470.0, 350.0)
 const SUMMON_CLUSTER_SIZE: Vector2 = Vector2(380.0, 170.0)
@@ -51,6 +55,16 @@ static func compute(viewport_size: Vector2, safe_rect: Rect2, ui_scale: float, l
 	if summons.intersects(joystick) or summons.intersects(actions):
 		summons.position.y = minf(joystick.position.y, actions.position.y) - MARGIN - summons_size.y
 	return {"joystick": joystick, "actions": actions, "summons": summons}
+
+
+## How far (in screen units) the view must move up so the ground line, currently at
+## `ground_screen_y`, ends GROUND_CLEARANCE above the joystick and action clusters.
+## Units and the gate stand on the ground, so this keeps them all above the controls.
+static func ground_lift(rects: Dictionary, ground_screen_y: float) -> float:
+	var joystick: Rect2 = rects["joystick"]
+	var actions: Rect2 = rects["actions"]
+	var clusters_top: float = minf(joystick.position.y, actions.position.y)
+	return maxf(ground_screen_y - (clusters_top - GROUND_CLEARANCE), 0.0)
 
 
 ## Button rects local to the action cluster, mirrored for left-handed play.

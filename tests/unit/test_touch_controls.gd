@@ -177,10 +177,90 @@ func test_menu_controls_meet_44pt_minimum() -> void:
 		var controls: Array[Node] = node.find_children("*", "BaseButton", true, false)
 		controls.append_array(node.find_children("*", "Slider", true, false))
 		assert_true(not controls.is_empty(), "%s has controls to check" % label)
+		# Switch/checkbox art is tiny even when the row is tall; menus must use full toggle buttons.
+		for small: Node in node.find_children("*", "CheckButton", true, false) + node.find_children("*", "CheckBox", true, false):
+			assert_true(false, "%s: %s is a small switch/checkbox; use a toggle Button" % [label, small.name])
 		for control: Control in controls:
 			var minimum: Vector2 = control.get_combined_minimum_size()
 			assert_true(minimum.y >= TouchLayout.MIN_TOUCH_TARGET and minimum.x >= TouchLayout.MIN_TOUCH_TARGET,
 					"%s: %s is %.0fx%.0f (needs >= %.0f)" % [label, control.name, minimum.x, minimum.y, TouchLayout.MIN_TOUCH_TARGET])
+
+
+func test_settings_toggles_are_full_size_buttons() -> void:
+	var panel: SettingsPanel = add_to_tree(load("res://scenes/ui/settings_panel.tscn").instantiate()) as SettingsPanel
+	var settings: GameSettings = GameSettings.new()
+	settings.vibration = true
+	settings.screen_shake = false
+	settings.left_handed = true
+	panel.open(settings)
+	var expected: Dictionary = {
+		"VibrationToggle": "Vibration: On",
+		"ShakeToggle": "Shake: Off",
+		"LeftHandedToggle": "Left-handed: On",
+	}
+	for toggle_name: String in expected:
+		var toggle: Button = panel.get_node("%" + toggle_name) as Button
+		assert_true(toggle != null and not (toggle is CheckButton) and not (toggle is CheckBox),
+				"%s is a plain toggle Button" % toggle_name)
+		if toggle == null:
+			continue
+		assert_true(toggle.toggle_mode, "%s toggles" % toggle_name)
+		var minimum: Vector2 = toggle.get_combined_minimum_size()
+		assert_true(minimum.y >= 124.0 and minimum.x >= TouchLayout.MIN_TOUCH_TARGET,
+				"%s is at least 124 units tall (%.0fx%.0f)" % [toggle_name, minimum.x, minimum.y])
+		assert_eq(toggle.text, expected[toggle_name], "%s spells out its state" % toggle_name)
+	var shake: Button = panel.get_node("%ShakeToggle") as Button
+	shake.button_pressed = true
+	assert_true(settings.screen_shake, "pressing the toggle updates the setting")
+	assert_eq(shake.text, "Shake: On", "label follows the toggle")
+
+
+func test_touch_widgets_are_semi_transparent_until_pressed() -> void:
+	var controls: TouchControls = _make_controls(false)
+	var attack_button: TouchActionButton = controls.get_node("Root/ActionCluster/AttackButton")
+	var joystick: TouchJoystick = controls.get_node("Root/Joystick")
+	assert_almost_eq(attack_button.modulate.a, TouchLayout.IDLE_OPACITY, "button at rest is 60% opaque")
+	assert_almost_eq(joystick.modulate.a, TouchLayout.IDLE_OPACITY, "joystick at rest is 60% opaque")
+	var attack: Rect2 = controls.get_widget_rect("attack")
+	var stick: Rect2 = controls.get_widget_rect("joystick")
+	controls.handle_input(_touch(1, attack.get_center(), true))
+	controls.handle_input(_touch(0, stick.get_center(), true))
+	assert_almost_eq(attack_button.modulate.a, 1.0, "pressed button is fully opaque")
+	assert_almost_eq(joystick.modulate.a, 1.0, "held joystick is fully opaque")
+	controls.release_all()
+	assert_almost_eq(attack_button.modulate.a, TouchLayout.IDLE_OPACITY, "released button back to 60%")
+	assert_almost_eq(joystick.modulate.a, TouchLayout.IDLE_OPACITY, "released joystick back to 60%")
+
+
+func test_ground_lift_keeps_units_above_controls() -> void:
+	for scale_value: float in [GameSettings.MIN_UI_SCALE, 1.0, GameSettings.MAX_UI_SCALE]:
+		var rects: Dictionary = TouchLayout.compute(VIEWPORT, _full(), scale_value, false)
+		var joystick: Rect2 = rects["joystick"]
+		var actions: Rect2 = rects["actions"]
+		var clusters_top: float = minf(joystick.position.y, actions.position.y)
+		var lift: float = TouchLayout.ground_lift(rects, 880.0)
+		assert_true(lift > 0.0, "ground at y=880 needs lifting at scale %.2f" % scale_value)
+		assert_almost_eq(880.0 - lift, clusters_top - TouchLayout.GROUND_CLEARANCE,
+				"ground ends just above the controls at scale %.2f" % scale_value)
+	var rects_default: Dictionary = TouchLayout.compute(VIEWPORT, _full(), 1.0, false)
+	assert_almost_eq(TouchLayout.ground_lift(rects_default, 400.0), 0.0, "no lift when the ground is already clear")
+
+
+func test_auto_mode_ignores_mouse_emulation() -> void:
+	var previous: bool = GameSettings.real_touch_detected
+	GameSettings.real_touch_detected = false
+	assert_true(Input.emulate_touch_from_mouse, "project emulates touch from mouse (the original trigger)")
+	if not OS.has_feature("mobile") and not OS.has_feature("web"):
+		assert_true(not GameSettings.detect_touchscreen(), "desktop is not a touchscreen just because of mouse emulation")
+	var emulated: InputEventScreenTouch = _touch(0, Vector2.ZERO, true)
+	emulated.device = InputEvent.DEVICE_ID_EMULATION
+	var real: InputEventScreenTouch = _touch(0, Vector2.ZERO, true)
+	real.device = 0
+	assert_true(not GameSettings.is_real_touch(emulated), "mouse-emulated touch is not a real touch")
+	assert_true(GameSettings.is_real_touch(real), "finger touch is a real touch")
+	GameSettings.real_touch_detected = true
+	assert_true(GameSettings.detect_touchscreen(), "after a real touch, AUTO treats the device as a touchscreen")
+	GameSettings.real_touch_detected = previous
 
 
 func test_touch_outside_widgets_is_not_consumed() -> void:

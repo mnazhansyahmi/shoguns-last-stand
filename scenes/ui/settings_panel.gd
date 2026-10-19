@@ -2,7 +2,8 @@ class_name SettingsPanel
 extends Control
 ## Settings overlay used by the main menu and the pause menu. Edits a GameSettings object live
 ## (emits `changed`) and emits `closed` when dismissed; the owner saves and applies it.
-## Every control is at least 124 units tall (44 pt on iPhone 16), so no dropdowns are used.
+## Every control is at least 124 units tall (44 pt on iPhone 16): full-size toggle buttons,
+## no dropdowns or small switches.
 
 signal changed(settings: GameSettings)
 signal closed(settings: GameSettings)
@@ -15,9 +16,9 @@ const TOUCH_MODE_NAMES: PackedStringArray = ["Auto", "Always", "Off"]
 @onready var _sfx_value: Label = %SfxValue
 @onready var _ui_scale_slider: HSlider = %UiScaleSlider
 @onready var _ui_scale_value: Label = %UiScaleValue
-@onready var _vibration_check: CheckButton = %VibrationCheck
-@onready var _shake_check: CheckButton = %ShakeCheck
-@onready var _left_handed_check: CheckButton = %LeftHandedCheck
+@onready var _vibration_toggle: Button = %VibrationToggle
+@onready var _shake_toggle: Button = %ShakeToggle
+@onready var _left_handed_toggle: Button = %LeftHandedToggle
 @onready var _touch_buttons: Array[Button] = [%TouchAutoButton, %TouchAlwaysButton, %TouchOffButton]
 @onready var _back_button: Button = %BackButton
 
@@ -38,9 +39,9 @@ func _ready() -> void:
 	_music_slider.value_changed.connect(_on_music_changed)
 	_sfx_slider.value_changed.connect(_on_sfx_changed)
 	_ui_scale_slider.value_changed.connect(_on_ui_scale_changed)
-	_vibration_check.toggled.connect(_on_vibration_toggled)
-	_shake_check.toggled.connect(_on_shake_toggled)
-	_left_handed_check.toggled.connect(_on_left_handed_toggled)
+	_vibration_toggle.toggled.connect(_on_vibration_toggled)
+	_shake_toggle.toggled.connect(_on_shake_toggled)
+	_left_handed_toggle.toggled.connect(_on_left_handed_toggled)
 	_back_button.pressed.connect(close)
 
 
@@ -50,9 +51,9 @@ func open(settings: GameSettings) -> void:
 	_music_slider.value = _settings.music_volume
 	_sfx_slider.value = _settings.sfx_volume
 	_ui_scale_slider.value = _settings.ui_scale
-	_vibration_check.button_pressed = _settings.vibration
-	_shake_check.button_pressed = _settings.screen_shake
-	_left_handed_check.button_pressed = _settings.left_handed
+	_vibration_toggle.button_pressed = _settings.vibration
+	_shake_toggle.button_pressed = _settings.screen_shake
+	_left_handed_toggle.button_pressed = _settings.left_handed
 	_touch_buttons[int(_settings.touch_mode)].button_pressed = true
 	_syncing = false
 	_refresh_value_labels()
@@ -113,9 +114,9 @@ func _refresh_value_labels() -> void:
 	_music_value.text = "%d%%" % roundi(_settings.music_volume * 100.0)
 	_sfx_value.text = "%d%%" % roundi(_settings.sfx_volume * 100.0)
 	_ui_scale_value.text = "%d%%" % roundi(_settings.ui_scale * 100.0)
-	_vibration_check.text = "Vibration: %s" % _on_off(_settings.vibration)
-	_shake_check.text = "Shake: %s" % _on_off(_settings.screen_shake)
-	_left_handed_check.text = "Left-handed: %s" % _on_off(_settings.left_handed)
+	_vibration_toggle.text = "Vibration: %s" % _on_off(_settings.vibration)
+	_shake_toggle.text = "Shake: %s" % _on_off(_settings.screen_shake)
+	_left_handed_toggle.text = "Left-handed: %s" % _on_off(_settings.left_handed)
 	for i: int in _touch_buttons.size():
 		var label: String = TOUCH_MODE_NAMES[i]
 		_touch_buttons[i].text = "[ %s ]" % label if i == int(_settings.touch_mode) else label

@@ -14,12 +14,17 @@ var _sent_left: float = 0.0
 var _sent_right: float = 0.0
 
 
+func _ready() -> void:
+	_update_opacity()
+
+
 ## Returns true if the event belongs to this joystick.
 func handle_touch(event: InputEvent) -> bool:
 	var touch: InputEventScreenTouch = event as InputEventScreenTouch
 	if touch != null:
 		if touch.pressed and _touch_index == -1 and _contains(touch.position):
 			_touch_index = touch.index
+			_update_opacity()
 			_update_from(touch.position)
 			return true
 		if not touch.pressed and touch.index == _touch_index:
@@ -37,11 +42,17 @@ func release() -> void:
 	_touch_index = -1
 	_vector = Vector2.ZERO
 	_apply_actions()
+	_update_opacity()
 	queue_redraw()
 
 
 func is_held() -> bool:
 	return _touch_index != -1
+
+
+## Semi-transparent at rest so the battle shows through; fully opaque while held.
+func _update_opacity() -> void:
+	modulate.a = 1.0 if is_held() else TouchLayout.IDLE_OPACITY
 
 
 func get_vector() -> Vector2:

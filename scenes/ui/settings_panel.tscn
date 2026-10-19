@@ -32,6 +32,18 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toggle_on"]
+bg_color = Color(0.16, 0.38, 0.55, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.55, 0.85, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [sub_resource type="Gradient" id="Gradient_knob"]
 offsets = PackedFloat32Array(0.82, 0.88)
 colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
@@ -175,33 +187,42 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 34
 text = "100%"
 
-[node name="Checks" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+[node name="Toggles" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="VibrationCheck" type="CheckButton" parent="Center/Panel/Margin/VBox/Checks"]
+[node name="VibrationToggle" type="Button" parent="Center/Panel/Margin/VBox/Toggles"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 124)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 32
-text = "Vibration"
+theme_override_font_sizes/font_size = 30
+theme_override_styles/pressed = SubResource("StyleBoxFlat_toggle_on")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_toggle_on")
+toggle_mode = true
+text = "Vibration: On"
 
-[node name="ShakeCheck" type="CheckButton" parent="Center/Panel/Margin/VBox/Checks"]
+[node name="ShakeToggle" type="Button" parent="Center/Panel/Margin/VBox/Toggles"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 124)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 32
-text = "Screen shake"
+theme_override_font_sizes/font_size = 30
+theme_override_styles/pressed = SubResource("StyleBoxFlat_toggle_on")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_toggle_on")
+toggle_mode = true
+text = "Shake: On"
 
-[node name="LeftHandedCheck" type="CheckButton" parent="Center/Panel/Margin/VBox/Checks"]
+[node name="LeftHandedToggle" type="Button" parent="Center/Panel/Margin/VBox/Toggles"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 124)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 32
-text = "Left-handed"
+theme_override_font_sizes/font_size = 30
+theme_override_styles/pressed = SubResource("StyleBoxFlat_toggle_on")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_toggle_on")
+toggle_mode = true
+text = "Left-handed: Off"
 
 [node name="TouchRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
@@ -219,6 +240,9 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(240, 124)
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
+theme_override_styles/pressed = SubResource("StyleBoxFlat_toggle_on")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_toggle_on")
+toggle_mode = true
 text = "Auto"
 
 [node name="TouchAlwaysButton" type="Button" parent="Center/Panel/Margin/VBox/TouchRow"]
@@ -226,6 +250,9 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(240, 124)
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
+theme_override_styles/pressed = SubResource("StyleBoxFlat_toggle_on")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_toggle_on")
+toggle_mode = true
 text = "Always"
 
 [node name="TouchOffButton" type="Button" parent="Center/Panel/Margin/VBox/TouchRow"]
@@ -233,6 +260,9 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(240, 124)
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
+theme_override_styles/pressed = SubResource("StyleBoxFlat_toggle_on")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_toggle_on")
+toggle_mode = true
 text = "Off"
 
 [node name="BackButton" type="Button" parent="Center/Panel/Margin/VBox"]

@@ -23,6 +23,7 @@ var _release_pending: bool = false
 
 func _ready() -> void:
 	set_physics_process(false)
+	_update_opacity()
 
 
 ## Returns true if the event belongs to this button.
@@ -37,6 +38,7 @@ func handle_touch(event: InputEvent) -> bool:
 		_release_pending = false
 		_press_physics_frame = Engine.get_physics_frames()
 		TouchInput.press(action)
+		_update_opacity()
 		queue_redraw()
 		return true
 	if not touch.pressed and touch.index == _touch_index:
@@ -47,6 +49,7 @@ func handle_touch(event: InputEvent) -> bool:
 			set_physics_process(true)
 		else:
 			TouchInput.release(action)
+		_update_opacity()
 		queue_redraw()
 		return true
 	return false
@@ -57,11 +60,17 @@ func release() -> void:
 	_release_pending = false
 	set_physics_process(false)
 	TouchInput.release(action)
+	_update_opacity()
 	queue_redraw()
 
 
 func is_held() -> bool:
 	return _touch_index != -1
+
+
+## Semi-transparent at rest so the battle shows through; fully opaque while pressed.
+func _update_opacity() -> void:
+	modulate.a = 1.0 if is_held() else TouchLayout.IDLE_OPACITY
 
 
 func set_cooldown(ratio: float, seconds: float) -> void:
