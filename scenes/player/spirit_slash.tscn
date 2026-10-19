@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/player/spirit_slash.gd" id="1_slash"]
 [ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="2_hitbox"]
+[ext_resource type="Script" path="res://scripts/visuals/vfx/spirit_slash_visual.gd" id="3_visual"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_slash"]
 size = Vector2(56, 150)
@@ -9,13 +10,8 @@ size = Vector2(56, 150)
 [node name="SpiritSlash" type="Node2D"]
 script = ExtResource("1_slash")
 
-[node name="Glow" type="Polygon2D" parent="."]
-color = Color(0.45, 0.9, 1, 0.3)
-polygon = PackedVector2Array(-24, -86, 24, -66, 46, 0, 24, 66, -24, 86, 0, 46, 10, 0, 0, -46)
-
-[node name="Crescent" type="Polygon2D" parent="."]
-color = Color(0.7, 0.97, 1, 0.9)
-polygon = PackedVector2Array(-10, -70, 20, -55, 36, 0, 20, 55, -10, 70, 8, 40, 16, 0, 8, -40)
+[node name="Visual" type="Node2D" parent="."]
+script = ExtResource("3_visual")
 
 [node name="Hitbox" type="Area2D" parent="."]
 script = ExtResource("2_hitbox")

@@ -226,3 +226,115 @@ func test_gate_shows_damage_and_goes_dark() -> void:
 	assert_true(visual.is_lit(), "lanterns burn while the gate stands")
 	gate.get_health().take_damage(gate.get_health().max_health)
 	assert_true(not visual.is_lit(), "lanterns go out when the gate falls")
+
+
+# --- Effects ----------------------------------------------------------------
+
+const SPIRIT_SLASH_SCENE: PackedScene = preload("res://scenes/player/spirit_slash.tscn")
+
+
+## Advances a visual and every effect under it (tests run without frames).
+func _tick_all(node: Node, seconds: float) -> void:
+	for i: int in ceili(seconds / FRAME - 0.001):
+		var nodes: Array[Node] = [node]
+		nodes.append_array(node.find_children("*", "", true, false))
+		for child: Node in nodes:
+			if is_instance_valid(child) and not child.is_queued_for_deletion() \
+					and (child is UnitVisual or child is InkEffect or child is Afterimage):
+				child.call(&"_process", FRAME)
+
+
+func _live_children(node: Node, type_name: String) -> int:
+	var count: int = 0
+	for child: Node in node.find_children("*", type_name, true, false):
+		if not child.is_queued_for_deletion():
+			count += 1
+	return count
+
+
+func test_strikes_leave_a_slash_trail_that_fades() -> void:
+	var samurai: UnitVisual = _make_visual(InkFigure.Kind.SAMURAI)
+	samurai.play_state(&"windup")
+	_tick_all(samurai, 0.2)
+	samurai.play_state(&"strike")
+	assert_eq(_live_children(samurai, "SlashTrail"), 1, "a katana strike leaves a slash trail")
+	_tick_all(samurai, SlashTrail.LIFETIME + FRAME)
+	assert_eq(_live_children(samurai, "SlashTrail"), 0, "the trail frees itself after its lifetime")
+	var archer: UnitVisual = _make_visual(InkFigure.Kind.YUMI_ARCHER, 96.0)
+	archer.play_state(&"windup")
+	archer.play_state(&"strike")
+	assert_eq(_live_children(archer, "SlashTrail"), 0, "loosing an arrow leaves no slash trail")
+
+
+func test_oni_slam_sends_a_shockwave() -> void:
+	var oni: UnitVisual = _make_visual(InkFigure.Kind.ONI_BRUTE, 190.0)
+	oni.play_state(&"windup")
+	oni.play_state(&"strike")
+	assert_eq(_live_children(oni, "ShockRing"), 1, "the Oni's slam sends a ground shockwave")
+
+
+func test_entrances_splash_ink_or_portal_smoke() -> void:
+	var ally: UnitVisual = _make_visual(InkFigure.Kind.ASHIGARU, 100.0)
+	ally.play_state(&"spawn")
+	var splashes: Array[Node] = ally.find_children("*", "InkSplash", true, false)
+	assert_eq(splashes.size(), 1, "a summoned ally appears in an ink splash")
+	if splashes.size() == 1:
+		assert_eq(splashes[0].get_index(), 0, "the splash is drawn behind the figure")
+	var enemy: UnitVisual = _make_visual(InkFigure.Kind.HOLLOW_SOLDIER)
+	enemy.play_state(&"spawn")
+	assert_eq(_live_children(enemy, "InkSplash"), 1, "an enemy appears in portal smoke")
+	_tick_all(enemy, InkSplash.SMOKE_LIFETIME + FRAME)
+	assert_eq(_live_children(enemy, "InkSplash"), 0, "the smoke clears")
+
+
+func test_death_dissolves_into_ink_within_corpse_time() -> void:
+	var visual: UnitVisual = _make_visual(InkFigure.Kind.HOLLOW_SOLDIER)
+	visual.play_state(&"dead")
+	_tick_all(visual, UnitVisual.FALL_TIME)
+	assert_eq(_live_children(visual, "InkDissolve"), 1, "the fallen body breaks into ink")
+	_tick_all(visual, Enemy.CORPSE_TIME - UnitVisual.FALL_TIME - FRAME)
+	assert_eq(_live_children(visual, "InkDissolve"), 0, "the ink is gone before the corpse is freed")
+
+
+func test_dash_leaves_afterimages_in_place() -> void:
+	var visual: UnitVisual = _make_visual(InkFigure.Kind.SAMURAI)
+	visual.play_state(&"dash")
+	for i: int in 12:
+		visual.position.x += 20.0
+		_tick_all(visual, FRAME)
+	var ghosts: Array[Node] = visual.find_children("*", "Afterimage", true, false)
+	assert_eq(ghosts.size(), UnitVisual.AFTERIMAGE_COUNT, "a dash leaves afterimages")
+	if ghosts.size() == UnitVisual.AFTERIMAGE_COUNT:
+		var first: Afterimage = ghosts[ghosts.size() - 1] as Afterimage
+		assert_true(first.global_position.x < visual.global_position.x - 100.0, "afterimages stay where they were left")
+	_tick_all(visual, Afterimage.LIFETIME + FRAME)
+	assert_eq(_live_children(visual, "Afterimage"), 0, "afterimages fade out and free themselves")
+
+
+func test_hits_throw_sparks_up_to_a_cap() -> void:
+	var feedback: BattleFeedback = BattleFeedback.new()
+	feedback.numbers_parent = add_to_tree(Node2D.new())
+	add_to_tree(feedback)
+	var victim: Node = add_to_tree(Node2D.new())
+	var hit: HitData = HitData.new(10.0, Vector2(100.0, 0.0), null)
+	assert_true(feedback.spawn_hit_spark(victim, Vector2.ZERO, hit) == null, "no sparks without an effects parent")
+	var sparks: Node2D = add_to_tree(Node2D.new()) as Node2D
+	feedback.effects_parent = sparks
+	for i: int in BattleFeedback.MAX_HIT_SPARKS + 5:
+		feedback.spawn_hit_spark(victim, Vector2.ZERO, hit)
+	assert_eq(sparks.get_child_count(), BattleFeedback.MAX_HIT_SPARKS, "sparks are capped")
+	for spark: Node in sparks.get_children():
+		spark.free()
+	assert_true(feedback.spawn_hit_spark(victim, Vector2.ZERO, hit) != null, "freed sparks make room for new ones")
+
+
+func test_spirit_slash_glow_keeps_the_hitbox() -> void:
+	var slash: Node = track(SPIRIT_SLASH_SCENE.instantiate())
+	assert_true(slash.get_node("Visual") is SpiritSlashVisual, "spirit slash is drawn by its glow visual")
+	var shape: RectangleShape2D = (slash.get_node("Hitbox/CollisionShape2D") as CollisionShape2D).shape
+	assert_eq(shape.size, Vector2(56.0, 150.0), "the hitbox size is unchanged")
+	var points: PackedVector2Array = SpiritSlashVisual.crescent_points(SpiritSlashVisual.RADIUS, 26.0, 40.0)
+	var bounds: Rect2 = Rect2(points[0], Vector2.ZERO)
+	for point: Vector2 in points:
+		bounds = bounds.expand(point)
+	assert_true(absf(bounds.size.y - shape.size.y) < 20.0, "the crescent is about as tall as the hitbox")

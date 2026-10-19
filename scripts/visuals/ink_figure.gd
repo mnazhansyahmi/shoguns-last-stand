@@ -104,12 +104,33 @@ func get_weapon_point(along: float) -> Vector2:
 	return weapon_xf * Vector2(along, 0.0)
 
 
-## Solves the skeleton from the pose fields and redraws.
-func refresh() -> void:
+## Where the held weapon would be for `for_pose` (with the current body motion): the points
+## `along_from` and `along_to` along it, in local pixels. Used to sweep slash trails.
+func weapon_points_for(for_pose: FigurePose, along_from: float, along_to: float) -> PackedVector2Array:
+	var xf: Transform2D = _root_for(for_pose) * Transform2D(for_pose.lean, Vector2(0.0, -(spec.hip_y - for_pose.crouch))) 			* Transform2D(for_pose.blade, for_pose.grip)
+	return PackedVector2Array([xf * Vector2(along_from, 0.0), xf * Vector2(along_to, 0.0)])
+
+
+## Points spread over the body (feet to head and hands), in local pixels. Death ink rises
+## from these.
+func get_body_points() -> PackedVector2Array:
+	var points: PackedVector2Array = PackedVector2Array([root_xf * front_ankle, root_xf * back_ankle,
+			root_xf * front_knee, root_xf * back_knee, root_xf * hip, torso_xf * Vector2(0.0, spec.neck.y * 0.5),
+			torso_xf * spec.shoulder_front, torso_xf * spec.shoulder_back, head_xf * Vector2(1.0, -8.0),
+			torso_xf * front_hand, torso_xf * back_hand])
+	return points
+
+
+func _root_for(for_pose: FigurePose) -> Transform2D:
 	var s: float = get_unit_scale()
 	var lift: float = bob + fall * spec.lie_lift
-	root_xf = Transform2D(fall * FALL_ANGLE, Vector2(s, s * maxf(squash, 0.05)), 0.0,
-			Vector2(pose.offset_x * s, -lift * s))
+	return Transform2D(fall * FALL_ANGLE, Vector2(s, s * maxf(squash, 0.05)), 0.0,
+			Vector2(for_pose.offset_x * s, -lift * s))
+
+
+## Solves the skeleton from the pose fields and redraws.
+func refresh() -> void:
+	root_xf = _root_for(pose)
 
 	hip = Vector2(0.0, -(spec.hip_y - pose.crouch))
 	var swing: float = sin(stride_phase) * stride * spec.stride_len

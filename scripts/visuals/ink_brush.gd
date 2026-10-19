@@ -109,6 +109,35 @@ static func ridge_fill(ci: CanvasItem, tops: PackedVector2Array, bottom_y: float
 	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices, colors)
 
 
+## A strip between two matching point lists with a colour per point (weapon trails).
+static func ribbon(ci: CanvasItem, outer: PackedVector2Array, inner: PackedVector2Array,
+		outer_colors: PackedColorArray, inner_colors: PackedColorArray) -> void:
+	var count: int = mini(outer.size(), inner.size())
+	if count < 2:
+		return
+	var vertices: PackedVector2Array = PackedVector2Array()
+	var colors: PackedColorArray = PackedColorArray()
+	vertices.resize(count * 2)
+	colors.resize(count * 2)
+	for i: int in count:
+		vertices[i * 2] = outer[i]
+		vertices[i * 2 + 1] = inner[i]
+		colors[i * 2] = outer_colors[i]
+		colors[i * 2 + 1] = inner_colors[i]
+	var indices: PackedInt32Array = PackedInt32Array()
+	indices.resize((count - 1) * 6)
+	for i: int in count - 1:
+		var k: int = i * 2
+		var j: int = i * 6
+		indices[j] = k
+		indices[j + 1] = k + 1
+		indices[j + 2] = k + 2
+		indices[j + 3] = k + 1
+		indices[j + 4] = k + 3
+		indices[j + 5] = k + 2
+	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices, colors)
+
+
 ## A rectangle shaded from `top_color` to `bottom_color`.
 static func gradient_rect(ci: CanvasItem, rect: Rect2, top_color: Color, bottom_color: Color) -> void:
 	ridge_fill(ci, PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y)]), rect.end.y,

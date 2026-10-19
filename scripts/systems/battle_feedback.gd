@@ -10,6 +10,9 @@ const HIT_STOP_SECONDS: float = 0.05
 ## Engine.time_scale during hit-stop: a near-freeze (0 would make physics deltas zero).
 const HIT_STOP_TIME_SCALE: float = 0.02
 const MAX_DAMAGE_NUMBERS: int = 40
+const MAX_HIT_SPARKS: int = 24
+## Sparks appear this far below the hurtbox's top edge (the report position), at the body.
+const SPARK_DROP: float = 40.0
 const ENEMY_DAMAGE_COLOR: Color = Color(1.0, 0.95, 0.75)
 const HEAVY_DAMAGE_COLOR: Color = Color(1.0, 0.62, 0.2)
 const DEFENDER_DAMAGE_COLOR: Color = Color(1.0, 0.38, 0.32)
@@ -19,6 +22,8 @@ static var active: BattleFeedback
 @export var camera: Camera2D
 ## Where damage numbers are added (a world-space Node2D).
 @export var numbers_parent: Node
+## Where hit sparks are added (a world-space Node2D). No sparks without one.
+@export var effects_parent: Node
 
 var screen_shake_enabled: bool = true
 var vibration_enabled: bool = true
@@ -27,6 +32,7 @@ var _strength: float = 0.0
 var _duration: float = 0.0
 var _time_left: float = 0.0
 var _hit_stop_end_msec: int = 0
+var _live_sparks: int = 0
 
 
 ## Called by HurtboxComponent after a hit is applied. No-op outside a battle.
@@ -68,6 +74,7 @@ func configure(settings: GameSettings) -> void:
 
 func handle_hit(victim: Node, position: Vector2, hit: HitData) -> void:
 	spawn_damage_number(position, hit, victim is Enemy)
+	spawn_hit_spark(victim, position, hit)
 	if victim is VillageGate:
 		AudioManager.play(&"gate_hit")
 		shake(5.0, 0.15)
@@ -99,6 +106,27 @@ func spawn_damage_number(position: Vector2, hit: HitData, on_enemy: bool) -> Dam
 	numbers_parent.add_child(number)
 	number.global_position = position
 	return number
+
+
+func spawn_hit_spark(victim: Node, position: Vector2, hit: HitData) -> HitSpark:
+	if not is_instance_valid(effects_parent) or _live_sparks >= MAX_HIT_SPARKS:
+		return null
+	var target: HitSpark.Target = HitSpark.Target.DEFENDER
+	if victim is Enemy:
+		target = HitSpark.Target.ENEMY
+	elif victim is VillageGate:
+		target = HitSpark.Target.STRUCTURE
+	var spark: HitSpark = HitSpark.new()
+	spark.setup(signf(hit.knockback.x), hit.heavy, hit.killed, target)
+	_live_sparks += 1
+	spark.tree_exited.connect(_on_spark_exited)
+	effects_parent.add_child(spark)
+	spark.global_position = position + Vector2(0.0, SPARK_DROP)
+	return spark
+
+
+func _on_spark_exited() -> void:
+	_live_sparks = maxi(_live_sparks - 1, 0)
 
 
 func hit_stop(seconds: float) -> void:

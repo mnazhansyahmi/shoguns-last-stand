@@ -31,11 +31,13 @@ func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(_out_dir)
 	DirAccess.make_dir_recursive_absolute(DATA_DIR)
 	DisplayServer.window_set_size(size)
+	Engine.max_fps = 60
 	_run.call_deferred()
 
 
 func _run() -> void:
 	await _capture_figure_sheet()
+	await _capture_vfx_sheet()
 	var menu: Node = MAIN_MENU.instantiate()
 	menu.set("save_path", DATA_DIR + "/save.json")
 	menu.set("settings_path", DATA_DIR + "/settings.cfg")
@@ -126,6 +128,84 @@ func _capture_figure_sheet() -> void:
 	await _frames(2)
 	await _capture("figures")
 	sheet.free()
+
+
+## Effects frozen at chosen moments: combo cuts and heavy slash, Oni slam, hit sparks, Spirit
+## Slash, summon splash, portal smoke, death dissolve and dash afterimages.
+func _capture_vfx_sheet() -> void:
+	var sheet: Node2D = Node2D.new()
+	sheet.process_mode = Node.PROCESS_MODE_DISABLED
+	root.add_child(sheet)
+	var back: ColorRect = ColorRect.new()
+	back.color = InkPalette.MIST.lerp(InkPalette.SKY_HORIZON, 0.5)
+	back.size = Vector2(4000.0, 3000.0)
+	back.position = Vector2(-100.0, -100.0)
+	sheet.add_child(back)
+	sheet.scale = Vector2.ONE * (float(root.size.y) / 1080.0)
+	# Long setups first: combo cuts up to their final windup, the heavy and Oni windups.
+	var strikers: Array[UnitVisual] = []
+	for cut: int in 3:
+		var visual: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.SAMURAI, 110.0, Vector2(180.0 + cut * 300.0, 330.0))
+		for k: int in cut:
+			visual.play_state(&"windup")
+			_tick_tree(sheet, 0.12)
+			visual.play_state(&"strike")
+			_tick_tree(sheet, 0.12)
+		strikers.append(visual)
+	var heavy: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.SAMURAI, 110.0, Vector2(1080.0, 330.0))
+	var oni: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.ONI_BRUTE, 190.0, Vector2(1560.0, 330.0))
+	var dying: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.HOLLOW_SOLDIER, 110.0, Vector2(860.0, 980.0))
+	var dasher: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.SAMURAI, 110.0, Vector2(1240.0, 980.0))
+	for visual: UnitVisual in strikers:
+		visual.play_state(&"windup")
+	heavy.play_state(&"heavy_windup")
+	oni.play_state(&"windup")
+	dying.play_state(&"dead")
+	_tick_tree(sheet, 0.4)
+	var slash: SpiritSlashVisual = SpiritSlashVisual.new()
+	slash.position = Vector2(1350.0, 600.0)
+	sheet.add_child(slash)
+	# Entrances need a moment to splash out.
+	var ally: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.ASHIGARU, 100.0, Vector2(180.0, 980.0))
+	ally.play_state(&"spawn")
+	var hollow: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.HOLLOW_SOLDIER, 110.0, Vector2(520.0, 980.0))
+	hollow.play_state(&"spawn")
+	_tick_tree(sheet, 0.1)
+	# Short effects all at once, then a few frames.
+	for visual: UnitVisual in strikers:
+		visual.play_state(&"strike")
+	heavy.play_state(&"strike")
+	oni.play_state(&"strike")
+	dasher.play_state(&"dash")
+	var targets: Array[HitSpark.Target] = [HitSpark.Target.ENEMY, HitSpark.Target.DEFENDER, HitSpark.Target.STRUCTURE, HitSpark.Target.ENEMY]
+	for i: int in targets.size():
+		var spark: HitSpark = HitSpark.new()
+		spark.setup(1.0 if i % 2 == 0 else -1.0, i == 1, i == 3, targets[i])
+		spark.position = Vector2(180.0 + i * 260.0, 600.0)
+		sheet.add_child(spark)
+	for i: int in 5:
+		dasher.position.x += 24.0
+		_tick_tree(sheet, 1.0 / 60.0)
+	await _frames(2)
+	await _capture("vfx")
+	sheet.free()
+
+
+func _sheet_visual(sheet: Node2D, kind: InkFigure.Kind, height: float, at: Vector2) -> UnitVisual:
+	var visual: UnitVisual = UnitVisual.new()
+	visual.figure_kind = kind
+	visual.figure_height = height
+	visual.position = at
+	sheet.add_child(visual)
+	return visual
+
+
+## Advances every animated node under `node` by `seconds` at 60 fps (the sheet doesn't process).
+func _tick_tree(node: Node, seconds: float) -> void:
+	for i: int in ceili(seconds * 60.0 - 0.001):
+		for child: Node in node.find_children("*", "", true, false):
+			if is_instance_valid(child) and not child.is_queued_for_deletion() and child.has_method(&"_process") 					and (child is UnitVisual or child is InkEffect or child is Afterimage or child is SpiritSlashVisual):
+				child.call(&"_process", 1.0 / 60.0)
 
 
 func _tick(visuals: Array[Node], frames: int) -> void:

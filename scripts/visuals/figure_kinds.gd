@@ -35,6 +35,17 @@ class Spec:
 	## Lift while lying dead so the body rests on the ground, not in it.
 	var lie_lift: float = 8.0
 	var shadow_width: float = 22.0
+	## Slash trail: the stretch of the weapon it follows (x..y along the weapon; y = 0 means no
+	## trail) and its colours (paper core at the cutting edge, `trail_edge` outside).
+	var trail_span: Vector2 = Vector2(10.0, 74.0)
+	var trail_core: Color = InkPalette.PAPER
+	var trail_edge: Color = InkPalette.SAMURAI_RED
+	## Defenders summon in with an ink splash; enemies step out of violet smoke.
+	var is_enemy: bool = false
+	## Colour of the motes rising when the body dissolves.
+	var death_accent: Color = InkPalette.SPIRIT
+	## Strikes slam the ground with a shockwave of this radius (0 = none).
+	var slam_radius: float = 0.0
 
 
 static func spec(kind: InkFigure.Kind) -> Spec:
@@ -60,6 +71,9 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.back_hand_on_weapon = Vector2(-20.0, 0.0)
 			s.cadence = 12.0
 			s.windup_rate = 16.0
+			s.trail_span = Vector2(60.0, 86.0)
+			s.trail_core = Color(InkPalette.PAPER, 0.8)
+			s.trail_edge = InkPalette.ASHIGARU_GOLD
 		InkFigure.Kind.YUMI_ARCHER:
 			s.hip_y = 44.0
 			s.thigh = 22.0
@@ -74,6 +88,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.head_top = 94.0
 			s.cadence = 12.0
 			s.windup_rate = 9.0
+			s.trail_span = Vector2.ZERO
 		InkFigure.Kind.HOLLOW_SOLDIER:
 			s.hip_y = 45.0
 			s.thigh_w = Vector2(7.0, 5.5)
@@ -89,6 +104,11 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.head_top = 100.0
 			s.cadence = 8.0
 			s.windup_rate = 9.0
+			s.trail_span = Vector2(8.0, 52.0)
+			s.trail_core = Color(InkPalette.HOLLOW_PURPLE.lerp(InkPalette.PAPER, 0.35), 0.75)
+			s.trail_edge = Color(InkPalette.INK, 0.75)
+			s.is_enemy = true
+			s.death_accent = InkPalette.HOLLOW_PURPLE
 		InkFigure.Kind.ONI_BRUTE:
 			s.hip_y = 40.0
 			s.thigh = 20.0
@@ -113,6 +133,12 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.windup_rate = 4.5
 			s.lie_lift = 14.0
 			s.shadow_width = 34.0
+			s.trail_span = Vector2(18.0, 68.0)
+			s.trail_core = Color(InkPalette.ONI_EMBER.lerp(InkPalette.PAPER, 0.2), 0.8)
+			s.trail_edge = Color(InkPalette.INK, 0.8)
+			s.is_enemy = true
+			s.death_accent = InkPalette.ONI_EMBER
+			s.slam_radius = 170.0
 	return s
 
 
