@@ -23,6 +23,8 @@ var glow: float = 0.0
 var bow_draw: float = 0.0
 ## Bow string release snap (0..1).
 var release: float = 0.0
+## How far apart the feet are, as a multiple of the kind's rest stance.
+var spread: float = 1.0
 
 
 static func make(p_lean: float, p_crouch: float, p_grip: Vector2, p_blade: float) -> FigurePose:
@@ -54,6 +56,11 @@ func with_glow(p_glow: float) -> FigurePose:
 	return self
 
 
+func with_spread(p_spread: float) -> FigurePose:
+	spread = p_spread
+	return self
+
+
 func with_bow(p_draw: float, p_release: float = 0.0) -> FigurePose:
 	bow_draw = p_draw
 	release = p_release
@@ -72,6 +79,7 @@ func blend_toward(target: FigurePose, weight: float) -> void:
 	glow = lerpf(glow, target.glow, weight)
 	bow_draw = lerpf(bow_draw, target.bow_draw, weight)
 	release = lerpf(release, target.release, weight)
+	spread = lerpf(spread, target.spread, weight)
 
 
 func copy_from(other: FigurePose) -> void:

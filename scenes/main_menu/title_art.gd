@@ -54,14 +54,12 @@ func _place_figure() -> void:
 		_figure.position = get_ledge_position()
 
 
-## Calm guard with the blade lowered toward the menu; breathing, and the scarf in the wind.
+## Hasso no kamae: katana raised in both hands, feet planted wide; breathing, scarf in the wind.
 func _pose_figure() -> void:
 	var pose: FigurePose = _figure.pose
-	pose.lean = 0.03 + 0.01 * sin(_clock * 1.9)
-	pose.crouch = 1.0
-	pose.grip = Vector2(12.0, -9.0)
-	pose.blade = 1.2 + 0.03 * sin(_clock * 1.3)
-	pose.head_tilt = 0.06
+	pose.copy_from(FigureKinds.samurai_title_pose())
+	pose.lean += 0.01 * sin(_clock * 1.9)
+	pose.blade += 0.02 * sin(_clock * 1.3)
 	_figure.breath = sin(_clock * TAU * 0.25)
 	_figure.trail = 0.85 + 0.15 * sin(_clock * 0.7)
 	_figure.clock = _clock

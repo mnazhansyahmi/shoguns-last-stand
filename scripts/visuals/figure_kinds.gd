@@ -52,10 +52,11 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 	var s: Spec = Spec.new()
 	match kind:
 		InkFigure.Kind.SAMURAI:
-			s.thigh_w = Vector2(13.0, 12.0)
-			s.shin_w = Vector2(12.0, 14.0)
+			# Legs are drawn as flared hakama wedges (FigurePainter), so the stance is wide.
+			s.stance = Vector2(10.0, -10.0)
 			s.back_hand_on_weapon = Vector2(-7.0, 0.0)
-			s.head_top = 104.0
+			s.head_top = 112.0
+			s.shadow_width = 26.0
 		InkFigure.Kind.ASHIGARU:
 			s.hip_y = 44.0
 			s.thigh = 22.0
@@ -166,30 +167,36 @@ static func _samurai(state: StringName, step: int, heavy: bool) -> FigurePose:
 		&"windup":
 			match step:
 				1: # rising cut: blade low behind
-					return FigurePose.make(0.08, 4.0, Vector2(-6.0, -6.0), 2.55)
+					return FigurePose.make(0.08, 4.0, Vector2(-6.0, -6.0), 2.55).with_spread(1.4)
 				2: # thrust: pulled back level
-					return FigurePose.make(-0.04, 3.0, Vector2(-3.0, -20.0), -0.06)
-			return FigurePose.make(-0.06, 2.0, Vector2(-1.0, -41.0), -2.35)
+					return FigurePose.make(-0.04, 3.0, Vector2(-3.0, -20.0), -0.06).with_spread(1.4)
+			return FigurePose.make(-0.06, 2.0, Vector2(-1.0, -41.0), -2.35).with_spread(1.35)
 		&"heavy_windup":
-			return FigurePose.make(-0.16, 7.0, Vector2(-6.0, -44.0), -2.95)
+			return FigurePose.make(-0.16, 7.0, Vector2(-6.0, -44.0), -2.95).with_spread(1.6)
 		&"strike":
 			if heavy:
-				return FigurePose.make(0.38, 9.0, Vector2(22.0, -2.0), 1.05).with_offset(4.0)
+				return FigurePose.make(0.38, 9.0, Vector2(22.0, -2.0), 1.05).with_offset(4.0).with_spread(1.7)
 			match step:
 				1:
-					return FigurePose.make(0.12, 0.0, Vector2(17.0, -36.0), -1.05)
+					return FigurePose.make(0.12, 1.0, Vector2(17.0, -36.0), -1.05).with_spread(1.4)
 				2:
-					return FigurePose.make(0.3, 5.0, Vector2(27.0, -21.0), -0.04).with_offset(5.0)
-			return FigurePose.make(0.22, 4.0, Vector2(19.0, -6.0), 0.8)
+					return FigurePose.make(0.3, 5.0, Vector2(27.0, -21.0), -0.04).with_offset(5.0).with_spread(1.6)
+			return FigurePose.make(0.22, 4.0, Vector2(19.0, -6.0), 0.8).with_spread(1.5)
 		&"cast":
-			return FigurePose.make(-0.02, 2.0, Vector2(3.0, -46.0), -1.57).with_glow(1.0)
+			return FigurePose.make(-0.02, 3.0, Vector2(3.0, -46.0), -1.57).with_glow(1.0).with_spread(1.4)
 		&"dash":
-			return FigurePose.make(0.55, 9.0, Vector2(5.0, -9.0), 2.8)
+			return FigurePose.make(0.55, 9.0, Vector2(5.0, -9.0), 2.8).with_spread(1.5)
 		&"hurt":
 			return FigurePose.make(-0.32, 2.0, Vector2(10.0, -12.0), -0.05).with_head(-0.35).with_offset(-5.0)
 		&"dead":
 			return FigurePose.make(0.0, 0.0, Vector2(12.0, -8.0), 0.4).with_head(-0.2)
-	return FigurePose.make(0.04, 1.0, Vector2(13.0, -14.0), -0.4)
+	# Guard (seigan): blade forward at the opponent's eyes, feet planted wide.
+	return FigurePose.make(0.04, 2.0, Vector2(14.0, -17.0), -0.5).with_spread(1.3)
+
+
+## The title screen pose: hasso no kamae, katana raised in both hands beside the head, wide stance.
+static func samurai_title_pose() -> FigurePose:
+	return FigurePose.make(-0.02, 5.0, Vector2(9.0, -35.0), -1.95).with_spread(1.8)
 
 
 static func _ashigaru(state: StringName) -> FigurePose:

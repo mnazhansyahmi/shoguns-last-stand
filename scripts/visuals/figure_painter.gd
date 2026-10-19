@@ -21,7 +21,7 @@ static var _bows: Dictionary = {}
 
 ## Body part slots: where a part sits each frame (InkFigure computes one transform per slot).
 enum Slot { SHADOW, MARKER, LOCAL, THIGH_F, SHIN_F, FOOT_F, THIGH_B, SHIN_B, FOOT_B, UPPER_F, FORE_F,
-		HAND_F, UPPER_B, FORE_B, HAND_B, TORSO, HEAD, WEAPON, PAULDRON_FRONT }
+		HAND_F, UPPER_B, FORE_B, HAND_B, TORSO, HEAD, WEAPON, PAULDRON_FRONT, HAKAMA_F, HAKAMA_B }
 
 ## Part name -> slot. Every part in a layout must be listed.
 const SLOTS: Dictionary = {
@@ -33,7 +33,8 @@ const SLOTS: Dictionary = {
 	&"torso": Slot.TORSO, &"pauldron_back": Slot.TORSO, &"neck_wrap": Slot.TORSO, &"quiver": Slot.TORSO, &"hem": Slot.TORSO,
 	&"head": Slot.HEAD, &"mane": Slot.HEAD,
 	&"weapon": Slot.WEAPON, &"bow": Slot.WEAPON, &"blade_glow": Slot.WEAPON,
-	&"pauldron_front": Slot.PAULDRON_FRONT,
+	&"pauldron_front": Slot.PAULDRON_FRONT, &"saya": Slot.TORSO,
+	&"hakama_f": Slot.HAKAMA_F, &"hakama_b": Slot.HAKAMA_B,
 }
 ## Parts whose shape changes every frame (redrawn through paint_dynamic).
 const DYNAMIC_PARTS: Array[StringName] = [&"tails", &"hem"]
@@ -50,12 +51,9 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 	var order: Array[StringName] = [&"shadow"]
 	match kind:
 		InkFigure.Kind.SAMURAI:
-			order.append(&"tails")
-			order.append_array(_BACK_LIMBS)
-			order.append(&"pauldron_back")
+			order.append_array([&"tails", &"foot_b", &"hakama_b", &"pauldron_back"])
 			order.append_array(_BACK_ARM)
-			order.append_array(_FRONT_LEG)
-			order.append_array([&"torso", &"head", &"neck_wrap"])
+			order.append_array([&"foot_f", &"hakama_f", &"torso", &"saya", &"neck_wrap", &"head"])
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"pauldron_front", &"weapon", &"blade_glow"])
 		InkFigure.Kind.ASHIGARU:
@@ -221,46 +219,91 @@ static func _build_samurai(parts: Dictionary) -> void:
 	var ink: Color = InkPalette.INK
 	var detail: Color = InkPalette.INK_DETAIL
 	var red: Color = InkPalette.SAMURAI_RED
-	var back: InkBatch = InkBatch.new()
-	back.fill_convex(PackedVector2Array([Vector2(-12.0, -35.0), Vector2(-3.0, -35.0), Vector2(-2.0, -23.0),
-			Vector2(-13.5, -24.0)]), InkPalette.INK_BACK)
-	parts[&"pauldron_back"] = back
+	var spec: FigureKinds.Spec = FigureKinds.spec(InkFigure.Kind.SAMURAI)
+	var leg: float = spec.thigh + spec.shin
+
+	# Hakama: each leg is a wide wedge from the hip flaring to a hem on the ground; the two
+	# together (plus the front panel on the torso) make the triangle from waist to feet.
+	for front: bool in [true, false]:
+		var hakama: InkBatch = InkBatch.new()
+		var color: Color = ink if front else InkPalette.INK_BACK
+		hakama.fill(PackedVector2Array([Vector2(-3.0, -6.0), Vector2(leg * 0.5, -9.5), Vector2(leg + 1.5, -16.5),
+				Vector2(leg + 3.5, -15.0), Vector2(leg + 3.5, 15.0), Vector2(leg + 1.5, 16.5), Vector2(leg * 0.5, 9.5),
+				Vector2(-3.0, 6.0)]), color)
+		if front:
+			hakama.limb(Vector2(leg * 0.35, 2.5), Vector2(leg + 2.0, 6.0), 1.8, 2.2, detail)
+			hakama.limb(Vector2(leg * 0.35, -2.5), Vector2(leg + 2.0, -6.0), 1.8, 2.2, detail)
+		parts[&"hakama_f" if front else &"hakama_b"] = hakama
+
+	# Sode: three overlapping lames hanging from the shoulder, wider toward the bottom.
+	parts[&"pauldron_front"] = _sode(Vector2.ZERO, ink, detail)
+	parts[&"pauldron_back"] = _sode(spec.shoulder_back + Vector2(-2.0, -1.0), InkPalette.INK_BACK, InkPalette.INK_BACK)
 
 	var torso: InkBatch = InkBatch.new()
-	# Kusazuri (armour skirt) over the hakama.
-	torso.fill_convex(PackedVector2Array([Vector2(-12.0, -4.0), Vector2(12.0, -4.0), Vector2(14.5, 12.0),
-			Vector2(-13.5, 12.0)]), ink)
-	for x: float in [-4.5, 4.5]:
-		torso.limb(Vector2(x, 0.0), Vector2(x * 1.15, 10.0), 2.0, 2.0, detail)
-	# Do (chest armour).
-	torso.fill(PackedVector2Array([Vector2(-10.0, -2.0), Vector2(10.0, -2.0), Vector2(12.5, -20.0),
-			Vector2(12.0, -31.0), Vector2(4.0, -34.5), Vector2(-8.0, -34.5), Vector2(-11.5, -24.0)]), ink)
-	for y: float in [-10.0, -17.0]:
-		torso.limb(Vector2(-8.5, y), Vector2(10.5, y), 2.0, 2.0, detail)
+	# Front panel of the hakama, below the armour skirt.
+	torso.fill_convex(PackedVector2Array([Vector2(-11.0, -3.0), Vector2(11.0, -3.0), Vector2(19.0, 30.0),
+			Vector2(-19.0, 30.0)]), ink)
+	# Kusazuri (armour skirt).
+	torso.fill_convex(PackedVector2Array([Vector2(-12.0, -5.0), Vector2(12.0, -5.0), Vector2(16.5, 13.0),
+			Vector2(-15.5, 13.0)]), ink)
+	for x: float in [-6.0, 0.0, 6.0]:
+		torso.limb(Vector2(x, -1.0), Vector2(x * 1.25, 11.0), 2.0, 2.0, detail)
+	torso.limb(Vector2(-13.0, 5.0), Vector2(14.0, 5.0), 2.0, 2.0, detail)
+	# Do: tapered chest armour, broad at the shoulders, narrow at the waist.
+	torso.fill(PackedVector2Array([Vector2(-9.0, -3.0), Vector2(9.0, -3.0), Vector2(14.0, -21.0),
+			Vector2(14.0, -30.0), Vector2(6.0, -34.5), Vector2(-7.0, -34.5), Vector2(-13.5, -30.0), Vector2(-13.0, -20.0)]), ink)
+	for y: float in [-11.0, -18.0, -25.0]:
+		torso.limb(Vector2(-10.0 - (y + 11.0) * 0.12, y), Vector2(11.0 - (y + 11.0) * 0.2, y), 2.0, 2.0, detail)
 	# Sash knot (accent).
 	torso.fill_convex(PackedVector2Array([Vector2(7.0, -3.5), Vector2(13.5, -6.5), Vector2(12.5, -0.5)]), red)
 	torso.fill_convex(PackedVector2Array([Vector2(7.0, -3.5), Vector2(12.0, 3.5), Vector2(8.0, 4.5)]), red)
 	torso.circle(Vector2(8.0, -3.0), 2.4, red)
 	parts[&"torso"] = torso
 
+	# Saya (scabbard) at the left hip, angled back and down, with the wakizashi hilt beside it.
+	var saya: InkBatch = InkBatch.new()
+	saya.stroke(PackedVector2Array([Vector2(5.0, -5.0), Vector2(-10.0, 2.0), Vector2(-24.0, 9.5),
+			Vector2(-33.0, 15.0)]), 4.8, 4.0, ink)
+	saya.limb(Vector2(3.5, -6.5), Vector2(1.5, -2.5), 1.8, 1.8, detail)
+	saya.limb(Vector2(4.0, -6.0), Vector2(12.0, -10.0), 3.6, 3.4, ink)
+	saya.ellipse(Vector2(4.5, -6.2), Vector2(1.4, 3.2), ink, 10)
+	parts[&"saya"] = saya
+
 	var head: InkBatch = InkBatch.new()
-	head.limb(Vector2(0.0, 0.0), Vector2(0.5, -5.0), 6.0, 6.0, ink)
-	head.ellipse(Vector2(1.5, -9.5), Vector2(7.0, 8.0), ink)
-	head.circle(Vector2(-5.0, -12.0), 3.6, ink)
-	# Topknot (chonmage), folded forward over the crown.
-	head.stroke(PackedVector2Array([Vector2(-5.0, -14.0), Vector2(-1.0, -18.0), Vector2(3.5, -19.0),
-			Vector2(7.0, -17.5)]), 4.6, 3.0, ink)
+	head.limb(Vector2(0.0, 0.0), Vector2(0.5, -4.0), 6.0, 6.0, ink)
+	head.ellipse(Vector2(2.0, -8.5), Vector2(6.5, 7.0), ink)
+	# Menpo: chin guard.
+	head.fill_convex(PackedVector2Array([Vector2(4.0, -6.5), Vector2(10.5, -5.5), Vector2(9.0, -0.5), Vector2(3.0, 0.5)]), ink)
+	# Shikoro: lamed neck guard sweeping back and down over the shoulders.
+	head.fill(PackedVector2Array([Vector2(6.0, -12.0), Vector2(7.5, -9.0), Vector2(-1.0, -7.5), Vector2(-9.0, -3.5),
+			Vector2(-17.5, 1.5), Vector2(-19.0, -2.5), Vector2(-13.0, -9.5), Vector2(-6.0, -13.0)]), ink)
+	head.limb(Vector2(-3.0, -9.5), Vector2(-15.0, -1.5), 1.8, 1.8, detail)
+	head.limb(Vector2(-5.0, -12.0), Vector2(-16.0, -5.0), 1.8, 1.8, detail)
+	# Kabuto bowl, visor and fukigaeshi turn-backs.
+	var bowl: PackedVector2Array = PackedVector2Array()
+	for i: int in 13:
+		var angle: float = PI + PI * float(i) / 12.0
+		bowl.append(Vector2(1.0, -11.0) + Vector2(cos(angle) * 9.5, sin(angle) * 9.0))
+	head.fill_convex(bowl, ink)
+	head.fill_convex(PackedVector2Array([Vector2(6.0, -12.5), Vector2(15.0, -10.5), Vector2(14.0, -8.5), Vector2(6.0, -10.0)]), ink)
+	head.fill_convex(PackedVector2Array([Vector2(4.0, -13.0), Vector2(8.5, -19.5), Vector2(11.5, -13.0)]), ink)
+	head.limb(Vector2(-7.0, -11.5), Vector2(9.5, -11.5), 1.8, 1.8, detail)
+	# Maedate: a large crescent crest rising from the front of the helmet.
+	var crest_center: Vector2 = Vector2(6.0, -28.0)
+	var left: PackedVector2Array = PackedVector2Array()
+	var right: PackedVector2Array = PackedVector2Array()
+	for i: int in 9:
+		var t: float = float(i) / 8.0
+		left.append(crest_center + Vector2.from_angle(lerpf(PI + 0.4, PI * 0.5, t)) * 11.0)
+		right.append(crest_center + Vector2.from_angle(lerpf(PI * 0.5, -0.4, t)) * 11.0)
+	head.stroke(left, 1.2, 4.8, ink)
+	head.stroke(right, 4.8, 1.2, ink)
+	head.limb(Vector2(5.5, -19.0), crest_center + Vector2(0.0, 10.5), 3.0, 3.0, ink)
 	parts[&"head"] = head
 
 	var wrap: InkBatch = InkBatch.new()
 	wrap.ellipse(Vector2(1.5, -34.5), Vector2(7.0, 3.4), red)
 	parts[&"neck_wrap"] = wrap
-
-	var pauldron: InkBatch = InkBatch.new()
-	pauldron.fill_convex(PackedVector2Array([Vector2(-5.0, -3.0), Vector2(6.0, -3.0), Vector2(8.0, 10.0),
-			Vector2(-4.0, 11.0)]), ink)
-	pauldron.limb(Vector2(-3.5, 4.0), Vector2(6.5, 4.0), 2.0, 2.0, detail)
-	parts[&"pauldron_front"] = pauldron
 
 	var katana: InkBatch = InkBatch.new()
 	katana.limb(Vector2(-11.0, 0.0), Vector2(1.0, 0.0), 3.8, 3.8, ink)
@@ -276,6 +319,21 @@ static func _build_samurai(parts: Dictionary) -> void:
 	glow.stroke(PackedVector2Array([Vector2(4.0, -0.4), Vector2(30.0, -1.2), Vector2(55.0, -2.3),
 			Vector2(tip - 1.0, -3.8)]), 2.6, 1.6, InkPalette.SPIRIT)
 	parts[&"blade_glow"] = glow
+
+
+## Sode: three overlapping lames from `origin` (the shoulder), each wider than the one above.
+static func _sode(origin: Vector2, color: Color, line_color: Color) -> InkBatch:
+	var sode: InkBatch = InkBatch.new()
+	for i: int in 3:
+		var y0: float = -4.0 + float(i) * 7.5
+		var y1: float = y0 + 8.5
+		var left: float = -7.0 - float(i) * 1.2
+		var right: float = 8.0 + float(i) * 1.8
+		sode.fill_convex(PackedVector2Array([origin + Vector2(left, y0), origin + Vector2(right, y0),
+				origin + Vector2(right + 1.2, y1), origin + Vector2(left - 0.6, y1)]), color)
+		if i < 2:
+			sode.limb(origin + Vector2(left, y1 - 0.4), origin + Vector2(right + 1.0, y1 - 0.4), 1.8, 1.8, line_color)
+	return sode
 
 
 static func _build_ashigaru(parts: Dictionary) -> void:

@@ -156,8 +156,8 @@ func refresh() -> void:
 
 	hip = Vector2(0.0, -(spec.hip_y - pose.crouch))
 	var swing: float = sin(stride_phase) * stride * spec.stride_len
-	var front_foot: Vector2 = Vector2(spec.stance.x + swing, -maxf(0.0, cos(stride_phase)) * stride * spec.lift)
-	var back_foot: Vector2 = Vector2(spec.stance.y - swing, -maxf(0.0, -cos(stride_phase)) * stride * spec.lift)
+	var front_foot: Vector2 = Vector2(spec.stance.x * pose.spread + swing, -maxf(0.0, cos(stride_phase)) * stride * spec.lift)
+	var back_foot: Vector2 = Vector2(spec.stance.y * pose.spread - swing, -maxf(0.0, -cos(stride_phase)) * stride * spec.lift)
 	front_ankle = front_foot + Vector2(0.0, -2.5)
 	back_ankle = back_foot + Vector2(0.0, -2.5)
 	front_knee = InkBrush.solve_joint(hip + Vector2(2.0, 0.0), front_ankle, spec.thigh, spec.shin, -1.0)
@@ -219,6 +219,9 @@ func _update_slots() -> void:
 	_slot_xf[FigurePainter.Slot.THIGH_B] = _segment_xf(root_xf, hip + Vector2(-2.0, 0.0), back_knee, spec.thigh)
 	_slot_xf[FigurePainter.Slot.SHIN_B] = _segment_xf(root_xf, back_knee, back_ankle, spec.shin)
 	_slot_xf[FigurePainter.Slot.FOOT_B] = root_xf * Transform2D(0.0, back_ankle)
+	# Hakama legs span the whole leg, hip to ankle.
+	_slot_xf[FigurePainter.Slot.HAKAMA_F] = _segment_xf(root_xf, hip + Vector2(2.0, 0.0), front_ankle, spec.thigh + spec.shin)
+	_slot_xf[FigurePainter.Slot.HAKAMA_B] = _segment_xf(root_xf, hip + Vector2(-2.0, 0.0), back_ankle, spec.thigh + spec.shin)
 	_slot_xf[FigurePainter.Slot.UPPER_F] = _segment_xf(torso_xf, spec.shoulder_front, front_elbow, spec.upper_arm)
 	_slot_xf[FigurePainter.Slot.FORE_F] = _segment_xf(torso_xf, front_elbow, front_hand, spec.fore_arm)
 	_slot_xf[FigurePainter.Slot.HAND_F] = torso_xf * Transform2D(0.0, front_hand)

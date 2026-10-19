@@ -43,7 +43,9 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	await _capture_figure_sheet()
+	await _capture_figure_sheet("figures", Color.WHITE)
+	# Pure black: every figure must still read from its shape alone (art bible silhouette test).
+	await _capture_figure_sheet("silhouettes", Color.BLACK)
 	await _capture_vfx_sheet()
 	var menu: Node = MAIN_MENU.instantiate()
 	menu.set("save_path", DATA_DIR + "/save.json")
@@ -100,7 +102,7 @@ func _run() -> void:
 
 
 ## Every figure kind in every animation state, on the mist colour fighters stand against.
-func _capture_figure_sheet() -> void:
+func _capture_figure_sheet(shot_name: String, tint: Color) -> void:
 	var sheet: Node2D = Node2D.new()
 	root.add_child(sheet)
 	var back: ColorRect = ColorRect.new()
@@ -119,6 +121,7 @@ func _capture_figure_sheet() -> void:
 			visual.figure_height = heights[kind]
 			visual.position = Vector2(120.0 + column * 225.0, row_y[kind]) / 1.05
 			sheet.add_child(visual)
+			visual.set_tint(tint)
 			if states[column] == &"dead":
 				dead.append(visual)
 			else:
@@ -133,7 +136,7 @@ func _capture_figure_sheet() -> void:
 		visual.play_state(&"dead")
 	_tick(visuals, 30)
 	await _frames(2)
-	await _capture("figures")
+	await _capture(shot_name)
 	sheet.free()
 
 

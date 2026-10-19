@@ -111,7 +111,7 @@ are at the node origin, and every figure faces +x (right) and is mirrored for le
 
 | Figure | Height | Key proportions | Silhouette hooks |
 | --- | --- | --- | --- |
-| Samurai | 110 (+ topknot) | Head ≈ 1/6.5 H; shoulders 0.42 H wide (sode pauldrons); katana 0.78 H | Topknot, flared hakama, two scarf tails, long katana |
+| Samurai | 110 (+ crest) | Head ≈ 1/6.5 H; layered sode on both shoulders; tapered dō (broad chest, narrow waist); hakama flares to a triangle ≈ 0.55 H wide at the hem; katana 0.78 H | Kabuto with a crescent maedate, triangle hakama, saya at the left hip, two scarf tails, long katana |
 | Ashigaru | 100 | Hat brim 0.66 H wide; yari spear 1.25 H | Wide flat cone hat, long level spear |
 | Yumi Archer | 96 | Bow 1.05 H, grip below centre (asymmetric yumi) | Tall bow, quiver over the back shoulder |
 | Hollow Soldier | 110 | Hunched (spine leans 0.28 rad); head forward of chest; long arms | Hunch, broken helmet crest, ragged hem, notched sword |
