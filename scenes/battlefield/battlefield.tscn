@@ -18,6 +18,7 @@
 [ext_resource type="Script" path="res://scripts/systems/battle_feedback.gd" id="16_feedback"]
 [ext_resource type="PackedScene" path="res://scenes/backdrops/bamboo_outskirts.tscn" id="17_backdrop"]
 [ext_resource type="Script" path="res://scripts/visuals/spawn_portal_visual.gd" id="18_portal"]
+[ext_resource type="Script" path="res://scripts/systems/battle_camera.gd" id="19_camera"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(3200, 400)
@@ -28,6 +29,7 @@ script = ExtResource("1_field")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(960, 540)
+script = ExtResource("19_camera")
 
 [node name="World" type="Node2D" parent="."]
 process_mode = 1

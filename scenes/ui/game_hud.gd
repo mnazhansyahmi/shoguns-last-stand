@@ -10,6 +10,8 @@ const BANNER_FADE_TIME: float = 0.4
 const SCREEN_MARGIN: Vector2 = Vector2(32.0, 24.0)
 ## Room kept free above the touch summon buttons for messages.
 const TOUCH_BOTTOM_SPACE: float = 230.0
+## Edge indicator tabs start this far below the top of the safe area (under the top HUD).
+const INDICATOR_TOP: float = 196.0
 
 @onready var _margin: MarginContainer = $Margin
 @onready var _top_left: VBoxContainer = %TopLeft
@@ -30,6 +32,8 @@ const TOUCH_BOTTOM_SPACE: float = 230.0
 @onready var _debug_hint_label: Label = %DebugHintLabel
 @onready var _touch_spacer: Control = %TouchSpacer
 
+var _gate_indicator: EdgeIndicator
+var _enemy_indicator: EdgeIndicator
 var _banner_tween: Tween
 var _message_tween: Tween
 var _touch_mode: bool = false
@@ -38,6 +42,15 @@ var _ui_scale: float = 1.0
 
 
 func _ready() -> void:
+	_gate_indicator = EdgeIndicator.new()
+	_gate_indicator.name = "GateIndicator"
+	_gate_indicator.points_left = true
+	add_child(_gate_indicator)
+	_enemy_indicator = EdgeIndicator.new()
+	_enemy_indicator.name = "EnemyIndicator"
+	_enemy_indicator.points_left = false
+	add_child(_enemy_indicator)
+	_place_indicators(get_viewport().get_visible_rect())
 	_pause_button.pressed.connect(pause_requested.emit)
 	_top_left.resized.connect(_update_pivots)
 	_wave_box.resized.connect(_update_pivots)
@@ -96,8 +109,45 @@ func apply_layout(safe_rect: Rect2, viewport_size: Vector2, ui_scale: float) -> 
 	_margin.add_theme_constant_override("margin_bottom", roundi(viewport_size.y - safe_rect.end.y + SCREEN_MARGIN.y))
 	for control: Control in [_top_left, _wave_box, _pause_button]:
 		control.scale = Vector2(_ui_scale, _ui_scale)
+	_place_indicators(safe_rect)
 	_refresh_bottom()
 	_update_pivots()
+
+
+## Off-screen markers: the gate (left edge) and incoming enemies (right edge).
+## gate_ratio = gate health 0..1; at_gate = enemies off screen to the left (at the gate).
+func set_edge_indicators(gate_hidden: bool, gate_ratio: float, at_gate: int, gate_alert: bool,
+		incoming: int, oni_incoming: bool) -> void:
+	if gate_hidden:
+		_gate_indicator.show_info("Gate %d%%" % roundi(gate_ratio * 100.0),
+				("%d at the gate" % at_gate) if at_gate > 0 else "", gate_ratio, gate_alert)
+	else:
+		_gate_indicator.hide_info()
+	if incoming > 0:
+		_enemy_indicator.show_info("%d incoming" % incoming, "Oni Brute!" if oni_incoming else "", -1.0, oni_incoming)
+	else:
+		_enemy_indicator.hide_info()
+
+
+func get_gate_indicator() -> EdgeIndicator:
+	return _gate_indicator
+
+
+func get_enemy_indicator() -> EdgeIndicator:
+	return _enemy_indicator
+
+
+## Tabs sit at the screen edges just below the top HUD (health bars, pause button), above
+## the fighters' heads and well clear of the touch controls.
+func _place_indicators(safe_rect: Rect2) -> void:
+	var y: float = safe_rect.position.y + INDICATOR_TOP * _ui_scale
+	for indicator: EdgeIndicator in [_gate_indicator, _enemy_indicator]:
+		if indicator == null:
+			continue
+		indicator.scale = Vector2(_ui_scale, _ui_scale)
+		var width: float = EdgeIndicator.TAB_SIZE.x * _ui_scale
+		var x: float = safe_rect.position.x + 8.0 if indicator.points_left else safe_rect.end.x - 8.0 - width
+		indicator.position = Vector2(x, y)
 
 
 func get_pause_button_rect() -> Rect2:

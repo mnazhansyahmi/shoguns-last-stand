@@ -419,3 +419,69 @@ func test_marker_marks_only_the_player() -> void:
 	ally.setup(ASHIGARU, 300.0)
 	add_to_tree(ally)
 	assert_true(not (ally.get_node("Visual") as UnitVisual).get_figure().has_node("marker"), "allies have no marker")
+
+
+# --- Zoomed battle view -------------------------------------------------------
+
+const BATTLEFIELD_SCENE: PackedScene = preload("res://scenes/battlefield/battlefield.tscn")
+
+
+func _make_battlefield() -> Node:
+	var field: Node = BATTLEFIELD_SCENE.instantiate()
+	field.set("save_path", "user://test_saves/art_view_save.json")
+	field.set("settings_path", "user://test_saves/art_view_settings.cfg")
+	add_to_tree(field)
+	return field
+
+
+func test_zoomed_parallax_keeps_sky_unmagnified_and_ground_in_the_world() -> void:
+	var reference: Vector2 = Vector2(960.0, 540.0)
+	var center: Vector2 = Vector2(1400.0, 660.0)
+	var unzoomed: Transform2D = BackdropLayer.layer_transform(center, reference, 0.4, 1.0)
+	assert_true(unzoomed.origin.is_equal_approx(BackdropLayer.parallax_offset(center, reference, 0.4)), "zoom 1 matches plain parallax")
+	assert_true(BackdropLayer.layer_transform(center, reference, 1.0, 1.5).is_equal_approx(Transform2D.IDENTITY), "ground stays locked to the world")
+	var sky: Transform2D = BackdropLayer.layer_transform(center, reference, 0.0, 1.5)
+	assert_almost_eq(sky.get_scale().x * 1.5, 1.0, "the sky is not magnified on screen")
+	# A sky point lands where it was painted on screen, wherever the camera is.
+	var screen: Vector2 = ((sky * Vector2(1480.0, 230.0)) - center) * 1.5 + reference
+	assert_true(screen.is_equal_approx(Vector2(1480.0, 230.0)), "the moon stays put on screen")
+
+
+func test_battle_camera_zooms_and_follows_the_player_inside_the_field() -> void:
+	var field: Node = _make_battlefield()
+	var camera: BattleCamera = field.call(&"get_camera")
+	var player: Player = field.get_node("World/Player")
+	assert_almost_eq(camera.zoom.x, 1.5, "units are drawn 1.5x bigger")
+	var half: float = camera.get_view_size().x * 0.5
+	for x: float in [-500.0, 900.0, 4000.0]:
+		player.global_position.x = x
+		camera.snap()
+		assert_true(camera.position.x - half >= camera.bounds_left - 0.5 or camera.bounds_right - camera.bounds_left < half * 2.0,
+				"view stays inside the field on the left (player at %d)" % x)
+		assert_true(camera.position.x + half <= camera.bounds_right + 0.5 or camera.bounds_right - camera.bounds_left < half * 2.0,
+				"view stays inside the field on the right (player at %d)" % x)
+	player.global_position.x = 900.0
+	camera.snap()
+	assert_true(absf(camera.position.x - camera.get_desired_x()) < 0.01 and absf(camera.get_desired_x() - 900.0) <= camera.look_ahead + 0.01
+			or camera.bounds_right - camera.bounds_left < half * 2.0, "camera centres near the player")
+
+
+func test_edge_indicators_point_at_the_hidden_gate_and_incoming_enemies() -> void:
+	var field: Node = _make_battlefield()
+	var camera: BattleCamera = field.call(&"get_camera")
+	var hud: GameHud = field.get_node("Hud")
+	var player: Player = field.get_node("World/Player")
+	var gate: VillageGate = field.get_node("World/VillageGate")
+	player.global_position.x = 2000.0
+	camera.snap()
+	var enemy: Enemy = (field.get_node("World/EnemySpawner") as EnemySpawner).spawn(HOLLOW_SOLDIER)
+	enemy.global_position.x = camera.get_view_rect().position.x - 200.0
+	field.call(&"_update_edge_indicators")
+	var gate_hidden: bool = gate.get_front_x() < camera.get_view_rect().position.x + 30.0
+	assert_eq(hud.get_gate_indicator().visible, gate_hidden, "gate tab shows exactly when the gate is off screen")
+	if gate_hidden:
+		assert_true(hud.get_gate_indicator().detail.contains("1 at the gate"), "the tab counts enemies at the gate")
+		assert_true(hud.get_gate_indicator().alert, "enemies at the gate raise the alert")
+	enemy.global_position.x = camera.get_view_rect().end.x + 200.0
+	field.call(&"_update_edge_indicators")
+	assert_true(hud.get_enemy_indicator().visible and hud.get_enemy_indicator().title == "1 incoming", "right tab counts enemies past the right edge")

@@ -16,6 +16,7 @@ script = ExtResource("1_gate")
 script = ExtResource("2_visual")
 
 [node name="HealthBar" type="Node2D" parent="."]
+visible = false
 position = Vector2(0, -440)
 script = ExtResource("5_bar")
 bar_size = Vector2(260, 18)

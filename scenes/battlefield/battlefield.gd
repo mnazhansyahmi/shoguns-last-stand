@@ -11,6 +11,8 @@ const DEBUG_HOLLOW_SOLDIER: EnemyData = preload("res://data/enemies/hollow_soldi
 const DEBUG_ONI_BRUTE: EnemyData = preload("res://data/enemies/oni_brute.tres")
 const PLAYER_RESPAWN_DELAY: float = 5.0
 const SUMMON_ACTIONS: Array[StringName] = [&"summon_1", &"summon_2"]
+## The gate indicator pulses this long after the gate is hit while it is off screen.
+const GATE_ALERT_MSEC: int = 1500
 
 ## Overridable so automated runs never touch the player's real save/settings.
 @export var save_path: String = SaveManager.DEFAULT_PATH
@@ -24,7 +26,7 @@ const SUMMON_ACTIONS: Array[StringName] = [&"summon_1", &"summon_2"]
 @onready var _wave_director: WaveDirector = $World/WaveDirector
 @onready var _feedback: BattleFeedback = $World/BattleFeedback
 @onready var _player_spawn_point: Marker2D = $World/PlayerSpawnPoint
-@onready var _camera: Camera2D = $Camera2D
+@onready var _camera: BattleCamera = $Camera2D
 @onready var _projectiles: Node2D = $World/Projectiles
 @onready var _hud: GameHud = $Hud
 @onready var _touch: TouchControls = $TouchControls
@@ -38,13 +40,13 @@ var _progress: PlayerProgress
 var _settings_store: SettingsStore
 var _settings: GameSettings
 var _kills: Array[EnemyData] = []
-var _camera_base_y: float = 0.0
+var _gate_alert_until_msec: int = 0
+var _last_gate_health: float = -1.0
 ## The stage was already cleared before this battle (replay rewards, no Next Stage button).
 var _was_cleared_before: bool = false
 
 
 func _ready() -> void:
-	_camera_base_y = _camera.position.y
 	_save_manager = SaveManager.new(save_path)
 	_progress = _save_manager.load_progress()
 	_apply_upgrades()
@@ -59,6 +61,7 @@ func _ready() -> void:
 	_player.died.connect(_on_player_died)
 	_player.projectile_fired.connect(_on_projectile_fired)
 	_gate.health_changed.connect(_hud.set_gate_health)
+	_gate.health_changed.connect(_on_gate_health_changed)
 	_gate.destroyed.connect(_on_gate_destroyed)
 	_energy.energy_changed.connect(_hud.set_energy)
 	_summoner.summon_failed.connect(_on_summon_failed)
@@ -93,6 +96,9 @@ func _ready() -> void:
 		if not warning.is_empty():
 			_hud.show_message(warning, 4.0)
 
+	_camera.target = _player
+	_camera.snap()
+
 	# Started after the signals above are connected so no wave event is missed.
 	_wave_director.start()
 
@@ -108,6 +114,7 @@ func _process(delta: float) -> void:
 	_hud.set_summon_text(_build_summon_text())
 	_update_wave_text()
 	_update_respawn(delta)
+	_update_edge_indicators()
 
 
 ## Pause when the app is backgrounded or loses focus (phone call, home gesture, alt-tab),
@@ -184,22 +191,56 @@ func _apply_layout() -> void:
 	var safe_rect: Rect2 = TouchLayout.get_safe_rect(get_viewport())
 	_touch.apply_layout(viewport_size, safe_rect, _settings.ui_scale, _settings.left_handed)
 	_hud.apply_layout(safe_rect, viewport_size, _settings.ui_scale)
+	_camera.update_base()
 	_update_camera_lift(viewport_size, safe_rect)
 
 
 ## With touch controls on screen, move the camera down (the world up) so the ground, the
-## gate and every unit stay above the joystick and buttons.
+## gate and every unit stay above the joystick and buttons. The lift is in screen pixels.
 func _update_camera_lift(viewport_size: Vector2, safe_rect: Rect2) -> void:
 	var lift: float = 0.0
 	if _touch.is_active():
 		var rects: Dictionary = TouchLayout.compute(viewport_size, safe_rect, _settings.ui_scale, _settings.left_handed)
-		var ground_screen_y: float = _player_spawn_point.global_position.y - _camera_base_y + viewport_size.y * 0.5
-		lift = TouchLayout.ground_lift(rects, ground_screen_y)
-	_camera.position.y = _camera_base_y + lift
+		lift = TouchLayout.ground_lift(rects, _camera.get_ground_screen_y())
+	_camera.set_lift(lift)
 
 
+## Camera lift in world units (0 without touch controls).
 func get_camera_lift() -> float:
-	return _camera.position.y - _camera_base_y
+	return _camera.get_lift()
+
+
+func get_camera() -> BattleCamera:
+	return _camera
+
+
+## The view only shows part of the field: point at the gate and at enemies that are off screen.
+func _update_edge_indicators() -> void:
+	var view: Rect2 = _camera.get_view_rect()
+	var at_gate: int = 0
+	var incoming: int = 0
+	var oni_incoming: bool = false
+	for node: Node in get_tree().get_nodes_in_group("enemies"):
+		var enemy: Enemy = node as Enemy
+		if enemy == null:
+			continue
+		var x: float = enemy.global_position.x
+		if x < view.position.x:
+			at_gate += 1
+		elif x > view.end.x:
+			incoming += 1
+			oni_incoming = oni_incoming or (enemy.data != null and enemy.data.figure == InkFigure.Kind.ONI_BRUTE)
+	var gate_health: HealthComponent = _gate.get_health()
+	var gate_hidden: bool = _gate.get_front_x() < view.position.x + 30.0
+	var alert: bool = Time.get_ticks_msec() < _gate_alert_until_msec or at_gate > 0
+	_hud.set_edge_indicators(gate_hidden, gate_health.current_health / maxf(gate_health.max_health, 0.001),
+			at_gate, alert, incoming, oni_incoming)
+
+
+func _on_gate_health_changed(current: float, _maximum: float) -> void:
+	if _last_gate_health >= 0.0 and current < _last_gate_health:
+		_gate_alert_until_msec = Time.get_ticks_msec() + GATE_ALERT_MSEC
+	_last_gate_health = current
 
 
 # --- Debug ------------------------------------------------------------------
