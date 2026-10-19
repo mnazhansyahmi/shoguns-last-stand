@@ -9,8 +9,8 @@ var part_name: StringName = &""
 var batch: InkBatch
 var dynamic: bool = false
 var glow_points: PackedVector2Array = PackedVector2Array()
-var glow_radius: float = 0.0
-var glow_color: Color = Color.WHITE
+var glow_radii: PackedFloat32Array = PackedFloat32Array()
+var glow_colors: PackedColorArray = PackedColorArray()
 
 
 func _draw() -> void:
@@ -18,5 +18,5 @@ func _draw() -> void:
 		FigurePainter.paint_dynamic(figure, part_name, self)
 	elif batch != null:
 		batch.draw(self)
-	for point: Vector2 in glow_points:
-		InkBrush.glow(self, point, glow_radius, glow_color)
+	for i: int in glow_points.size():
+		InkBrush.glow(self, glow_points[i], glow_radii[i], glow_colors[i])

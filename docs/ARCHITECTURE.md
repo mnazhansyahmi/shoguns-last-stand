@@ -178,10 +178,25 @@ All art is drawn by code; there are no image files. `docs/ART_BIBLE.md` is the s
   - Code that colours text at runtime (stage locks, victory/defeat, affordability, HUD status) uses `InkPalette` constants.
   - `RegionBackdrop` is the backdrop scene's root. Menus instance the battle backdrop with `front_fog = false` (that layer draws over everything in its canvas, buttons included).
   - The title screen is `scenes/main_menu/title_art.gd`: an `InkFigure` posed by hand, lined up with the backdrop's moon through `BackdropLayer.parallax_offset`, so it stays aligned on wide screens. `BrushStroke` is the crimson accent under the title.
-- **Performance:** `tools/perf_battle.gd` measures a crowded battle: 30+ enemies, 6 allies, the wave director running, 900 frames at `--fixed-fps 60`, using the engine's process + physics time monitors. That metric isn't comparable to the Phase 6 numbers, so a baseline was measured the same way on the pre-Phase-9 commit.
-  - With rendering on (RTX 5060 laptop, so not representative of an iPhone): before Phase 9, 12.5 ms average. The first immediate-mode figures took about 60 ms. Batching cut that to 23 ms, and retained parts to **15.8 ms average (p95 21 ms)**.
-  - Headless, the numbers are unchanged from before Phase 9 (about 20 ms both, mostly physics and scripts).
-  - The static backdrop is also batched (one draw call per layer, split only where soft washes must sit on top), and the gate's geometry is cached.
+- **Performance:** `tools/perf_battle.gd` keeps exactly 30 enemies alive (topped up as they die, the wave director stopped), summons allies to the cap, puts the player mid-field, and runs 900 frames at `--fixed-fps 60` with vsync and the frame cap off. It reports **wall-clock frame time** plus the renderer's own CPU/GPU time. Diagnostic flags (`--hide-figures`, `--freeze-visuals`, `--no-backdrop`, `--no-effects`, `--no-hud`) attribute the cost.
+  - **Measurement correction:** the Phase 9.6 numbers (15.8 ms) came from the engine's `TIME_PROCESS`/`TIME_PHYSICS_PROCESS` monitors. Those report the *worst* frame of each second, which is why p95 equalled the maximum. They overstated the average, so they are superseded.
+  - **Results** on an RTX 5060 laptop, three-run averages:
+
+    | | frame avg | p95 | renderer CPU |
+    | --- | --- | --- | --- |
+    | Before the performance pass (after the samurai redesign and zoom) | 8.05 ms | 9.8 ms | 3.3 ms |
+    | After | **6.61 ms** | 8.3 ms | 2.7 ms |
+
+  - **Breakdown before the pass:**
+    - Figures cost about 2.7 ms: about 2.3 ms in renderer CPU (canvas items) and about 0.75 ms posing scripts.
+    - Per-frame hem rebuilds for the Hollow Soldiers cost about 0.5 ms.
+    - The HUD cost about 0.4 ms, the backdrop under 0.1 ms after batching, and hit effects about 0.15 ms.
+    - Game logic was about 2.3 ms. Stubbing the enemy queue scan saved only 0.09 ms, so combat code was left alone.
+    - About 1.7 ms is the window and present overhead on this PC.
+  - **What changed:**
+    - Fewer canvas items per figure: feet are part of the shins, hands part of the forearms, the samurai's same-slot parts are merged, and the shadow is drawn by the figure node itself. Each part's glows are merged into one additive item.
+    - Off-screen figures (beyond 360 screen px) skip posing.
+    - The Hollow Soldier's hem swaps between cached flutter shapes (12 phases × 3 wind levels) instead of being rebuilt every frame.
   - Not measured: an actual iPhone. Run the probe on a device build before tuning further.
 - `InkBatch` collects shapes into one RenderingServer triangle array (one draw call) and skips a shape that can't be triangulated, instead of logging an error (which would fail the tests). `InkBrush` is the one-off version for dynamic art (effects, cloth).
 - `tools/capture_screenshots.gd` renders a figure sheet (every kind in every state), the title screen, stage select and a staged battle. It needs a real renderer, so run it without `--headless`.

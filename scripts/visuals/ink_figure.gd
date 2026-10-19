@@ -74,6 +74,8 @@ var _fall_glows: Array[FigurePart] = []
 var _pose_glows: Array[FigurePart] = []
 var _bow_part: FigurePart
 var _bow_step: int = -1
+var _hem_part: FigurePart
+var _hem_key: int = -1
 var _blade_glow_part: FigurePart
 var _slot_xf: Array[Transform2D] = []
 
@@ -193,6 +195,12 @@ func refresh() -> void:
 			_bow_step = step
 			_bow_part.batch = FigurePainter.bow(pose.bow_draw)
 			_bow_part.queue_redraw()
+	if _hem_part != null:
+		var key: int = FigurePainter.hem_key(self)
+		if key != _hem_key:
+			_hem_key = key
+			_hem_part.batch = FigurePainter.hem(key)
+			_hem_part.queue_redraw()
 	var lit: bool = pose.glow > 0.02
 	if _blade_glow_part != null:
 		_blade_glow_part.visible = lit
@@ -244,8 +252,18 @@ static func _segment_xf(space: Transform2D, a: Vector2, b: Vector2, length: floa
 	return space * Transform2D(offset.angle(), Vector2(maxf(offset.length(), 0.001) / length, 1.0), 0.0, a)
 
 
+## The figure node itself draws only the ground shadow, once (it doesn't follow the pose).
+func _draw() -> void:
+	var shadow: InkBatch = FigurePainter.part(kind, &"shadow")
+	if shadow != null:
+		var s: float = get_unit_scale()
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(s, s))
+		shadow.draw(self)
+
+
 ## (Re)creates the part nodes for the current kind, back to front.
 func _build_parts() -> void:
+	queue_redraw()
 	for part: FigurePart in _parts:
 		part.free()
 	_parts.clear()
@@ -255,6 +273,8 @@ func _build_parts() -> void:
 	_pose_glows.clear()
 	_bow_part = null
 	_bow_step = -1
+	_hem_part = null
+	_hem_key = -1
 	_blade_glow_part = null
 	_slot_xf.resize(FigurePainter.Slot.size())
 	var order: Array[StringName] = FigurePainter.layout(kind)
@@ -273,6 +293,8 @@ func _build_parts() -> void:
 			_dynamic_parts.append(part)
 		elif part_name == &"bow":
 			_bow_part = part
+		elif part_name == &"hem":
+			_hem_part = part
 		else:
 			part.batch = FigurePainter.part(kind, part_name)
 		if part_name == &"blade_glow":
@@ -286,8 +308,8 @@ func _build_parts() -> void:
 		var glow: FigurePart = FigurePart.new()
 		glow.material = additive_material()
 		glow.glow_points = definition["points"]
-		glow.glow_radius = definition["radius"]
-		glow.glow_color = definition["color"]
+		glow.glow_radii = definition["radii"]
+		glow.glow_colors = definition["colors"]
 		(by_name[definition["part"]] as FigurePart).add_child(glow)
 		if definition["follows"] == &"pose_glow":
 			glow.visible = false

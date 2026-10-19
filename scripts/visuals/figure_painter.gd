@@ -3,8 +3,8 @@ extends RefCounted
 ## Per-kind costume drawing for InkFigure: body shapes, headgear, weapons and the one accent.
 ## Each body part is built ONCE per kind into an InkBatch in the part's own space (torso, head,
 ## weapon, limb segment...). InkFigure keeps one child node per part (layout) that draws its
-## batch once; a frame only moves those nodes. Only cloth tails and the Hollow Soldier's hem
-## change shape and are redrawn each frame; the bow swaps between cached draw steps.
+## batch once; a frame only moves those nodes. Only cloth tails are redrawn each frame; the
+## bow and the Hollow Soldier's fluttering hem swap between cached shapes.
 ## Coordinates are figure units (see FigureKinds).
 
 const KATANA_LENGTH: float = 70.0
@@ -12,11 +12,16 @@ const BOW_UPPER: float = 64.0
 const BOW_LOWER: float = 34.0
 ## The bow's shape is cached at this many draw positions.
 const BOW_STEPS: int = 12
+## The Hollow Soldier's hem flutter is cached at this many phases (and three wind levels).
+const HEM_STEPS: int = 12
+const HEM_FLUTTER_SPEED: float = 7.0
 
 ## Kind -> { part name -> InkBatch }.
 static var _parts: Dictionary = {}
 ## Bow draw step -> InkBatch.
 static var _bows: Dictionary = {}
+## Hem key (hem_key) -> InkBatch.
+static var _hems: Dictionary = {}
 
 
 ## Body part slots: where a part sits each frame (InkFigure computes one transform per slot).
@@ -37,23 +42,26 @@ const SLOTS: Dictionary = {
 	&"hakama_f": Slot.HAKAMA_F, &"hakama_b": Slot.HAKAMA_B,
 }
 ## Parts whose shape changes every frame (redrawn through paint_dynamic).
-const DYNAMIC_PARTS: Array[StringName] = [&"tails", &"hem"]
+const DYNAMIC_PARTS: Array[StringName] = [&"tails"]
 
-const _BACK_LIMBS: Array[StringName] = [&"thigh_b", &"shin_b", &"foot_b"]
+# Feet are part of the shin and hands part of the forearm (fewer canvas items per figure).
+const _BACK_LIMBS: Array[StringName] = [&"thigh_b", &"shin_b"]
 const _BACK_ARM: Array[StringName] = [&"upper_b", &"fore_b"]
-const _FRONT_LEG: Array[StringName] = [&"thigh_f", &"shin_f", &"foot_f"]
+const _FRONT_LEG: Array[StringName] = [&"thigh_f", &"shin_f"]
 const _FRONT_ARM: Array[StringName] = [&"upper_f", &"fore_f"]
-const _HANDS: Array[StringName] = [&"hand_b", &"hand_f"]
 
 
 ## Draw order of a kind's parts, back to front.
 static func layout(kind: InkFigure.Kind) -> Array[StringName]:
-	var order: Array[StringName] = [&"shadow"]
+	# The ground shadow is drawn by the InkFigure node itself (one canvas item fewer per figure).
+	var order: Array[StringName] = []
 	match kind:
 		InkFigure.Kind.SAMURAI:
-			order.append_array([&"tails", &"foot_b", &"hakama_b", &"pauldron_back"])
+			# The hakama hem reaches the ground, so the samurai has no separate feet; the saya and
+			# the scarf wrap are part of the torso part.
+			order.append_array([&"tails", &"hakama_b", &"pauldron_back"])
 			order.append_array(_BACK_ARM)
-			order.append_array([&"foot_f", &"hakama_f", &"torso", &"saya", &"neck_wrap", &"head"])
+			order.append_array([&"hakama_f", &"torso", &"head"])
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"pauldron_front", &"weapon", &"blade_glow"])
 		InkFigure.Kind.ASHIGARU:
@@ -74,7 +82,6 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
 			order.append_array([&"torso", &"head", &"weapon"])
 			order.append_array(_FRONT_ARM)
-	order.append_array(_HANDS)
 	return order
 
 
@@ -85,33 +92,49 @@ static func part(kind: InkFigure.Kind, part_name: StringName) -> InkBatch:
 	return (_parts[kind] as Dictionary).get(part_name, null) as InkBatch
 
 
-## Glowing spots of a kind: each { part, points (part space), radius (units), color, follows }.
-## follows = &"fall" (fades as the body falls) or &"pose_glow" (the spirit blade's glow).
+## Glowing spots of a kind, one entry per part they sit on (one additive canvas item each):
+## { part, points (part space), radii (units), colors, follows }. follows = &"fall" (fades as the
+## body falls) or &"pose_glow" (the spirit blade's glow).
 static func glows(kind: InkFigure.Kind) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
+	var merged: Dictionary = {}
 	match kind:
 		InkFigure.Kind.SAMURAI:
-			var blade: PackedVector2Array = PackedVector2Array()
 			var along: float = 6.0
 			while along <= 72.0:
-				blade.append(Vector2(along, -1.5))
+				_add_glow(merged, &"weapon", Vector2(along, -1.5), 13.0, Color(InkPalette.SPIRIT, 0.32), &"pose_glow")
 				along += 6.0
-			result.append(_glow(&"weapon", blade, 13.0, Color(InkPalette.SPIRIT, 0.32), &"pose_glow"))
 		InkFigure.Kind.HOLLOW_SOLDIER:
-			result.append(_glow(&"head", PackedVector2Array([Vector2(5.5, -9.0)]), 6.0, Color(InkPalette.HOLLOW_PURPLE, 0.95), &"fall"))
-			result.append(_glow(&"head", PackedVector2Array([Vector2(2.0, -9.5)]), 5.0, Color(InkPalette.HOLLOW_PURPLE, 0.85), &"fall"))
+			_add_glow(merged, &"head", Vector2(5.5, -9.0), 6.0, Color(InkPalette.HOLLOW_PURPLE, 0.95), &"fall")
+			_add_glow(merged, &"head", Vector2(2.0, -9.5), 5.0, Color(InkPalette.HOLLOW_PURPLE, 0.85), &"fall")
 		InkFigure.Kind.ONI_BRUTE:
-			result.append(_glow(&"torso", PackedVector2Array([Vector2(0.0, -26.0)]), 46.0, Color(InkPalette.ONI_EMBER, 0.16), &"fall"))
-			result.append(_glow(&"torso", PackedVector2Array([Vector2(6.0, -37.0), Vector2(8.0, -31.0), Vector2(8.5, -24.0),
-					Vector2(-4.0, -28.0), Vector2(-3.5, -21.0)]), 7.0, Color(InkPalette.ONI_EMBER, 0.3), &"fall"))
-			result.append(_glow(&"head", PackedVector2Array([Vector2(7.0, -8.0)]), 5.0, Color(InkPalette.ONI_EMBER, 0.95), &"fall"))
-			result.append(_glow(&"head", PackedVector2Array([Vector2(3.0, -8.5)]), 4.5, Color(InkPalette.ONI_EMBER, 0.85), &"fall"))
-			result.append(_glow(&"head", PackedVector2Array([Vector2(6.0, -1.5)]), 4.5, Color(InkPalette.ONI_EMBER, 0.7), &"fall"))
+			_add_glow(merged, &"torso", Vector2(0.0, -26.0), 46.0, Color(InkPalette.ONI_EMBER, 0.16), &"fall")
+			for point: Vector2 in [Vector2(6.0, -37.0), Vector2(8.0, -31.0), Vector2(8.5, -24.0), Vector2(-4.0, -28.0), Vector2(-3.5, -21.0)]:
+				_add_glow(merged, &"torso", point, 7.0, Color(InkPalette.ONI_EMBER, 0.3), &"fall")
+			_add_glow(merged, &"head", Vector2(7.0, -8.0), 5.0, Color(InkPalette.ONI_EMBER, 0.95), &"fall")
+			_add_glow(merged, &"head", Vector2(3.0, -8.5), 4.5, Color(InkPalette.ONI_EMBER, 0.85), &"fall")
+			_add_glow(merged, &"head", Vector2(6.0, -1.5), 4.5, Color(InkPalette.ONI_EMBER, 0.7), &"fall")
+	var result: Array[Dictionary] = []
+	for key: String in merged:
+		result.append(merged[key])
 	return result
 
 
-static func _glow(part_name: StringName, points: PackedVector2Array, radius: float, color: Color, follows: StringName) -> Dictionary:
-	return {"part": part_name, "points": points, "radius": radius, "color": color, "follows": follows}
+static func _add_glow(merged: Dictionary, part_name: StringName, point: Vector2, radius: float, color: Color, follows: StringName) -> void:
+	var key: String = "%s/%s" % [part_name, follows]
+	if not merged.has(key):
+		merged[key] = {"part": part_name, "points": PackedVector2Array(), "radii": PackedFloat32Array(),
+				"colors": PackedColorArray(), "follows": follows}
+	# Packed arrays are values: append to copies and store them back.
+	var entry: Dictionary = merged[key]
+	var points: PackedVector2Array = entry["points"]
+	var radii: PackedFloat32Array = entry["radii"]
+	var colors: PackedColorArray = entry["colors"]
+	points.append(point)
+	radii.append(radius)
+	colors.append(color)
+	entry["points"] = points
+	entry["radii"] = radii
+	entry["colors"] = colors
 
 
 ## x of the bow string's nock point in bow space for a draw amount (0 = rest).
@@ -137,21 +160,33 @@ static func paint_dynamic(fig: InkFigure, part_name: StringName, ci: CanvasItem)
 				_paint_cloth_tails(fig, ci, fig.torso_xf * Vector2(-3.0, -33.0), InkPalette.SAMURAI_RED, [6, 5], 5.2, 4.6)
 			else:
 				_paint_cloth_tails(fig, ci, fig.head_xf * Vector2(-6.0, -9.5), InkPalette.ARCHER_TEAL, [4, 3], 4.0, 3.4)
-		&"hem":
-			_paint_hem(fig, ci)
 
 
-## Tattered skirt with a fluttering ragged hem (torso space).
-static func _paint_hem(fig: InkFigure, ci: CanvasItem) -> void:
-	var hem: PackedVector2Array = PackedVector2Array([Vector2(-10.0, -3.0), Vector2(10.0, -3.0)])
+## Which cached hem shape a figure shows now: flutter phase step x wind level (from trail).
+## Rebuilding the hem every frame for 30 Hollow Soldiers cost ~0.5 ms; swapping cached shapes
+## ~13 times a second costs almost nothing and looks the same.
+static func hem_key(fig: InkFigure) -> int:
+	var step: int = int(fposmod(fig.clock * HEM_FLUTTER_SPEED, TAU) / TAU * float(HEM_STEPS)) % HEM_STEPS
+	var level: int = clampi(roundi(fig.trail * 2.0), 0, 2)
+	return step * 3 + level
+
+
+## The Hollow Soldier's tattered skirt with its ragged hem (torso space) for a hem_key().
+static func hem(key: int) -> InkBatch:
+	if _hems.has(key):
+		return _hems[key]
+	var clock: float = float(key / 3) / float(HEM_STEPS) * TAU / HEM_FLUTTER_SPEED
+	var trail: float = float(key % 3) * 0.5
+	var outline: PackedVector2Array = PackedVector2Array([Vector2(-10.0, -3.0), Vector2(10.0, -3.0)])
 	var hem_points: Array[Vector2] = [Vector2(12.0, 8.0), Vector2(8.0, 14.0), Vector2(5.0, 9.0),
 			Vector2(1.0, 15.0), Vector2(-3.0, 10.0), Vector2(-7.0, 14.5), Vector2(-11.0, 9.0)]
 	for i: int in hem_points.size():
-		var flutter: float = sin(fig.clock * 7.0 + float(i) * 1.7) * 1.5 * (0.4 + fig.trail)
-		hem.append(hem_points[i] + Vector2(-fig.trail * 2.0 * float(i % 2), flutter))
+		var flutter: float = sin(clock * HEM_FLUTTER_SPEED + float(i) * 1.7) * 1.5 * (0.4 + trail)
+		outline.append(hem_points[i] + Vector2(-trail * 2.0 * float(i % 2), flutter))
 	var batch: InkBatch = InkBatch.new()
-	batch.fill_fan(Vector2(0.0, 4.0), hem, InkPalette.INK)
-	batch.draw(ci)
+	batch.fill_fan(Vector2(0.0, 4.0), outline, InkPalette.INK)
+	_hems[key] = batch
+	return batch
 
 
 ## Two or more cloth tails (scarf, headband) streaming backward from base (local pixels).
@@ -181,16 +216,20 @@ static func _build(kind: InkFigure.Kind) -> Dictionary:
 		var color: Color = InkPalette.INK if front else InkPalette.INK_BACK
 		var suffix: String = "_f" if front else "_b"
 		parts[StringName("thigh" + suffix)] = _segment(spec.thigh, spec.thigh_w, color)
-		parts[StringName("shin" + suffix)] = _segment(spec.shin, spec.shin_w, color)
+		# Shin with the foot at its end. The foot is authored in root orientation (x forward,
+		# y down) relative to the ankle; in shin space (x along the shin, pointing down at rest)
+		# a root offset (dx, dy) is (dy, -dx).
+		var shin: InkBatch = _segment(spec.shin, spec.shin_w, color)
+		var foot: PackedVector2Array = PackedVector2Array()
+		for point: Vector2 in [Vector2(-3.5, -1.0), Vector2(3.0, -1.5), Vector2(spec.foot, 2.5), Vector2(-3.5, 2.5)]:
+			foot.append(Vector2(spec.shin + point.y, -point.x))
+		shin.fill_convex(foot, color)
+		parts[StringName("shin" + suffix)] = shin
 		parts[StringName("upper" + suffix)] = _segment(spec.upper_arm, spec.arm_w, color)
-		parts[StringName("fore" + suffix)] = _segment(spec.fore_arm, spec.fore_w, color)
-		var foot: InkBatch = InkBatch.new()
-		foot.fill_convex(PackedVector2Array([Vector2(-3.5, -1.0), Vector2(3.0, -1.5), Vector2(spec.foot, 2.5),
-				Vector2(-3.5, 2.5)]), color)
-		parts[StringName("foot" + suffix)] = foot
-		var hand: InkBatch = InkBatch.new()
-		hand.circle(Vector2.ZERO, spec.hand_r, color)
-		parts[StringName("hand" + suffix)] = hand
+		# Forearm with the hand (fist) at its end.
+		var fore: InkBatch = _segment(spec.fore_arm, spec.fore_w, color)
+		fore.circle(Vector2(spec.fore_arm, 0.0), spec.hand_r, color)
+		parts[StringName("fore" + suffix)] = fore
 	var shadow: InkBatch = InkBatch.new()
 	shadow.ellipse(Vector2.ZERO, Vector2(spec.shadow_width, 3.2), Color(InkPalette.INK, InkFigure.SHADOW_ALPHA))
 	parts[&"shadow"] = shadow
@@ -261,13 +300,14 @@ static func _build_samurai(parts: Dictionary) -> void:
 	parts[&"torso"] = torso
 
 	# Saya (scabbard) at the left hip, angled back and down, with the wakizashi hilt beside it.
-	var saya: InkBatch = InkBatch.new()
+	var saya: InkBatch = torso
 	saya.stroke(PackedVector2Array([Vector2(5.0, -5.0), Vector2(-10.0, 2.0), Vector2(-24.0, 9.5),
 			Vector2(-33.0, 15.0)]), 4.8, 4.0, ink)
 	saya.limb(Vector2(3.5, -6.5), Vector2(1.5, -2.5), 1.8, 1.8, detail)
 	saya.limb(Vector2(4.0, -6.0), Vector2(12.0, -10.0), 3.6, 3.4, ink)
 	saya.ellipse(Vector2(4.5, -6.2), Vector2(1.4, 3.2), ink, 10)
-	parts[&"saya"] = saya
+	# Scarf wrap at the neck (accent).
+	torso.ellipse(Vector2(1.5, -34.5), Vector2(7.0, 3.4), red)
 
 	var head: InkBatch = InkBatch.new()
 	head.limb(Vector2(0.0, 0.0), Vector2(0.5, -4.0), 6.0, 6.0, ink)
@@ -300,10 +340,6 @@ static func _build_samurai(parts: Dictionary) -> void:
 	head.stroke(right, 4.8, 1.2, ink)
 	head.limb(Vector2(5.5, -19.0), crest_center + Vector2(0.0, 10.5), 3.0, 3.0, ink)
 	parts[&"head"] = head
-
-	var wrap: InkBatch = InkBatch.new()
-	wrap.ellipse(Vector2(1.5, -34.5), Vector2(7.0, 3.4), red)
-	parts[&"neck_wrap"] = wrap
 
 	var katana: InkBatch = InkBatch.new()
 	katana.limb(Vector2(-11.0, 0.0), Vector2(1.0, 0.0), 3.8, 3.8, ink)

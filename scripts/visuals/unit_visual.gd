@@ -18,6 +18,9 @@ const TRAIL_SAMPLES: int = 10
 ## Dash afterimages are left this far apart in time.
 const AFTERIMAGE_INTERVAL: float = 0.05
 const AFTERIMAGE_COUNT: int = 3
+## A figure further than this outside the screen (screen pixels) is not re-posed each frame;
+## it catches up the moment it comes back into view. The largest figure is under 350 px tall.
+const CULL_MARGIN: float = 360.0
 const STATES: Array[StringName] = [&"idle", &"run", &"windup", &"heavy_windup", &"strike", &"cast",
 		&"dash", &"hurt", &"spawn", &"dead"]
 
@@ -147,7 +150,19 @@ func _process(delta: float) -> void:
 	_state_time += delta
 	_pose.blend_toward(_target, 1.0 - exp(-_blend_rate() * delta))
 	_update_motion(delta)
-	_apply()
+	if is_on_screen():
+		_apply()
+
+
+## True when the figure is on screen or near it (off-screen figures skip posing).
+func is_on_screen() -> bool:
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return true
+	var rect: Rect2 = viewport.get_visible_rect()
+	if rect.size.x < 2.0:
+		return true
+	return rect.grow(CULL_MARGIN).has_point(get_global_transform_with_canvas().origin)
 
 
 func _blend_rate() -> float:

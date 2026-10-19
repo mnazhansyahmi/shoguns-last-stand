@@ -485,3 +485,17 @@ func test_edge_indicators_point_at_the_hidden_gate_and_incoming_enemies() -> voi
 	enemy.global_position.x = camera.get_view_rect().end.x + 200.0
 	field.call(&"_update_edge_indicators")
 	assert_true(hud.get_enemy_indicator().visible and hud.get_enemy_indicator().title == "1 incoming", "right tab counts enemies past the right edge")
+
+
+func test_glows_are_merged_per_part_and_not_lost() -> void:
+	var definitions: Array[Dictionary] = FigurePainter.glows(InkFigure.Kind.HOLLOW_SOLDIER)
+	assert_eq(definitions.size(), 1, "both hollow eyes share one additive item")
+	if definitions.size() == 1:
+		assert_eq((definitions[0]["points"] as PackedVector2Array).size(), 2, "the merged eye glow keeps both eyes")
+		assert_eq((definitions[0]["radii"] as PackedFloat32Array).size(), 2, "one radius per eye")
+	var oni: Array[Dictionary] = FigurePainter.glows(InkFigure.Kind.ONI_BRUTE)
+	var spots: int = 0
+	for definition: Dictionary in oni:
+		spots += (definition["points"] as PackedVector2Array).size()
+	assert_eq(oni.size(), 2, "the oni's glows sit on two parts (torso, head)")
+	assert_eq(spots, 9, "no oni glow spot is lost in merging")

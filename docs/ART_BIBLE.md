@@ -195,7 +195,10 @@ Effects never deal damage, never block input, and free themselves.
 
 - Static shapes are built once into an `InkBatch` (one draw call) and replayed. Never rebuild
   geometry every frame unless the shape really changes (cloth, hem).
-- Characters animate by moving their part nodes, not by redrawing.
+- Characters animate by moving their part nodes, not by redrawing. Keep the number of parts
+  per figure low (about a dozen): merge shapes that share a transform into one part.
+- Shapes that animate on their own (cloth, hems) should cycle through a few cached shapes when
+  they can; only the cloth tails are redrawn every frame.
 - New effects free themselves and stay short (≤ 0.6 s). Anything spawned per hit is capped.
 
 ## Adding new art
