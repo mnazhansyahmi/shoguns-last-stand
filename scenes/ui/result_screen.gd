@@ -37,11 +37,13 @@ func _ready() -> void:
 
 ## `next_stage_name` non-empty shows the Next Stage button (only after a first clear).
 func show_result(reward: BattleReward, progress: PlayerProgress, levels_gained: int, save_error: Error,
-		next_stage_name: String = "") -> void:
+		next_stage_name: String = "", new_allies: PackedStringArray = PackedStringArray()) -> void:
 	if reward.victory:
 		_title_label.text = "VICTORY"
 		_title_label.add_theme_color_override("font_color", VICTORY_COLOR)
 		_subtitle_label.text = "The village is safe."
+		if not new_allies.is_empty():
+			_subtitle_label.text += "   New ally: %s!" % ", ".join(new_allies)
 		_gold_label.text = "Gold earned: +%d   (enemies %d + stage bonus %d)" % [reward.gold, reward.kill_gold, reward.bonus_gold]
 		_xp_label.text = "XP earned: +%d   (enemies %d + stage bonus %d)" % [reward.xp, reward.kill_xp, reward.bonus_xp]
 	else:

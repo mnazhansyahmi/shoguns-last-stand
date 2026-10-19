@@ -3,8 +3,13 @@ extends CharacterBody2D
 ## Generic summoned ally driven by an AllyData resource.
 ## FSM: SPAWN -> IDLE (hold home position) -> ADVANCE -> ATTACK -> RECOVER, with HURT and DEAD.
 ## Engages the nearest living enemy in aggro range, stops at attack range and attacks automatically.
+## Roles (AllyData.role): a FIGHTER hits (melee hitbox or arrow); a HEALER walks to the most injured
+## ally in range and heals it instead of attacking; a MAGE casts a burst that hits every enemy
+## around its target.
 
 signal defeated(ally: Ally)
+## A healer's blessing landed: who was healed and by how much.
+signal healed(target: Ally, amount: float)
 
 enum State { SPAWN, IDLE, ADVANCE, ATTACK, RECOVER, HURT, DEAD }
 enum AttackPhase { WINDUP, ACTIVE }
@@ -39,6 +44,8 @@ var _attack_phase: AttackPhase = AttackPhase.WINDUP
 var _attack_cooldown_left: float = 0.0
 var _target: Enemy
 var _scan_timer: float = 0.0
+var _heal_target: Ally
+var _area_hitbox: HitboxComponent
 var _gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity", 980.0)
 
 
@@ -145,6 +152,9 @@ func select_target() -> Enemy:
 # --- States -----------------------------------------------------------------
 
 func _process_idle(delta: float) -> void:
+	if data.role == AllyData.Role.HEALER:
+		_process_support(delta)
+		return
 	_scan_timer -= delta
 	if _scan_timer <= 0.0:
 		_scan_timer = SCAN_INTERVAL
@@ -153,6 +163,10 @@ func _process_idle(delta: float) -> void:
 			_target = found
 			_change_state(State.ADVANCE)
 			return
+	_idle_at_home(delta)
+
+
+func _idle_at_home(delta: float) -> void:
 	var dx: float = home_x - global_position.x
 	if absf(dx) > HOME_TOLERANCE:
 		_walk(-1 if dx < 0.0 else 1, delta)
@@ -162,7 +176,63 @@ func _process_idle(delta: float) -> void:
 		_visual.play_state(&"idle")
 
 
+## Healer: find the most injured ally in range, walk to it and bless it; otherwise wait at home.
+func _process_support(delta: float) -> void:
+	_scan_timer -= delta
+	if _scan_timer <= 0.0:
+		_scan_timer = SCAN_INTERVAL
+		_heal_target = _find_heal_target()
+	if not _has_valid_heal_target():
+		if _state == State.ADVANCE:
+			_change_state(State.IDLE)
+		_idle_at_home(delta)
+		return
+	if _state == State.IDLE:
+		_change_state(State.ADVANCE)
+	var dx: float = _heal_target.global_position.x - global_position.x
+	var direction: int = -1 if dx < 0.0 else 1
+	if absf(dx) <= data.attack_range:
+		_set_facing(direction)
+		_brake(delta)
+		_visual.play_state(&"idle")
+		if _attack_cooldown_left <= 0.0:
+			_attack_phase = AttackPhase.WINDUP
+			_change_state(State.ATTACK)
+			_visual.play_state(&"windup")
+	else:
+		_walk(direction, delta)
+
+
+## The injured ally (not herself) with the lowest health ratio within aggro range, or null.
+func _find_heal_target() -> Ally:
+	var best: Ally = null
+	var best_ratio: float = data.heal_below_ratio
+	for node: Node in get_tree().get_nodes_in_group("allies"):
+		var ally: Ally = node as Ally
+		if ally == null or ally == self or not ally.is_inside_tree() or ally.is_dead():
+			continue
+		if absf(ally.global_position.x - global_position.x) > data.aggro_range:
+			continue
+		var ratio: float = ally.get_health().get_ratio()
+		if ratio < best_ratio:
+			best = ally
+			best_ratio = ratio
+	return best
+
+
+## True while the stored heal target is a living ally still below the heal threshold.
+func _has_valid_heal_target() -> bool:
+	if not is_instance_valid(_heal_target) or not _heal_target.is_inside_tree() or _heal_target.is_dead() \
+			or _heal_target.get_health().get_ratio() >= data.heal_below_ratio:
+		_heal_target = null
+		return false
+	return true
+
+
 func _process_advance(delta: float) -> void:
+	if data.role == AllyData.Role.HEALER:
+		_process_support(delta)
+		return
 	_scan_timer -= delta
 	if _scan_timer <= 0.0:
 		_scan_timer = SCAN_INTERVAL
@@ -196,7 +266,11 @@ func _process_attack(delta: float) -> void:
 		AttackPhase.WINDUP:
 			if _state_time >= _attack.windup:
 				_attack_phase = AttackPhase.ACTIVE
-				if data.is_ranged:
+				if data.role == AllyData.Role.HEALER:
+					_cast_heal()
+				elif data.role == AllyData.Role.MAGE:
+					_cast_burst()
+				elif data.is_ranged:
 					_fire_arrow()
 				else:
 					_hitbox_shape.position = Vector2(_attack.hitbox_offset.x * facing, _attack.hitbox_offset.y)
@@ -207,6 +281,51 @@ func _process_attack(delta: float) -> void:
 		AttackPhase.ACTIVE:
 			if _state_time >= _attack.windup + _attack.active_time:
 				_change_state(State.RECOVER)
+
+
+## Heals the heal target now (the blessing lands as the wand comes down).
+func _cast_heal() -> void:
+	if not _has_valid_heal_target():
+		return
+	var target: Ally = _heal_target
+	var restored: float = target.get_health().heal(data.attack_damage * _attack.damage_multiplier)
+	AudioManager.play(&"heal")
+	var glint: HealGlint = HealGlint.new()
+	glint.setup(target.data.body_size.y)
+	get_parent().add_child(glint)
+	glint.global_position = target.global_position
+	if restored > 0.0:
+		healed.emit(target, restored)
+		if is_instance_valid(BattleFeedback.active):
+			BattleFeedback.active.spawn_text_number(target.global_position + Vector2(0.0, -target.data.body_size.y),
+					"+%d" % roundi(restored), InkPalette.JADE)
+
+
+## Bursts every enemy within area_radius of the current target (or of a point ahead if the
+## target is gone). The damage goes through the normal hitbox validation, once per enemy.
+func _cast_burst() -> void:
+	var target: Enemy = get_target()
+	var center_x: float = target.global_position.x if target != null else global_position.x + float(facing) * data.attack_range * 0.6
+	if _area_hitbox == null:
+		_area_hitbox = HitboxComponent.new()
+		_area_hitbox.name = "AreaHitbox"
+		_area_hitbox.faction = Faction.Type.DEFENDERS
+		_area_hitbox.source = self
+		add_child(_area_hitbox)
+	_area_hitbox.global_position = Vector2(center_x, global_position.y)
+	_area_hitbox.activate(data.attack_damage * _attack.damage_multiplier, _attack.knockback, -1.0, _attack.heavy)
+	for node: Node in get_tree().get_nodes_in_group("enemies"):
+		var enemy: Enemy = node as Enemy
+		if enemy == null or not enemy.is_inside_tree() or enemy.is_dead():
+			continue
+		if absf(enemy.global_position.x - center_x) <= data.area_radius + enemy.get_half_width():
+			_area_hitbox.try_hit(enemy.get_hurtbox())
+	_area_hitbox.deactivate()
+	AudioManager.play(&"magic_burst")
+	var burst: SpellBurst = SpellBurst.new()
+	burst.setup(data.area_radius)
+	get_parent().add_child(burst)
+	burst.global_position = Vector2(center_x, global_position.y)
 
 
 func _fire_arrow() -> void:
@@ -243,12 +362,12 @@ func _brake(delta: float) -> void:
 
 ## Melee allies queue behind each other; ranged allies may stand behind anyone.
 func _is_blocked_by_other_ally(direction: int) -> bool:
-	if data.is_ranged:
+	if data.is_ranged_like():
 		return false
 	var my_half: float = data.body_size.x * 0.5
 	for node: Node in get_tree().get_nodes_in_group("allies"):
 		var other: Ally = node as Ally
-		if other == null or other == self or other.is_dead() or other.data.is_ranged:
+		if other == null or other == self or other.is_dead() or other.data.is_ranged_like():
 			continue
 		var dx: float = other.global_position.x - global_position.x
 		var spacing: float = (my_half + other.data.body_size.x * 0.5) * 0.85

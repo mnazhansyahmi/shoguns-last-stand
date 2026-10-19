@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="AllyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ally_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/resources/attack_profile.gd" id="2_attack"]
+
+[sub_resource type="Resource" id="Resource_attack"]
+script = ExtResource("2_attack")
+damage_multiplier = 1.0
+windup = 0.45
+active_time = 0.12
+recovery = 0.5
+cooldown = 0.5
+knockback = 120.0
+hitbox_offset = Vector2(85, -60)
+hitbox_size = Vector2(150, 60)
+lunge_speed = 0.0
+
+[resource]
+script = ExtResource("1_data")
+id = "spear_guardian"
+display_name = "Spear Guardian"
+role = 0
+description = "Tank. Draws nearby enemies onto her shield."
+unlock_stage_id = "stage_2"
+cost = 80.0
+summon_cooldown = 8.0
+max_health = 340.0
+attack_damage = 11.0
+move_speed = 85.0
+knockback_resistance = 0.7
+interruptible = false
+hurt_duration = 0.25
+aggro_range = 520.0
+attack_range = 120.0
+spawn_duration = 0.5
+attack = SubResource("Resource_attack")
+is_ranged = false
+area_radius = 0.0
+heal_below_ratio = 0.9
+taunt_range = 380.0
+body_size = Vector2(54, 108)
+figure = 6

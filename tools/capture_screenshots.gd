@@ -47,6 +47,11 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if _only == "allies":
+		await _capture_ally_sheet("allies", Color.WHITE)
+		await _capture_ally_sheet("ally_silhouettes", Color.BLACK)
+		quit(0)
+		return
 	if _only == "samurai":
 		await _capture_samurai_sheet()
 		await _capture_samurai_strip()
@@ -55,6 +60,8 @@ func _run() -> void:
 		quit(0)
 		return
 	await _capture_figure_sheet("figures", Color.WHITE)
+	await _capture_ally_sheet("allies", Color.WHITE)
+	await _capture_ally_sheet("ally_silhouettes", Color.BLACK)
 	await _capture_samurai_sheet()
 	await _capture_samurai_strip()
 	await _capture_samurai_detail()
@@ -181,6 +188,47 @@ func _capture_figure_sheet(shot_name: String, tint: Color) -> void:
 	sheet.scale = Vector2(1.05, 1.05) * (float(root.size.y) / 1080.0)
 	# Tick the visuals by hand at 60 fps so the poses don't depend on render speed.
 	var visuals: Array[Node] = sheet.get_children().filter(func(n: Node) -> bool: return n is UnitVisual)
+	for node: Node in visuals:
+		node.set_process(false)
+	_tick(visuals, 30)
+	for visual: UnitVisual in dead:
+		visual.play_state(&"dead")
+	_tick(visuals, 30)
+	await _frames(2)
+	await _capture(shot_name)
+	sheet.free()
+
+
+## The six allies in every animation state, each row one ally (the later four are the new ones),
+## to compare silhouettes and accents. `tint` black = the silhouette test.
+func _capture_ally_sheet(shot_name: String, tint: Color) -> void:
+	var sheet: Node2D = Node2D.new()
+	root.add_child(sheet)
+	var back: ColorRect = ColorRect.new()
+	back.color = InkPalette.MIST.lerp(InkPalette.SKY_HORIZON, 0.5)
+	back.size = Vector2(4000.0, 3000.0)
+	back.position = Vector2(-100.0, -100.0)
+	sheet.add_child(back)
+	var kinds: Array[InkFigure.Kind] = [InkFigure.Kind.ASHIGARU, InkFigure.Kind.YUMI_ARCHER, InkFigure.Kind.SHRINE_HEALER,
+			InkFigure.Kind.SPEAR_GUARDIAN, InkFigure.Kind.ONMYOJI, InkFigure.Kind.HATAMOTO]
+	var heights: Array[float] = [100.0, 96.0, 98.0, 108.0, 104.0, 106.0]
+	var states: Array[StringName] = [&"idle", &"run", &"windup", &"strike", &"hurt", &"dead"]
+	var visuals: Array[Node] = []
+	var dead: Array[UnitVisual] = []
+	for row: int in kinds.size():
+		for column: int in states.size():
+			var visual: UnitVisual = UnitVisual.new()
+			visual.figure_kind = kinds[row]
+			visual.figure_height = heights[row]
+			visual.position = Vector2(150.0 + float(column) * 300.0, 190.0 + float(row) * 170.0)
+			sheet.add_child(visual)
+			visual.set_tint(tint)
+			visuals.append(visual)
+			if states[column] == &"dead":
+				dead.append(visual)
+			else:
+				visual.play_state(states[column])
+	sheet.scale = Vector2.ONE * (float(root.size.y) / 1080.0)
 	for node: Node in visuals:
 		node.set_process(false)
 	_tick(visuals, 30)

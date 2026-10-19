@@ -38,6 +38,7 @@ const SLOTS: Dictionary = {
 	&"upper_b": Slot.UPPER_B, &"fore_b": Slot.FORE_B, &"hand_b": Slot.HAND_B,
 	&"torso": Slot.TORSO, &"pauldron_back": Slot.PAULDRON_BACK, &"neck_wrap": Slot.TORSO, &"quiver": Slot.TORSO, &"hem": Slot.TORSO,
 	&"skirt": Slot.SKIRT, &"sleeve_f": Slot.LOCAL, &"sleeve_b": Slot.LOCAL,
+	&"shield": Slot.HAND_B, &"banner": Slot.TORSO,
 	&"head": Slot.HEAD, &"mane": Slot.HEAD,
 	&"weapon": Slot.WEAPON, &"bow": Slot.WEAPON, &"blade_glow": Slot.WEAPON,
 	&"pauldron_front": Slot.PAULDRON_FRONT, &"saya": Slot.TORSO,
@@ -85,6 +86,27 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
 			order.append_array([&"torso", &"head", &"weapon"])
 			order.append_array(_FRONT_ARM)
+		InkFigure.Kind.SHRINE_HEALER, InkFigure.Kind.ONMYOJI:
+			# Long sleeves hang from the arms as cloth flaps; the healer's ponytail is the mane.
+			if kind == InkFigure.Kind.SHRINE_HEALER:
+				order.append(&"mane")
+			order.append_array(_BACK_LIMBS + _BACK_ARM)
+			order.append_array([&"sleeve_b"] + _FRONT_LEG)
+			order.append_array([&"torso", &"head", &"weapon"])
+			order.append_array(_FRONT_ARM)
+			order.append(&"sleeve_f")
+		InkFigure.Kind.SPEAR_GUARDIAN:
+			order.append_array(_BACK_LIMBS + [&"pauldron_back"] + _BACK_ARM + _FRONT_LEG)
+			order.append_array([&"torso", &"head", &"shield"])
+			order.append_array(_FRONT_ARM)
+			order.append_array([&"pauldron_front", &"weapon"])
+		InkFigure.Kind.HATAMOTO:
+			# The banner is on his back, behind everything; he wears the samurai's hakama and skirt.
+			order.append_array([&"banner", &"hakama_b", &"pauldron_back"])
+			order.append_array(_BACK_ARM)
+			order.append_array([&"hakama_f", &"skirt", &"torso", &"head"])
+			order.append_array(_FRONT_ARM)
+			order.append_array([&"pauldron_front", &"weapon"])
 	return order
 
 
@@ -219,7 +241,7 @@ static func _paint_cloth_tails(fig: InkFigure, ci: CanvasItem, color: Color, wid
 static func _paint_sleeve(fig: InkFigure, ci: CanvasItem, chain: ClothChain, color: Color) -> void:
 	var s: float = fig.get_unit_scale()
 	var batch: InkBatch = InkBatch.new()
-	batch.stroke(fig.global_transform.affine_inverse() * chain.points, 7.5 * s, 3.0 * s, color)
+	batch.stroke(fig.global_transform.affine_inverse() * chain.points, fig.spec.sleeve_width.x * s, fig.spec.sleeve_width.y * s, color)
 	batch.draw(ci)
 
 
@@ -260,6 +282,8 @@ static func _build(kind: InkFigure.Kind) -> Dictionary:
 			_build_hollow(parts)
 		InkFigure.Kind.ONI_BRUTE:
 			_build_oni(parts)
+		_:
+			AllyFigurePainter.build(kind, parts)
 	return parts
 
 

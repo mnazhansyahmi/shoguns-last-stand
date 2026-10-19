@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="AllyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ally_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/resources/attack_profile.gd" id="2_attack"]
+
+[sub_resource type="Resource" id="Resource_attack"]
+script = ExtResource("2_attack")
+damage_multiplier = 1.0
+windup = 0.32
+active_time = 0.12
+recovery = 0.4
+cooldown = 0.25
+knockback = 260.0
+hitbox_offset = Vector2(85, -60)
+hitbox_size = Vector2(170, 100)
+lunge_speed = 0.0
+
+[resource]
+script = ExtResource("1_data")
+id = "hatamoto"
+display_name = "Hatamoto"
+role = 0
+description = "Elite retainer. A sweeping naginata hits several enemies at once."
+unlock_stage_id = "stage_4"
+cost = 150.0
+summon_cooldown = 12.0
+max_health = 260.0
+attack_damage = 30.0
+move_speed = 135.0
+knockback_resistance = 0.3
+interruptible = true
+hurt_duration = 0.25
+aggro_range = 650.0
+attack_range = 120.0
+spawn_duration = 0.5
+attack = SubResource("Resource_attack")
+is_ranged = false
+area_radius = 0.0
+heal_below_ratio = 0.9
+taunt_range = 0.0
+body_size = Vector2(48, 106)
+figure = 8

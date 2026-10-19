@@ -168,7 +168,7 @@ func test_vibration_needs_setting_and_phone() -> void:
 
 ## Region 1 economy: clearing each stage once (full gold) then once more (replay gold), buying the
 ## cheapest upgrade whenever affordable. Stages 1-4 should make the player strong enough for stage 5
-## without maxing everything; stage 5 finishes the set.
+## without maxing everything; stage 5 leaves the later allies' upgrades for the next region.
 func test_region_economy_curve() -> void:
 	var region: RegionData = StageProgression.default_region()
 	var progress: PlayerProgress = PlayerProgress.new()
@@ -186,9 +186,9 @@ func test_region_economy_curve() -> void:
 		owned_after.append(_owned(progress))
 	var before_final: float = float(owned_after[3]) / total_levels
 	assert_true(first_clear_purchases >= 2, "first stage 1 clear buys at least 2 upgrades (%d)" % first_clear_purchases)
-	assert_true(before_final >= 0.55 and before_final <= 0.8,
-			"clearing stages 1-4 twice owns %d%% of upgrade levels before stage 5 (target 55-80%%)" % roundi(before_final * 100.0))
-	assert_true(owned_after[4] >= total_levels - 2, "stage 5 clears finish (nearly) everything (%d/%d)" % [owned_after[4], total_levels])
+	assert_true(before_final >= 0.45 and before_final <= 0.8,
+			"clearing stages 1-4 twice owns %d%% of upgrade levels before stage 5 (target 45-80%%)" % roundi(before_final * 100.0))
+	assert_true(float(owned_after[4]) / total_levels >= 0.7, "stage 5 clears bring it to at least 70%% (%d/%d)" % [owned_after[4], total_levels])
 	for i: int in range(1, owned_after.size()):
 		assert_true(owned_after[i] > owned_after[i - 1], "every stage adds upgrades (%s)" % str(owned_after))
 

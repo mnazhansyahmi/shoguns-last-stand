@@ -3,6 +3,7 @@ extends Control
 ## Also hosts the "Reset Progress" option behind a confirmation dialog.
 
 const UPGRADE_CATALOG: UpgradeCatalog = preload("res://data/upgrades/upgrade_catalog.tres")
+const ALLY_ROSTER: AllyRoster = preload("res://data/allies/roster.tres")
 const AFFORDABLE_COLOR: Color = InkPalette.GOLD_BRIGHT
 const UNAFFORDABLE_COLOR: Color = InkPalette.EMBER_TEXT
 const ROW_FONT_SIZE: int = 32
@@ -98,6 +99,11 @@ func _refresh() -> void:
 		var effect_label: Label = row["effect"]
 		var button: Button = row["button"]
 		level_label.text = "Lv %d / %d" % [mini(current, upgrade.max_level), upgrade.max_level]
+		if is_locked(upgrade):
+			effect_label.text = "Unlocks after %s" % _unlock_stage_name(upgrade)
+			button.text = "Locked"
+			button.disabled = true
+			continue
 		if upgrade.is_maxed(current):
 			effect_label.text = "%s (max)" % upgrade.describe_bonus(current)
 			button.text = "MAX"
@@ -112,7 +118,26 @@ func _refresh() -> void:
 		button.add_theme_color_override("font_color", AFFORDABLE_COLOR if _progress.gold >= cost else UNAFFORDABLE_COLOR)
 
 
+## An upgrade for an ally the player has not unlocked yet can be seen but not bought.
+func is_locked(upgrade: UpgradeData) -> bool:
+	if upgrade == null or upgrade.target != UpgradeData.Target.ALLY:
+		return false
+	var data: AllyData = ALLY_ROSTER.find(upgrade.ally_id)
+	return data != null and not ALLY_ROSTER.is_unlocked(data, _progress)
+
+
+func _unlock_stage_name(upgrade: UpgradeData) -> String:
+	var data: AllyData = ALLY_ROSTER.find(upgrade.ally_id)
+	for stage: StageData in StageProgression.default_region().stages:
+		if data != null and stage.stage_id == data.unlock_stage_id:
+			return stage.display_name
+	return "a later stage"
+
+
 func _on_buy_pressed(upgrade: UpgradeData) -> UpgradeShop.Result:
+	if is_locked(upgrade):
+		_message_label.text = "%s is not unlocked yet." % upgrade.display_name
+		return UpgradeShop.Result.INVALID_UPGRADE
 	var before: PlayerProgress = _progress.duplicate_progress()
 	var level: int = _progress.get_upgrade_level(upgrade.id) if upgrade != null else 0
 	var result: UpgradeShop.Result = UpgradeShop.purchase(_progress, upgrade)

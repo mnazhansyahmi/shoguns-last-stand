@@ -15,6 +15,10 @@ const ASHIGARU_GOLD: Color = Color("#e2b23e")
 const ARCHER_TEAL: Color = Color("#2bb3a3")
 const HOLLOW_PURPLE: Color = Color("#b56cff")
 const ONI_EMBER: Color = Color("#d8281e")
+const HEALER_JADE: Color = Color("#5fd4a0")
+const GUARDIAN_AZURE: Color = Color("#4f86e0")
+const ONMYOJI_MAGENTA: Color = Color("#d65db1")
+const HATAMOTO_ORANGE: Color = Color("#f08a2e")
 
 # --- Shared effects ---------------------------------------------------------
 const SPIRIT: Color = Color("#8fe3ff")
@@ -51,7 +55,8 @@ const SPIRIT_DEEP: Color = Color("#2f86b8")
 
 ## Backdrop colours that can appear behind a fighter (checked for contrast against INK).
 const ACTION_BAND_BACKDROP: Array[Color] = [SKY_HORIZON, MOUNTAIN_FAR, MIST, MOUNTAIN_MID, BAMBOO_FAR, GROUND_TOP]
-const ACCENTS: Array[Color] = [SAMURAI_RED, ASHIGARU_GOLD, ARCHER_TEAL, HOLLOW_PURPLE, ONI_EMBER, SPIRIT]
+const ACCENTS: Array[Color] = [SAMURAI_RED, ASHIGARU_GOLD, ARCHER_TEAL, HOLLOW_PURPLE, ONI_EMBER, SPIRIT,
+		HEALER_JADE, GUARDIAN_AZURE, ONMYOJI_MAGENTA, HATAMOTO_ORANGE]
 
 
 ## WCAG 2 relative luminance of an sRGB colour.

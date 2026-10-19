@@ -78,6 +78,58 @@ base_cost = 170
 cost_growth = 1.2
 effect_format = "+%s energy/s"
 
+[sub_resource type="Resource" id="Resource_healer_blessing"]
+script = ExtResource("2_upgrade")
+id = "healer_blessing"
+display_name = "Healer Blessing"
+target = 1
+ally_id = "shrine_healer"
+stat = 1
+amount_per_level = 5.0
+max_level = 4
+base_cost = 130
+cost_growth = 1.2
+effect_format = "+%s healing"
+
+[sub_resource type="Resource" id="Resource_guardian_health"]
+script = ExtResource("2_upgrade")
+id = "guardian_health"
+display_name = "Guardian HP"
+target = 1
+ally_id = "spear_guardian"
+stat = 0
+amount_per_level = 40.0
+max_level = 4
+base_cost = 150
+cost_growth = 1.2
+effect_format = "+%s HP"
+
+[sub_resource type="Resource" id="Resource_onmyoji_damage"]
+script = ExtResource("2_upgrade")
+id = "onmyoji_damage"
+display_name = "Onmyoji Damage"
+target = 1
+ally_id = "onmyoji"
+stat = 1
+amount_per_level = 5.0
+max_level = 4
+base_cost = 170
+cost_growth = 1.2
+effect_format = "+%s damage"
+
+[sub_resource type="Resource" id="Resource_hatamoto_damage"]
+script = ExtResource("2_upgrade")
+id = "hatamoto_damage"
+display_name = "Hatamoto Damage"
+target = 1
+ally_id = "hatamoto"
+stat = 1
+amount_per_level = 4.0
+max_level = 4
+base_cost = 190
+cost_growth = 1.2
+effect_format = "+%s damage"
+
 [resource]
 script = ExtResource("1_catalog")
-upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_samurai_hp"), SubResource("Resource_samurai_damage"), SubResource("Resource_ashigaru_hp"), SubResource("Resource_ashigaru_damage"), SubResource("Resource_archer_damage"), SubResource("Resource_spirit_regen")])
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_samurai_hp"), SubResource("Resource_samurai_damage"), SubResource("Resource_ashigaru_hp"), SubResource("Resource_ashigaru_damage"), SubResource("Resource_archer_damage"), SubResource("Resource_spirit_regen"), SubResource("Resource_healer_blessing"), SubResource("Resource_guardian_health"), SubResource("Resource_onmyoji_damage"), SubResource("Resource_hatamoto_damage")])

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AllyRoster" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ally_roster.gd" id="1_roster"]
+[ext_resource type="Script" path="res://scripts/resources/ally_data.gd" id="2_data"]
+[ext_resource type="Resource" path="res://data/allies/ashigaru.tres" id="3_ashigaru"]
+[ext_resource type="Resource" path="res://data/allies/yumi_archer.tres" id="4_archer"]
+[ext_resource type="Resource" path="res://data/allies/shrine_healer.tres" id="5_healer"]
+[ext_resource type="Resource" path="res://data/allies/spear_guardian.tres" id="6_guardian"]
+[ext_resource type="Resource" path="res://data/allies/onmyoji.tres" id="7_onmyoji"]
+[ext_resource type="Resource" path="res://data/allies/hatamoto.tres" id="8_hatamoto"]
+
+[resource]
+script = ExtResource("1_roster")
+allies = Array[ExtResource("2_data")]([ExtResource("3_ashigaru"), ExtResource("4_archer"), ExtResource("5_healer"), ExtResource("6_guardian"), ExtResource("7_onmyoji"), ExtResource("8_hatamoto")])

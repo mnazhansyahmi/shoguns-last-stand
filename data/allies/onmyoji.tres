@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="AllyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ally_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/resources/attack_profile.gd" id="2_attack"]
+
+[sub_resource type="Resource" id="Resource_attack"]
+script = ExtResource("2_attack")
+damage_multiplier = 1.0
+windup = 0.6
+active_time = 0.05
+recovery = 0.55
+cooldown = 1.3
+knockback = 140.0
+hitbox_offset = Vector2(40, -60)
+hitbox_size = Vector2(8, 8)
+lunge_speed = 0.0
+
+[resource]
+script = ExtResource("1_data")
+id = "onmyoji"
+display_name = "Onmyoji"
+role = 2
+description = "Throws talismans that burst on a whole group of enemies."
+unlock_stage_id = "stage_3"
+cost = 110.0
+summon_cooldown = 8.0
+max_health = 75.0
+attack_damage = 38.0
+move_speed = 105.0
+knockback_resistance = 0.0
+interruptible = true
+hurt_duration = 0.25
+aggro_range = 560.0
+attack_range = 430.0
+spawn_duration = 0.5
+attack = SubResource("Resource_attack")
+is_ranged = false
+area_radius = 130.0
+heal_below_ratio = 0.9
+taunt_range = 0.0
+body_size = Vector2(38, 104)
+figure = 7

@@ -53,6 +53,10 @@ class Spec:
 	var cloth: bool = false
 	## Loose armour that swings too: hakama, skirt with scabbard, sleeve flaps, shoulder lames.
 	var loose_armour: bool = false
+	## Sleeve flaps (kinds that have sleeve parts): link length in figure units and the strip's
+	## width at the shoulder end and at the tip.
+	var sleeve_link: float = 5.2
+	var sleeve_width: Vector2 = Vector2(7.5, 3.0)
 
 
 static func spec(kind: InkFigure.Kind) -> Spec:
@@ -151,6 +155,105 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.is_enemy = true
 			s.death_accent = InkPalette.ONI_EMBER
 			s.slam_radius = 170.0
+		InkFigure.Kind.SHRINE_HEALER:
+			s.hip_y = 44.0
+			s.thigh = 22.0
+			s.shin = 22.0
+			s.thigh_w = Vector2(7.0, 6.0)
+			s.shin_w = Vector2(6.0, 5.0)
+			s.stance = Vector2(5.0, -5.0)
+			s.shoulder_front = Vector2(5.0, -29.0)
+			s.shoulder_back = Vector2(-4.0, -29.0)
+			s.upper_arm = 12.5
+			s.fore_arm = 12.5
+			s.arm_w = Vector2(5.0, 4.5)
+			s.fore_w = Vector2(4.5, 3.8)
+			s.hand_r = 2.9
+			s.neck = Vector2(2.0, -31.0)
+			s.head_top = 98.0
+			s.cadence = 11.0
+			s.windup_rate = 12.0
+			s.trail_span = Vector2.ZERO
+			s.death_accent = InkPalette.HEALER_JADE
+			s.loose_armour = true
+			s.sleeve_link = 6.5
+			s.sleeve_width = Vector2(10.0, 5.0)
+		InkFigure.Kind.SPEAR_GUARDIAN:
+			s.hip_y = 44.0
+			s.thigh = 22.0
+			s.shin = 22.0
+			s.thigh_w = Vector2(10.0, 9.0)
+			s.shin_w = Vector2(9.0, 7.0)
+			s.foot = 10.0
+			s.stance = Vector2(7.0, -7.0)
+			s.stride_len = 11.0
+			s.shoulder_front = Vector2(7.0, -30.0)
+			s.shoulder_back = Vector2(-6.0, -30.0)
+			s.upper_arm = 13.0
+			s.fore_arm = 13.0
+			s.arm_w = Vector2(8.0, 7.0)
+			s.fore_w = Vector2(7.0, 6.0)
+			s.hand_r = 3.8
+			s.neck = Vector2(3.0, -32.0)
+			s.head_top = 101.0
+			s.cadence = 9.0
+			s.windup_rate = 11.0
+			s.shadow_width = 26.0
+			s.trail_span = Vector2(62.0, 112.0)
+			s.trail_core = Color(InkPalette.PAPER, 0.75)
+			s.trail_edge = InkPalette.GUARDIAN_AZURE
+			s.death_accent = InkPalette.GUARDIAN_AZURE
+		InkFigure.Kind.ONMYOJI:
+			s.hip_y = 44.0
+			s.thigh = 22.0
+			s.shin = 22.0
+			s.thigh_w = Vector2(7.0, 6.0)
+			s.shin_w = Vector2(6.0, 5.0)
+			s.stance = Vector2(5.0, -5.0)
+			s.shoulder_front = Vector2(5.0, -29.0)
+			s.shoulder_back = Vector2(-4.0, -29.0)
+			s.upper_arm = 12.5
+			s.fore_arm = 12.5
+			s.arm_w = Vector2(5.0, 4.5)
+			s.fore_w = Vector2(4.5, 3.8)
+			s.hand_r = 2.9
+			s.neck = Vector2(2.0, -31.0)
+			s.head_top = 108.0
+			s.cadence = 10.0
+			s.windup_rate = 10.0
+			s.trail_span = Vector2.ZERO
+			s.death_accent = InkPalette.ONMYOJI_MAGENTA
+			s.loose_armour = true
+			s.sleeve_link = 7.0
+			s.sleeve_width = Vector2(11.0, 5.0)
+		InkFigure.Kind.HATAMOTO:
+			s.hip_y = 45.0
+			s.thigh = 22.5
+			s.shin = 22.5
+			s.thigh_w = Vector2(9.5, 8.5)
+			s.shin_w = Vector2(8.5, 6.5)
+			s.foot = 9.0
+			s.stance = Vector2(7.0, -7.0)
+			s.stride_len = 12.0
+			s.shoulder_front = Vector2(6.0, -31.0)
+			s.shoulder_back = Vector2(-5.0, -31.0)
+			s.upper_arm = 13.0
+			s.fore_arm = 13.0
+			s.arm_w = Vector2(7.0, 6.0)
+			s.fore_w = Vector2(6.0, 5.0)
+			s.hand_r = 3.4
+			s.neck = Vector2(2.0, -34.0)
+			s.head_top = 112.0
+			s.back_hand_on_weapon = Vector2(-18.0, 0.0)
+			s.cadence = 11.0
+			s.windup_rate = 16.0
+			s.shadow_width = 25.0
+			s.trail_span = Vector2(48.0, 112.0)
+			s.trail_core = Color(InkPalette.PAPER, 0.85)
+			s.trail_edge = InkPalette.HATAMOTO_ORANGE
+			s.death_accent = InkPalette.HATAMOTO_ORANGE
+			s.springy = true
+			s.loose_armour = true
 	return s
 
 
@@ -168,6 +271,14 @@ static func pose(kind: InkFigure.Kind, state: StringName, step: int = 0, heavy: 
 			return _hollow(state)
 		InkFigure.Kind.ONI_BRUTE:
 			return _oni(state)
+		InkFigure.Kind.SHRINE_HEALER:
+			return _healer(state)
+		InkFigure.Kind.SPEAR_GUARDIAN:
+			return _guardian(state)
+		InkFigure.Kind.ONMYOJI:
+			return _onmyoji(state)
+		InkFigure.Kind.HATAMOTO:
+			return _hatamoto(state)
 	return FigurePose.new()
 
 
@@ -228,6 +339,8 @@ static func samurai_title_pose() -> FigurePose:
 
 ## How a state moves for springy kinds (see PoseSpring).
 static func feel(kind: InkFigure.Kind, state: StringName, heavy: bool = false) -> PoseSpring.Feel:
+	if kind == InkFigure.Kind.HATAMOTO:
+		return _hatamoto_feel(state)
 	if kind != InkFigure.Kind.SAMURAI:
 		return PoseSpring.Feel.new()
 	match state:
@@ -336,3 +449,95 @@ static func _oni(state: StringName) -> FigurePose:
 		&"dead":
 			return FigurePose.make(0.0, 0.0, Vector2(16.0, -10.0), 0.8)
 	return FigurePose.make(0.1, 1.0, Vector2(21.0, -17.0), 1.05)
+
+
+## Shrine Healer: the gohei (wand with paper streamers) is held upright, raised to bless, and
+## swept forward to release the healing.
+static func _healer(state: StringName) -> FigurePose:
+	var p: FigurePose
+	match state:
+		&"run":
+			p = FigurePose.make(0.14, 2.0, Vector2(11.0, -20.0), -1.1)
+		&"windup", &"heavy_windup", &"cast":
+			p = FigurePose.make(-0.08, 2.0, Vector2(15.0, -33.0), -1.45).with_back(Vector2(8.0, -26.0)).with_head(-0.12)
+		&"strike":
+			p = FigurePose.make(0.1, 2.0, Vector2(24.0, -24.0), -0.55).with_back(Vector2(14.0, -22.0))
+		&"hurt":
+			p = FigurePose.make(-0.3, 1.0, Vector2(9.0, -17.0), -0.8).with_head(-0.3).with_offset(-4.0)
+		&"dead":
+			p = FigurePose.make(0.0, 0.0, Vector2(10.0, -8.0), 0.3)
+		_:
+			p = FigurePose.make(0.03, 1.0, Vector2(11.0, -19.0), -1.25).with_back(Vector2(5.0, -15.0))
+	return p
+
+
+## Spear Guardian: shield forward on the back arm, spear levelled over it; the thrust drives
+## the whole body forward behind the shield.
+static func _guardian(state: StringName) -> FigurePose:
+	var p: FigurePose
+	match state:
+		&"run":
+			p = FigurePose.make(0.16, 2.0, Vector2(10.0, -22.0), -0.12).with_back(Vector2(11.0, -13.0))
+		&"windup", &"heavy_windup":
+			p = FigurePose.make(-0.1, 3.0, Vector2(-1.0, -22.0), -0.08).with_back(Vector2(12.0, -14.0)).with_offset(-3.0)
+		&"strike":
+			p = FigurePose.make(0.26, 4.0, Vector2(26.0, -22.0), -0.05).with_back(Vector2(15.0, -13.0)).with_offset(5.0)
+		&"hurt":
+			p = FigurePose.make(-0.18, 2.0, Vector2(8.0, -22.0), -0.2).with_back(Vector2(14.0, -20.0)).with_head(-0.2).with_offset(-2.0)
+		&"dead":
+			p = FigurePose.make(0.0, 0.0, Vector2(10.0, -10.0), 0.3).with_back(Vector2(4.0, -6.0))
+		_:
+			p = FigurePose.make(0.04, 1.0, Vector2(10.0, -22.0), -0.14).with_back(Vector2(13.0, -15.0))
+	return p
+
+
+## Onmyoji: a paper talisman (ofuda) held up between two fingers, thrown forward when casting.
+static func _onmyoji(state: StringName) -> FigurePose:
+	var p: FigurePose
+	match state:
+		&"run":
+			p = FigurePose.make(0.12, 2.0, Vector2(11.0, -21.0), -1.2)
+		&"windup", &"heavy_windup", &"cast":
+			p = FigurePose.make(-0.1, 2.0, Vector2(14.0, -36.0), -1.5).with_back(Vector2(9.0, -29.0)).with_head(-0.15)
+		&"strike":
+			p = FigurePose.make(0.12, 2.0, Vector2(25.0, -28.0), -0.25).with_back(Vector2(13.0, -24.0))
+		&"hurt":
+			p = FigurePose.make(-0.28, 1.0, Vector2(9.0, -20.0), -0.9).with_head(-0.3).with_offset(-4.0)
+		&"dead":
+			p = FigurePose.make(0.0, 0.0, Vector2(10.0, -8.0), 0.3)
+		_:
+			p = FigurePose.make(0.03, 1.0, Vector2(12.0, -22.0), -1.3).with_back(Vector2(6.0, -17.0))
+	return p
+
+
+## Hatamoto: a naginata held angled across the body, swept in a wide arc. Springy like the samurai.
+static func _hatamoto(state: StringName) -> FigurePose:
+	var p: FigurePose
+	match state:
+		&"run":
+			p = FigurePose.make(0.18, 3.0, Vector2(13.0, -19.0), -0.95)
+		&"windup", &"heavy_windup":
+			p = FigurePose.make(-0.14, 4.0, Vector2(15.0, -40.0), -1.25).with_head(-0.08).with_spread(1.25)
+		&"strike":
+			p = FigurePose.make(0.34, 6.0, Vector2(25.0, -17.0), 0.5).with_offset(4.0).with_spread(1.5)
+		&"hurt":
+			p = FigurePose.make(-0.3, 2.0, Vector2(11.0, -15.0), -0.3).with_head(-0.3).with_offset(-5.0)
+		&"dead":
+			p = FigurePose.make(0.0, 0.0, Vector2(14.0, -5.0), 1.5).with_head(-0.2)
+		_:
+			p = FigurePose.make(0.05, 2.0, Vector2(13.0, -20.0), -0.85).with_spread(1.15)
+	p.pivot = Vector2(6.0, -31.0)
+	return p
+
+
+static func _hatamoto_feel(state: StringName) -> PoseSpring.Feel:
+	match state:
+		&"windup", &"heavy_windup":
+			return PoseSpring.Feel.make(Vector2(18.0, 0.72), Vector2(24.0, 0.62), Vector2(22.0, 0.55))
+		&"strike":
+			return PoseSpring.Feel.make(Vector2(34.0, 0.62), Vector2(52.0, 0.5), Vector2(56.0, 0.44))
+		&"hurt":
+			return PoseSpring.Feel.make(Vector2(42.0, 0.55), Vector2(50.0, 0.55), Vector2(50.0, 0.5))
+		&"dead":
+			return PoseSpring.Feel.make(Vector2(9.0, 1.0), Vector2(9.0, 1.0), Vector2(9.0, 1.0))
+	return PoseSpring.Feel.make(Vector2(12.0, 0.85), Vector2(15.0, 0.8), Vector2(15.0, 0.68))

@@ -8,8 +8,6 @@
 [ext_resource type="Script" path="res://scripts/systems/spirit_energy.gd" id="6_energy"]
 [ext_resource type="Script" path="res://scripts/systems/summon_manager.gd" id="7_summoner"]
 [ext_resource type="Script" path="res://scripts/resources/ally_data.gd" id="8_ally_data"]
-[ext_resource type="Resource" path="res://data/allies/ashigaru.tres" id="9_ashigaru"]
-[ext_resource type="Resource" path="res://data/allies/yumi_archer.tres" id="10_archer"]
 [ext_resource type="Script" path="res://scripts/systems/wave_director.gd" id="11_waves"]
 [ext_resource type="Resource" path="res://data/stages/stage_1.tres" id="12_stage"]
 [ext_resource type="PackedScene" path="res://scenes/ui/result_screen.tscn" id="13_result"]
@@ -67,7 +65,7 @@ script = ExtResource("6_energy")
 [node name="SummonManager" type="Node2D" parent="World" node_paths=PackedStringArray("energy", "container")]
 position = Vector2(340, 880)
 script = ExtResource("7_summoner")
-ally_slots = Array[ExtResource("8_ally_data")]([ExtResource("9_ashigaru"), ExtResource("10_archer")])
+ally_slots = Array[ExtResource("8_ally_data")]([])
 energy = NodePath("../SpiritEnergy")
 container = NodePath("../Allies")
 

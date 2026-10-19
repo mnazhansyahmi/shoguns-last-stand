@@ -37,10 +37,18 @@ Enemies were buffed after playtesting showed summoned allies could win stage 1 w
 
 ## Allies (Spirit Energy: max 150, regen 5/s)
 
-| Ally | HP | Damage | Cost | Notes |
-|---|---|---|---|---|
-| Ashigaru | 120 | 14 | 30 | Melee |
-| Yumi Archer | 70 | 12 | 45 | Projectile |
+Summon keys 1-6 (or the summon buttons) are given to the unlocked allies in this order. Only unlocked allies are shown.
+
+| Ally | HP | Damage | Cost | Unlock | Notes |
+|---|---|---|---|---|---|
+| Ashigaru | 120 | 14 | 30 | start | Melee |
+| Yumi Archer | 70 | 12 | 45 | start | Projectile |
+| Shrine Healer | 80 | heals 28 | 65 | clear Stage 1 | Walks to the most injured ally in range and heals it every ~2.8 s; does not attack. Fragile |
+| Spear Guardian | 340 | 11 | 80 | clear Stage 2 | Tank: 70% knockback resistance, cannot be staggered, and enemies within 380 px of her pick her before other allies |
+| Onmyoji | 75 | 38 burst | 110 | clear Stage 3 | Throws a talisman that bursts on every enemy within 130 px of its target; range 430 |
+| Hatamoto | 260 | 30 | 150 | clear Stage 4 | Elite melee: a naginata sweep hits several enemies; 30% knockback resistance |
+
+An ally's upgrades show in the upgrade menu from the start but can only be bought once it is unlocked. The result screen announces newly unlocked allies.
 
 ## Region 1: Bamboo Outskirts
 
@@ -74,16 +82,20 @@ Hollow Soldier: 6 gold, 10 XP. Oni Brute: 40 gold, 50 XP. Each stage adds its ow
 | Ashigaru damage | +3 | 110, 130, 160, 190, 230 |
 | Archer damage | +3 | 140, 170, 200, 240, 290 |
 | Spirit regeneration | +1 energy/s | 170, 205, 245, 295, 355 |
+| Healer blessing | +5 healing (4 levels) | 130, 155, 185, 225 |
+| Guardian HP | +40 HP (4 levels) | 150, 180, 215, 260 |
+| Onmyoji damage | +5 damage (4 levels) | 170, 205, 245, 295 |
+| Hatamoto damage | +4 damage (4 levels) | 190, 230, 275, 330 |
 
 **Economy curve** (clear each stage once, then replay it once, always buying the cheapest upgrade; checked by a test and by `tools/balance_sim.gd -- curve`):
 
-| After | Upgrade levels owned (of 30) |
+| After | Upgrade levels owned (of 46) |
 |---|---|
 | Stage 1 ×2 | 4 |
-| Stage 2 ×2 | 8 |
-| Stage 3 ×2 | 14 |
-| Stage 4 ×2 | 22 (≈ 73%, going into stage 5) |
-| Stage 5 ×2 | 30 |
+| Stage 2 ×2 | 9 |
+| Stage 3 ×2 | 15 |
+| Stage 4 ×2 | 24 (≈ 52%, going into stage 5) |
+| Stage 5 ×2 | 34 (≈ 74%; the rest is for the next region) |
 
 The first stage 1 clear buys 2 upgrades. Stage 1 is winnable with no upgrades.
 

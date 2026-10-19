@@ -111,24 +111,25 @@ func _tail_spec(kind: InkFigure.Kind) -> Array:
 
 
 func _step_chains(fig: InkFigure, to_world: Transform2D, delta: float, s: float, snap: bool) -> void:
-	var tail_spec: Array = _tail_spec(fig.kind)
-	var counts: Array = tail_spec[0]
 	var world_scale: float = absf(to_world.get_scale().y)
-	var link: float = float(tail_spec[1]) * 1.07 * s * world_scale
-	if scarf.is_empty():
-		for count: int in counts:
-			scarf.append(ClothChain.new(count, link))
-		snap = true
-	for tail: int in scarf.size():
-		var rest: PackedVector2Array = tail_rest(fig, tail)
-		scarf[tail].link = link
-		if snap:
-			scarf[tail].reset(rest)
-		else:
-			scarf[tail].step(delta, rest, 650.0, 5.0)
+	if fig.spec.cloth:
+		var tail_spec: Array = _tail_spec(fig.kind)
+		var counts: Array = tail_spec[0]
+		var link: float = float(tail_spec[1]) * 1.07 * s * world_scale
+		if scarf.is_empty():
+			for count: int in counts:
+				scarf.append(ClothChain.new(count, link))
+			snap = true
+		for tail: int in scarf.size():
+			var rest: PackedVector2Array = tail_rest(fig, tail)
+			scarf[tail].link = link
+			if snap:
+				scarf[tail].reset(rest)
+			else:
+				scarf[tail].step(delta, rest, 650.0, 5.0)
 	if not loose_armour:
 		return
-	var sleeve_link: float = 5.2 * s * world_scale
+	var sleeve_link: float = fig.spec.sleeve_link * s * world_scale
 	if sleeve_front == null:
 		sleeve_front = ClothChain.new(2, sleeve_link)
 		sleeve_back = ClothChain.new(2, sleeve_link)
@@ -144,7 +145,8 @@ func _step_sleeve(fig: InkFigure, to_world: Transform2D, chain: ClothChain, shou
 	var anchor: Vector2 = to_world * (fig.torso_xf * shoulder.lerp(elbow, 0.75))
 	var hang: Vector2 = Vector2(0.0, 1.0) * s * absf(to_world.get_scale().y)
 	var side: Vector2 = to_world.basis_xform(Vector2(-0.35, 0.0)) * s
-	var rest: PackedVector2Array = PackedVector2Array([anchor, anchor + hang * 5.2 + side * 5.0, anchor + hang * 10.2 + side * 10.0])
+	var link: float = fig.spec.sleeve_link
+	var rest: PackedVector2Array = PackedVector2Array([anchor, anchor + hang * link + side * link, anchor + hang * link * 1.96 + side * link * 1.92])
 	if snap:
 		chain.reset(rest)
 	else:

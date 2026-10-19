@@ -37,6 +37,10 @@ the indigo world. Paper is slightly warm so it reads as rice paper, not a screen
 | Samurai (player) | Crimson | `#D7372B` | `SAMURAI_RED` | Scarf (two trailing tails) and sash knot |
 | Ashigaru | Gold | `#E2B23E` | `ASHIGARU_GOLD` | Jingasa hat rim, sash, spear tassel |
 | Yumi Archer | Teal | `#2BB3A3` | `ARCHER_TEAL` | Hachimaki headband tails, quiver fletching, sash |
+| Shrine Healer | Jade `#5FD4A0` | `HEALER_JADE` | Hair ribbon, obi, the paper streamers of the gohei wand |
+| Spear Guardian | Azure `#4F86E0` | `GUARDIAN_AZURE` | Helmet cord, the rim of the shield, the spear tassel |
+| Onmyoji | Magenta `#D65DB1` | `ONMYOJI_MAGENTA` | Hat ribbons, belt, the seal on the talisman |
+| Hatamoto | Orange `#F08A2E` | `HATAMOTO_ORANGE` | The banner on his back, sash, helmet cord, naginata tassel |
 | Hollow Soldier | Violet glow | `#B56CFF` | `HOLLOW_PURPLE` | Two glowing eyes only (additive halo) |
 | Oni Brute | Ember glow | `#D8281E` | `ONI_EMBER` | Eyes, mouth, chest cracks, faint aura (additive) |
 
@@ -114,6 +118,10 @@ are at the node origin, and every figure faces +x (right) and is mirrored for le
 | Samurai | 110 (+ crest) | Head ≈ 1/6.5 H; four-lame sode fanned on both shoulders; tapered dō of overlapping lamellar bands (broad chest, narrow waist); five hanging kusazuri over a pleated hakama that flares to ≈ 0.5 H at the hem; katana 0.78 H | Kabuto with a crescent maedate and layered shikoro, A-line hakama, saya at the left hip, two long scarf tails, long katana |
 | Ashigaru | 100 | Hat brim 0.66 H wide; yari spear 1.25 H | Wide flat cone hat, long level spear |
 | Yumi Archer | 96 | Bow 1.05 H, grip below centre (asymmetric yumi) | Tall bow, quiver over the back shoulder |
+| Shrine Healer | 98 | Ponytail swept back; wide flared miko hakama; long sleeves (cloth flaps); gohei wand 0.6 H | Long wand with two zigzag paper streamers raised above her head, ponytail |
+| Spear Guardian | 108 | Broad do and big sode; tall tate shield on the back arm (0.5 H tall); yari 1.2 H | A tall dark slab (the shield) in front of the body, a blade-like crest on the helmet, a very long spear |
+| Onmyoji | 104 (+ hat) | Tall eboshi cap (0.2 H); broad kariginu shoulders; sleeves; paper ofuda 0.3 H | Tall leaning cap, pale talisman slip held up |
+| Hatamoto | 106 (+ banner) | The samurai's armour, hakama and skirt; kuwagata horns in a V; naginata 1.1 H | A banner pole on his back rising well above his head with an orange flag, two horns, a curved blade |
 | Hollow Soldier | 110 | Hunched (spine leans 0.28 rad); head forward of chest; long arms | Hunch, broken helmet crest, ragged hem, notched sword |
 | Oni Brute | 190 | Shoulders 0.62 H; tiny head; horns 0.13 H; kanabo club 0.8 H | Mass, horns, studded club |
 

@@ -131,6 +131,10 @@ func select_target() -> Node2D:
 		var group: StringName = TARGET_GROUPS.get(kind, &"")
 		if group == &"":
 			continue
+		if kind == EnemyData.TargetKind.ALLY:
+			var taunter: Ally = _find_taunter()
+			if taunter != null:
+				return taunter
 		var best: Node2D = null
 		var best_distance: float = data.aggro_range
 		for node: Node in get_tree().get_nodes_in_group(group):
@@ -144,6 +148,21 @@ func select_target() -> Node2D:
 		if best != null:
 			return best
 	return null
+
+
+## The nearest ally whose taunt reaches this enemy (a tank's AllyData.taunt_range), or null.
+func _find_taunter() -> Ally:
+	var best: Ally = null
+	var best_distance: float = INF
+	for node: Node in get_tree().get_nodes_in_group("allies"):
+		var ally: Ally = node as Ally
+		if ally == null or ally.data == null or ally.data.taunt_range <= 0.0 or not _is_valid_candidate(ally):
+			continue
+		var distance: float = absf(ally.global_position.x - global_position.x)
+		if distance <= ally.data.taunt_range and distance < best_distance:
+			best = ally
+			best_distance = distance
+	return best
 
 
 # --- States -----------------------------------------------------------------

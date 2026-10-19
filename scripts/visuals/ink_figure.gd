@@ -8,7 +8,7 @@ extends Node2D
 ## Soldier's hem are repainted. Feet are at the origin and the figure faces +x; the parent
 ## mirrors it for facing left. Glowing spots are additive child parts that fade by alpha.
 
-enum Kind { SAMURAI, ASHIGARU, YUMI_ARCHER, HOLLOW_SOLDIER, ONI_BRUTE }
+enum Kind { SAMURAI, ASHIGARU, YUMI_ARCHER, HOLLOW_SOLDIER, ONI_BRUTE, SHRINE_HEALER, SPEAR_GUARDIAN, ONMYOJI, HATAMOTO }
 
 ## Figure units per figure height (all proportions are authored at height 100).
 const UNIT: float = 100.0
@@ -98,7 +98,7 @@ static func additive_material() -> CanvasItemMaterial:
 func set_kind(value: Kind) -> void:
 	kind = value
 	spec = FigureKinds.spec(value)
-	secondary = SecondaryMotion.new(spec.loose_armour) if spec.cloth else null
+	secondary = SecondaryMotion.new(spec.loose_armour) if spec.cloth or spec.loose_armour else null
 	pose.copy_from(FigureKinds.pose(value, &"idle"))
 	if is_inside_tree():
 		_build_parts()

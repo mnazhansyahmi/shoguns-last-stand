@@ -112,6 +112,17 @@ func spawn_damage_number(position: Vector2, hit: HitData, on_enemy: bool) -> Dam
 	return number
 
 
+## A floating text number that is not damage (e.g. "+28" for a heal).
+func spawn_text_number(position: Vector2, text: String, color: Color) -> DamageNumber:
+	if not is_instance_valid(numbers_parent) or numbers_parent.get_child_count() >= MAX_DAMAGE_NUMBERS:
+		return null
+	var number: DamageNumber = DamageNumber.new()
+	number.setup(text, color, 1.0)
+	numbers_parent.add_child(number)
+	number.global_position = position
+	return number
+
+
 func spawn_hit_spark(victim: Node, position: Vector2, hit: HitData) -> HitSpark:
 	if not is_instance_valid(effects_parent) or _live_sparks >= MAX_HIT_SPARKS:
 		return null

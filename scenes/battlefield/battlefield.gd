@@ -7,10 +7,12 @@ extends Node2D
 ## touch buttons (which press the same actions) behave identically.
 
 const UPGRADE_CATALOG: UpgradeCatalog = preload("res://data/upgrades/upgrade_catalog.tres")
+## Every ally; the ones whose stage has been cleared fill the summon slots in this order.
+const ALLY_ROSTER: AllyRoster = preload("res://data/allies/roster.tres")
 const DEBUG_HOLLOW_SOLDIER: EnemyData = preload("res://data/enemies/hollow_soldier.tres")
 const DEBUG_ONI_BRUTE: EnemyData = preload("res://data/enemies/oni_brute.tres")
 const PLAYER_RESPAWN_DELAY: float = 5.0
-const SUMMON_ACTIONS: Array[StringName] = [&"summon_1", &"summon_2"]
+const SUMMON_ACTIONS: Array[StringName] = [&"summon_1", &"summon_2", &"summon_3", &"summon_4", &"summon_5", &"summon_6"]
 ## The gate indicator pulses this long after the gate is hit while it is off screen.
 const GATE_ALERT_MSEC: int = 1500
 
@@ -277,8 +279,8 @@ func _handle_debug_input(event: InputEvent) -> void:
 func _apply_upgrades() -> void:
 	_player.apply_stats(UpgradeApplier.build_player_stats(_player.stats, _progress, UPGRADE_CATALOG))
 	var upgraded_slots: Array[AllyData] = []
-	for data: AllyData in _summoner.ally_slots:
-		upgraded_slots.append(UpgradeApplier.build_ally_data(data, _progress, UPGRADE_CATALOG) if data != null else null)
+	for data: AllyData in ALLY_ROSTER.get_unlocked(_progress):
+		upgraded_slots.append(UpgradeApplier.build_ally_data(data, _progress, UPGRADE_CATALOG))
 	_summoner.ally_slots = upgraded_slots
 	_energy.regen_per_second = UpgradeApplier.build_spirit_regen(_energy.regen_per_second, _progress, UPGRADE_CATALOG)
 
@@ -433,12 +435,17 @@ func _end_battle(victory: bool) -> void:
 	_hud.hide_status()
 	var stage: StageData = _wave_director.stage
 	var reward: BattleReward = RewardCalculator.calculate(_kills, stage, victory, _was_cleared_before)
+	var unlocked_before: Array[AllyData] = ALLY_ROSTER.get_unlocked(_progress)
 	var levels_gained: int = _progress.record_battle(reward, stage.stage_id if stage != null else "")
+	var new_allies: PackedStringArray = PackedStringArray()
+	for data: AllyData in ALLY_ROSTER.get_unlocked(_progress):
+		if not unlocked_before.has(data):
+			new_allies.append(data.display_name)
 	var save_error: Error = _save_manager.save_progress(_progress)
 	var next_name: String = ""
 	if victory and not _was_cleared_before:
 		var next: StageData = StageProgression.next_stage(StageProgression.default_region(), stage)
 		if next != null:
 			next_name = next.display_name
-	_result_screen.show_result(reward, _progress, levels_gained, save_error, next_name)
+	_result_screen.show_result(reward, _progress, levels_gained, save_error, next_name, new_allies)
 	get_tree().paused = true
