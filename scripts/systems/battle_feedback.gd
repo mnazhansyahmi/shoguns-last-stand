@@ -9,7 +9,8 @@ extends Node
 const HIT_STOP_SECONDS: float = 0.05
 ## Engine.time_scale during hit-stop: a near-freeze (0 would make physics deltas zero).
 const HIT_STOP_TIME_SCALE: float = 0.02
-const MAX_DAMAGE_NUMBERS: int = 40
+## At most this many numbers are on screen; a new one pushes out the oldest.
+const MAX_DAMAGE_NUMBERS: int = 6
 const MAX_HIT_SPARKS: int = 24
 ## Sparks appear this far below the hurtbox's top edge (the report position), at the body.
 const SPARK_DROP: float = 40.0
@@ -77,7 +78,7 @@ func configure(settings: GameSettings) -> void:
 
 func handle_hit(victim: Node, position: Vector2, hit: HitData) -> void:
 	hit_reported.emit(victim, hit)
-	spawn_damage_number(position, hit, victim is Enemy)
+	spawn_damage_number(position, hit, victim is Enemy, victim)
 	spawn_hit_spark(victim, position, hit)
 	if victim is VillageGate:
 		AudioManager.play(&"gate_hit")
@@ -98,29 +99,61 @@ func handle_hit(victim: Node, position: Vector2, hit: HitData) -> void:
 		hit_stop(HIT_STOP_SECONDS)
 
 
-func spawn_damage_number(position: Vector2, hit: HitData, on_enemy: bool) -> DamageNumber:
-	if not is_instance_valid(numbers_parent) or numbers_parent.get_child_count() >= MAX_DAMAGE_NUMBERS:
+## Floating damage for a hit. Rapid hits on the same victim merge into one growing number; a new
+## number is stacked above any it would overlap, and at most MAX_DAMAGE_NUMBERS are shown.
+func spawn_damage_number(position: Vector2, hit: HitData, on_enemy: bool, victim: Node = null) -> DamageNumber:
+	if not is_instance_valid(numbers_parent):
 		return null
 	var color: Color = DEFENDER_DAMAGE_COLOR
 	if on_enemy:
 		color = HEAVY_DAMAGE_COLOR if hit.heavy else ENEMY_DAMAGE_COLOR
-	var label: String = str(roundi(hit.damage)) + ("!" if hit.heavy else "")
+	var scale_factor: float = 1.35 if hit.heavy else 1.0
+	var victim_id: int = victim.get_instance_id() if is_instance_valid(victim) else 0
+	if victim_id != 0:
+		for child: Node in numbers_parent.get_children():
+			var live: DamageNumber = child as DamageNumber
+			if live != null and live.victim_id == victim_id and live.can_merge():
+				live.merge(hit.damage, hit.heavy, color, scale_factor)
+				return live
 	var number: DamageNumber = DamageNumber.new()
-	number.setup(label, color, 1.35 if hit.heavy else 1.0)
-	numbers_parent.add_child(number)
-	number.global_position = position
+	number.setup("", color, scale_factor)
+	number.set_damage(hit.damage, hit.heavy)
+	number.victim_id = victim_id
+	_place_number(number, position)
 	return number
 
 
 ## A floating text number that is not damage (e.g. "+28" for a heal).
 func spawn_text_number(position: Vector2, text: String, color: Color) -> DamageNumber:
-	if not is_instance_valid(numbers_parent) or numbers_parent.get_child_count() >= MAX_DAMAGE_NUMBERS:
+	if not is_instance_valid(numbers_parent):
 		return null
 	var number: DamageNumber = DamageNumber.new()
 	number.setup(text, color, 1.0)
-	numbers_parent.add_child(number)
-	number.global_position = position
+	_place_number(number, position)
 	return number
+
+
+## Adds a number at `position`, moved up until it clears the numbers already there, and drops
+## the oldest ones beyond the cap.
+func _place_number(number: DamageNumber, position: Vector2) -> void:
+	var live: Array[DamageNumber] = []
+	for child: Node in numbers_parent.get_children():
+		var other: DamageNumber = child as DamageNumber
+		if other != null and not other.is_queued_for_deletion():
+			live.append(other)
+	while live.size() >= MAX_DAMAGE_NUMBERS:
+		var oldest: DamageNumber = live.pop_front()
+		oldest.queue_free()
+	var at: Vector2 = position
+	var moved: bool = true
+	while moved:
+		moved = false
+		for other: DamageNumber in live:
+			if absf(other.global_position.x - at.x) < DamageNumber.SPACING * 2.8 and absf(other.global_position.y - at.y) < DamageNumber.SPACING:
+				at.y = other.global_position.y - DamageNumber.SPACING
+				moved = true
+	numbers_parent.add_child(number)
+	number.global_position = at
 
 
 func spawn_hit_spark(victim: Node, position: Vector2, hit: HitData) -> HitSpark:

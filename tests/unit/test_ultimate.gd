@@ -232,7 +232,7 @@ func test_ultimate_freezes_the_game_briefly_through_battle_feedback() -> void:
 	assert_true(not feedback.is_hit_stopped(), "the game keeps running while the blade goes up")
 	_tick_player(player, player.stats.ultimate_windup + 0.02)
 	assert_true(feedback.is_hit_stopped(), "the game freezes when the sweep lands (the dramatic pause)")
-	assert_true(skill.pause_seconds >= 0.3 and skill.pause_seconds <= 0.6, "for a short, readable moment")
+	assert_true(skill.pause_seconds >= 0.1 and skill.pause_seconds <= 0.3, "for a short beat")
 	feedback.end_hit_stop()
 	assert_eq(Engine.time_scale, 1.0, "and time returns to normal")
 	var layers: int = 0
@@ -246,13 +246,14 @@ func test_ultimate_freezes_the_game_briefly_through_battle_feedback() -> void:
 
 func test_sweep_runs_in_real_time_during_the_freeze_then_frees_itself() -> void:
 	var sweep: UltimateSweep = UltimateSweep.new()
-	sweep.setup(1, 0.4, 12345)
+	sweep.setup(1, 0.15, 12345)
 	add_to_tree(sweep)
 	Engine.time_scale = 0.02
 	# At 2% speed a frame is 0.00033 game-seconds, but the sweep still advances 1/60 real second.
 	for i: int in 30:
 		sweep._process(STEP * Engine.time_scale)
 	assert_almost_eq(sweep.get_age(), 0.5, "30 frames at 2%% speed are half a real second to the sweep", 0.02)
+	assert_true(sweep.get_lifetime() <= 0.45, "the whole effect lasts about 0.4 s")
 	Engine.time_scale = 1.0
 	for i: int in 60:
 		sweep._process(STEP)

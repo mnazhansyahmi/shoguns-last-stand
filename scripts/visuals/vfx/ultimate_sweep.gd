@@ -1,35 +1,41 @@
 class_name UltimateSweep
 extends Control
-## The Ultimate's ink-brush sweep: one huge calligraphy stroke slashed across the whole screen
-## (screen space, drawn on its own canvas layer), with a paper-white flash, a dark wash and ink
-## splatter. It runs in REAL time (it divides out Engine.time_scale), so it keeps animating while
-## the game is frozen for the dramatic pause, then fades out as the game resumes.
+## The Ultimate's ink-brush slash: one fast, thin calligraphy stroke drawn across the enemy area
+## (screen space, on its own canvas layer). It is semi-transparent and slim on purpose, so the
+## fight stays visible underneath; there is no screen wash and only a few small ink drops.
+## It runs in REAL time (it divides out Engine.time_scale), so it keeps animating during the brief
+## freeze when the slash lands, then fades. About 0.4 s in all.
 ## Visual only: the damage comes from UltimateSkill.
 
 ## The stroke is laid down in this long.
-const SWEEP_TIME: float = 0.15
-const FLASH_TIME: float = 0.14
-## After the pause the stroke fades for this long.
-const FADE_TIME: float = 0.35
-const POINTS: int = 30
-const SPLATTER: int = 26
-const STREAKS: int = 7
+const SWEEP_TIME: float = 0.11
+## After the freeze the stroke fades for this long.
+const FADE_TIME: float = 0.25
+const POINTS: int = 24
+const SPLATTER: int = 6
+const STREAKS: int = 3
+## Widest half-width of the stroke as a fraction of the screen height (about 12 px at 1080 p).
+const HALF_WIDTH: float = 0.017
+## Overall opacity: you can see the battle through it.
+const OPACITY: float = 0.85
 
 var _age: float = 0.0
-var _hold: float = 0.4
+var _hold: float = 0.15
 var _facing: int = 1
 var _seed: int = 1
+## Screen y the slash passes through (the enemies' chest height); negative = a default height.
+var _focus_y: float = -1.0
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 ## Per-point wobble of the stroke's width, fixed for the whole effect.
 var _wobble: PackedFloat32Array = PackedFloat32Array()
 var _splatter: Array[Vector3] = []
 var _streaks: Array[Vector3] = []
-var _drips: Array[Vector3] = []
 
 
 ## `hold` = how long the game stays frozen (real seconds); the stroke fades after it.
-func setup(facing: int, hold: float, random_seed: int = 0) -> void:
+func setup(facing: int, hold: float, random_seed: int = 0, focus_y: float = -1.0) -> void:
 	_facing = 1 if facing >= 0 else -1
+	_focus_y = focus_y
 	_hold = maxf(hold, SWEEP_TIME)
 	_seed = random_seed if random_seed != 0 else int(Time.get_ticks_usec() % 100000) + 1
 
@@ -42,14 +48,12 @@ func _ready() -> void:
 		_wobble.append(_rng.randf_range(-1.0, 1.0))
 	# Splatter: (u along the stroke, offset across it in half-widths, radius as a fraction of the height).
 	for i: int in SPLATTER:
-		_splatter.append(Vector3(_rng.randf_range(0.04, 0.98), _rng.randf_range(-1.7, 1.7), _rng.randf_range(0.012, 0.05)))
+		var side: float = 1.0 if i % 2 == 0 else -1.0
+		_splatter.append(Vector3(_rng.randf_range(0.1, 0.95), side * _rng.randf_range(1.6, 2.6), _rng.randf_range(0.004, 0.0085)))
 	# Dry-brush streaks: (offset across, start u, end u).
 	for i: int in STREAKS:
-		var start: float = _rng.randf_range(0.0, 0.55)
-		_streaks.append(Vector3(_rng.randf_range(-0.8, 0.8), start, minf(start + _rng.randf_range(0.2, 0.55), 1.0)))
-	# Drips hanging from the lower edge: (u, length as a fraction of the height, speed).
-	for i: int in 7:
-		_drips.append(Vector3(_rng.randf_range(0.12, 0.9), _rng.randf_range(0.03, 0.1), _rng.randf_range(0.6, 1.4)))
+		var start: float = _rng.randf_range(0.05, 0.5)
+		_streaks.append(Vector3(_rng.randf_range(-0.5, 0.5), start, minf(start + _rng.randf_range(0.25, 0.5), 1.0)))
 
 
 func _process(delta: float) -> void:
@@ -74,32 +78,27 @@ func _draw() -> void:
 	var view: Vector2 = size
 	if view.x < 2.0:
 		return
-	var fade: float = 1.0 - smoothstep(_hold, _hold + FADE_TIME, _age)
-	# Dark wash: it comes in with the flash and clears with the stroke.
-	var wash: float = 0.42 * smoothstep(0.0, 0.12, _age) * fade
-	draw_rect(Rect2(Vector2.ZERO, view), Color(InkPalette.INK, wash))
-	var flash: float = 1.0 - clampf(_age / FLASH_TIME, 0.0, 1.0)
-	if flash > 0.0:
-		draw_rect(Rect2(Vector2.ZERO, view), Color(InkPalette.PAPER, 0.6 * flash * flash))
 	var reveal: float = ease(clampf(_age / SWEEP_TIME, 0.0, 1.0), 0.4)
 	if reveal <= 0.0:
 		return
-	_draw_stroke(view, reveal, fade)
+	var fade: float = 1.0 - smoothstep(_hold, _hold + FADE_TIME, _age)
+	_draw_stroke(view, reveal, fade * OPACITY)
 
 
-## Centre line of the stroke: a long crescent from the back of the screen to the front.
+## Centre line: a shallow rising slash through the height of the enemies, back to front.
 func _center(u: float, view: Vector2) -> Vector2:
-	var x: float = lerpf(-0.12, 1.12, u) if _facing > 0 else lerpf(1.12, -0.12, u)
-	var y: float = 0.66 - sin(PI * u) * 0.24
+	var x: float = lerpf(0.02, 0.98, u) if _facing > 0 else lerpf(0.98, 0.02, u)
+	var rise: float = lerpf(0.05, -0.05, u) - sin(PI * u) * 0.03
+	var y: float = (_focus_y / view.y if _focus_y >= 0.0 else 0.6) + rise
 	return Vector2(x * view.x, y * view.y)
 
 
 func _half_width(u: float, index: int, view: Vector2) -> float:
-	var profile: float = pow(maxf(sin(PI * u), 0.0), 0.65)
-	return view.y * 0.115 * profile * (0.88 + 0.12 * _wobble[index])
+	var profile: float = pow(maxf(sin(PI * u), 0.0), 0.8)
+	return view.y * HALF_WIDTH * profile * (0.9 + 0.1 * _wobble[index])
 
 
-func _draw_stroke(view: Vector2, reveal: float, fade: float) -> void:
+func _draw_stroke(view: Vector2, reveal: float, alpha: float) -> void:
 	var count: int = maxi(2, ceili(float(POINTS) * reveal))
 	var centers: PackedVector2Array = PackedVector2Array()
 	var normals: PackedVector2Array = PackedVector2Array()
@@ -109,47 +108,32 @@ func _draw_stroke(view: Vector2, reveal: float, fade: float) -> void:
 		var here: Vector2 = _center(u, view)
 		var ahead: Vector2 = _center(minf(u + 0.01, 1.0), view)
 		var behind: Vector2 = _center(maxf(u - 0.01, 0.0), view)
-		var direction: Vector2 = (ahead - behind).normalized()
 		centers.append(here)
-		normals.append(direction.orthogonal())
+		normals.append((ahead - behind).normalized().orthogonal())
 		halves.append(_half_width(u, mini(i, POINTS - 1), view))
 
-	# Crimson bleeds out from under the ink, then the black core, then the pale highlight.
 	var batch: InkBatch = InkBatch.new()
-	_ribbon(batch, centers, normals, halves, 1.3, -1.3, Color(InkPalette.SAMURAI_RED, 0.92 * fade))
-	_ribbon(batch, centers, normals, halves, 0.96, -0.92, Color(InkPalette.INK, 0.97 * fade))
-	# Dry-brush streaks: bristle marks across the core that break up the stroke.
+	# A fine crimson edge, the ink core, a few dry-brush streaks and a pale glint on the top edge.
+	_ribbon(batch, centers, normals, halves, 1.35, -1.35, Color(InkPalette.SAMURAI_RED, 0.7 * alpha))
+	_ribbon(batch, centers, normals, halves, 0.9, -0.9, Color(InkPalette.INK, 0.8 * alpha))
 	for streak: Vector3 in _streaks:
 		var from_index: int = floori(streak.y * float(count - 1))
 		var to_index: int = mini(ceili(streak.z * float(count - 1)), count - 1)
 		if to_index - from_index < 2:
 			continue
-		var part_c: PackedVector2Array = centers.slice(from_index, to_index + 1)
-		var part_n: PackedVector2Array = normals.slice(from_index, to_index + 1)
-		var part_h: PackedFloat32Array = halves.slice(from_index, to_index + 1)
-		_ribbon_offset(batch, part_c, part_n, part_h, streak.x, 0.035, Color(InkPalette.INK_DETAIL, 0.9 * fade))
-	_ribbon(batch, centers, normals, halves, 0.86, 0.80, Color(InkPalette.PAPER, 0.85 * fade))
+		_ribbon_offset(batch, centers.slice(from_index, to_index + 1), normals.slice(from_index, to_index + 1),
+				halves.slice(from_index, to_index + 1), streak.x, 0.12, Color(InkPalette.PAPER, 0.35 * alpha))
+	_ribbon(batch, centers, normals, halves, 0.8, 0.62, Color(InkPalette.PAPER, 0.7 * alpha))
 	batch.draw(self)
 
-	# Splatter and drips around the stroke.
+	# A few small ink drops near the stroke.
 	var drops: InkBatch = InkBatch.new()
 	for drop: Vector3 in _splatter:
 		if drop.x > reveal:
 			continue
 		var index: int = clampi(roundi(drop.x / maxf(reveal, 0.001) * float(count - 1)), 0, count - 1)
-		var at: Vector2 = centers[index] + normals[index] * drop.y * (halves[index] + view.y * 0.03)
-		var color: Color = Color(InkPalette.INK if drop.y * drop.y < 2.2 else InkPalette.SAMURAI_RED, 0.95 * fade)
-		drops.fill(InkEffect.blot_points(_rng_for(drop), at, drop.z * view.y, 0.85, 7), color)
-	for drip: Vector3 in _drips:
-		if drip.x > reveal:
-			continue
-		var index: int = clampi(roundi(drip.x / maxf(reveal, 0.001) * float(count - 1)), 0, count - 1)
-		var top: Vector2 = centers[index] + Vector2(0.0, halves[index] * 0.9)
-		var grown: float = clampf((_age - SWEEP_TIME) * drip.z, 0.0, 1.0)
-		var length: float = view.y * drip.y * grown
-		if length > 2.0:
-			drops.stroke(PackedVector2Array([top, top + Vector2(0.0, length)]), 5.0, 3.0, Color(InkPalette.INK, 0.95 * fade))
-			drops.circle(top + Vector2(0.0, length + 3.0), 5.0, Color(InkPalette.INK, 0.95 * fade))
+		var at: Vector2 = centers[index] + normals[index] * drop.y * halves[index]
+		drops.fill(InkEffect.blot_points(_rng_for(drop), at, drop.z * view.y, 0.85, 6), Color(InkPalette.INK, 0.75 * alpha))
 	drops.draw(self)
 
 

@@ -155,7 +155,9 @@ func test_hurtbox_reports_heavy_and_kill_flags() -> void:
 	if received.size() == 2:
 		assert_true(received[0].heavy and not received[0].killed, "first hit heavy, not lethal")
 		assert_true(not received[1].heavy and received[1].killed, "second hit lethal")
-	assert_eq(feedback.numbers_parent.get_child_count(), 2, "each hit reported to the battle feedback")
+	assert_eq(feedback.numbers_parent.get_child_count(), 1, "both hits reached the battle feedback and merged into one number")
+	var merged: DamageNumber = feedback.numbers_parent.get_child(0) as DamageNumber
+	assert_true(merged.text.ends_with("!") and absf(merged.value - 160.0) < 0.5, "showing their total damage (%s)" % merged.text)
 
 
 func test_vibration_needs_setting_and_phone() -> void:
@@ -212,3 +214,57 @@ func _owned(progress: PlayerProgress) -> int:
 	for upgrade: UpgradeData in CATALOG.upgrades:
 		total += progress.get_upgrade_level(upgrade.id)
 	return total
+
+
+# --- Damage number cleanup --------------------------------------------------------
+
+func _live_numbers(feedback: BattleFeedback) -> Array[DamageNumber]:
+	var result: Array[DamageNumber] = []
+	for child: Node in feedback.numbers_parent.get_children():
+		var number: DamageNumber = child as DamageNumber
+		if number != null and not number.is_queued_for_deletion():
+			result.append(number)
+	return result
+
+
+func test_rapid_hits_on_one_target_merge_into_one_number() -> void:
+	var feedback: BattleFeedback = _feedback()
+	var victim: Node2D = add_to_tree(Node2D.new()) as Node2D
+	var first: DamageNumber = feedback.spawn_damage_number(Vector2(300.0, 500.0), _hit(20.0, false, false), true, victim)
+	var second: DamageNumber = feedback.spawn_damage_number(Vector2(300.0, 500.0), _hit(14.0, false, false), true, victim)
+	var third: DamageNumber = feedback.spawn_damage_number(Vector2(300.0, 500.0), _hit(30.0, true, false), true, victim)
+	assert_true(first == second and second == third, "three quick hits are one number")
+	assert_eq(_live_numbers(feedback).size(), 1, "only one number on screen")
+	assert_eq(first.text, "64!", "it shows the total, and is marked heavy once a heavy hit joined")
+	first._process(DamageNumber.MERGE_WINDOW + 0.1)
+	var later: DamageNumber = feedback.spawn_damage_number(Vector2(300.0, 500.0), _hit(10.0, false, false), true, victim)
+	assert_true(later != first and later.text == "10", "a hit after the merge window starts a new number")
+	var other: Node2D = add_to_tree(Node2D.new()) as Node2D
+	var elsewhere: DamageNumber = feedback.spawn_damage_number(Vector2(900.0, 500.0), _hit(10.0, false, false), true, other)
+	assert_true(elsewhere != later, "a different target gets its own number")
+
+
+func test_overlapping_numbers_stack_upward_with_spacing() -> void:
+	var feedback: BattleFeedback = _feedback()
+	var numbers: Array[DamageNumber] = []
+	for i: int in 4:
+		var victim: Node2D = add_to_tree(Node2D.new()) as Node2D
+		numbers.append(feedback.spawn_damage_number(Vector2(300.0 + float(i) * 10.0, 500.0), _hit(10.0 + float(i), false, false), true, victim))
+	for i: int in range(1, numbers.size()):
+		assert_true(numbers[i - 1].global_position.y - numbers[i].global_position.y >= DamageNumber.SPACING - 0.5,
+				"number %d sits above number %d with a gap (%.0f px)" % [i + 1, i, numbers[i - 1].global_position.y - numbers[i].global_position.y])
+	var far: DamageNumber = feedback.spawn_damage_number(Vector2(1500.0, 500.0), _hit(9.0, false, false), true, add_to_tree(Node2D.new()))
+	assert_almost_eq(far.global_position.y, 500.0, "a number far from the others is not moved", 0.01)
+
+
+func test_at_most_six_numbers_are_on_screen() -> void:
+	var feedback: BattleFeedback = _feedback()
+	var newest: DamageNumber
+	for i: int in 15:
+		newest = feedback.spawn_damage_number(Vector2(200.0 + float(i) * 150.0, 500.0), _hit(10.0 + float(i), false, false), true, add_to_tree(Node2D.new()))
+	var live: Array[DamageNumber] = _live_numbers(feedback)
+	assert_eq(live.size(), BattleFeedback.MAX_DAMAGE_NUMBERS, "never more than the cap")
+	assert_eq(BattleFeedback.MAX_DAMAGE_NUMBERS, 6, "the cap is six")
+	assert_true(live.has(newest), "the newest number is shown, the oldest ones make way")
+	feedback.spawn_text_number(Vector2(0.0, 0.0), "+28", InkPalette.JADE)
+	assert_eq(_live_numbers(feedback).size(), 6, "heal numbers count toward the cap too")

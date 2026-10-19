@@ -448,18 +448,24 @@ static func _hollow(state: StringName) -> FigurePose:
 
 
 static func _oni(state: StringName) -> FigurePose:
+	var p: FigurePose
 	match state:
 		&"run":
-			return FigurePose.make(0.18, 2.0, Vector2(15.0, -16.0), 2.1)
+			p = FigurePose.make(0.18, 2.0, Vector2(15.0, -16.0), 2.1)
 		&"windup", &"heavy_windup":
-			return FigurePose.make(-0.14, 2.0, Vector2(3.0, -58.0), -2.6)
+			# The club is raised in front of the horn, standing up from the fist well clear of the head
+			# (a test checks it); the slam then comes down in an arc in front of the body.
+			p = FigurePose.make(-0.14, 2.0, Vector2(22.0, -68.0), -1.7)
 		&"strike":
-			return FigurePose.make(0.32, 7.0, Vector2(30.0, -6.0), 1.2).with_offset(3.0)
+			p = FigurePose.make(0.32, 7.0, Vector2(30.0, -6.0), 1.2).with_offset(3.0)
 		&"hurt":
-			return FigurePose.make(-0.12, 1.0, Vector2(18.0, -18.0), 0.7).with_head(-0.2)
+			p = FigurePose.make(-0.12, 1.0, Vector2(18.0, -18.0), 0.7).with_head(-0.2)
 		&"dead":
-			return FigurePose.make(0.0, 0.0, Vector2(16.0, -10.0), 0.8)
-	return FigurePose.make(0.1, 1.0, Vector2(21.0, -17.0), 1.05)
+			p = FigurePose.make(0.0, 0.0, Vector2(16.0, -10.0), 0.8)
+		_:
+			p = FigurePose.make(0.1, 1.0, Vector2(21.0, -17.0), 1.05)
+	p.pivot = Vector2(10.0, -43.0)
+	return p
 
 
 ## Shrine Healer: the gohei (wand with paper streamers) is held upright, raised to bless, and

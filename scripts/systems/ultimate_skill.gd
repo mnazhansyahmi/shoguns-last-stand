@@ -14,8 +14,8 @@ signal not_ready(ratio: float)
 
 enum Result { OK, NOT_READY, CANNOT_ACT, NO_PLAYER }
 
-## The game stays frozen this long (real seconds) while the sweep is on screen.
-const PAUSE_SECONDS: float = 0.4
+## The game stays frozen this long (real seconds) as the slash lands: a short beat, not a stop.
+const PAUSE_SECONDS: float = 0.15
 ## Enemies this far outside the screen edge are still hit (their bodies reach into view).
 const RANGE_MARGIN: float = 90.0
 ## Without a camera, the strike covers this far from the samurai on each side.
@@ -107,12 +107,16 @@ func _on_released(origin: Vector2, facing: int) -> void:
 func _play_feedback(facing: int) -> void:
 	if is_instance_valid(BattleFeedback.active):
 		BattleFeedback.active.hit_stop(pause_seconds)
-		BattleFeedback.active.shake(16.0, 0.5)
+		BattleFeedback.active.shake(9.0, 0.25)
 		BattleFeedback.active.vibrate(90)
 	var layer: CanvasLayer = CanvasLayer.new()
 	layer.layer = SWEEP_LAYER
 	var sweep: UltimateSweep = UltimateSweep.new()
-	sweep.setup(facing, pause_seconds)
+	# The slash crosses the enemies at chest height: find that on screen from the samurai.
+	var focus_y: float = -1.0
+	if is_instance_valid(player) and player.is_inside_tree():
+		focus_y = (player.get_viewport().get_canvas_transform() * (player.global_position + Vector2(0.0, -60.0))).y
+	sweep.setup(facing, pause_seconds, 0, focus_y)
 	layer.add_child(sweep)
 	add_child(layer)
 	# The layer is only a holder for the sweep: free it with the sweep.

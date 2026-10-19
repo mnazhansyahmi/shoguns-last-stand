@@ -248,3 +248,45 @@ func test_cloth_does_not_explode_on_teleport_or_flip() -> void:
 	for point: Vector2 in chain.points:
 		assert_true(point.distance_to(chain.points[0]) <= reach + 1.0, "scarf points stay within the chain's length")
 	assert_true(absf(figure.secondary.skirt.value) < 0.5, "the skirt does not spin out after a teleport")
+
+
+## The Oni's club must never pass through its own head (it did in the raised pose).
+func test_oni_club_stays_clear_of_its_head() -> void:
+	var figure: InkFigure = InkFigure.new()
+	figure.height = 100.0
+	add_to_tree(figure)
+	figure.kind = InkFigure.Kind.ONI_BRUTE
+	var spec: FigureKinds.Spec = figure.spec
+	var poses: Dictionary = {}
+	for state: StringName in [&"idle", &"windup", &"strike", &"hurt"]:
+		poses[String(state)] = FigureKinds.pose(InkFigure.Kind.ONI_BRUTE, state)
+	var pairs: Array = [[&"idle", &"windup"], [&"windup", &"strike"], [&"strike", &"idle"]]
+	var checked: Array[FigurePose] = []
+	for name: String in poses:
+		checked.append(poses[name])
+	for pair: Array in pairs:
+		for weight: float in [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]:
+			var blended: FigurePose = FigurePose.new()
+			blended.copy_from(poses[String(pair[0])])
+			blended.blend_toward(poses[String(pair[1])], weight)
+			checked.append(blended)
+	for pose: FigurePose in checked:
+		figure.pose.copy_from(pose)
+		figure.refresh()
+		# Head: a disc around the skull plus the horn and the mane's far horn (head space -> torso space).
+		var head_centre: Vector2 = spec.neck + Vector2(3.0, -6.5)
+		var horn: PackedVector2Array = PackedVector2Array([spec.neck + Vector2(5.0, -11.0), spec.neck + Vector2(9.0, -17.0),
+				spec.neck + Vector2(10.0, -25.0), spec.neck + Vector2(7.0, -30.5)])
+		var tilt: Transform2D = Transform2D(pose.head_tilt, spec.neck)
+		var hits: int = 0
+		var along: float = 4.0
+		while along <= 66.0:
+			var point: Vector2 = figure.weapon_local * Vector2(along, 0.0)
+			var in_head: Vector2 = tilt.affine_inverse() * point
+			if in_head.distance_to(Vector2(3.0, -6.5)) < 9.5 + 4.0 or point.distance_to(head_centre) < 6.0:
+				hits += 1
+			for corner: Vector2 in horn:
+				if point.distance_to(tilt * (corner - spec.neck)) < 3.0 + 2.5:
+					hits += 1
+			along += 3.0
+		assert_eq(hits, 0, "the Oni's club stays clear of its head (%d points inside it)" % hits)

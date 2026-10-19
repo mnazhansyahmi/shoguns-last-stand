@@ -194,7 +194,7 @@ Loose parts lag behind the body (`SecondaryMotion`, stepped from `InkFigure.refr
 | Enemy spawn | Violet smoke puff at the feet | 0.5 s |
 | Death | Body falls, then breaks into ink droplets that drift up and fade | Done within corpse time |
 | Oni slam | Ground-level ink shockwave ring | 0.3 s |
-| Ultimate sweep | One huge crescent brush stroke across the screen: crimson bleed, black core with dry-brush streaks, a pale highlight, ink splatter and drips; a paper-white flash and a dark wash | Laid down in 0.15 s, held through the 0.4 s freeze, fades in 0.35 s. Real time, screen space. The one effect allowed to exceed 0.6 s |
+| Ultimate slash | One thin, semi-transparent brush stroke through the enemies at chest height: fine crimson edge, ink core, a pale glint, a few dry-brush streaks and six small ink drops. No wash, no flash, so the battle stays visible | Laid down in 0.11 s, a 0.15 s freeze as it lands, fades in 0.25 s (0.4 s in all). Real time, screen space |
 
 Effects never deal damage, never block input, and free themselves.
 
