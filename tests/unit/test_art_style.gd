@@ -499,3 +499,42 @@ func test_glows_are_merged_per_part_and_not_lost() -> void:
 		spots += (definition["points"] as PackedVector2Array).size()
 	assert_eq(oni.size(), 2, "the oni's glows sit on two parts (torso, head)")
 	assert_eq(spots, 9, "no oni glow spot is lost in merging")
+
+
+# --- Health bars and damage numbers -----------------------------------------
+
+func _spawn_enemy_at(x: float) -> Enemy:
+	var enemy: Enemy = ENEMY_SCENE.instantiate() as Enemy
+	enemy.setup(HOLLOW_SOLDIER)
+	add_to_tree(enemy)
+	enemy.global_position = Vector2(x, 880.0)
+	return enemy
+
+
+func test_enemy_health_bar_appears_only_after_damage() -> void:
+	var enemy: Enemy = _spawn_enemy_at(500.0)
+	var bar: WorldHealthBar = enemy.get_node("HealthBar")
+	assert_true(not bar.visible, "a full-health enemy shows no bar")
+	assert_true(bar.bar_size.x <= HOLLOW_SOLDIER.body_size.x, "the bar is no wider than the body")
+	(enemy.get_node("HealthComponent") as HealthComponent).take_damage(10.0)
+	assert_true(bar.visible, "the bar appears once the enemy is hurt")
+
+
+func test_overlapping_enemy_bars_stack_upward() -> void:
+	var first: Enemy = _spawn_enemy_at(600.0)
+	var second: Enemy = _spawn_enemy_at(610.0)
+	var far: Enemy = _spawn_enemy_at(1400.0)
+	for enemy: Enemy in [first, second, far]:
+		(enemy.get_node("HealthComponent") as HealthComponent).take_damage(10.0)
+	WorldHealthBar.layout_staggered()
+	var a: WorldHealthBar = first.get_node("HealthBar")
+	var b: WorldHealthBar = second.get_node("HealthBar")
+	var c: WorldHealthBar = far.get_node("HealthBar")
+	assert_true(a.get_stagger_level() != b.get_stagger_level(), "overlapping bars take different levels")
+	assert_almost_eq(absf(a.position.y - b.position.y), WorldHealthBar.STAGGER_STEP, "stacked one step apart")
+	assert_eq(c.get_stagger_level(), 0, "a bar with no neighbours stays on its unit")
+
+
+func test_damage_numbers_are_bigger_with_a_solid_ink_outline() -> void:
+	assert_true(DamageNumber.FONT_SIZE >= 40, "damage numbers are bigger")
+	assert_true(DamageNumber.OUTLINE_SIZE >= 10, "damage numbers have a thick dark outline")

@@ -178,7 +178,9 @@ Effects never deal damage, never block input, and free themselves.
 - Panels: charcoal, a 2 px gold border, small corner radius (4 px), soft shadow.
 - Buttons: charcoal, parchment text, gold border on hover and focus, and a darker press state.
   Touch targets keep their existing minimum sizes (see ARCHITECTURE.md).
-- Text always has a dark outline when it sits on the battlefield (HUD, damage numbers).
+- Text always has a dark outline when it sits on the battlefield (HUD, damage numbers). Damage
+  numbers are 40 px with a solid 12 px ink outline.
+- Enemy health bars only appear once the enemy is hurt, are short, and stack when they overlap.
 - Named variations (`theme_type_variation`) replace per-scene colour overrides:
   - Labels: `TitleLabel` and `HeaderLabel` (serif, gold), `GoldLabel`, `DimLabel`, `WarningLabel`, `SuccessLabel`, `SpiritLabel`.
   - Battlefield labels with an ink outline: `HudLabel`, `HudDimLabel`, `HudTitleLabel`, `HudBannerLabel`, `HudMessageLabel`.

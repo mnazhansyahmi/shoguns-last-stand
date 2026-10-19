@@ -43,3 +43,5 @@ faction = 1
 
 [node name="HealthBar" type="Node2D" parent="."]
 script = ExtResource("6_bar")
+hide_until_damaged = true
+stagger = true

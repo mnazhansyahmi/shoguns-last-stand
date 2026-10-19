@@ -197,7 +197,13 @@ All art is drawn by code; there are no image files. `docs/ART_BIBLE.md` is the s
     - Fewer canvas items per figure: feet are part of the shins, hands part of the forearms, the samurai's same-slot parts are merged, and the shadow is drawn by the figure node itself. Each part's glows are merged into one additive item.
     - Off-screen figures (beyond 360 screen px) skip posing.
     - The Hollow Soldier's hem swaps between cached flutter shapes (12 phases × 3 wind levels) instead of being rebuilt every frame.
+  - After the health bar change (enemy bars only drawn once hurt): **4.94 ms average, p95 6.2 ms** in the same test (three-run average).
   - Not measured: an actual iPhone. Run the probe on a device build before tuning further.
+- **Health bars and damage numbers:**
+  - Enemy `WorldHealthBar`s use `hide_until_damaged` (a full-health crowd shows no bars) and are short (0.9× body width, 40 to 90 px).
+  - With `stagger`, bars that would overlap are stacked upward 16 px a level. `WorldHealthBar.layout_staggered()` runs once a frame over the visible staggering bars, left to right, and gives each the lowest level not taken by an overlapping neighbour.
+  - Ally bars are unchanged.
+  - Damage numbers are 40 px (was 34) with a solid 12 px ink outline.
 - `InkBatch` collects shapes into one RenderingServer triangle array (one draw call) and skips a shape that can't be triangulated, instead of logging an error (which would fail the tests). `InkBrush` is the one-off version for dynamic art (effects, cloth).
 - `tools/capture_screenshots.gd` renders a figure sheet (every kind in every state), the title screen, stage select and a staged battle. It needs a real renderer, so run it without `--headless`.
 

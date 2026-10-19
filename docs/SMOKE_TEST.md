@@ -74,6 +74,7 @@ Tick each box as you go. If a step fails, note what you saw and stop: later step
 - [ ] **Effects:** attacks leave crimson-edged slash arcs, and hits throw sparks (gold on enemies, red on defenders). The Spirit Slash is a glowing blue crescent. The Oni's slam sends a ground ring, and a dash leaves pale afterimages.
 - [ ] **Gate:** lanterns flicker. Cracks appear at about 2/3 and 1/3 health, and the lanterns go out when it falls.
 - [ ] **Zoomed view:** units are about 1.5x bigger than before. The camera follows the samurai, with far layers moving slower than near ones. Walk right: a "Gate NN%" tab appears at the left edge and pulses when enemies reach the gate. Walk left: an "N incoming" tab appears at the right edge ("Oni Brute!" when one is coming).
+- [ ] **Health bars:** enemies at full health show no bar, and the first hit makes a short red bar appear. When several hurt enemies stand together, their bars stack instead of overlapping. Damage numbers are large, with a dark outline.
 - [ ] **Phone:** with touch controls on (Settings → Always) at a phone-shaped window (e.g. 1278×590), the fight sits above the controls and the samurai is easy to find.
 
 ## Result

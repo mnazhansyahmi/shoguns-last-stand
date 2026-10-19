@@ -5,7 +5,9 @@ extends Node2D
 
 const LIFETIME: float = 0.75
 const RISE: float = 70.0
-const FONT_SIZE: int = 34
+const FONT_SIZE: int = 40
+## Solid ink outline so numbers read on the pale mist and over dark fighters alike.
+const OUTLINE_SIZE: int = 12
 const POP_TIME: float = 0.12
 
 var text: String = ""
@@ -49,5 +51,5 @@ func _apply_animation() -> void:
 func _draw() -> void:
 	var font: Font = ThemeDB.fallback_font
 	var origin: Vector2 = Vector2(-80.0, 0.0)
-	draw_string_outline(font, origin, text, HORIZONTAL_ALIGNMENT_CENTER, 160.0, FONT_SIZE, 8, Color(InkPalette.INK, 0.9))
+	draw_string_outline(font, origin, text, HORIZONTAL_ALIGNMENT_CENTER, 160.0, FONT_SIZE, OUTLINE_SIZE, InkPalette.INK)
 	draw_string(font, origin, text, HORIZONTAL_ALIGNMENT_CENTER, 160.0, FONT_SIZE, color)

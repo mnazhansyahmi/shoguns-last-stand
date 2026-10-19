@@ -94,6 +94,9 @@ func _run() -> void:
 	Input.action_release("spirit_slash")
 	await _frames(6)
 	await _capture("battle_slash")
+	# Wound the staged enemies so their health bars show (and stack where they overlap).
+	for node: Node in field.get_tree().get_nodes_in_group("enemies"):
+		(node.get_node("HealthComponent") as HealthComponent).take_damage(12.0)
 	await _frames(120)
 	await _capture("battle_later")
 	field.free()

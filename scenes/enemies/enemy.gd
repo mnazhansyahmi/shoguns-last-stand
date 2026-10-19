@@ -322,5 +322,6 @@ func _set_facing(direction: int) -> void:
 func _apply_data() -> void:
 	UnitRig.build_collision(_body_shape, _hurtbox_shape, _hitbox_shape, data.body_size, _attack.hitbox_size)
 	var head_top: float = _visual.configure(data.figure, data.body_size.y)
-	_health_bar.position = Vector2(0.0, head_top - 22.0)
-	_health_bar.bar_size = Vector2(clampf(data.body_size.x * 1.4, 56.0, 140.0), 8.0)
+	# Short bar, shown only once hurt; overlapping bars stack (WorldHealthBar.stagger).
+	_health_bar.set_base_position(Vector2(0.0, head_top - 18.0))
+	_health_bar.bar_size = Vector2(clampf(data.body_size.x * 0.9, 40.0, 90.0), 7.0)

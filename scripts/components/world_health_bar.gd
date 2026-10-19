@@ -1,21 +1,104 @@
 class_name WorldHealthBar
 extends Node2D
 ## Simple health bar drawn in world space, centered on this node.
+## Enemy bars use `hide_until_damaged` (a full-health crowd shows no bars) and `stagger`: bars
+## that would overlap are stacked upward so each stays readable in a melee.
+
+## Height of one stagger step (bar plus frame and a gap).
+const STAGGER_STEP: float = 16.0
+## Bars closer than this (plus their half widths) count as overlapping.
+const STAGGER_GAP: float = 6.0
 
 @export var bar_size: Vector2 = Vector2(120.0, 12.0)
 @export var fill_color: Color = Color("#d0453a")
 @export var back_color: Color = Color(InkPalette.INK, 0.75)
+## Stay hidden while at full health; appear on the first damage.
+@export var hide_until_damaged: bool = false
+## Stack upward when overlapping other staggering bars.
+@export var stagger: bool = false
+
+static var _stagger_bars: Array[WorldHealthBar] = []
+static var _layout_frame: int = -1
 
 var _ratio: float = 1.0
+var _base_position: Vector2 = Vector2.ZERO
+var _has_base: bool = false
+var _level: int = 0
+
+
+func _enter_tree() -> void:
+	if stagger and not _stagger_bars.has(self):
+		_stagger_bars.append(self)
+
+
+func _exit_tree() -> void:
+	_stagger_bars.erase(self)
+
+
+func _ready() -> void:
+	if not _has_base:
+		_base_position = position
+	if hide_until_damaged and _ratio >= 1.0:
+		visible = false
+
+
+## Resting position (above the unit's head); staggering moves the bar up from here.
+func set_base_position(value: Vector2) -> void:
+	_base_position = value
+	_has_base = true
+	position = value - Vector2(0.0, STAGGER_STEP * _level)
+
+
+func get_stagger_level() -> int:
+	return _level
 
 
 func set_values(current: float, maximum: float) -> void:
 	set_ratio(current / maxf(maximum, 0.001))
+	if hide_until_damaged and current < maximum - 0.001:
+		visible = true
 
 
 func set_ratio(ratio: float) -> void:
 	_ratio = clampf(ratio, 0.0, 1.0)
 	queue_redraw()
+
+
+func _process(_delta: float) -> void:
+	if stagger and Engine.get_process_frames() != _layout_frame:
+		_layout_frame = Engine.get_process_frames()
+		layout_staggered()
+
+
+## Stacks the visible staggering bars: left to right, each takes the lowest level not used by
+## an overlapping bar already placed.
+static func layout_staggered() -> void:
+	var shown: Array[WorldHealthBar] = []
+	for bar: WorldHealthBar in _stagger_bars:
+		if is_instance_valid(bar) and bar.is_visible_in_tree():
+			shown.append(bar)
+	shown.sort_custom(func(a: WorldHealthBar, b: WorldHealthBar) -> bool: return a._base_x() < b._base_x())
+	for i: int in shown.size():
+		var bar: WorldHealthBar = shown[i]
+		var used: Dictionary = {}
+		for j: int in i:
+			var other: WorldHealthBar = shown[j]
+			var reach: float = (bar.bar_size.x + other.bar_size.x) * 0.5 + STAGGER_GAP
+			if absf(bar._base_x() - other._base_x()) < reach and absf(bar._base_y() - other._base_y()) < STAGGER_STEP * 4.0:
+				used[other._level] = true
+		var level: int = 0
+		while used.has(level):
+			level += 1
+		bar._level = level
+		bar.position = bar._base_position - Vector2(0.0, STAGGER_STEP * level)
+
+
+func _base_x() -> float:
+	return global_position.x + (_base_position.x - position.x)
+
+
+func _base_y() -> float:
+	return global_position.y + (_base_position.y - position.y)
 
 
 func _draw() -> void:

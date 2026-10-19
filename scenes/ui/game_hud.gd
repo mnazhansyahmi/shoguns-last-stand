@@ -10,8 +10,10 @@ const BANNER_FADE_TIME: float = 0.4
 const SCREEN_MARGIN: Vector2 = Vector2(32.0, 24.0)
 ## Room kept free above the touch summon buttons for messages.
 const TOUCH_BOTTOM_SPACE: float = 230.0
-## Edge indicator tabs start this far below the top of the safe area (under the top HUD).
+## Edge indicator tabs start at least this far below the top of the safe area, and always below
+## the top-left bars (left tab) or the pause button (right tab).
 const INDICATOR_TOP: float = 196.0
+const INDICATOR_GAP: float = 14.0
 
 @onready var _margin: MarginContainer = $Margin
 @onready var _top_left: VBoxContainer = %TopLeft
@@ -32,6 +34,7 @@ const INDICATOR_TOP: float = 196.0
 @onready var _debug_hint_label: Label = %DebugHintLabel
 @onready var _touch_spacer: Control = %TouchSpacer
 
+var _safe_rect: Rect2 = Rect2()
 var _gate_indicator: EdgeIndicator
 var _enemy_indicator: EdgeIndicator
 var _banner_tween: Tween
@@ -140,14 +143,17 @@ func get_enemy_indicator() -> EdgeIndicator:
 ## Tabs sit at the screen edges just below the top HUD (health bars, pause button), above
 ## the fighters' heads and well clear of the touch controls.
 func _place_indicators(safe_rect: Rect2) -> void:
-	var y: float = safe_rect.position.y + INDICATOR_TOP * _ui_scale
+	_safe_rect = safe_rect
+	var top: float = safe_rect.position.y + INDICATOR_TOP * _ui_scale
 	for indicator: EdgeIndicator in [_gate_indicator, _enemy_indicator]:
 		if indicator == null:
 			continue
 		indicator.scale = Vector2(_ui_scale, _ui_scale)
 		var width: float = EdgeIndicator.TAB_SIZE.x * _ui_scale
 		var x: float = safe_rect.position.x + 8.0 if indicator.points_left else safe_rect.end.x - 8.0 - width
-		indicator.position = Vector2(x, y)
+		var above: Control = _top_left if indicator.points_left else _pause_button
+		var below_hud: float = above.get_global_rect().end.y + INDICATOR_GAP if above.is_visible_in_tree() else top
+		indicator.position = Vector2(x, maxf(top, below_hud))
 
 
 func get_pause_button_rect() -> Rect2:
@@ -191,6 +197,9 @@ func _update_pivots() -> void:
 	_top_left.pivot_offset = Vector2.ZERO
 	_wave_box.pivot_offset = Vector2(_wave_box.size.x * 0.5, 0.0)
 	_pause_button.pivot_offset = Vector2(_pause_button.size.x, 0.0)
+	# The top-left cluster grows/shrinks (ability row in keyboard mode): keep the tabs below it.
+	if _safe_rect.size != Vector2.ZERO:
+		_place_indicators(_safe_rect)
 
 
 func _show_fading(label: Label, text: String, duration: float, previous: Tween) -> Tween:
