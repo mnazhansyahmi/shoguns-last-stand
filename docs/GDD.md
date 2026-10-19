@@ -26,8 +26,10 @@ Moves: a 3-hit combo, a heavy attack, a dash, and the Spirit Slash special.
 
 | Enemy | HP | Damage | Notes |
 |---|---|---|---|
-| Hollow Soldier | 75 | 12 | Basic melee |
-| Oni Brute | 350 | 35 | Slow, area melee |
+| Hollow Soldier | 160 | 24 | Basic melee, speed 90 |
+| Oni Brute | 900 | 65 | Slow (52), area melee, heavy |
+
+Enemies were buffed after playtesting showed summoned allies could win stage 1 without the player (spec values were 75/12 and 350/35). See `tools/balance_sim.gd` for how this is measured.
 
 ## Allies (Spirit Energy: max 150, regen 5/s)
 
@@ -38,9 +40,9 @@ Moves: a 3-hit combo, a heavy attack, a dash, and the Spirit Slash special.
 
 ## Stage 1 waves
 
-1. 4 × Hollow Soldier
-2. 6 × Hollow Soldier
-3. 6 × Hollow Soldier + 1 × Oni Brute
+1. 6 × Hollow Soldier, one every 1.0 s
+2. 9 × Hollow Soldier, every 0.7 s
+3. 10 × Hollow Soldier every 0.6 s, then 1 × Oni Brute
 
 ## Village gate
 
@@ -48,7 +50,7 @@ Moves: a 3-hit combo, a heavy attack, a dash, and the Spirit Slash special.
 
 ## Rewards
 
-Hollow Soldier: 8 gold, 10 XP. Oni Brute: 40 gold, 50 XP. Clearing a stage adds 150 gold and 50 XP. A defeat keeps 50% of kill rewards. A full stage 1 clear pays **318 gold** and 260 XP.
+Hollow Soldier: 6 gold, 10 XP. Oni Brute: 40 gold, 50 XP. Clearing a stage adds 150 gold and 50 XP. A defeat keeps 50% of kill rewards. A full stage 1 clear (25 soldiers + 1 Oni) pays **340 gold** and 300 XP.
 
 ## Upgrades (5 levels each; cost grows ×1.2 per level, rounded to 5)
 

@@ -12,6 +12,35 @@ const PEAK: float = 0.8
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 
+## Band-pass biquad (RBJ cookbook, 0 dB peak) used as a vowel formant resonator.
+class Biquad:
+	var b0: float = 0.0
+	var b2: float = 0.0
+	var a1: float = 0.0
+	var a2: float = 0.0
+	var x1: float = 0.0
+	var x2: float = 0.0
+	var y1: float = 0.0
+	var y2: float = 0.0
+
+	func set_bandpass(frequency: float, q: float) -> void:
+		var w0: float = TAU * frequency / MIX_RATE
+		var alpha: float = sin(w0) / (2.0 * q)
+		var a0: float = 1.0 + alpha
+		b0 = alpha / a0
+		b2 = -alpha / a0
+		a1 = -2.0 * cos(w0) / a0
+		a2 = (1.0 - alpha) / a0
+
+	func process(x: float) -> float:
+		var y: float = b0 * x + b2 * x2 - a1 * y1 - a2 * y2
+		x2 = x1
+		x1 = x
+		y2 = y1
+		y1 = y
+		return y
+
+
 func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT_DIR))
 	var sounds: Dictionary = {
@@ -86,22 +115,57 @@ func _spirit_slash() -> PackedFloat32Array:
 	return _normalize(out)
 
 
-## Three-note rising arpeggio (C5 E5 G5).
+## "Whoosh" (rising air, 0.22 s) followed by a soft "appear" pop with a bell-like chime.
 func _summon() -> PackedFloat32Array:
-	return _notes([523.25, 659.25, 783.99], 0.13, 0.22, 0.45, 0.3)
+	var whoosh_length: float = 0.22
+	var out: PackedFloat32Array = _buffer(0.8)
+	var whoosh: PackedFloat32Array = _whoosh(whoosh_length, 500.0, 2800.0)
+	for i: int in whoosh.size():
+		out[i] = whoosh[i] * 0.55
+	var pop_start: float = whoosh_length - 0.02
+	var pop_phase: float = 0.0
+	for i: int in range(int(pop_start * MIX_RATE), out.size()):
+		var t: float = _t(i) - pop_start
+		# Pop: a short sine whose pitch drops quickly, like a bubble.
+		pop_phase += TAU * lerpf(950.0, 480.0, minf(t / 0.035, 1.0)) / MIX_RATE
+		var pop: float = sin(pop_phase) * exp(-t * 38.0)
+		# Chime: bell partials (E6, B6, E7) with a soft attack and slower decay.
+		var attack: float = minf(t / 0.006, 1.0)
+		var chime: float = (sin(TAU * 1318.5 * t) * exp(-t * 5.0) + 0.5 * sin(TAU * 1975.5 * t) * exp(-t * 7.0)
+				+ 0.25 * sin(TAU * 2637.0 * t) * exp(-t * 10.0)) * attack
+		out[i] += pop * 0.9 + chime * 0.45
+	return _normalize(out)
 
 
-## Falling square-ish growl, filtered.
+## Low groan "arh": a buzzy voice source with falling, slightly unsteady pitch, shaped by
+## vowel formants ("ah" drifting to "uh") and mixed with breath that takes over as it fades.
 func _enemy_death() -> PackedFloat32Array:
-	var out: PackedFloat32Array = _buffer(0.42)
+	var duration: float = 0.75
+	var out: PackedFloat32Array = _buffer(duration)
+	var formants: Array[Biquad] = [Biquad.new(), Biquad.new(), Biquad.new()]
+	var gains: Array[float] = [1.0, 0.55, 0.22]
 	var phase: float = 0.0
-	var lowpassed: float = 0.0
+	var jitter: float = 0.0
 	for i: int in out.size():
 		var t: float = _t(i)
-		phase += TAU * lerpf(320.0, 65.0, t / 0.42) / MIX_RATE
-		var square: float = signf(sin(phase)) * 0.6 + sin(phase) * 0.4
-		lowpassed = _lowpass(lowpassed, square, 1800.0)
-		out[i] = lowpassed * minf(t / 0.005, 1.0) * exp(-t * 4.5)
+		var progress: float = t / duration
+		if i % 64 == 0:
+			# Vowel "ah" (F1 760, F2 1150) sliding toward "uh" (F1 600, F2 1000).
+			formants[0].set_bandpass(lerpf(760.0, 600.0, progress), 8.0)
+			formants[1].set_bandpass(lerpf(1150.0, 1000.0, progress), 10.0)
+			formants[2].set_bandpass(2450.0, 14.0)
+		jitter = clampf(jitter + _noise() * 0.004, -0.03, 0.03)
+		var f0: float = 165.0 * pow(80.0 / 165.0, progress) * (1.0 + jitter + 0.015 * sin(TAU * 5.5 * t))
+		phase = fmod(phase + f0 / MIX_RATE, 1.0)
+		# Glottal-like pulse: a sawtooth softened by a little rounding.
+		var pulse: float = (1.0 - 2.0 * phase) * 0.8 + sin(TAU * phase) * 0.2
+		var breath_mix: float = lerpf(0.25, 0.9, smoothstep(0.45, 1.0, progress))
+		var source: float = pulse * (1.0 - breath_mix) + _noise() * breath_mix
+		var voiced: float = 0.0
+		for f: int in formants.size():
+			voiced += formants[f].process(source) * gains[f]
+		var envelope: float = smoothstep(0.0, 0.07, t) * (1.0 - smoothstep(0.45, 1.0, progress))
+		out[i] = voiced * envelope
 	return _normalize(out)
 
 

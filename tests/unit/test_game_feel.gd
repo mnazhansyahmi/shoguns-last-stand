@@ -169,9 +169,10 @@ func test_vibration_needs_setting_and_phone() -> void:
 ## Simulates repeated full stage-1 clears, buying the cheapest available upgrade each time.
 func test_stage_clear_buys_about_two_upgrades() -> void:
 	var kills: Array[EnemyData] = []
-	for i: int in 16:
-		kills.append(HOLLOW_SOLDIER)
-	kills.append(ONI_BRUTE)
+	for wave: WaveData in STAGE_1.waves:
+		for entry: WaveEntry in wave.entries:
+			for i: int in entry.count:
+				kills.append(entry.enemy)
 	var clear_gold: int = RewardCalculator.calculate(kills, STAGE_1, true).gold
 	var progress: PlayerProgress = PlayerProgress.new()
 	var per_clear: Array[int] = []

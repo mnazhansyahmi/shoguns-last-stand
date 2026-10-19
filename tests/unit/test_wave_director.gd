@@ -57,9 +57,9 @@ func test_stage_1_resource_matches_spec() -> void:
 	if stage == null:
 		return
 	assert_eq(stage.waves.size(), 3, "three waves")
-	assert_eq(stage.waves[0].get_enemy_count(), 4, "wave 1: 4 enemies")
-	assert_eq(stage.waves[1].get_enemy_count(), 6, "wave 2: 6 enemies")
-	assert_eq(stage.waves[2].get_enemy_count(), 7, "wave 3: 7 enemies")
+	assert_eq(stage.waves[0].get_enemy_count(), 6, "wave 1: 6 enemies")
+	assert_eq(stage.waves[1].get_enemy_count(), 9, "wave 2: 9 enemies")
+	assert_eq(stage.waves[2].get_enemy_count(), 11, "wave 3: 10 soldiers + 1 Oni Brute")
 	assert_true(stage.waves[2].entries[1].enemy == ONI_BRUTE, "wave 3 ends with an Oni Brute")
 
 

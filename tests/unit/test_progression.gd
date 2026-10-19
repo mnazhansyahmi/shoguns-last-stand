@@ -24,7 +24,7 @@ func _kills(hollow: int, oni: int) -> Array[EnemyData]:
 # --- Rewards ----------------------------------------------------------------
 
 func test_reward_data_values() -> void:
-	assert_eq(HOLLOW_SOLDIER.gold_reward, 8, "Hollow Soldier gold")
+	assert_eq(HOLLOW_SOLDIER.gold_reward, 6, "Hollow Soldier gold")
 	assert_eq(HOLLOW_SOLDIER.xp_reward, 10, "Hollow Soldier XP")
 	assert_eq(ONI_BRUTE.gold_reward, 40, "Oni Brute gold")
 	assert_eq(ONI_BRUTE.xp_reward, 50, "Oni Brute XP")
@@ -35,18 +35,18 @@ func test_reward_data_values() -> void:
 func test_victory_reward_is_kills_plus_bonus() -> void:
 	var reward: BattleReward = RewardCalculator.calculate(_kills(16, 1), STAGE_1, true)
 	assert_eq(reward.enemies_defeated, 17, "17 kills counted")
-	assert_eq(reward.kill_gold, 16 * 8 + 40, "kill gold")
+	assert_eq(reward.kill_gold, 16 * 6 + 40, "kill gold")
 	assert_eq(reward.kill_xp, 16 * 10 + 50, "kill XP")
 	assert_eq(reward.bonus_gold, 150, "clear bonus gold")
 	assert_eq(reward.bonus_xp, 50, "clear bonus XP")
-	assert_eq(reward.gold, 318, "total gold for a full stage 1 clear")
+	assert_eq(reward.gold, 16 * 6 + 40 + 150, "total gold for 16 soldiers + 1 Oni + clear bonus")
 	assert_eq(reward.xp, 260, "total XP for a full stage 1 clear")
 
 
 func test_defeat_reward_is_partial_without_bonus() -> void:
 	var reward: BattleReward = RewardCalculator.calculate(_kills(5, 1), STAGE_1, false)
 	assert_eq(reward.bonus_gold, 0, "no clear bonus on defeat")
-	assert_eq(reward.gold, floori((5 * 8 + 40) * 0.5), "half of kill gold, rounded down")
+	assert_eq(reward.gold, floori((5 * 6 + 40) * 0.5), "half of kill gold, rounded down")
 	assert_eq(reward.xp, floori((5 * 10 + 50) * 0.5), "half of kill XP, rounded down")
 	assert_almost_eq(reward.kill_ratio, 0.5, "ratio reported")
 
@@ -60,7 +60,7 @@ func test_no_kills_defeat_gives_nothing() -> void:
 func test_record_battle_updates_progress() -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
 	var levels: int = progress.record_battle(RewardCalculator.calculate(_kills(16, 1), STAGE_1, true), STAGE_1.stage_id)
-	assert_eq(progress.gold, 318, "gold added")
+	assert_eq(progress.gold, 16 * 6 + 40 + 150, "gold added")
 	assert_eq(progress.xp, 260, "XP added")
 	assert_eq(levels, 1, "260 XP reaches level 2")
 	assert_eq(progress.get_level(), 2, "level 2")

@@ -29,4 +29,5 @@ Godot 4.7.2 game, typed GDScript. The full spec is `docs/MASTER_PROMPT.md`. Work
 - Battlefield, upgrade menu and main menu expose `save_path` (and battlefield/main menu also expose `settings_path`). Automated runs must point them at test files under `user://` so they never touch the player's real save or settings.
 - Godot 4.7 has built-in classes with common names (e.g. `VirtualJoystick`). A `class_name` that collides is a parse error, so check before naming a class.
 - Touch input: widgets call `Input.action_press/release` on the existing Input Map actions. Gameplay reads input state only. Events injected with `Input.parse_input_event` use window pixels, not canvas units.
+- Balance changes: measure with `tools/balance_sim.gd` (bot and allies-only modes) before and after; it uses its own save under `user://balance_sim`.
 - Never report test or validation results that weren't actually run. The test runner fails any test that logs an engine or script error.

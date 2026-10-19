@@ -53,6 +53,14 @@ The test runner exits with code 1 on any failure, or if a test logs an engine or
 godot_console --headless --path . -s res://tools/generate_sfx.gd
 ```
 
+**Balance simulator** (plays real battles headlessly with a scripted player, prints win rate, gate HP, deaths and allies lost):
+
+```bash
+godot_console --headless --path . --fixed-fps 60 -s res://tools/balance_sim.gd -- mode=bot runs=3
+```
+
+Use `mode=allies` for a player who only summons; pass `stage=res://data/stages/<file>.tres` and `upgrades=id:level,...` as needed.
+
 To use a real sound instead, either overwrite the `.wav` with the same name, or point its entry in `data/audio/sfx_library.tres` at another file. Each entry also has volume, pitch variation and a repeat limit.
 
 ## Controls
