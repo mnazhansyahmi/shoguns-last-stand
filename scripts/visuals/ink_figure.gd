@@ -67,6 +67,10 @@ var back_hand: Vector2 = Vector2.ZERO
 var front_elbow: Vector2 = Vector2.ZERO
 var back_elbow: Vector2 = Vector2.ZERO
 
+## Cloth and loose armour that lag behind the body (null for kinds without any).
+var secondary: SecondaryMotion
+
+var _secondary_clock: float = 0.0
 var _parts: Array[FigurePart] = []
 var _part_slots: PackedInt32Array = PackedInt32Array()
 var _dynamic_parts: Array[FigurePart] = []
@@ -94,6 +98,7 @@ static func additive_material() -> CanvasItemMaterial:
 func set_kind(value: Kind) -> void:
 	kind = value
 	spec = FigureKinds.spec(value)
+	secondary = SecondaryMotion.new(spec.loose_armour) if spec.cloth else null
 	pose.copy_from(FigureKinds.pose(value, &"idle"))
 	if is_inside_tree():
 		_build_parts()
@@ -182,6 +187,7 @@ func refresh() -> void:
 	front_elbow = InkBrush.solve_joint(spec.shoulder_front, front_hand, spec.upper_arm, spec.fore_arm, 1.0)
 	back_elbow = InkBrush.solve_joint(spec.shoulder_back, back_hand, spec.upper_arm, spec.fore_arm, 1.0)
 
+	_step_secondary()
 	if _parts.is_empty():
 		return
 	_update_slots()
@@ -215,6 +221,19 @@ func refresh() -> void:
 	modulate = Color.WHITE.lerp(FLASH_MODULATE, flash) if flash > 0.0 else Color.WHITE
 
 
+## Lets the cloth catch up with the time the figure's animator has advanced `clock` by. A long
+## gap (the figure was off screen) restarts the cloth instead of whipping it.
+func _step_secondary() -> void:
+	var elapsed: float = clock - _secondary_clock
+	_secondary_clock = clock
+	if secondary == null or elapsed <= 0.0 or not is_inside_tree():
+		return
+	if elapsed > 0.3:
+		secondary = SecondaryMotion.new(spec.loose_armour)
+		elapsed = 1.0 / 60.0
+	secondary.step(self, minf(elapsed, 0.05))
+
+
 ## One transform per FigurePainter.Slot, from the solved skeleton.
 func _update_slots() -> void:
 	var s: float = get_unit_scale()
@@ -227,9 +246,13 @@ func _update_slots() -> void:
 	_slot_xf[FigurePainter.Slot.THIGH_B] = _segment_xf(root_xf, hip + Vector2(-2.0, 0.0), back_knee, spec.thigh)
 	_slot_xf[FigurePainter.Slot.SHIN_B] = _segment_xf(root_xf, back_knee, back_ankle, spec.shin)
 	_slot_xf[FigurePainter.Slot.FOOT_B] = root_xf * Transform2D(0.0, back_ankle)
-	# Hakama legs span the whole leg, hip to ankle.
-	_slot_xf[FigurePainter.Slot.HAKAMA_F] = _segment_xf(root_xf, hip + Vector2(2.0, 0.0), front_ankle, spec.thigh + spec.shin)
-	_slot_xf[FigurePainter.Slot.HAKAMA_B] = _segment_xf(root_xf, hip + Vector2(-2.0, 0.0), back_ankle, spec.thigh + spec.shin)
+	# Hakama legs span the whole leg, hip to ankle, and swing a little about the hip.
+	var hip_front: Vector2 = hip + Vector2(2.0, 0.0)
+	var hip_back: Vector2 = hip + Vector2(-2.0, 0.0)
+	var swing_front: float = secondary.leg_front.value if secondary != null else 0.0
+	var swing_back: float = secondary.leg_back.value if secondary != null else 0.0
+	_slot_xf[FigurePainter.Slot.HAKAMA_F] = _segment_xf(root_xf, hip_front, hip_front + (front_ankle - hip_front).rotated(swing_front), spec.thigh + spec.shin)
+	_slot_xf[FigurePainter.Slot.HAKAMA_B] = _segment_xf(root_xf, hip_back, hip_back + (back_ankle - hip_back).rotated(swing_back), spec.thigh + spec.shin)
 	_slot_xf[FigurePainter.Slot.UPPER_F] = _segment_xf(torso_xf, spec.shoulder_front, front_elbow, spec.upper_arm)
 	_slot_xf[FigurePainter.Slot.FORE_F] = _segment_xf(torso_xf, front_elbow, front_hand, spec.fore_arm)
 	_slot_xf[FigurePainter.Slot.HAND_F] = torso_xf * Transform2D(0.0, front_hand)
@@ -239,10 +262,20 @@ func _update_slots() -> void:
 	_slot_xf[FigurePainter.Slot.TORSO] = torso_xf
 	_slot_xf[FigurePainter.Slot.HEAD] = head_xf
 	_slot_xf[FigurePainter.Slot.WEAPON] = weapon_xf
-	# The front pauldron hangs from the shoulder and swings a little with the upper arm.
-	var to_elbow: Vector2 = front_elbow - spec.shoulder_front
-	var angle: float = clampf(to_elbow.angle() - PI * 0.5, -0.9, 0.7) * 0.5
-	_slot_xf[FigurePainter.Slot.PAULDRON_FRONT] = torso_xf * Transform2D(angle, spec.shoulder_front)
+	# The pauldrons hang from the shoulder and swing with the upper arm (and lag behind it).
+	var front_angle: float = secondary.sode_front.value if secondary != null and secondary.loose_armour else _arm_swing(front_elbow - spec.shoulder_front)
+	var back_angle: float = secondary.sode_back.value if secondary != null and secondary.loose_armour else _arm_swing(back_elbow - spec.shoulder_back)
+	_slot_xf[FigurePainter.Slot.PAULDRON_FRONT] = torso_xf * Transform2D(front_angle, spec.shoulder_front)
+	_slot_xf[FigurePainter.Slot.PAULDRON_BACK] = torso_xf * Transform2D(back_angle, spec.shoulder_back + Vector2(-2.0, -1.0))
+	# The skirt (hakama front panel, tassets, sash, scabbard) swings about the waist.
+	var skirt_swing: float = secondary.skirt.value if secondary != null else 0.0
+	var waist: Vector2 = Vector2(0.0, -3.0)
+	_slot_xf[FigurePainter.Slot.SKIRT] = torso_xf * Transform2D(0.0, waist) * Transform2D(skirt_swing, Vector2.ZERO) * Transform2D(0.0, -waist)
+
+
+## The swing of a shoulder guard for the direction of its upper arm.
+static func _arm_swing(to_elbow: Vector2) -> float:
+	return clampf(to_elbow.angle() - PI * 0.5, -0.9, 0.7) * 0.5
 
 
 ## Transform that lays a cached limb segment (0,0)->(length,0) from a to b in `space`.

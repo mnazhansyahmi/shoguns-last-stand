@@ -25,6 +25,9 @@ var bow_draw: float = 0.0
 var release: float = 0.0
 ## How far apart the feet are, as a multiple of the kind's rest stance.
 var spread: float = 1.0
+## The front shoulder (torso space). When set, `grip` moves along arcs around it (the arm
+## swings like a pendulum) instead of in straight lines. NAN x = straight lines.
+var pivot: Vector2 = Vector2(NAN, 0.0)
 
 
 static func make(p_lean: float, p_crouch: float, p_grip: Vector2, p_blade: float) -> FigurePose:
@@ -72,7 +75,7 @@ func blend_toward(target: FigurePose, weight: float) -> void:
 	lean = lerpf(lean, target.lean, weight)
 	crouch = lerpf(crouch, target.crouch, weight)
 	offset_x = lerpf(offset_x, target.offset_x, weight)
-	grip = grip.lerp(target.grip, weight)
+	grip = arc_lerp(grip, target.grip, weight, pivot if not is_nan(pivot.x) else target.pivot)
 	blade = lerpf(blade, target.blade, weight)
 	back_grip = back_grip.lerp(target.back_grip, weight)
 	head_tilt = lerpf(head_tilt, target.head_tilt, weight)
@@ -84,3 +87,17 @@ func blend_toward(target: FigurePose, weight: float) -> void:
 
 func copy_from(other: FigurePose) -> void:
 	blend_toward(other, 1.0)
+	pivot = other.pivot
+
+
+## A point moved a fraction `weight` of the way from `from` to `to`: in a straight line, or (with
+## a pivot) along the arc around it, so a swinging hand keeps its arm length.
+static func arc_lerp(from: Vector2, to: Vector2, weight: float, around: Vector2) -> Vector2:
+	if is_nan(around.x):
+		return from.lerp(to, weight)
+	var a: Vector2 = from - around
+	var b: Vector2 = to - around
+	if a.length_squared() < 0.0001 or b.length_squared() < 0.0001:
+		return from.lerp(to, weight)
+	var turn: float = wrapf(b.angle() - a.angle(), -PI, PI)
+	return around + Vector2.from_angle(a.angle() + turn * weight) * lerpf(a.length(), b.length(), weight)

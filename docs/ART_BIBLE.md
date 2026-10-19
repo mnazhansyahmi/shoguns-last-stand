@@ -111,7 +111,7 @@ are at the node origin, and every figure faces +x (right) and is mirrored for le
 
 | Figure | Height | Key proportions | Silhouette hooks |
 | --- | --- | --- | --- |
-| Samurai | 110 (+ crest) | Head ≈ 1/6.5 H; layered sode on both shoulders; tapered dō (broad chest, narrow waist); hakama flares to a triangle ≈ 0.55 H wide at the hem; katana 0.78 H | Kabuto with a crescent maedate, triangle hakama, saya at the left hip, two scarf tails, long katana |
+| Samurai | 110 (+ crest) | Head ≈ 1/6.5 H; four-lame sode fanned on both shoulders; tapered dō of overlapping lamellar bands (broad chest, narrow waist); five hanging kusazuri over a pleated hakama that flares to ≈ 0.5 H at the hem; katana 0.78 H | Kabuto with a crescent maedate and layered shikoro, A-line hakama, saya at the left hip, two long scarf tails, long katana |
 | Ashigaru | 100 | Hat brim 0.66 H wide; yari spear 1.25 H | Wide flat cone hat, long level spear |
 | Yumi Archer | 96 | Bow 1.05 H, grip below centre (asymmetric yumi) | Tall bow, quiver over the back shoulder |
 | Hollow Soldier | 110 | Hunched (spine leans 0.28 rad); head forward of chest; long arms | Hunch, broken helmet crest, ragged hem, notched sword |
@@ -129,6 +129,7 @@ If two figures could be confused at that size, change the shape, not the colour.
 - **Minimum feature size: 4 px** at 1080p (≈1.5 pt on the phone). Anything thinner flickers
   when it moves. The exceptions are deliberate thin lines of at least 1.5 px: the steel glint
   along a blade, a bow string, and `INK_DETAIL` lines inside a silhouette.
+- **Armour is layered plates, not boxes.** Do, sode, kusazuri and shikoro are overlapping lames, each a little tilted (the front edge lower than the back) with a pale `INK_DETAIL` seam along its lower edge and short lacing ticks. Never stack bare rectangles.
 - **Interior detail is rare.** `INK_DETAIL` lines (armour lacing, plate gaps) take at most
   about 15% of a figure's area. If you need more, simplify the shape.
 - **Accent only in its spots.** A figure's accent colour appears only where the accent table
@@ -155,6 +156,24 @@ never comes from them.
 | spawn | Allies rise from an ink splash; enemies emerge from violet smoke | 0.4–0.7 s (data `spawn_duration`) |
 
 Combo hits alternate: a downward cut, a rising cut, then a level thrust.
+
+### Samurai motion (springy figures)
+
+The samurai (and any kind with `Spec.springy`) is driven by `PoseSpring` instead of a plain blend:
+
+- **Anticipation.** Every wind-up raises or draws the blade the other way first (raised blade and coiled body for the downward cut, low blade for the rising cut, point drawn to the hip for the thrust, a deep crouch for the heavy). The spring overshoots the wind-up pose a little.
+- **Acceleration.** The strike is a stiff, lightly damped spring (about 0.4–0.5 damping), so the blade accelerates into the cut instead of moving at a constant rate: about 60% of the cut is covered within four frames.
+- **Follow-through.** The blade overshoots the strike pose, then settles. While the strike state lasts the aim drifts back toward guard, so the body relaxes instead of freezing.
+- **Arcs.** The hand moves on an arc around the shoulder (`FigurePose.pivot`), so the arm keeps its length and the blade sweeps rather than slides.
+- **The blade never passes through his body.** Every pose keeps the katana, from the hands out, in front of him and clear of the helmet, crest, armour and hakama, and every grip is within the arm's reach (26) so arms never stretch. `FigureKinds.samurai_body_zones()` describes the solid body and `tests/unit/test_samurai.gd` checks every key pose and the paths between them. When you add or move a pose, run the tests.
+
+### Secondary motion
+
+Loose parts lag behind the body (`SecondaryMotion`, stepped from `InkFigure.refresh()`):
+
+- **Scarf tails, headband tails and sleeve flaps** are `ClothChain`s: Verlet chains in world space with a fixed link length and a soft pull toward a rest shape. They trail when he runs, whip when he turns, and swing past and settle when he stops. The scarf is drawn over the neck guard so its red always reads.
+- **Hakama legs, the armour skirt (with the scabbard and sash) and the shoulder lames** swing on damped springs driven by the body's forward speed, so the hem trails while he runs and overshoots when he stops.
+- Nothing here affects gameplay, and an off-screen figure is not stepped. A long gap or a teleport restarts the cloth instead of whipping it.
 
 ## Effects (VFX)
 
@@ -200,7 +219,7 @@ Effects never deal damage, never block input, and free themselves.
 - Characters animate by moving their part nodes, not by redrawing. Keep the number of parts
   per figure low (about a dozen): merge shapes that share a transform into one part.
 - Shapes that animate on their own (cloth, hems) should cycle through a few cached shapes when
-  they can; only the cloth tails are redrawn every frame.
+  they can; only the cloth tails and sleeve flaps are redrawn every frame (each is one small strip).
 - New effects free themselves and stay short (≤ 0.6 s). Anything spawned per hit is capped.
 
 ## Adding new art

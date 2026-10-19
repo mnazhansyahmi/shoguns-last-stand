@@ -46,6 +46,13 @@ class Spec:
 	var death_accent: Color = InkPalette.SPIRIT
 	## Strikes slam the ground with a shockwave of this radius (0 = none).
 	var slam_radius: float = 0.0
+	## Poses are followed with spring-dampers (anticipation, overshoot, follow-through) and the
+	## hand swings on arcs around the shoulder, instead of a plain blend.
+	var springy: bool = false
+	## Cloth tails (scarf, headband) hang from chains that lag behind the body.
+	var cloth: bool = false
+	## Loose armour that swings too: hakama, skirt with scabbard, sleeve flaps, shoulder lames.
+	var loose_armour: bool = false
 
 
 static func spec(kind: InkFigure.Kind) -> Spec:
@@ -57,6 +64,9 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.back_hand_on_weapon = Vector2(-7.0, 0.0)
 			s.head_top = 112.0
 			s.shadow_width = 26.0
+			s.springy = true
+			s.cloth = true
+			s.loose_armour = true
 		InkFigure.Kind.ASHIGARU:
 			s.hip_y = 44.0
 			s.thigh = 22.0
@@ -90,6 +100,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.cadence = 12.0
 			s.windup_rate = 9.0
 			s.trail_span = Vector2.ZERO
+			s.cloth = true
 		InkFigure.Kind.HOLLOW_SOLDIER:
 			s.hip_y = 45.0
 			s.thigh_w = Vector2(7.0, 5.5)
@@ -160,43 +171,111 @@ static func pose(kind: InkFigure.Kind, state: StringName, step: int = 0, heavy: 
 	return FigurePose.new()
 
 
+## The samurai's key poses. Rule: the blade never passes through his body. Every pose keeps the
+## blade (from the hands outward) in front of him, clear of the helmet, crest, armour and hakama;
+## a test (test_art_style) checks it, along the swing too. Grips stay within the arm's reach
+## (26) of the shoulder so the arms never stretch.
 static func _samurai(state: StringName, step: int, heavy: bool) -> FigurePose:
+	var p: FigurePose
 	match state:
 		&"run":
-			return FigurePose.make(0.2, 3.0, Vector2(7.0, -10.0), 2.6)
+			# Blade carried forward and up, out of the legs' way.
+			p = FigurePose.make(0.2, 3.0, Vector2(14.0, -18.0), -0.62)
 		&"windup":
 			match step:
-				1: # rising cut: blade low behind
-					return FigurePose.make(0.08, 4.0, Vector2(-6.0, -6.0), 2.55).with_spread(1.4)
-				2: # thrust: pulled back level
-					return FigurePose.make(-0.04, 3.0, Vector2(-3.0, -20.0), -0.06).with_spread(1.4)
-			return FigurePose.make(-0.06, 2.0, Vector2(-1.0, -41.0), -2.35).with_spread(1.35)
+				1: # rising cut: blade low in front, edge turned down
+					p = FigurePose.make(0.1, 5.0, Vector2(17.0, -10.0), 0.68).with_spread(1.4)
+				2: # thrust: drawn back to the hip, point forward
+					p = FigurePose.make(-0.06, 3.0, Vector2(14.0, -13.0), -0.1).with_spread(1.45)
+				_: # downward cut: raised blade, body coiled back
+					p = FigurePose.make(-0.14, 3.0, Vector2(20.0, -44.0), -1.2).with_head(-0.08).with_spread(1.35)
 		&"heavy_windup":
-			return FigurePose.make(-0.16, 7.0, Vector2(-6.0, -44.0), -2.95).with_spread(1.6)
+			p = FigurePose.make(-0.22, 8.0, Vector2(19.0, -45.0), -1.3).with_head(-0.14).with_spread(1.6)
 		&"strike":
 			if heavy:
-				return FigurePose.make(0.38, 9.0, Vector2(22.0, -2.0), 1.05).with_offset(4.0).with_spread(1.7)
-			match step:
-				1:
-					return FigurePose.make(0.12, 1.0, Vector2(17.0, -36.0), -1.05).with_spread(1.4)
-				2:
-					return FigurePose.make(0.3, 5.0, Vector2(27.0, -21.0), -0.04).with_offset(5.0).with_spread(1.6)
-			return FigurePose.make(0.22, 4.0, Vector2(19.0, -6.0), 0.8).with_spread(1.5)
+				p = FigurePose.make(0.4, 9.0, Vector2(25.0, -17.0), 0.62).with_offset(4.0).with_spread(1.7)
+			else:
+				match step:
+					1:
+						p = FigurePose.make(0.1, 1.0, Vector2(24.0, -36.0), -0.95).with_spread(1.4)
+					2:
+						p = FigurePose.make(0.3, 5.0, Vector2(27.0, -22.0), -0.05).with_offset(5.0).with_spread(1.6)
+					_:
+						p = FigurePose.make(0.22, 4.0, Vector2(25.0, -18.0), 0.55).with_spread(1.5)
 		&"cast":
-			return FigurePose.make(-0.02, 3.0, Vector2(3.0, -46.0), -1.57).with_glow(1.0).with_spread(1.4)
+			p = FigurePose.make(-0.02, 3.0, Vector2(21.0, -45.0), -1.25).with_head(-0.1).with_glow(1.0).with_spread(1.4)
 		&"dash":
-			return FigurePose.make(0.55, 9.0, Vector2(5.0, -9.0), 2.8).with_spread(1.5)
+			# A forward thrust leads the charge.
+			p = FigurePose.make(0.5, 9.0, Vector2(20.0, -16.0), -0.1).with_spread(1.5)
 		&"hurt":
-			return FigurePose.make(-0.32, 2.0, Vector2(10.0, -12.0), -0.05).with_head(-0.35).with_offset(-5.0)
+			p = FigurePose.make(-0.32, 2.0, Vector2(13.0, -14.0), -0.2).with_head(-0.35).with_offset(-5.0)
 		&"dead":
-			return FigurePose.make(0.0, 0.0, Vector2(12.0, -8.0), 0.4).with_head(-0.2)
-	# Guard (seigan): blade forward at the opponent's eyes, feet planted wide.
-	return FigurePose.make(0.04, 2.0, Vector2(14.0, -17.0), -0.5).with_spread(1.3)
+			# Falls with the body; the katana ends up lying on the ground (the body turns -1.45).
+			p = FigurePose.make(0.0, 0.0, Vector2(14.0, -5.0), 1.5).with_head(-0.2)
+		_:
+			# Guard (seigan): blade forward at the opponent's eyes, feet planted wide.
+			p = FigurePose.make(0.04, 2.0, Vector2(14.0, -17.0), -0.5).with_spread(1.3)
+	p.pivot = Vector2(5.0, -31.0)
+	return p
 
 
 ## The title screen pose: hasso no kamae, katana raised in both hands beside the head, wide stance.
 static func samurai_title_pose() -> FigurePose:
-	return FigurePose.make(-0.02, 5.0, Vector2(9.0, -35.0), -1.95).with_spread(1.8)
+	var p: FigurePose = FigurePose.make(-0.02, 5.0, Vector2(21.0, -44.0), -1.25).with_head(-0.1).with_spread(1.8)
+	p.pivot = Vector2(5.0, -31.0)
+	return p
+
+
+## How a state moves for springy kinds (see PoseSpring).
+static func feel(kind: InkFigure.Kind, state: StringName, heavy: bool = false) -> PoseSpring.Feel:
+	if kind != InkFigure.Kind.SAMURAI:
+		return PoseSpring.Feel.new()
+	match state:
+		&"windup":
+			# Loose and quick: the hand and blade overshoot the raised pose (anticipation).
+			return PoseSpring.Feel.make(Vector2(22.0, 0.7), Vector2(30.0, 0.6), Vector2(28.0, 0.5))
+		&"heavy_windup":
+			return PoseSpring.Feel.make(Vector2(11.0, 0.72), Vector2(15.0, 0.62), Vector2(14.0, 0.55))
+		&"strike":
+			# Accelerates into the cut, overshoots, settles (follow-through).
+			if heavy:
+				return PoseSpring.Feel.make(Vector2(34.0, 0.62), Vector2(48.0, 0.5), Vector2(52.0, 0.42))
+			return PoseSpring.Feel.make(Vector2(40.0, 0.62), Vector2(62.0, 0.5), Vector2(66.0, 0.42))
+		&"cast":
+			return PoseSpring.Feel.make(Vector2(14.0, 0.8), Vector2(18.0, 0.72), Vector2(16.0, 0.7))
+		&"dash", &"hurt":
+			return PoseSpring.Feel.make(Vector2(42.0, 0.55), Vector2(50.0, 0.55), Vector2(50.0, 0.5))
+		&"dead":
+			return PoseSpring.Feel.make(Vector2(9.0, 1.0), Vector2(9.0, 1.0), Vector2(9.0, 1.0))
+	return PoseSpring.Feel.make(Vector2(12.0, 0.85), Vector2(15.0, 0.8), Vector2(15.0, 0.68))
+
+
+## The samurai's solid body for the "blade never clips him" test: polygons in root space (feet
+## at the origin, y up is negative, figure units) for a pose. They follow the drawn armour
+## (see FigurePainter._build_samurai), a little generously.
+static func samurai_body_zones(pose_in: FigurePose) -> Array[PackedVector2Array]:
+	var s: Spec = spec(InkFigure.Kind.SAMURAI)
+	var hip: Vector2 = Vector2(0.0, -(s.hip_y - pose_in.crouch))
+	var torso: Transform2D = Transform2D(pose_in.lean, hip)
+	var head: Transform2D = torso * Transform2D(pose_in.head_tilt, s.neck)
+	var zones: Array[PackedVector2Array] = []
+	# Do (chest armour) and the shoulder lames.
+	zones.append(torso * PackedVector2Array([Vector2(-15.0, -3.0), Vector2(15.0, -3.0), Vector2(16.0, -14.0),
+			Vector2(17.0, -26.0), Vector2(13.0, -33.0), Vector2(-13.0, -33.0), Vector2(-16.0, -22.0)]))
+	# Kusazuri and the hakama: one wide triangle down to the ground.
+	zones.append(PackedVector2Array([hip + Vector2(-12.0, -2.0), hip + Vector2(12.0, -2.0), Vector2(27.0, 0.0),
+			Vector2(-27.0, 0.0)]))
+	# Face, kabuto bowl, visor and the neck guard.
+	zones.append(head * PackedVector2Array([Vector2(-9.0, -12.0), Vector2(-4.0, -20.5), Vector2(6.0, -20.5),
+			Vector2(11.0, -13.0), Vector2(16.0, -11.0), Vector2(15.0, -7.0), Vector2(10.0, 1.0), Vector2(0.0, 1.0),
+			Vector2(-18.0, 2.0), Vector2(-19.0, -6.0)]))
+	# The crescent crest, a thick arc above the helmet.
+	var arc: PackedVector2Array = PackedVector2Array()
+	for i: int in 11:
+		arc.append(head * (Vector2(6.0, -28.0) + Vector2.from_angle(lerpf(PI + 0.4, -0.4, float(i) / 10.0) ) * 11.0))
+	for polygon: PackedVector2Array in Geometry2D.offset_polyline(arc, 2.6):
+		zones.append(polygon)
+	return zones
 
 
 static func _ashigaru(state: StringName) -> FigurePose:

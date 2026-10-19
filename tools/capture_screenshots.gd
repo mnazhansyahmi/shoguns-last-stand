@@ -17,6 +17,8 @@ var _tag: String = ""
 var _battle: Node
 ## --touch: show the on-screen touch controls in the battle, as on a phone.
 var _touch: bool = false
+## --only=samurai: render just the samurai sheets (poses, attack strip, close-up, run-and-stop strip), then quit.
+var _only: String = ""
 
 
 func _initialize() -> void:
@@ -32,6 +34,8 @@ func _initialize() -> void:
 			_tag = arg.trim_prefix("--tag=") + "_"
 		elif arg == "--touch":
 			_touch = true
+		elif arg.begins_with("--only="):
+			_only = arg.trim_prefix("--only=")
 	DirAccess.make_dir_recursive_absolute(_out_dir)
 	DirAccess.make_dir_recursive_absolute(DATA_DIR)
 	var settings: GameSettings = GameSettings.new()
@@ -43,7 +47,18 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if _only == "samurai":
+		await _capture_samurai_sheet()
+		await _capture_samurai_strip()
+		await _capture_samurai_detail()
+		await _capture_samurai_run_strip()
+		quit(0)
+		return
 	await _capture_figure_sheet("figures", Color.WHITE)
+	await _capture_samurai_sheet()
+	await _capture_samurai_strip()
+	await _capture_samurai_detail()
+	await _capture_samurai_run_strip()
 	# Pure black: every figure must still read from its shape alone (art bible silhouette test).
 	await _capture_figure_sheet("silhouettes", Color.BLACK)
 	await _capture_vfx_sheet()
@@ -141,6 +156,180 @@ func _capture_figure_sheet(shot_name: String, tint: Color) -> void:
 	await _frames(2)
 	await _capture(shot_name)
 	sheet.free()
+
+
+## The samurai close up: every attack pose at a few moments of the swing (for before/after
+## comparison). Each cell plays a short sequence of [state, seconds] through a UnitVisual.
+func _capture_samurai_sheet() -> void:
+	var sheet: Node2D = Node2D.new()
+	sheet.process_mode = Node.PROCESS_MODE_DISABLED
+	root.add_child(sheet)
+	var back: ColorRect = ColorRect.new()
+	back.color = InkPalette.MIST.lerp(InkPalette.SKY_HORIZON, 0.5)
+	back.size = Vector2(4000.0, 3000.0)
+	back.position = Vector2(-100.0, -100.0)
+	sheet.add_child(back)
+	sheet.scale = Vector2.ONE * (float(root.size.y) / 1080.0)
+	var cells: Array[Dictionary] = [
+		{"label": "idle", "seq": [[&"idle", 0.6]]},
+		{"label": "run", "seq": [[&"run", 0.4]]},
+		{"label": "cut 1 windup", "seq": [[&"windup", 0.06]]},
+		{"label": "cut 1 strike", "seq": [[&"windup", 0.08], [&"strike", 0.05]]},
+		{"label": "cut 1 follow", "seq": [[&"windup", 0.08], [&"strike", 0.2]]},
+		{"label": "dash", "seq": [[&"dash", 0.1]]},
+		{"label": "cut 2 windup", "seq": [[&"windup", 0.08], [&"strike", 0.1], [&"windup", 0.06]]},
+		{"label": "cut 2 strike", "seq": [[&"windup", 0.08], [&"strike", 0.1], [&"windup", 0.08], [&"strike", 0.05]]},
+		{"label": "cut 2 follow", "seq": [[&"windup", 0.08], [&"strike", 0.1], [&"windup", 0.08], [&"strike", 0.2]]},
+		{"label": "cut 3 windup", "seq": [[&"windup", 0.08], [&"strike", 0.1], [&"windup", 0.08], [&"strike", 0.1], [&"windup", 0.08]]},
+		{"label": "cut 3 strike", "seq": [[&"windup", 0.08], [&"strike", 0.1], [&"windup", 0.08], [&"strike", 0.1], [&"windup", 0.14], [&"strike", 0.05]]},
+		{"label": "cut 3 follow", "seq": [[&"windup", 0.08], [&"strike", 0.1], [&"windup", 0.08], [&"strike", 0.1], [&"windup", 0.14], [&"strike", 0.25]]},
+		{"label": "heavy windup", "seq": [[&"heavy_windup", 0.3]]},
+		{"label": "heavy strike", "seq": [[&"heavy_windup", 0.35], [&"strike", 0.05]]},
+		{"label": "heavy follow", "seq": [[&"heavy_windup", 0.35], [&"strike", 0.3]]},
+		{"label": "cast", "seq": [[&"cast", 0.3]]},
+		{"label": "hurt", "seq": [[&"hurt", 0.1]]},
+		{"label": "dead", "seq": [[&"dead", 0.6]]},
+	]
+	var cell_w: float = 320.0
+	var cell_h: float = 360.0
+	var visuals: Array[UnitVisual] = []
+	for i: int in cells.size():
+		var cell: Dictionary = cells[i]
+		var origin: Vector2 = Vector2(float(i % 6) * cell_w + 130.0, float(i / 6) * cell_h + 300.0)
+		var visual: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.SAMURAI, 180.0, origin)
+		visuals.append(visual)
+		var label: Label = Label.new()
+		label.text = cell["label"]
+		label.position = origin + Vector2(-90.0, 24.0)
+		label.add_theme_font_size_override("font_size", 20)
+		label.add_theme_color_override("font_color", InkPalette.INK)
+		sheet.add_child(label)
+		for step: Array in cell["seq"]:
+			visual.play_state(step[0])
+			_tick_one(visual, step[1])
+		# The sheet is frozen, so trails and splashes would stay at full strength: drop them.
+		for child: Node in visual.get_children():
+			if child is InkEffect:
+				child.free()
+	await _frames(2)
+	await _capture("samurai_sheet")
+	sheet.free()
+
+
+## Three large samurai (guard, run, mid-cut) to judge the armour and proportions.
+func _capture_samurai_detail() -> void:
+	var sheet: Node2D = Node2D.new()
+	sheet.process_mode = Node.PROCESS_MODE_DISABLED
+	root.add_child(sheet)
+	var back: ColorRect = ColorRect.new()
+	back.color = InkPalette.MIST.lerp(InkPalette.SKY_HORIZON, 0.5)
+	back.size = Vector2(4000.0, 3000.0)
+	back.position = Vector2(-100.0, -100.0)
+	sheet.add_child(back)
+	sheet.scale = Vector2.ONE * (float(root.size.y) / 1080.0)
+	var states: Array[StringName] = [&"idle", &"run", &"strike"]
+	for i: int in states.size():
+		var visual: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.SAMURAI, 640.0, Vector2(330.0 + float(i) * 640.0, 960.0))
+		visual.play_state(&"idle")
+		_tick_one(visual, 0.5)
+		if states[i] == &"strike":
+			visual.play_state(&"windup")
+			_tick_one(visual, 0.08)
+		visual.play_state(states[i])
+		_tick_one(visual, 0.4 if states[i] == &"run" else 0.1)
+		for child: Node in visual.get_children():
+			if child is InkEffect:
+				child.free()
+	await _frames(2)
+	await _capture("samurai_detail")
+	sheet.free()
+
+
+## One cut filmed every 1/30 s from the first press (windup) to the end of recovery: shows
+## anticipation, the accelerating swing, follow-through and settle.
+func _capture_samurai_strip() -> void:
+	var sheet: Node2D = Node2D.new()
+	sheet.process_mode = Node.PROCESS_MODE_DISABLED
+	root.add_child(sheet)
+	var back: ColorRect = ColorRect.new()
+	back.color = InkPalette.MIST.lerp(InkPalette.SKY_HORIZON, 0.5)
+	back.size = Vector2(4000.0, 3000.0)
+	back.position = Vector2(-100.0, -100.0)
+	sheet.add_child(back)
+	sheet.scale = Vector2.ONE * (float(root.size.y) / 1080.0)
+	var frames: int = 18
+	var visuals: Array[UnitVisual] = []
+	for i: int in frames:
+		var origin: Vector2 = Vector2(float(i % 9) * 213.0 + 100.0, float(i / 9) * 540.0 + 400.0)
+		var visual: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.SAMURAI, 150.0, origin)
+		visuals.append(visual)
+		var label: Label = Label.new()
+		label.text = "%d ms" % roundi(float(i) * 1000.0 / 30.0)
+		label.position = origin + Vector2(-40.0, 24.0)
+		label.add_theme_font_size_override("font_size", 18)
+		label.add_theme_color_override("font_color", InkPalette.INK)
+		sheet.add_child(label)
+		visual.play_state(&"idle")
+		_tick_one(visual, 0.5)
+		# Same input timeline for every frame: press at 0, hit lands at 80 ms, back to guard at 400 ms.
+		var t: float = float(i) / 30.0
+		visual.play_state(&"windup")
+		_tick_one(visual, minf(t, 0.08))
+		if t > 0.08:
+			visual.play_state(&"strike")
+			_tick_one(visual, minf(t - 0.08, 0.32))
+		if t > 0.4:
+			visual.play_state(&"idle")
+			_tick_one(visual, t - 0.4)
+	await _frames(2)
+	await _capture("samurai_strip")
+	sheet.free()
+
+
+## The samurai runs right for half a second at full speed, then stops dead: the scarf streams, the
+## hakama and skirt swing back, and then everything overshoots forward and settles (secondary motion).
+func _capture_samurai_run_strip() -> void:
+	var sheet: Node2D = Node2D.new()
+	sheet.process_mode = Node.PROCESS_MODE_DISABLED
+	root.add_child(sheet)
+	var back: ColorRect = ColorRect.new()
+	back.color = InkPalette.MIST.lerp(InkPalette.SKY_HORIZON, 0.5)
+	back.size = Vector2(4000.0, 3000.0)
+	back.position = Vector2(-100.0, -100.0)
+	sheet.add_child(back)
+	sheet.scale = Vector2.ONE * (float(root.size.y) / 1080.0)
+	var times: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.58, 0.66, 0.74, 0.82, 0.9, 1.0]
+	for i: int in times.size():
+		var origin: Vector2 = Vector2(float(i % 6) * 320.0 + 110.0, float(i / 6) * 520.0 + 400.0)
+		var t: float = times[i]
+		# Run for 0.5 s at 210 px/s (3.5 px a frame), then stand still; it ends in its own cell.
+		var run_time: float = minf(t, 0.5)
+		var run_frames: int = roundi(run_time * 60.0)
+		var visual: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.SAMURAI, 150.0, origin - Vector2(3.5 * float(run_frames), 0.0))
+		visual.play_state(&"idle")
+		_tick_one(visual, 0.3)
+		visual.play_state(&"run")
+		for f: int in run_frames:
+			visual.position.x += 3.5
+			visual.call(&"_process", 1.0 / 60.0)
+		if t > 0.5:
+			visual.play_state(&"idle")
+			_tick_one(visual, t - 0.5)
+		var label: Label = Label.new()
+		label.text = "%d ms" % roundi(t * 1000.0)
+		label.position = origin + Vector2(-40.0, 24.0)
+		label.add_theme_font_size_override("font_size", 18)
+		label.add_theme_color_override("font_color", InkPalette.INK)
+		sheet.add_child(label)
+	await _frames(2)
+	await _capture("samurai_run_strip")
+	sheet.free()
+
+
+## Ticks a UnitVisual by `seconds` at 60 fps (it is not processed by the tree on the sheets).
+func _tick_one(visual: UnitVisual, seconds: float) -> void:
+	for i: int in ceili(seconds * 60.0 - 0.001):
+		visual.call(&"_process", 1.0 / 60.0)
 
 
 ## Effects frozen at chosen moments: combo cuts and heavy slash, Oni slam, hit sparks, Spirit

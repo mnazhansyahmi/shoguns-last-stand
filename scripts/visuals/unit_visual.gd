@@ -36,6 +36,11 @@ var _figure: InkFigure
 var _fade_group: CanvasGroup
 var _pose: FigurePose = FigurePose.new()
 var _target: FigurePose = FigurePose.new()
+## Springy kinds (the samurai) follow their target through spring-dampers instead of a blend.
+var _spring: PoseSpring = PoseSpring.new()
+var _feel: PoseSpring.Feel = PoseSpring.Feel.new()
+var _guard: FigurePose = FigurePose.new()
+var _aim: FigurePose = FigurePose.new()
 var _state: StringName = &""
 var _state_time: float = 0.0
 var _time: float = 0.0
@@ -71,6 +76,9 @@ func configure(kind: InkFigure.Kind, height: float) -> float:
 	_figure.kind = kind
 	_figure.ground_marker = Color(InkPalette.SAMURAI_RED, 0.85) if ground_marker else Color(0.0, 0.0, 0.0, 0.0)
 	_target = FigureKinds.pose(kind, _state if _state != &"" else &"idle", _combo_step, _heavy)
+	_guard = FigureKinds.pose(kind, &"idle")
+	_feel = FigureKinds.feel(kind, _state if _state != &"" else &"idle", _heavy)
+	_spring.stop()
 	_pose.copy_from(_target)
 	_apply()
 	return _figure.get_head_top_y()
@@ -122,10 +130,11 @@ func play_state(state: StringName) -> void:
 				_spawn_entrance()
 			_heavy = false
 	_target = FigureKinds.pose(figure_kind, state, _combo_step, _heavy)
+	_feel = FigureKinds.feel(figure_kind, state, _heavy)
 	if state == &"strike":
 		_last_strike_time = _time
 		_spawn_slash(swing_from, _target)
-	if state == &"hurt" or state == &"strike" or state == &"dash":
+	if not _figure.spec.springy and (state == &"hurt" or state == &"strike" or state == &"dash"):
 		# Snap most of the way so the change reads on the very next frame.
 		_pose.blend_toward(_target, 0.55)
 
@@ -148,7 +157,10 @@ func set_tint(color: Color) -> void:
 func _process(delta: float) -> void:
 	_time += delta
 	_state_time += delta
-	_pose.blend_toward(_target, 1.0 - exp(-_blend_rate() * delta))
+	if _figure != null and _figure.spec.springy:
+		_spring.step(_pose, _aim_pose(), _feel, delta)
+	else:
+		_pose.blend_toward(_target, 1.0 - exp(-_blend_rate() * delta))
 	_update_motion(delta)
 	if is_on_screen():
 		_apply()
@@ -163,6 +175,17 @@ func is_on_screen() -> bool:
 	if rect.size.x < 2.0:
 		return true
 	return rect.grow(CULL_MARGIN).has_point(get_global_transform_with_canvas().origin)
+
+
+## The pose the spring is pulled toward. After a cut the body relaxes part of the way back to
+## guard while the blade is still settling, so the follow-through doesn't freeze.
+func _aim_pose() -> FigurePose:
+	if _state != &"strike":
+		return _target
+	var relax: float = smoothstep(0.1, 0.38, _state_time) * 0.55
+	_aim.copy_from(_target)
+	_aim.blend_toward(_guard, relax)
+	return _aim
 
 
 func _blend_rate() -> float:
