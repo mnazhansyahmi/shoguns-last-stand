@@ -1,7 +1,8 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/enemy.gd" id="1_enemy"]
-[ext_resource type="Script" path="res://scripts/components/placeholder_visual.gd" id="2_visual"]
+[ext_resource type="Script" path="res://scripts/visuals/unit_visual.gd" id="2_visual"]
+[ext_resource type="Script" path="res://scripts/visuals/ink_figure.gd" id="20_figure"]
 [ext_resource type="Script" path="res://scripts/components/health_component.gd" id="3_health"]
 [ext_resource type="Script" path="res://scripts/components/hurtbox_component.gd" id="4_hurtbox"]
 [ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="5_hitbox"]
@@ -16,25 +17,13 @@ script = ExtResource("1_enemy")
 
 [node name="Visual" type="Node2D" parent="."]
 script = ExtResource("2_visual")
-weapon_rest_angle = -0.6
-weapon_windup_angle = -2.4
+figure_kind = 3
+figure_height = 110.0
 
-[node name="Rig" type="Node2D" parent="Visual"]
-
-[node name="Body" type="Polygon2D" parent="Visual/Rig"]
-
-[node name="Head" type="Polygon2D" parent="Visual/Rig"]
-
-[node name="Eye" type="Polygon2D" parent="Visual/Rig"]
-color = Color(1, 0.35, 0.2, 1)
-
-[node name="Headgear" type="Polygon2D" parent="Visual/Rig"]
-
-[node name="Weapon" type="Node2D" parent="Visual/Rig"]
-rotation = -0.6
-
-[node name="Blade" type="Polygon2D" parent="Visual/Rig/Weapon"]
-color = Color(0.55, 0.5, 0.45, 1)
+[node name="Figure" type="Node2D" parent="Visual"]
+script = ExtResource("20_figure")
+kind = 3
+height = 110.0
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("3_health")

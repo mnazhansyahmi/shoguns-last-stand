@@ -32,8 +32,6 @@ enum TargetKind { PLAYER, ALLY, GATE }
 @export var attack: AttackProfile
 
 @export_group("Visuals")
+## Collision and hurtbox size; the figure is drawn at this height.
 @export var body_size: Vector2 = Vector2(46.0, 110.0)
-@export var body_color: Color = Color(0.45, 0.5, 0.45)
-@export var head_color: Color = Color(0.75, 0.75, 0.68)
-@export var weapon_length: float = 50.0
-@export var headgear: UnitRig.Headgear = UnitRig.Headgear.NONE
+@export var figure: InkFigure.Kind = InkFigure.Kind.HOLLOW_SOLDIER

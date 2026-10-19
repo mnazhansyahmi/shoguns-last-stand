@@ -21,7 +21,7 @@ const INTERRUPT_ATTACK_DELAY: float = 0.3
 ## Where the ally waits when no enemy is in range. NAN = position when it enters the tree.
 @export var home_x: float = NAN
 
-@onready var _visual: PlaceholderVisual = $Visual
+@onready var _visual: UnitVisual = $Visual
 @onready var _health: HealthComponent = $HealthComponent
 @onready var _hurtbox: HurtboxComponent = $Hurtbox
 @onready var _hitbox: HitboxComponent = $Hitbox
@@ -58,8 +58,7 @@ func _ready() -> void:
 		push_error("Ally '%s': AllyData '%s' has no attack, using defaults." % [name, data.display_name])
 		_attack = AttackProfile.new()
 	UnitRig.build_collision(_body_shape, _hurtbox_shape, _hitbox_shape, data.body_size, _attack.hitbox_size)
-	var head_top: float = UnitRig.build_visual($Visual/Rig, data.body_size, data.body_color,
-			data.head_color, data.weapon_length, data.headgear)
+	var head_top: float = _visual.configure(data.figure, data.body_size.y)
 	_health_bar.position = Vector2(0.0, head_top - 22.0)
 	_health_bar.bar_size = Vector2(clampf(data.body_size.x * 1.4, 56.0, 120.0), 8.0)
 

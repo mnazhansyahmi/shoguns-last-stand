@@ -192,7 +192,7 @@ func _bot_step(player: Player) -> void:
 	var facing_ok: bool = (dx > 0.0) == (player.facing > 0)
 	_hold(toward, absf(dx) > 60.0 or not facing_ok)
 	var cooldowns: Dictionary = player.get_ability_cooldowns()
-	var is_oni: bool = target.data.headgear == UnitRig.Headgear.HORNS
+	var is_oni: bool = target.data.figure == InkFigure.Kind.ONI_BRUTE
 	if best < 110.0 and facing_ok:
 		if (cooldowns["heavy"] as Vector2).x <= 0.0 and (is_oni or randf() < 0.02):
 			_tap(&"heavy_attack")

@@ -33,8 +33,6 @@ extends Resource
 @export var projectile_range: float = 700.0
 
 @export_group("Visuals")
+## Collision and hurtbox size; the figure is drawn at this height.
 @export var body_size: Vector2 = Vector2(42.0, 100.0)
-@export var body_color: Color = Color(0.55, 0.42, 0.28)
-@export var head_color: Color = Color(0.93, 0.8, 0.65)
-@export var weapon_length: float = 60.0
-@export var headgear: UnitRig.Headgear = UnitRig.Headgear.JINGASA
+@export var figure: InkFigure.Kind = InkFigure.Kind.ASHIGARU

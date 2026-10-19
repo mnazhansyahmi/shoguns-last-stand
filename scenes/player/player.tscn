@@ -2,7 +2,8 @@
 
 [ext_resource type="Script" path="res://scenes/player/player.gd" id="1_player"]
 [ext_resource type="Resource" path="res://data/player/samurai_stats.tres" id="2_stats"]
-[ext_resource type="Script" path="res://scripts/components/placeholder_visual.gd" id="3_visual"]
+[ext_resource type="Script" path="res://scripts/visuals/unit_visual.gd" id="3_visual"]
+[ext_resource type="Script" path="res://scripts/visuals/ink_figure.gd" id="20_figure"]
 [ext_resource type="Script" path="res://scripts/components/health_component.gd" id="4_health"]
 [ext_resource type="Script" path="res://scripts/components/hurtbox_component.gd" id="5_hurtbox"]
 [ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="6_hitbox"]
@@ -29,44 +30,13 @@ shape = SubResource("RectangleShape2D_body")
 
 [node name="Visual" type="Node2D" parent="."]
 script = ExtResource("3_visual")
+figure_kind = 0
+figure_height = 110.0
 
-[node name="Rig" type="Node2D" parent="Visual"]
-
-[node name="Hakama" type="Polygon2D" parent="Visual/Rig"]
-color = Color(0.14, 0.16, 0.32, 1)
-polygon = PackedVector2Array(-22, 0, 22, 0, 18, -45, -18, -45)
-
-[node name="Torso" type="Polygon2D" parent="Visual/Rig"]
-color = Color(0.2, 0.32, 0.62, 1)
-polygon = PackedVector2Array(-20, -45, 20, -45, 16, -88, -16, -88)
-
-[node name="Sash" type="Polygon2D" parent="Visual/Rig"]
-color = Color(0.78, 0.15, 0.12, 1)
-polygon = PackedVector2Array(-20, -46, 20, -46, 20, -54, -20, -54)
-
-[node name="Head" type="Polygon2D" parent="Visual/Rig"]
-color = Color(0.93, 0.8, 0.65, 1)
-polygon = PackedVector2Array(-12, -88, 12, -88, 12, -110, -12, -110)
-
-[node name="Eye" type="Polygon2D" parent="Visual/Rig"]
-color = Color(0.08, 0.08, 0.1, 1)
-polygon = PackedVector2Array(5, -101, 10, -101, 10, -97, 5, -97)
-
-[node name="Hair" type="Polygon2D" parent="Visual/Rig"]
-color = Color(0.06, 0.06, 0.08, 1)
-polygon = PackedVector2Array(-14, -104, 14, -104, 12, -116, 3, -118, 2, -126, -2, -126, -3, -118, -12, -116)
-
-[node name="Weapon" type="Node2D" parent="Visual/Rig"]
-position = Vector2(12, -68)
-rotation = -0.9
-
-[node name="Handle" type="Polygon2D" parent="Visual/Rig/Weapon"]
-color = Color(0.2, 0.12, 0.08, 1)
-polygon = PackedVector2Array(-14, -3, 0, -3, 0, 3, -14, 3)
-
-[node name="Blade" type="Polygon2D" parent="Visual/Rig/Weapon"]
-color = Color(0.86, 0.9, 0.95, 1)
-polygon = PackedVector2Array(0, -3, 70, -2, 78, 0, 70, 2, 0, 3)
+[node name="Figure" type="Node2D" parent="Visual"]
+script = ExtResource("20_figure")
+kind = 0
+height = 110.0
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("4_health")

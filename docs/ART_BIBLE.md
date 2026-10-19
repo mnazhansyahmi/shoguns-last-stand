@@ -124,7 +124,8 @@ If two figures could be confused at that size, change the shape, not the colour.
 - **Brush tapering.** Limbs, scarves, blades, bamboo leaves and hair end in points or rounded
   tapers, never square cuts. Use `InkBrush.limb()` / `InkBrush.stroke()`.
 - **Minimum feature size: 4 px** at 1080p (≈1.5 pt on the phone). Anything thinner flickers
-  when it moves. The only exception is the 2 px steel glint along a blade's edge.
+  when it moves. The exceptions are deliberate thin lines of at least 1.5 px: the steel glint
+  along a blade, a bow string, and `INK_DETAIL` lines inside a silhouette.
 - **Interior detail is rare.** `INK_DETAIL` lines (armour lacing, plate gaps) take at most
   about 15% of a figure's area. If you need more, simplify the shape.
 - **Accent only in its spots.** A figure's accent colour appears only where the accent table

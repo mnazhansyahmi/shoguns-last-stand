@@ -20,7 +20,7 @@ const RESPAWN_INVULNERABILITY: float = 1.5
 @export var min_x: float = 120.0
 @export var max_x: float = 1860.0
 
-@onready var _visual: PlaceholderVisual = $Visual
+@onready var _visual: UnitVisual = $Visual
 @onready var _health: HealthComponent = $HealthComponent
 @onready var _hurtbox: HurtboxComponent = $Hurtbox
 @onready var _hitbox: HitboxComponent = $Hitbox

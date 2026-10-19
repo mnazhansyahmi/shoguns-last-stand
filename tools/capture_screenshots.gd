@@ -34,6 +34,7 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	await _capture_figure_sheet()
 	var menu: Node = MAIN_MENU.instantiate()
 	menu.set("save_path", DATA_DIR + "/save.json")
 	menu.set("settings_path", DATA_DIR + "/settings.cfg")
@@ -85,6 +86,50 @@ func _run() -> void:
 	field.free()
 	await _frames(2)
 	quit(0)
+
+
+## Every figure kind in every animation state, on the mist colour fighters stand against.
+func _capture_figure_sheet() -> void:
+	var sheet: Node2D = Node2D.new()
+	root.add_child(sheet)
+	var back: ColorRect = ColorRect.new()
+	back.color = InkPalette.MIST.lerp(InkPalette.SKY_HORIZON, 0.5)
+	back.size = Vector2(4000.0, 3000.0)
+	back.position = Vector2(-100.0, -100.0)
+	sheet.add_child(back)
+	var states: Array[StringName] = [&"idle", &"run", &"windup", &"strike", &"heavy_windup", &"cast", &"hurt", &"dead"]
+	var heights: Array[float] = [110.0, 100.0, 96.0, 110.0, 190.0]
+	var row_y: Array[float] = [190.0, 360.0, 520.0, 690.0, 1000.0]
+	var dead: Array[UnitVisual] = []
+	for kind: int in heights.size():
+		for column: int in states.size():
+			var visual: UnitVisual = UnitVisual.new()
+			visual.figure_kind = kind as InkFigure.Kind
+			visual.figure_height = heights[kind]
+			visual.position = Vector2(120.0 + column * 225.0, row_y[kind]) / 1.05
+			sheet.add_child(visual)
+			if states[column] == &"dead":
+				dead.append(visual)
+			else:
+				visual.play_state(states[column])
+	sheet.scale = Vector2(1.05, 1.05) * (float(root.size.y) / 1080.0)
+	# Tick the visuals by hand at 60 fps so the poses don't depend on render speed.
+	var visuals: Array[Node] = sheet.get_children().filter(func(n: Node) -> bool: return n is UnitVisual)
+	for node: Node in visuals:
+		node.set_process(false)
+	_tick(visuals, 30)
+	for visual: UnitVisual in dead:
+		visual.play_state(&"dead")
+	_tick(visuals, 30)
+	await _frames(2)
+	await _capture("figures")
+	sheet.free()
+
+
+func _tick(visuals: Array[Node], frames: int) -> void:
+	for i: int in frames:
+		for node: Node in visuals:
+			node.call(&"_process", 1.0 / 60.0)
 
 
 func _frames(count: int) -> void:
