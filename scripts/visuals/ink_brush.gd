@@ -1,151 +1,61 @@
 class_name InkBrush
 extends RefCounted
-## Brush-style drawing helpers for code-drawn art. Call them from a CanvasItem's _draw()
-## (or its `draw` signal) with that CanvasItem as `ci`; the current draw transform applies.
-## Shapes go straight to the RenderingServer as triangles, so a degenerate polygon (zero size,
-## mid-animation) is skipped quietly instead of logging a triangulation error.
+## One-off brush drawing for dynamic art (effects, cloth): each call builds a small InkBatch and
+## draws it at once into `ci` (from its _draw() or `draw` signal; the current draw transform
+## applies). Static art should build an InkBatch once and replay it instead.
+## Also holds the shared glow texture, the additive material and two-bone IK.
 
 static var _glow_texture: GradientTexture2D
 
 
-## Fills any simple polygon. Skips it if it can't be triangulated.
 static func fill(ci: CanvasItem, points: PackedVector2Array, color: Color) -> void:
-	if points.size() < 3:
-		return
-	var indices: PackedInt32Array = Geometry2D.triangulate_polygon(points)
-	if indices.is_empty():
-		return
-	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, points, PackedColorArray([color]))
+	var batch: InkBatch = InkBatch.new()
+	batch.fill(points, color)
+	batch.draw(ci)
 
 
-## Fills a convex polygon (fan triangulation, no failure case).
 static func fill_convex(ci: CanvasItem, points: PackedVector2Array, color: Color) -> void:
-	var count: int = points.size()
-	if count < 3:
-		return
-	var indices: PackedInt32Array = PackedInt32Array()
-	indices.resize((count - 2) * 3)
-	for i: int in range(1, count - 1):
-		indices[(i - 1) * 3] = 0
-		indices[(i - 1) * 3 + 1] = i
-		indices[(i - 1) * 3 + 2] = i + 1
-	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, points, PackedColorArray([color]))
+	var batch: InkBatch = InkBatch.new()
+	batch.fill_convex(points, color)
+	batch.draw(ci)
 
 
-## A tapered segment from a (width w0) to b (width w1) with rounded ends, like a brush limb.
 static func limb(ci: CanvasItem, a: Vector2, b: Vector2, w0: float, w1: float, color: Color) -> void:
-	var direction: Vector2 = b - a
-	if direction.length_squared() > 0.0001:
-		var normal: Vector2 = direction.normalized().orthogonal()
-		fill_convex(ci, PackedVector2Array([a + normal * w0 * 0.5, b + normal * w1 * 0.5,
-				b - normal * w1 * 0.5, a - normal * w0 * 0.5]), color)
-	ci.draw_circle(a, w0 * 0.5, color)
-	ci.draw_circle(b, w1 * 0.5, color)
+	var batch: InkBatch = InkBatch.new()
+	batch.limb(a, b, w0, w1, color)
+	batch.draw(ci)
 
 
-## A tapered polyline (width w0 at the first point to w1 at the last), built as a triangle
-## strip so sharp bends overlap instead of failing.
 static func stroke(ci: CanvasItem, points: PackedVector2Array, w0: float, w1: float, color: Color) -> void:
-	var count: int = points.size()
-	if count < 2:
-		return
-	var vertices: PackedVector2Array = PackedVector2Array()
-	vertices.resize(count * 2)
-	for i: int in count:
-		var direction: Vector2
-		if i == 0:
-			direction = points[1] - points[0]
-		elif i == count - 1:
-			direction = points[count - 1] - points[count - 2]
-		else:
-			direction = points[i + 1] - points[i - 1]
-		if direction.length_squared() < 0.000001:
-			direction = Vector2.RIGHT
-		var normal: Vector2 = direction.normalized().orthogonal()
-		var half: float = lerpf(w0, w1, float(i) / float(count - 1)) * 0.5
-		vertices[i * 2] = points[i] + normal * half
-		vertices[i * 2 + 1] = points[i] - normal * half
-	var indices: PackedInt32Array = PackedInt32Array()
-	indices.resize((count - 1) * 6)
-	for i: int in count - 1:
-		var k: int = i * 2
-		var j: int = i * 6
-		indices[j] = k
-		indices[j + 1] = k + 1
-		indices[j + 2] = k + 2
-		indices[j + 3] = k + 1
-		indices[j + 4] = k + 3
-		indices[j + 5] = k + 2
-	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices, PackedColorArray([color]))
+	var batch: InkBatch = InkBatch.new()
+	batch.stroke(points, w0, w1, color)
+	batch.draw(ci)
 
 
-## Fills the area between a ridge line (`tops`, ordered left to right) and `bottom_y`, shading
-## from `top_color` at the ridge to `bottom_color` at the bottom (ink-wash fade into mist).
 static func ridge_fill(ci: CanvasItem, tops: PackedVector2Array, bottom_y: float, top_color: Color,
 		bottom_color: Color) -> void:
-	var count: int = tops.size()
-	if count < 2:
-		return
-	var vertices: PackedVector2Array = PackedVector2Array()
-	var colors: PackedColorArray = PackedColorArray()
-	vertices.resize(count * 2)
-	colors.resize(count * 2)
-	for i: int in count:
-		vertices[i * 2] = tops[i]
-		vertices[i * 2 + 1] = Vector2(tops[i].x, bottom_y)
-		colors[i * 2] = top_color
-		colors[i * 2 + 1] = bottom_color
-	var indices: PackedInt32Array = PackedInt32Array()
-	indices.resize((count - 1) * 6)
-	for i: int in count - 1:
-		var k: int = i * 2
-		var j: int = i * 6
-		indices[j] = k
-		indices[j + 1] = k + 1
-		indices[j + 2] = k + 2
-		indices[j + 3] = k + 1
-		indices[j + 4] = k + 3
-		indices[j + 5] = k + 2
-	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices, colors)
+	var batch: InkBatch = InkBatch.new()
+	batch.ridge_fill(tops, bottom_y, top_color, bottom_color)
+	batch.draw(ci)
 
 
-## A strip between two matching point lists with a colour per point (weapon trails).
+static func gradient_rect(ci: CanvasItem, rect: Rect2, top_color: Color, bottom_color: Color) -> void:
+	var batch: InkBatch = InkBatch.new()
+	batch.gradient_rect(rect, top_color, bottom_color)
+	batch.draw(ci)
+
+
 static func ribbon(ci: CanvasItem, outer: PackedVector2Array, inner: PackedVector2Array,
 		outer_colors: PackedColorArray, inner_colors: PackedColorArray) -> void:
-	var count: int = mini(outer.size(), inner.size())
-	if count < 2:
-		return
-	var vertices: PackedVector2Array = PackedVector2Array()
-	var colors: PackedColorArray = PackedColorArray()
-	vertices.resize(count * 2)
-	colors.resize(count * 2)
-	for i: int in count:
-		vertices[i * 2] = outer[i]
-		vertices[i * 2 + 1] = inner[i]
-		colors[i * 2] = outer_colors[i]
-		colors[i * 2 + 1] = inner_colors[i]
-	var indices: PackedInt32Array = PackedInt32Array()
-	indices.resize((count - 1) * 6)
-	for i: int in count - 1:
-		var k: int = i * 2
-		var j: int = i * 6
-		indices[j] = k
-		indices[j + 1] = k + 1
-		indices[j + 2] = k + 2
-		indices[j + 3] = k + 1
-		indices[j + 4] = k + 3
-		indices[j + 5] = k + 2
-	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices, colors)
-
-
-## A rectangle shaded from `top_color` to `bottom_color`.
-static func gradient_rect(ci: CanvasItem, rect: Rect2, top_color: Color, bottom_color: Color) -> void:
-	ridge_fill(ci, PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y)]), rect.end.y,
-			top_color, bottom_color)
+	var batch: InkBatch = InkBatch.new()
+	batch.ribbon(outer, inner, outer_colors, inner_colors)
+	batch.draw(ci)
 
 
 static func ellipse(ci: CanvasItem, center: Vector2, radii: Vector2, color: Color, segments: int = 18) -> void:
-	fill_convex(ci, ellipse_points(center, radii, segments), color)
+	var batch: InkBatch = InkBatch.new()
+	batch.ellipse(center, radii, color, segments)
+	batch.draw(ci)
 
 
 static func ellipse_points(center: Vector2, radii: Vector2, segments: int = 18) -> PackedVector2Array:

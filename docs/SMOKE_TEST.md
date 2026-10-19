@@ -59,6 +59,22 @@ Tick each box as you go. If a step fails, note what you saw and stop: later step
 - [ ] (Touchscreen only) Hold the joystick and tap Attack with a second finger: you move and attack at the same time.
 - [/ ] Afterwards, set Touch controls back to **Auto** if you don't want them on Windows.
 
+## Phase 9: art (code-drawn ink style)
+
+- [ ] **Title screen:** a bamboo and misty-mountain backdrop at dusk, and the samurai on a rock with their head against the moon, scarf streaming. Bamboo leaves drift across. The title is gold serif text with a crimson brush stroke under it.
+- [ ] **Menus** (stage select, upgrades, pause, settings, results) use charcoal panels, parchment text and gold borders. Hovered and focused buttons get a bright gold border. Settings toggles light up gold when on.
+- [ ] **Battle backdrop:** sky, moon, mountains, a pagoda on the hills, bamboo groves at both sides and drifting fog. Fighters are dark against pale mist and easy to see.
+- [ ] **Characters:** each one is recognisable at a glance:
+  - The samurai has a red scarf and a red ring at their feet.
+  - Ashigaru have gold hats and spears.
+  - Archers have teal headbands and tall bows.
+  - Hollow Soldiers are hunched, with glowing violet eyes.
+  - The Oni Brute is huge, with horns, a club and an ember glow.
+- [ ] **Animation:** units breathe when idle and stride when running. Combo hits go downward cut, rising cut, then thrust. A hit flashes the unit pale, and hurt units recoil. Dead units fall backward and dissolve into ink. Summoned allies rise out of an ink splash; enemies step out of violet smoke.
+- [ ] **Effects:** attacks leave crimson-edged slash arcs, and hits throw sparks (gold on enemies, red on defenders). The Spirit Slash is a glowing blue crescent. The Oni's slam sends a ground ring, and a dash leaves pale afterimages.
+- [ ] **Gate:** lanterns flicker. Cracks appear at about 2/3 and 1/3 health, and the lanterns go out when it falls.
+- [ ] **Phone:** with touch controls on (Settings → Always) at a phone-shaped window (e.g. 1278×590), the fight sits above the controls and the samurai is easy to find.
+
 ## Result
 
 | # | Criterion | Pass / Fail | Notes |

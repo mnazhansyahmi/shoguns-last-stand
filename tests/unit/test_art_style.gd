@@ -390,3 +390,32 @@ func test_title_samurai_stands_against_the_moon() -> void:
 	assert_true(head_top > moon.y - 80.0 and head_top < moon.y + 40.0, "the samurai's head is against the moon disc")
 	var fog: CanvasItem = menu.get_node("Backdrop/FrontFog")
 	assert_true(not fog.visible, "front fog is off behind the menu so it never covers buttons")
+
+
+# --- Performance shape -------------------------------------------------------
+
+func test_figures_share_cached_parts_and_only_move_them() -> void:
+	var first: UnitVisual = _make_visual(InkFigure.Kind.HOLLOW_SOLDIER)
+	var second: UnitVisual = _make_visual(InkFigure.Kind.HOLLOW_SOLDIER)
+	var torso: InkBatch = FigurePainter.part(InkFigure.Kind.HOLLOW_SOLDIER, &"torso")
+	assert_true(torso != null and not torso.is_empty(), "torso shapes are built")
+	assert_true(FigurePainter.part(InkFigure.Kind.HOLLOW_SOLDIER, &"torso") == torso, "shapes are cached per kind, not rebuilt")
+	var figure: InkFigure = first.get_figure()
+	assert_eq(figure.get_part_count(), FigurePainter.layout(InkFigure.Kind.HOLLOW_SOLDIER).size(), "one node per body part")
+	var torso_node: FigurePart = figure.get_node("torso") as FigurePart
+	assert_true(torso_node.batch == torso and second.get_figure().get_node("torso").get("batch") == torso,
+			"every figure of a kind draws the same cached torso")
+	var before: Transform2D = torso_node.transform
+	first.play_state(&"strike")
+	_tick(first, 0.1)
+	assert_true(not torso_node.transform.is_equal_approx(before), "animating moves the part node")
+
+
+func test_marker_marks_only_the_player() -> void:
+	var player: Player = add_to_tree(PLAYER_SCENE.instantiate()) as Player
+	var samurai: InkFigure = (player.get_node("Visual") as UnitVisual).get_figure()
+	assert_true(samurai.has_node("marker"), "the player has a ground marker")
+	var ally: Ally = ALLY_SCENE.instantiate() as Ally
+	ally.setup(ASHIGARU, 300.0)
+	add_to_tree(ally)
+	assert_true(not (ally.get_node("Visual") as UnitVisual).get_figure().has_node("marker"), "allies have no marker")

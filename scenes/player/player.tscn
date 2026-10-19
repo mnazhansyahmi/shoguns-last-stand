@@ -32,6 +32,7 @@ shape = SubResource("RectangleShape2D_body")
 script = ExtResource("3_visual")
 figure_kind = 0
 figure_height = 110.0
+ground_marker = true
 
 [node name="Figure" type="Node2D" parent="Visual"]
 script = ExtResource("20_figure")

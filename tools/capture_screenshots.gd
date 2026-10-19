@@ -15,6 +15,8 @@ const DATA_DIR: String = "user://screenshots"
 var _out_dir: String = "user://screenshots"
 var _tag: String = ""
 var _battle: Node
+## --touch: show the on-screen touch controls in the battle, as on a phone.
+var _touch: bool = false
 
 
 func _initialize() -> void:
@@ -28,8 +30,13 @@ func _initialize() -> void:
 				size = Vector2i(parts[0].to_int(), parts[1].to_int())
 		elif arg.begins_with("--tag="):
 			_tag = arg.trim_prefix("--tag=") + "_"
+		elif arg == "--touch":
+			_touch = true
 	DirAccess.make_dir_recursive_absolute(_out_dir)
 	DirAccess.make_dir_recursive_absolute(DATA_DIR)
+	var settings: GameSettings = GameSettings.new()
+	settings.touch_mode = GameSettings.TouchMode.ALWAYS if _touch else GameSettings.TouchMode.OFF
+	SettingsStore.new(DATA_DIR + "/settings.cfg").save_settings(settings)
 	DisplayServer.window_set_size(size)
 	Engine.max_fps = 60
 	_run.call_deferred()

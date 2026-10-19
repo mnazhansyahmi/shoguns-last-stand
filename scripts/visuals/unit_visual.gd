@@ -24,6 +24,8 @@ const STATES: Array[StringName] = [&"idle", &"run", &"windup", &"heavy_windup", 
 @export var figure_kind: InkFigure.Kind = InkFigure.Kind.SAMURAI
 ## Figure height in pixels.
 @export var figure_height: float = 110.0
+## Draw a ring in the figure's accent on the ground under it (the player, so it reads in a crowd).
+@export var ground_marker: bool = false
 
 var _figure: InkFigure
 ## While the figure is see-through it is drawn inside this group, so it fades as one shape
@@ -64,6 +66,7 @@ func configure(kind: InkFigure.Kind, height: float) -> float:
 		return -height
 	_figure.height = height
 	_figure.kind = kind
+	_figure.ground_marker = Color(InkPalette.SAMURAI_RED, 0.85) if ground_marker else Color(0.0, 0.0, 0.0, 0.0)
 	_target = FigureKinds.pose(kind, _state if _state != &"" else &"idle", _combo_step, _heavy)
 	_pose.copy_from(_target)
 	_apply()

@@ -191,6 +191,13 @@ Effects never deal damage, never block input, and free themselves.
   outcrop, and the samurai silhouetted against the moon, scarf in the wind, with bamboo leaves drifting
   past. The menu screens reuse the backdrop behind a charcoal veil.
 
+## Performance rules
+
+- Static shapes are built once into an `InkBatch` (one draw call) and replayed. Never rebuild
+  geometry every frame unless the shape really changes (cloth, hem).
+- Characters animate by moving their part nodes, not by redrawing.
+- New effects free themselves and stay short (≤ 0.6 s). Anything spawned per hit is capped.
+
 ## Adding new art
 
 1. Add any new colour to `InkPalette` first, and to the tables above.
