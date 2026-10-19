@@ -101,7 +101,7 @@ func _validate(slot: int) -> Result:
 		return Result.MAX_UNITS
 	if get_cooldown_left(slot) > 0.0:
 		return Result.ON_COOLDOWN
-	if energy == null or not energy.can_afford(ally_slots[slot].cost):
+	if not is_instance_valid(energy) or not energy.can_afford(ally_slots[slot].cost):
 		return Result.NOT_ENOUGH_ENERGY
 	return Result.OK
 
@@ -132,7 +132,7 @@ func _spawn(slot: int, spawn_x: float) -> void:
 	var data: AllyData = ally_slots[slot]
 	var ally: Ally = ALLY_SCENE.instantiate() as Ally
 	ally.setup(data, spawn_x)
-	var parent: Node = container if container != null else get_parent()
+	var parent: Node = container if is_instance_valid(container) else get_parent()
 	parent.add_child(ally)
 	ally.global_position = Vector2(spawn_x, global_position.y)
 	var id: int = ally.get_instance_id()

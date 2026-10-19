@@ -263,6 +263,17 @@ func test_auto_mode_ignores_mouse_emulation() -> void:
 	GameSettings.real_touch_detected = previous
 
 
+func test_freeing_controls_releases_held_actions() -> void:
+	var controls: TouchControls = _make_controls(false)
+	var stick: Rect2 = controls.get_widget_rect("joystick")
+	controls.handle_input(_touch(0, stick.get_center() + Vector2(stick.size.x * 0.45, 0.0), true))
+	controls.handle_input(_touch(1, controls.get_widget_rect("attack").get_center(), true))
+	assert_true(Input.is_action_pressed(&"move_right") and Input.is_action_pressed(&"attack"), "held before the scene changes")
+	controls.free()
+	assert_true(not Input.is_action_pressed(&"move_right") and not Input.is_action_pressed(&"attack"),
+			"freeing the controls (scene change) does not leave actions stuck")
+
+
 func test_touch_outside_widgets_is_not_consumed() -> void:
 	var controls: TouchControls = _make_controls(false)
 	assert_true(not controls.handle_input(_touch(0, Vector2(960.0, 300.0), true)), "touch in the play area passes through")

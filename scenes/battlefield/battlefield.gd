@@ -104,6 +104,15 @@ func _process(delta: float) -> void:
 	_update_respawn(delta)
 
 
+## Pause when the app is backgrounded or loses focus (phone call, home gesture, alt-tab),
+## so the gate cannot fall while the player is away.
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_APPLICATION_FOCUS_OUT and what != NOTIFICATION_APPLICATION_PAUSED:
+		return
+	if is_node_ready() and not _is_game_over and not get_tree().paused:
+		_pause()
+
+
 ## AUTO touch mode on desktop: show touch controls after the first real finger touch.
 func _input(event: InputEvent) -> void:
 	if not GameSettings.real_touch_detected and GameSettings.is_real_touch(event):

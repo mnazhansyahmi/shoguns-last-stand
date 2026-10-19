@@ -100,9 +100,23 @@ Actors:
   - `BattleFeedback` handles screen shake (camera offset) and vibration (`Input.vibrate_handheld`, mobile only), each behind its setting.
   - Still no autoload: each scene loads settings when it starts, and audio bus state is global anyway.
 
+## Quality and performance (Phase 6)
+
+- **Signal connections:** nothing is disconnected by hand on purpose. Every connection goes either to the node's own children or between nodes freed together with the scene, and Godot 4 removes a connection when either end is freed. With no autoloads, the only long-lived emitter is the root viewport (`size_changed`). A test checks that freeing the battlefield leaves the viewport's connection count unchanged.
+- **Stored references** (targets, projectile sources, exported sibling nodes) are checked with `is_instance_valid` on the member before use. See CLAUDE.md.
+- **Stuck input:** `TouchControls` releases every held action on pause, on hide and in `_exit_tree`, so a finger held during Restart/Retry/Main Menu doesn't stay pressed into the next scene.
+- **Backgrounding:** the battlefield opens the pause menu on `NOTIFICATION_APPLICATION_FOCUS_OUT` / `NOTIFICATION_APPLICATION_PAUSED` (home gesture, phone call, alt-tab).
+- **Performance** (headless, `--fixed-fps 60`, debug build, AMD Ryzen 7 250; scripts and physics only, no rendering):
+  - Setup: 30 enemies via F1 plus 12 allies, 30 s of combat (12 enemies killed).
+  - Frame time: avg 2.5 ms, p95 4.3 ms, max 6.8 ms. The empty field is about 0.5 ms. The 60 FPS budget is 16.7 ms.
+  - Enemy separation and target scans are O(n²) over group members, which is fine at this scale.
+  - **No object pooling:** the numbers don't call for it.
+  - Existing caps stay: `EnemySpawner.max_alive` = 40 (including dying corpses) and `SummonManager.max_allies` = 6.
+  - Not measured: GPU and rendering cost, and anything on a real iPhone.
+
 ## Tests
 
-Run `godot_console --headless --path . -s res://tests/run_tests.gd`. It covers HealthComponent, hitbox/hurtbox rules, the cooldown timer, Spirit Energy and summon validation, and WaveDirector flow (completion on death, completion when an enemy is freed, no double counting, and the break between waves). It also covers settings round-trip and validation, touch layout mirroring, the safe area, minimum touch target sizes (including every menu control), multitouch move + attack, and release on pause. It also covers rewards, upgrade purchases, upgrades reaching battle units, and SaveManager round-trip, backup, corruption fallback, validation and reset (using `user://test_saves/`). It also covers units whose target, or a projectile whose source, is freed mid-fight. The runner registers a `Logger`, and any test that logs an engine or script error fails, even if its assertions passed.
+Run `godot_console --headless --path . -s res://tests/run_tests.gd`. It covers HealthComponent, hitbox/hurtbox rules, the cooldown timer, Spirit Energy and summon validation, and WaveDirector flow (completion on death, completion when an enemy is freed, no double counting, and the break between waves). It also covers enemy target selection (priorities, range, gate fallback), the gate defeat condition (including the battlefield defeat flow), auto-pause on focus loss, connection cleanup, settings round-trip and validation, touch layout mirroring, the safe area, minimum touch target sizes (including every menu control), multitouch move + attack, and release on pause. It also covers rewards, upgrade purchases, upgrades reaching battle units, and SaveManager round-trip, backup, corruption fallback, validation and reset (using `user://test_saves/`). It also covers units whose target, or a projectile whose source, is freed mid-fight. The runner registers a `Logger`, and any test that logs an engine or script error fails, even if its assertions passed.
 
 ## Scene flow
 

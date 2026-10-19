@@ -22,7 +22,7 @@ func spawn(enemy_data: EnemyData) -> Enemy:
 	if _alive >= max_alive:
 		push_warning("EnemySpawner: enemy limit (%d) reached, spawn skipped." % max_alive)
 		return null
-	var parent: Node = container if container != null else get_parent()
+	var parent: Node = container if is_instance_valid(container) else get_parent()
 	var enemy: Enemy = ENEMY_SCENE.instantiate() as Enemy
 	enemy.setup(enemy_data)
 	parent.add_child(enemy)

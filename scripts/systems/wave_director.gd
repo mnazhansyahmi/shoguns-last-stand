@@ -134,6 +134,10 @@ func _build_queue(wave: WaveData) -> void:
 
 ## Spawns every enemy whose delay has elapsed (several per call if delta was large).
 func _spawn_due() -> void:
+	if not is_instance_valid(spawner):
+		push_error("WaveDirector: spawner is missing; stopping the stage.")
+		_phase = Phase.IDLE
+		return
 	while _phase == Phase.SPAWNING and _next_spawn < _queue.size() and _spawn_timer <= 0.0:
 		var enemy: Enemy = spawner.spawn(_queue[_next_spawn])
 		if enemy == null:

@@ -107,6 +107,11 @@ func _notification(what: int) -> void:
 		release_all()
 
 
+## Leaving the scene (Restart, Retry, Main Menu) must not leave actions held into the next scene.
+func _exit_tree() -> void:
+	release_all()
+
+
 func _place(control: Control, rect: Rect2, viewport_size: Vector2) -> void:
 	var center: Vector2 = rect.get_center()
 	var anchor_x: float = 0.5
