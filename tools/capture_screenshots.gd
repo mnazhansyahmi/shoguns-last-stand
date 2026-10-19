@@ -85,6 +85,10 @@ func _run() -> void:
 	await _capture("stage_select")
 	select.free()
 
+	# Every ally unlocked, so the battle shows the full summon bar and all six allies.
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
+	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	var field: Node = BATTLEFIELD.instantiate()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
@@ -93,10 +97,11 @@ func _run() -> void:
 	var energy: SpiritEnergy = field.get_node("World/SpiritEnergy")
 	var summoner: SummonManager = field.get_node("World/SummonManager")
 	var player: Node2D = field.get_node("World/Player")
-	energy.set_energy(energy.max_energy)
-	summoner.request_summon(0)
-	await _frames(10)
-	summoner.request_summon(1)
+	energy.max_energy = 600.0
+	energy.set_energy(600.0)
+	for slot: int in summoner.get_slot_count():
+		summoner.request_summon(slot)
+		await _frames(6)
 	for i: int in 3:
 		var enemy: Enemy = spawner.spawn(HOLLOW)
 		if enemy != null:

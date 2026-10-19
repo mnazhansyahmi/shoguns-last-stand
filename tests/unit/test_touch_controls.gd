@@ -4,7 +4,9 @@ extends "res://tests/test_case.gd"
 const TOUCH_SCENE: PackedScene = preload("res://scenes/ui/touch_controls.tscn")
 const VIEWPORT: Vector2 = Vector2(1920.0, 1080.0)
 const ACTIONS: Array[StringName] = [&"move_left", &"move_right", &"attack", &"heavy_attack",
-		&"dash", &"spirit_slash", &"summon_1", &"summon_2"]
+		&"dash", &"spirit_slash", &"ultimate", &"summon_1", &"summon_2", &"summon_3", &"summon_4", &"summon_5", &"summon_6"]
+## Viewports: 16:9, the iPhone 16 landscape shape (2556 x 1179 -> 2341 x 1080 canvas) and a narrow one.
+const VIEWPORTS: Array[Vector2] = [Vector2(1920.0, 1080.0), Vector2(2341.0, 1080.0), Vector2(1664.0, 1080.0)]
 
 
 func cleanup() -> void:
@@ -278,3 +280,85 @@ func test_freeing_controls_releases_held_actions() -> void:
 func test_touch_outside_widgets_is_not_consumed() -> void:
 	var controls: TouchControls = _make_controls(false)
 	assert_true(not controls.handle_input(_touch(0, Vector2(960.0, 300.0), true)), "touch in the play area passes through")
+
+
+# --- Summon bar for up to six allies -------------------------------------------
+
+func _bar_buttons(viewport_size: Vector2, ui_scale: float, left_handed: bool, count: int) -> Dictionary:
+	var rects: Dictionary = TouchLayout.compute(viewport_size, Rect2(Vector2.ZERO, viewport_size), ui_scale, left_handed, count)
+	var bar: Rect2 = rects["summons"]
+	var local: Array[Rect2] = TouchLayout.summon_button_rects(count, bar.size, ui_scale)
+	var global: Array[Rect2] = []
+	for rect: Rect2 in local:
+		global.append(Rect2(bar.position + rect.position, rect.size))
+	return {"rects": rects, "buttons": global}
+
+
+func test_summon_bar_fits_one_to_six_allies_everywhere() -> void:
+	for viewport_size: Vector2 in VIEWPORTS:
+		for ui_scale: float in [GameSettings.MIN_UI_SCALE, 1.0, GameSettings.MAX_UI_SCALE]:
+			for left_handed: bool in [false, true]:
+				for count: int in range(1, 7):
+					var label: String = "%d allies, %dx%d, scale %.1f, left_handed=%s" % [count, viewport_size.x, viewport_size.y, ui_scale, left_handed]
+					var layout: Dictionary = _bar_buttons(viewport_size, ui_scale, left_handed, count)
+					var rects: Dictionary = layout["rects"]
+					var buttons: Array = layout["buttons"]
+					var full: Rect2 = Rect2(Vector2.ZERO, viewport_size)
+					assert_eq(buttons.size(), count, "one button per ally (%s)" % label)
+					for i: int in buttons.size():
+						var button: Rect2 = buttons[i]
+						assert_true(button.size.x >= TouchLayout.MIN_TOUCH_TARGET, "button %d is at least 44 pt (%s)" % [i + 1, label])
+						assert_true(full.encloses(button), "button %d is on screen (%s)" % [i + 1, label])
+						assert_true(not button.intersects(rects["joystick"]) and not button.intersects(rects["actions"]),
+								"button %d clear of the joystick and action buttons (%s)" % [i + 1, label])
+						for j: int in range(i + 1, buttons.size()):
+							assert_true(not button.intersects(buttons[j]), "buttons %d and %d do not overlap (%s)" % [i + 1, j + 1, label])
+
+
+func test_six_allies_fit_in_one_row_on_a_phone_and_two_rows_when_narrow() -> void:
+	var phone: Dictionary = TouchLayout.compute(Vector2(2341.0, 1080.0), Rect2(Vector2.ZERO, Vector2(2341.0, 1080.0)), 1.0, false, 6)
+	var phone_bar: Rect2 = phone["summons"]
+	assert_true(phone_bar.size.y <= TouchLayout.SUMMON_MAX_SIZE + 0.5, "on a phone-shaped screen six buttons are one row")
+	assert_almost_eq(phone_bar.get_center().x, 2341.0 * 0.5, "centered on the screen", 0.6)
+	var narrow: Dictionary = TouchLayout.compute(Vector2(1664.0, 1080.0), Rect2(Vector2.ZERO, Vector2(1664.0, 1080.0)), 1.4, false, 6)
+	var narrow_bar: Rect2 = narrow["summons"]
+	var narrow_buttons: Array[Rect2] = TouchLayout.summon_button_rects(6, narrow_bar.size, 1.4)
+	var tops: Dictionary = {}
+	for rect: Rect2 in narrow_buttons:
+		tops[snappedf(rect.position.y, 0.01)] = true
+	assert_eq(tops.size(), 2, "with large UI on a narrow screen they wrap to two rows")
+	var few: Dictionary = TouchLayout.compute(Vector2(1920.0, 1080.0), Rect2(Vector2.ZERO, Vector2(1920.0, 1080.0)), 1.0, false, 2)
+	var few_bar: Rect2 = few["summons"]
+	assert_true(few_bar.size.x < phone_bar.size.x, "two allies need a narrower bar than six")
+
+
+func test_only_unlocked_summon_buttons_are_shown_and_touchable() -> void:
+	var controls: TouchControls = _make_controls(false)
+	controls.set_summon_count(4)
+	for slot: int in range(1, 7):
+		var button: TouchActionButton = controls.find_child("Summon%dButton" % slot, true, false) as TouchActionButton
+		assert_eq(button.visible, slot <= 4, "button %d is shown only when that ally is unlocked" % slot)
+	var third: Rect2 = controls.get_widget_rect("summon_3")
+	assert_true(controls.handle_input(_touch(5, third.get_center(), true)), "an unlocked button takes the touch")
+	assert_true(Input.is_action_pressed(&"summon_3"), "and presses summon_3")
+	controls.handle_input(_touch(5, third.get_center(), false))
+	var hidden_button: TouchActionButton = controls.find_child("Summon6Button", true, false) as TouchActionButton
+	hidden_button.position = Vector2(-1500.0, -700.0)
+	var hidden: Rect2 = controls.get_widget_rect("summon_6")
+	assert_true(not controls.handle_input(_touch(6, hidden.get_center(), true)), "a hidden button ignores touches")
+	controls.set_summon_count(6)
+	var sixth: TouchActionButton = controls.find_child("Summon6Button", true, false) as TouchActionButton
+	assert_true(sixth.visible and sixth.size.x >= TouchLayout.MIN_TOUCH_TARGET, "unlocking the sixth ally shows its button at a usable size")
+	var bar_top: float = INF
+	for slot: int in range(1, 7):
+		bar_top = minf(bar_top, controls.get_widget_rect("summon_%d" % slot).position.y)
+	assert_true(controls.get_widget_rect("summon_6").end.y <= controls.get_viewport().get_visible_rect().size.y, "all six are on screen")
+
+
+func test_summon_buttons_wear_their_ally_accent() -> void:
+	var controls: TouchControls = _make_controls(false)
+	controls.set_summon_count(6)
+	controls.set_summon_state(2, "Healer", 65, 0.0, 0.0, true, FigureKinds.spec(InkFigure.Kind.SHRINE_HEALER).accent)
+	var button: TouchActionButton = controls.find_child("Summon3Button", true, false) as TouchActionButton
+	assert_eq(button.base_color, InkPalette.HEALER_JADE, "the Healer's button is jade")
+	assert_eq(button.sub_caption, "65 SE", "it shows the cost")

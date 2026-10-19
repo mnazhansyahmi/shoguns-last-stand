@@ -16,10 +16,17 @@ extends CanvasLayer
 	"ultimate": $Root/ActionCluster/UltimateButton,
 	"summon_1": $Root/SummonCluster/Summon1Button,
 	"summon_2": $Root/SummonCluster/Summon2Button,
+	"summon_3": $Root/SummonCluster/Summon3Button,
+	"summon_4": $Root/SummonCluster/Summon4Button,
+	"summon_5": $Root/SummonCluster/Summon5Button,
+	"summon_6": $Root/SummonCluster/Summon6Button,
 }
 
 var _active: bool = true
 var _left_handed: bool = false
+## How many summon buttons are shown (the unlocked allies).
+var _summon_count: int = 2
+var _last_layout: Array = []
 
 
 func _input(event: InputEvent) -> void:
@@ -34,7 +41,7 @@ func handle_input(event: InputEvent) -> bool:
 	if _joystick.handle_touch(event):
 		return true
 	for button: TouchActionButton in _buttons.values():
-		if button.handle_touch(event):
+		if button.visible and button.handle_touch(event):
 			return true
 	return false
 
@@ -59,21 +66,51 @@ func release_all() -> void:
 ## Positions every cluster from TouchLayout using corner anchors plus safe-area offsets.
 func apply_layout(viewport_size: Vector2, safe_rect: Rect2, ui_scale: float, left_handed: bool) -> void:
 	_left_handed = left_handed
-	var rects: Dictionary = TouchLayout.compute(viewport_size, safe_rect, ui_scale, left_handed)
+	_last_layout = [viewport_size, safe_rect, ui_scale, left_handed]
+	var rects: Dictionary = TouchLayout.compute(viewport_size, safe_rect, ui_scale, left_handed, _summon_count)
 	_place(_joystick, rects["joystick"], viewport_size)
 	_place(_action_cluster, rects["actions"], viewport_size)
 	_place(_summon_cluster, rects["summons"], viewport_size)
 	var action_rects: Dictionary = TouchLayout.action_button_rects(ui_scale, left_handed)
 	for key: String in action_rects:
 		_set_local_rect(_buttons[key], action_rects[key])
-	var summon_rects: Dictionary = TouchLayout.summon_button_rects(ui_scale)
-	for key: String in summon_rects:
-		_set_local_rect(_buttons[key], summon_rects[key])
+	var summons: Rect2 = rects["summons"]
+	var summon_rects: Array[Rect2] = TouchLayout.summon_button_rects(_summon_count, summons.size, ui_scale)
+	for slot: int in TouchLayout.MAX_SUMMONS:
+		var button: TouchActionButton = _buttons["summon_%d" % (slot + 1)]
+		button.visible = slot < _summon_count
+		if slot < summon_rects.size():
+			_set_local_rect(button, summon_rects[slot])
+			# Smaller buttons get smaller captions so "Guardian" and "Hatamoto" still fit.
+			button.font_size = roundi(28.0 * clampf(summon_rects[slot].size.x / TouchLayout.SUMMON_MAX_SIZE, 0.8, 1.0) * font_factor(ui_scale))
 	var font_scale: float = TouchLayout.clamp_scale(ui_scale)
-	for button: TouchActionButton in _buttons.values():
-		button.font_size = roundi(30.0 * font_scale)
+	for key: String in _buttons:
+		var button: TouchActionButton = _buttons[key]
+		if not key.begins_with("summon_"):
+			button.font_size = roundi(30.0 * font_scale)
 		button.queue_redraw()
 	_joystick.queue_redraw()
+
+
+## Caption size factor at a UI scale (the summon buttons' own size already carries the scale).
+static func font_factor(ui_scale: float) -> float:
+	return clampf(TouchLayout.clamp_scale(ui_scale), 0.9, 1.15)
+
+
+## Shows one summon button per unlocked ally (1..6) and re-lays out the bar.
+func set_summon_count(count: int) -> void:
+	_summon_count = clampi(count, 1, TouchLayout.MAX_SUMMONS)
+	for slot: int in TouchLayout.MAX_SUMMONS:
+		var button: TouchActionButton = _buttons["summon_%d" % (slot + 1)]
+		button.visible = slot < _summon_count
+		if not button.visible:
+			button.release()
+	if _last_layout.size() == 4:
+		apply_layout(_last_layout[0], _last_layout[1], _last_layout[2], _last_layout[3])
+
+
+func get_summon_count() -> int:
+	return _summon_count
 
 
 func is_left_handed() -> bool:
@@ -103,10 +140,14 @@ func set_ultimate_charge(ratio: float, is_ready: bool) -> void:
 	button.set_captions("Ultimate", "READY" if is_ready else "%d%%" % floori(ratio * 100.0))
 
 
-func set_summon_state(slot: int, name: String, cost: int, ratio: float, seconds: float, affordable: bool) -> void:
+func set_summon_state(slot: int, name: String, cost: int, ratio: float, seconds: float, affordable: bool,
+		accent: Color = Color(0.0, 0.0, 0.0, 0.0)) -> void:
 	var button: TouchActionButton = _buttons.get("summon_%d" % (slot + 1))
 	if button == null:
 		return
+	if accent.a > 0.0 and accent != button.base_color:
+		button.base_color = accent
+		button.queue_redraw()
 	button.set_captions(name, "%d SE" % cost)
 	button.set_cooldown(ratio, seconds)
 	button.set_available(affordable, "need %d" % cost)

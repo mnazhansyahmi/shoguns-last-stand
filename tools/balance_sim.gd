@@ -7,6 +7,11 @@ extends SceneTree
 ##                                            allies: player stands still, only summons
 ##   runs=3                                   battles per stage/mode
 ##   upgrades=samurai_damage:2,ashigaru_health:1   upgrade levels for the run
+##   roster=ashigaru,yumi_archer              only these allies are summoned (default: every
+##                                            ally unlocked at that stage)
+##   unlock=progressive|none|all              progressive (default): stage N starts with the
+##                                            stages before it cleared, so allies unlock as in the
+##                                            real game; none: nothing cleared; all: everything
 ##   curve      economy curve: plays every Region 1 stage in order with one persistent save,
 ##              retrying until a win (max `runs` attempts), replaying each cleared stage once,
 ##              and buying the cheapest upgrades after every battle
@@ -32,6 +37,9 @@ class Clock extends Node:
 		seconds += delta
 
 
+## Allies the scripted summoner may use (ids); empty = every unlocked one.
+var _roster_filter: PackedStringArray = PackedStringArray()
+var _unlock_mode: String = "progressive"
 var _pressed: Dictionary = {}
 var _taps_this_frame: Array[StringName] = []
 
@@ -58,13 +66,17 @@ func _run() -> void:
 			for pair: String in arg.substr(9).split(",", false):
 				var parts: PackedStringArray = pair.split(":")
 				upgrades[parts[0]] = int(parts[1])
+		elif arg.begins_with("roster="):
+			_roster_filter = arg.substr(7).split(",", false)
+		elif arg.begins_with("unlock="):
+			_unlock_mode = arg.substr(7)
 		elif arg == "curve" or arg == "zero":
 			special = arg
 	if special == "curve":
 		await _run_curve(runs)
 	elif special == "zero":
 		for stage: StageData in StageProgression.default_region().stages:
-			var result: Dictionary = await run_battle(stage, "bot", PlayerProgress.new())
+			var result: Dictionary = await run_battle(stage, "bot", _fresh_progress(stage))
 			_print_summary(stage, "bot", {}, [result])
 	if not special.is_empty():
 		_cleanup_files()
@@ -76,7 +88,7 @@ func _run() -> void:
 	for stage_path: String in stages:
 		var stage: StageData = load(stage_path) as StageData
 		var results: Array[Dictionary] = []
-		var start: PlayerProgress = PlayerProgress.new()
+		var start: PlayerProgress = _fresh_progress(stage)
 		for id: String in upgrades:
 			start.set_upgrade_level(id, upgrades[id])
 		for r: int in runs:
@@ -85,6 +97,18 @@ func _run() -> void:
 	_cleanup_files()
 	await AudioManager.shutdown_audio(self)
 	quit()
+
+
+## A save with no upgrades and the stages cleared that the unlock mode asks for before `stage`.
+func _fresh_progress(stage: StageData) -> PlayerProgress:
+	var progress: PlayerProgress = PlayerProgress.new()
+	if _unlock_mode == "none":
+		return progress
+	for earlier: StageData in StageProgression.default_region().stages:
+		if _unlock_mode == "progressive" and earlier.stage_id == stage.stage_id:
+			break
+		progress.stages_cleared.append(earlier.stage_id)
+	return progress
 
 
 ## Plays one battle to the end starting from `progress` (written to the sim save first).
@@ -148,21 +172,64 @@ func run_battle(stage: StageData, mode: String, progress: PlayerProgress) -> Dic
 
 # --- Scripted player --------------------------------------------------------
 
-## Summons whenever affordable, keeping roughly one archer per ashigaru.
+## The scripted summoner: a reasonable player's priorities, not a perfect one. Tank first, then
+## elites, a mage, one healer once there is someone to heal, and cheap fighters (one archer per
+## ashigaru) to fill the energy that is left. Only allies in the roster filter are used.
+const SUMMON_PRIORITY: Array[Dictionary] = [
+	{"id": "spear_guardian", "max": 1},
+	{"id": "hatamoto", "max": 2},
+	{"id": "onmyoji", "max": 2},
+	{"id": "shrine_healer", "max": 1, "needs_company": true},
+]
+
+
 func _summon_policy(summoner: SummonManager, energy: SpiritEnergy) -> void:
+	var alive: Dictionary = {}
 	var archers: int = 0
 	var melee: int = 0
+	var total: int = 0
 	for node: Node in get_nodes_in_group("allies"):
 		var ally: Ally = node as Ally
-		if ally != null:
-			if ally.data.is_ranged:
-				archers += 1
-			else:
-				melee += 1
-	if energy.current >= 45.0 and archers < melee:
-		summoner.request_summon(1)
-	elif energy.current >= 30.0:
-		summoner.request_summon(0)
+		if ally == null:
+			continue
+		alive[ally.data.id] = int(alive.get(ally.data.id, 0)) + 1
+		total += 1
+		if ally.data.id == "yumi_archer":
+			archers += 1
+		elif ally.data.id == "ashigaru":
+			melee += 1
+	for entry: Dictionary in SUMMON_PRIORITY:
+		var id: String = entry["id"]
+		var slot: int = _slot_of(summoner, id)
+		if slot < 0 or int(alive.get(id, 0)) >= int(entry["max"]):
+			continue
+		if entry.get("needs_company", false) and total < 3:
+			continue
+		var cost: float = summoner.get_slot_data(slot).cost
+		if energy.current >= cost:
+			summoner.request_summon(slot)
+			return
+		# Close to affording it: save up instead of spending on a cheap fighter.
+		if energy.current >= cost * 0.6:
+			return
+		break
+	var archer_slot: int = _slot_of(summoner, "yumi_archer")
+	var ashigaru_slot: int = _slot_of(summoner, "ashigaru")
+	if archer_slot >= 0 and energy.current >= 45.0 and archers < melee:
+		summoner.request_summon(archer_slot)
+	elif ashigaru_slot >= 0 and energy.current >= 30.0:
+		summoner.request_summon(ashigaru_slot)
+
+
+## The summon slot of an ally id, or -1 if it is not unlocked or not in the roster filter.
+func _slot_of(summoner: SummonManager, id: String) -> int:
+	if not _roster_filter.is_empty() and not _roster_filter.has(id):
+		return -1
+	for slot: int in summoner.get_slot_count():
+		var data: AllyData = summoner.get_slot_data(slot)
+		if data != null and data.id == id:
+			return slot
+	return -1
 
 
 ## Walk to the nearest enemy, combo it, heavy attack Oni Brutes, Spirit Slash groups.

@@ -54,6 +54,7 @@ func _ready() -> void:
 	_save_manager = SaveManager.new(save_path)
 	_progress = _save_manager.load_progress()
 	_apply_upgrades()
+	_touch.set_summon_count(_summoner.get_slot_count())
 	_settings_store = SettingsStore.new(settings_path)
 	_settings = _settings_store.load_settings()
 	if SceneRoutes.battle_stage != null:
@@ -298,8 +299,13 @@ func _update_cooldown_displays() -> void:
 		if data == null:
 			continue
 		var left: float = _summoner.get_cooldown_left(slot)
-		_touch.set_summon_state(slot, data.display_name.get_slice(" ", data.display_name.get_slice_count(" ") - 1),
-				roundi(data.cost), left / maxf(data.summon_cooldown, 0.001), left, _energy.can_afford(data.cost))
+		_touch.set_summon_state(slot, short_name(data), roundi(data.cost), left / maxf(data.summon_cooldown, 0.001), left,
+				_energy.can_afford(data.cost), FigureKinds.spec(data.figure).accent)
+
+
+## "Shrine Healer" -> "Healer": the last word, short enough for a button.
+static func short_name(data: AllyData) -> String:
+	return data.display_name.get_slice(" ", data.display_name.get_slice_count(" ") - 1)
 
 
 func _build_summon_text() -> String:
@@ -311,12 +317,12 @@ func _build_summon_text() -> String:
 		var status: String = ""
 		var cooldown: float = _summoner.get_cooldown_left(slot)
 		if cooldown > 0.0:
-			status = " - %s" % GameHud.format_cooldown(cooldown)
+			status = " %s" % GameHud.format_cooldown(cooldown)
 		elif not _energy.can_afford(data.cost):
-			status = " - need energy"
-		parts.append("[%d] %s (%d)%s" % [slot + 1, data.display_name, roundi(data.cost), status])
-	parts.append("Allies %d / %d" % [_summoner.get_ally_count(), _summoner.max_allies])
-	return "    ".join(parts)
+			status = " low"
+		parts.append("[%d] %s %d%s" % [slot + 1, short_name(data), roundi(data.cost), status])
+	parts.append("Allies %d/%d" % [_summoner.get_ally_count(), _summoner.max_allies])
+	return "   ".join(parts)
 
 
 func _update_wave_text() -> void:

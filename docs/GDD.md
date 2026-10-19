@@ -48,6 +48,18 @@ Summon keys 1-6 (or the summon buttons) are given to the unlocked allies in this
 | Onmyoji | 75 | 38 burst | 110 | clear Stage 3 | Throws a talisman that bursts on every enemy within 130 px of its target; range 430 |
 | Hatamoto | 260 | 30 | 150 | clear Stage 4 | Elite melee: a naginata sweep hits several enemies; 30% knockback resistance |
 
+**Balance of the later allies** (`tools/balance_sim.gd`, 3 battles per stage, no upgrades, progressive unlocks; `roster=ashigaru,yumi_archer` is the old two-ally baseline). The scripted summoner buys Guardian, Hatamoto, Onmyoji and a Healer (once there are 3 allies) before cheap fighters.
+
+| Stage | Bot: allies lost, player deaths (2 allies -> 6) | Allies only, no player: wins (2 allies -> 6) |
+|---|---|---|
+| 1 | 0, 1.0 -> 0, 1.0 | 2/3 -> 3/3 (same allies: variance) |
+| 2 | 0, 1.0 -> 0, 1.0 | 2/3, gate 65% -> 3/3, gate 100% (the Healer) |
+| 3 | 2.7, 4.7 -> 0, 4.0 | 0/3 -> 1/3 |
+| 4 | 10, 8.3 -> 4, 7.3 | 0/3 -> 0/3 |
+| 5 | 18.7, 10.7 -> 18, 10.3 | 0/3 -> 0/3 |
+
+The new allies make the mid stages kinder (fewer allies die, the samurai dies a little less) and let allies alone hold stages 1-2, but stages 4-5 still need the samurai and the late battles still cost him about 10 deaths without upgrades, so nothing is trivialised. The Hatamoto costs 150 (a full Spirit bar), the Onmyoji 110 and the Guardian 80, which keeps them a real spending decision.
+
 An ally's upgrades show in the upgrade menu from the start but can only be bought once it is unlocked. The result screen announces newly unlocked allies.
 
 ## Region 1: Bamboo Outskirts

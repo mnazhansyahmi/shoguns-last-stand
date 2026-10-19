@@ -44,6 +44,8 @@ class Spec:
 	var is_enemy: bool = false
 	## Colour of the motes rising when the body dissolves.
 	var death_accent: Color = InkPalette.SPIRIT
+	## The figure's one accent colour (summon buttons wear it).
+	var accent: Color = InkPalette.PAPER
 	## Strikes slam the ground with a shockwave of this radius (0 = none).
 	var slam_radius: float = 0.0
 	## Poses are followed with spring-dampers (anticipation, overshoot, follow-through) and the
@@ -63,6 +65,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 	var s: Spec = Spec.new()
 	match kind:
 		InkFigure.Kind.SAMURAI:
+			s.accent = InkPalette.SAMURAI_RED
 			# Legs are drawn as flared hakama wedges (FigurePainter), so the stance is wide.
 			s.stance = Vector2(10.0, -10.0)
 			s.back_hand_on_weapon = Vector2(-7.0, 0.0)
@@ -72,6 +75,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.cloth = true
 			s.loose_armour = true
 		InkFigure.Kind.ASHIGARU:
+			s.accent = InkPalette.ASHIGARU_GOLD
 			s.hip_y = 44.0
 			s.thigh = 22.0
 			s.shin = 22.0
@@ -90,6 +94,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.trail_core = Color(InkPalette.PAPER, 0.8)
 			s.trail_edge = InkPalette.ASHIGARU_GOLD
 		InkFigure.Kind.YUMI_ARCHER:
+			s.accent = InkPalette.ARCHER_TEAL
 			s.hip_y = 44.0
 			s.thigh = 22.0
 			s.shin = 22.0
@@ -106,6 +111,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.trail_span = Vector2.ZERO
 			s.cloth = true
 		InkFigure.Kind.HOLLOW_SOLDIER:
+			s.accent = InkPalette.HOLLOW_PURPLE
 			s.hip_y = 45.0
 			s.thigh_w = Vector2(7.0, 5.5)
 			s.shin_w = Vector2(5.5, 4.5)
@@ -126,6 +132,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.is_enemy = true
 			s.death_accent = InkPalette.HOLLOW_PURPLE
 		InkFigure.Kind.ONI_BRUTE:
+			s.accent = InkPalette.ONI_EMBER
 			s.hip_y = 40.0
 			s.thigh = 20.0
 			s.shin = 20.0
@@ -156,6 +163,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.death_accent = InkPalette.ONI_EMBER
 			s.slam_radius = 170.0
 		InkFigure.Kind.SHRINE_HEALER:
+			s.accent = InkPalette.HEALER_JADE
 			s.hip_y = 44.0
 			s.thigh = 22.0
 			s.shin = 22.0
@@ -179,6 +187,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.sleeve_link = 6.5
 			s.sleeve_width = Vector2(10.0, 5.0)
 		InkFigure.Kind.SPEAR_GUARDIAN:
+			s.accent = InkPalette.GUARDIAN_AZURE
 			s.hip_y = 44.0
 			s.thigh = 22.0
 			s.shin = 22.0
@@ -204,6 +213,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.trail_edge = InkPalette.GUARDIAN_AZURE
 			s.death_accent = InkPalette.GUARDIAN_AZURE
 		InkFigure.Kind.ONMYOJI:
+			s.accent = InkPalette.ONMYOJI_MAGENTA
 			s.hip_y = 44.0
 			s.thigh = 22.0
 			s.shin = 22.0
@@ -227,6 +237,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.sleeve_link = 7.0
 			s.sleeve_width = Vector2(11.0, 5.0)
 		InkFigure.Kind.HATAMOTO:
+			s.accent = InkPalette.HATAMOTO_ORANGE
 			s.hip_y = 45.0
 			s.thigh = 22.5
 			s.shin = 22.5

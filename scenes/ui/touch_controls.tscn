@@ -129,3 +129,55 @@ caption = "Archer"
 sub_caption = "45 SE"
 base_color = Color(0.169, 0.702, 0.639, 1)
 font_size = 28
+
+[node name="Summon3Button" type="Control" parent="Root/SummonCluster"]
+visible = false
+layout_mode = 0
+offset_right = 170.0
+offset_bottom = 170.0
+mouse_filter = 2
+script = ExtResource("3_button")
+action = &"summon_3"
+caption = "Healer"
+sub_caption = "65 SE"
+base_color = Color(0.373, 0.831, 0.627, 1)
+font_size = 28
+
+[node name="Summon4Button" type="Control" parent="Root/SummonCluster"]
+visible = false
+layout_mode = 0
+offset_right = 170.0
+offset_bottom = 170.0
+mouse_filter = 2
+script = ExtResource("3_button")
+action = &"summon_4"
+caption = "Guardian"
+sub_caption = "80 SE"
+base_color = Color(0.31, 0.525, 0.878, 1)
+font_size = 28
+
+[node name="Summon5Button" type="Control" parent="Root/SummonCluster"]
+visible = false
+layout_mode = 0
+offset_right = 170.0
+offset_bottom = 170.0
+mouse_filter = 2
+script = ExtResource("3_button")
+action = &"summon_5"
+caption = "Onmyoji"
+sub_caption = "110 SE"
+base_color = Color(0.839, 0.365, 0.694, 1)
+font_size = 28
+
+[node name="Summon6Button" type="Control" parent="Root/SummonCluster"]
+visible = false
+layout_mode = 0
+offset_right = 170.0
+offset_bottom = 170.0
+mouse_filter = 2
+script = ExtResource("3_button")
+action = &"summon_6"
+caption = "Hatamoto"
+sub_caption = "150 SE"
+base_color = Color(0.941, 0.541, 0.18, 1)
+font_size = 28
