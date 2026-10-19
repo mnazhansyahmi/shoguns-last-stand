@@ -14,6 +14,8 @@ extends Resource
 @export var hitbox_size: Vector2 = Vector2(90.0, 80.0)
 ## Forward speed applied when the hitbox becomes active.
 @export var lunge_speed: float = 0.0
+## Heavy hits get the heavy impact sound, a short hit-stop and a small screen shake.
+@export var heavy: bool = false
 
 
 func get_total_duration() -> float:

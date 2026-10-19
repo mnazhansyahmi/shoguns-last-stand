@@ -16,6 +16,7 @@ const TEST_SCRIPTS: Array[String] = [
 	"res://tests/unit/test_settings.gd",
 	"res://tests/unit/test_touch_controls.gd",
 	"res://tests/unit/test_targeting_and_defeat.gd",
+	"res://tests/unit/test_game_feel.gd",
 ]
 
 
@@ -76,4 +77,5 @@ func _run_all() -> void:
 					print("        - %s" % failure)
 	print("\n%d tests, %d passed, %d failed" % [total, total - failed, failed])
 	OS.remove_logger(_errors)
+	await AudioManager.shutdown_audio(self)
 	quit(1 if failed > 0 else 0)

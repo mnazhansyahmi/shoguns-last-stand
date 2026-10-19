@@ -48,15 +48,25 @@ Moves: a 3-hit combo, a heavy attack, a dash, and the Spirit Slash special.
 
 ## Rewards
 
-Hollow Soldier: 5 gold, 10 XP. Oni Brute: 30 gold, 50 XP. Clearing a stage adds 100 gold and 50 XP. A defeat keeps 50% of kill rewards. A full stage 1 clear pays 210 gold and 260 XP.
+Hollow Soldier: 8 gold, 10 XP. Oni Brute: 40 gold, 50 XP. Clearing a stage adds 150 gold and 50 XP. A defeat keeps 50% of kill rewards. A full stage 1 clear pays **318 gold** and 260 XP.
 
-## Upgrades (5 levels each; cost grows ×1.5 per level)
+## Upgrades (5 levels each; cost grows ×1.2 per level, rounded to 5)
 
-| Upgrade | Per level | First level cost |
+| Upgrade | Per level | Level costs |
 |---|---|---|
-| Samurai max HP | +20 HP | 100 |
-| Samurai attack damage | +3 | 120 |
-| Ashigaru HP | +20 HP | 80 |
-| Ashigaru damage | +3 | 80 |
-| Archer damage | +3 | 100 |
-| Spirit regeneration | +1 energy/s | 120 |
+| Samurai max HP | +20 HP | 100, 120, 145, 175, 205 |
+| Samurai attack damage | +3 | 120, 145, 175, 205, 250 |
+| Ashigaru HP | +20 HP | 80, 95, 115, 140, 165 |
+| Ashigaru damage | +3 | 80, 95, 115, 140, 165 |
+| Archer damage | +3 | 100, 120, 145, 175, 205 |
+| Spirit regeneration | +1 energy/s | 120, 145, 175, 205, 250 |
+
+**Pacing target:** about 2 upgrades per stage clear. If you always buy the cheapest upgrade, early clears buy about 3, later ones 1–2, and everything is maxed after about 15 clears (it was 38 before Phase 7). A test checks this.
+
+## Game feel
+
+- **Sounds:** sword swing, hit, heavy hit, dash, spirit slash, summon, enemy death, gate hit, victory, defeat and button click. They're synthetic placeholders made by `tools/generate_sfx.gd`.
+- **Hit-stop:** heavy attacks (the samurai's heavy attack and the Oni Brute's slam) and kills freeze the game for about 50 ms.
+- **Screen shake:** player hits, gate hits, heavy hits and kills, if Screen shake is on.
+- **Damage numbers:** float up from every hit. Pale yellow means damage to enemies, orange "N!" a heavy hit, and red damage to the samurai, allies or gate.
+- **Vibration:** 45 ms when the samurai is hit and 20 ms when the samurai lands a heavy hit, only on phones/tablets with Vibration on.

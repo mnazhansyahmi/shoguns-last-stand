@@ -46,9 +46,22 @@ func receive_hit(hitbox: HitboxComponent) -> bool:
 		return false
 	var direction_x: float = hitbox.get_knockback_direction_x(global_position.x)
 	var hit: HitData = HitData.new(hitbox.damage, Vector2(direction_x * hitbox.knockback, 0.0), hitbox.get_source())
+	hit.heavy = hitbox.heavy
 	var applied: float = health_component.take_damage(hit.damage, hit.source)
 	if applied <= 0.0:
 		return false
 	hit.damage = applied
+	hit.killed = health_component.is_dead()
 	hit_received.emit(hit)
+	BattleFeedback.report_hit(get_parent(), get_feedback_position(), hit)
 	return true
+
+
+## Top-center of the first rectangular shape (where damage numbers appear).
+func get_feedback_position() -> Vector2:
+	for child: Node in get_children():
+		var shape_node: CollisionShape2D = child as CollisionShape2D
+		if shape_node != null and shape_node.shape is RectangleShape2D:
+			var rect: RectangleShape2D = shape_node.shape
+			return shape_node.global_position - Vector2(0.0, rect.size.y * 0.5)
+	return global_position

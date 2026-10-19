@@ -1,0 +1,107 @@
+[gd_resource type="Resource" script_class="SfxLibrary" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/sfx_library.gd" id="1_library"]
+[ext_resource type="Script" path="res://scripts/resources/sfx_entry.gd" id="2_entry"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/sword_swing.wav" id="s0_sword_swing"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/hit.wav" id="s1_hit"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/heavy_hit.wav" id="s2_heavy_hit"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/dash.wav" id="s3_dash"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/spirit_slash.wav" id="s4_spirit_slash"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/summon.wav" id="s5_summon"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/enemy_death.wav" id="s6_enemy_death"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/gate_hit.wav" id="s7_gate_hit"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/victory.wav" id="s8_victory"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/defeat.wav" id="s9_defeat"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/button_click.wav" id="s10_button_click"]
+
+[sub_resource type="Resource" id="Entry_sword_swing"]
+script = ExtResource("2_entry")
+id = &"sword_swing"
+stream = ExtResource("s0_sword_swing")
+volume_db = -4.0
+pitch_variation = 0.08
+min_interval = 0.03
+
+[sub_resource type="Resource" id="Entry_hit"]
+script = ExtResource("2_entry")
+id = &"hit"
+stream = ExtResource("s1_hit")
+volume_db = -2.0
+pitch_variation = 0.08
+min_interval = 0.03
+
+[sub_resource type="Resource" id="Entry_heavy_hit"]
+script = ExtResource("2_entry")
+id = &"heavy_hit"
+stream = ExtResource("s2_heavy_hit")
+volume_db = 0.0
+pitch_variation = 0.05
+min_interval = 0.05
+
+[sub_resource type="Resource" id="Entry_dash"]
+script = ExtResource("2_entry")
+id = &"dash"
+stream = ExtResource("s3_dash")
+volume_db = -4.0
+pitch_variation = 0.05
+min_interval = 0.05
+
+[sub_resource type="Resource" id="Entry_spirit_slash"]
+script = ExtResource("2_entry")
+id = &"spirit_slash"
+stream = ExtResource("s4_spirit_slash")
+volume_db = -3.0
+pitch_variation = 0.03
+min_interval = 0.05
+
+[sub_resource type="Resource" id="Entry_summon"]
+script = ExtResource("2_entry")
+id = &"summon"
+stream = ExtResource("s5_summon")
+volume_db = -3.0
+pitch_variation = 0.0
+min_interval = 0.1
+
+[sub_resource type="Resource" id="Entry_enemy_death"]
+script = ExtResource("2_entry")
+id = &"enemy_death"
+stream = ExtResource("s6_enemy_death")
+volume_db = -3.0
+pitch_variation = 0.06
+min_interval = 0.04
+
+[sub_resource type="Resource" id="Entry_gate_hit"]
+script = ExtResource("2_entry")
+id = &"gate_hit"
+stream = ExtResource("s7_gate_hit")
+volume_db = -3.0
+pitch_variation = 0.06
+min_interval = 0.08
+
+[sub_resource type="Resource" id="Entry_victory"]
+script = ExtResource("2_entry")
+id = &"victory"
+stream = ExtResource("s8_victory")
+volume_db = -2.0
+pitch_variation = 0.0
+min_interval = 0.5
+
+[sub_resource type="Resource" id="Entry_defeat"]
+script = ExtResource("2_entry")
+id = &"defeat"
+stream = ExtResource("s9_defeat")
+volume_db = -2.0
+pitch_variation = 0.0
+min_interval = 0.5
+
+[sub_resource type="Resource" id="Entry_button_click"]
+script = ExtResource("2_entry")
+id = &"button_click"
+stream = ExtResource("s10_button_click")
+volume_db = -6.0
+pitch_variation = 0.04
+min_interval = 0.03
+
+[resource]
+script = ExtResource("1_library")
+entries = Array[ExtResource("2_entry")]([SubResource("Entry_sword_swing"), SubResource("Entry_hit"), SubResource("Entry_heavy_hit"), SubResource("Entry_dash"), SubResource("Entry_spirit_slash"), SubResource("Entry_summon"), SubResource("Entry_enemy_death"), SubResource("Entry_gate_hit"), SubResource("Entry_victory"), SubResource("Entry_defeat"), SubResource("Entry_button_click")])

@@ -8,7 +8,7 @@ A 2D side-scrolling samurai defense game made in Godot 4. You play a samurai hol
 
 ## Project status
 
-**MVP complete (phases 1–6).** The full spec is in [docs/MASTER_PROMPT.md](docs/MASTER_PROMPT.md).
+**MVP complete (phases 1–6, tagged `v0.1-mvp`), plus Phase 7 (game feel).** The full spec is in [docs/MASTER_PROMPT.md](docs/MASTER_PROMPT.md).
 
 | Area | State |
 |---|---|
@@ -16,13 +16,14 @@ A 2D side-scrolling samurai defense game made in Godot 4. You play a samurai hol
 | Defense | Village gate (1000 HP). Ashigaru and Yumi Archer summons using Spirit Energy (max 150, +5/s). Stage 1 has 3 data-driven waves. |
 | Loop | Victory/defeat screens, gold and XP rewards, 6 upgrades with 5 levels each, a versioned JSON save with backup and recovery, and a reset option. |
 | Mobile | Multitouch joystick and buttons, safe-area layout, 44 pt touch targets, a pause menu, saved settings, and left-handed mode. |
-| Quality | 92 headless tests, a manual [smoke test](docs/SMOKE_TEST.md), and a stress-tested frame budget. |
+| Game feel | Placeholder sound effects (generated, no downloads), 50 ms hit-stop on heavy hits and kills, screen shake, floating damage numbers, vibration (mobile, if enabled). Rebalanced: a stage clear buys about 2 upgrades. |
+| Quality | 104 headless tests, a manual [smoke test](docs/SMOKE_TEST.md), and a stress-tested frame budget. |
 
 **Known limitations**
 - **Art:** placeholder geometric art only.
-- **Audio:** none yet. The volume settings drive the audio buses, but there are no sounds to hear.
+- **Audio:** sound effects are synthetic placeholders. There is no music yet, so the music slider has nothing to control.
 - **iOS:** never built or run on a device ([guide](docs/IOS_EXPORT.md), untested).
-- **Balance:** not tuned.
+- **Balance:** the economy is tuned (about 2 upgrades per stage clear); combat difficulty is not.
 
 ## How to run
 
@@ -45,6 +46,14 @@ godot_console --headless --path . -s res://tests/run_tests.gd
 ```
 
 The test runner exits with code 1 on any failure, or if a test logs an engine or script error.
+
+**Regenerate the placeholder sounds** (writes `assets/audio/sfx/*.wav`, then re-import):
+
+```bash
+godot_console --headless --path . -s res://tools/generate_sfx.gd
+```
+
+To use a real sound instead, either overwrite the `.wav` with the same name, or point its entry in `data/audio/sfx_library.tres` at another file. Each entry also has volume, pitch variation and a repeat limit.
 
 ## Controls
 

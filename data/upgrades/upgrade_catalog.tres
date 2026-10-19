@@ -12,7 +12,7 @@ stat = 0
 amount_per_level = 20.0
 max_level = 5
 base_cost = 100
-cost_growth = 1.5
+cost_growth = 1.2
 effect_format = "+%s HP"
 
 [sub_resource type="Resource" id="Resource_samurai_damage"]
@@ -24,7 +24,7 @@ stat = 1
 amount_per_level = 3.0
 max_level = 5
 base_cost = 120
-cost_growth = 1.5
+cost_growth = 1.2
 effect_format = "+%s damage"
 
 [sub_resource type="Resource" id="Resource_ashigaru_hp"]
@@ -37,7 +37,7 @@ stat = 0
 amount_per_level = 20.0
 max_level = 5
 base_cost = 80
-cost_growth = 1.5
+cost_growth = 1.2
 effect_format = "+%s HP"
 
 [sub_resource type="Resource" id="Resource_ashigaru_damage"]
@@ -50,7 +50,7 @@ stat = 1
 amount_per_level = 3.0
 max_level = 5
 base_cost = 80
-cost_growth = 1.5
+cost_growth = 1.2
 effect_format = "+%s damage"
 
 [sub_resource type="Resource" id="Resource_archer_damage"]
@@ -63,7 +63,7 @@ stat = 1
 amount_per_level = 3.0
 max_level = 5
 base_cost = 100
-cost_growth = 1.5
+cost_growth = 1.2
 effect_format = "+%s damage"
 
 [sub_resource type="Resource" id="Resource_spirit_regen"]
@@ -75,7 +75,7 @@ stat = 2
 amount_per_level = 1.0
 max_level = 5
 base_cost = 120
-cost_growth = 1.5
+cost_growth = 1.2
 effect_format = "+%s energy/s"
 
 [resource]

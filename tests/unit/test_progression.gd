@@ -24,29 +24,29 @@ func _kills(hollow: int, oni: int) -> Array[EnemyData]:
 # --- Rewards ----------------------------------------------------------------
 
 func test_reward_data_values() -> void:
-	assert_eq(HOLLOW_SOLDIER.gold_reward, 5, "Hollow Soldier gold")
+	assert_eq(HOLLOW_SOLDIER.gold_reward, 8, "Hollow Soldier gold")
 	assert_eq(HOLLOW_SOLDIER.xp_reward, 10, "Hollow Soldier XP")
-	assert_eq(ONI_BRUTE.gold_reward, 30, "Oni Brute gold")
+	assert_eq(ONI_BRUTE.gold_reward, 40, "Oni Brute gold")
 	assert_eq(ONI_BRUTE.xp_reward, 50, "Oni Brute XP")
-	assert_eq(STAGE_1.clear_gold_bonus, 100, "stage clear gold bonus")
+	assert_eq(STAGE_1.clear_gold_bonus, 150, "stage clear gold bonus")
 	assert_eq(STAGE_1.clear_xp_bonus, 50, "stage clear XP bonus")
 
 
 func test_victory_reward_is_kills_plus_bonus() -> void:
 	var reward: BattleReward = RewardCalculator.calculate(_kills(16, 1), STAGE_1, true)
 	assert_eq(reward.enemies_defeated, 17, "17 kills counted")
-	assert_eq(reward.kill_gold, 16 * 5 + 30, "kill gold")
+	assert_eq(reward.kill_gold, 16 * 8 + 40, "kill gold")
 	assert_eq(reward.kill_xp, 16 * 10 + 50, "kill XP")
-	assert_eq(reward.bonus_gold, 100, "clear bonus gold")
+	assert_eq(reward.bonus_gold, 150, "clear bonus gold")
 	assert_eq(reward.bonus_xp, 50, "clear bonus XP")
-	assert_eq(reward.gold, 210, "total gold for a full stage 1 clear")
+	assert_eq(reward.gold, 318, "total gold for a full stage 1 clear")
 	assert_eq(reward.xp, 260, "total XP for a full stage 1 clear")
 
 
 func test_defeat_reward_is_partial_without_bonus() -> void:
 	var reward: BattleReward = RewardCalculator.calculate(_kills(5, 1), STAGE_1, false)
 	assert_eq(reward.bonus_gold, 0, "no clear bonus on defeat")
-	assert_eq(reward.gold, floori((5 * 5 + 30) * 0.5), "half of kill gold, rounded down")
+	assert_eq(reward.gold, floori((5 * 8 + 40) * 0.5), "half of kill gold, rounded down")
 	assert_eq(reward.xp, floori((5 * 10 + 50) * 0.5), "half of kill XP, rounded down")
 	assert_almost_eq(reward.kill_ratio, 0.5, "ratio reported")
 
@@ -60,7 +60,7 @@ func test_no_kills_defeat_gives_nothing() -> void:
 func test_record_battle_updates_progress() -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
 	var levels: int = progress.record_battle(RewardCalculator.calculate(_kills(16, 1), STAGE_1, true), STAGE_1.stage_id)
-	assert_eq(progress.gold, 210, "gold added")
+	assert_eq(progress.gold, 318, "gold added")
 	assert_eq(progress.xp, 260, "XP added")
 	assert_eq(levels, 1, "260 XP reaches level 2")
 	assert_eq(progress.get_level(), 2, "level 2")
@@ -93,7 +93,7 @@ func test_catalog_has_the_six_spec_upgrades() -> void:
 func test_costs_rise_with_level() -> void:
 	var upgrade: UpgradeData = CATALOG.find("samurai_max_health")
 	assert_eq(upgrade.get_cost(0), 100, "level 1 costs 100")
-	assert_eq(upgrade.get_cost(1), 150, "level 2 costs 150")
+	assert_eq(upgrade.get_cost(1), 120, "level 2 costs 120")
 	assert_true(upgrade.get_cost(2) > upgrade.get_cost(1), "costs keep rising")
 	assert_eq(upgrade.get_cost(upgrade.max_level), -1, "no cost when maxed")
 
@@ -106,7 +106,7 @@ func test_purchase_succeeds_with_enough_gold() -> void:
 	assert_eq(progress.gold, 400, "100 gold spent")
 	assert_eq(progress.get_upgrade_level("samurai_max_health"), 1, "level 1")
 	assert_eq(UpgradeShop.purchase(progress, upgrade), UpgradeShop.Result.OK, "second purchase OK")
-	assert_eq(progress.gold, 250, "150 gold spent for level 2")
+	assert_eq(progress.gold, 280, "120 gold spent for level 2")
 	assert_eq(progress.get_upgrade_level("samurai_max_health"), 2, "level 2")
 
 

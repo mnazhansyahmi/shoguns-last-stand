@@ -20,7 +20,8 @@ Godot 4.7.2 game, typed GDScript. The full spec is `docs/MASTER_PROMPT.md`. Work
 - A scene's own script sits next to it (`scenes/<area>/<name>.gd`). Reusable code goes in `scripts/` (`components/`, `systems/`, `resources/`, `ui/`).
 - Data assets (`.tres`) live in `data/`, and art and audio live in `assets/`.
 - Systems talk through signals; avoid hardcoded cross-scene node paths.
-- Avoid autoload singletons unless a later phase justifies one (document it in `docs/ARCHITECTURE.md`).
+- Avoid autoload singletons unless a later phase justifies one (document it in `docs/ARCHITECTURE.md`). The only one is `Audio` (`AudioManager`). Call `AudioManager.play(id)`; it is a no-op without the autoload, so scenes and tests must not depend on it.
+- Sound effects: ids live in `data/audio/sfx_library.tres`. Placeholders come from `tools/generate_sfx.gd`. Call `AudioManager.shutdown_audio(tree)` before quitting, or Godot reports still-playing streams as leaked.
 - Visuals are placeholder geometric shapes (Polygon2D/ColorRect). No third-party assets.
 - Text files use LF line endings (enforced by `.gitattributes`).
 - Commit `*.uid` files; ignore `.godot/`.

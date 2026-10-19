@@ -65,4 +65,5 @@ func _on_settings_closed(settings: GameSettings) -> void:
 
 
 func _on_quit_pressed() -> void:
+	await AudioManager.shutdown_audio(get_tree())
 	get_tree().quit()

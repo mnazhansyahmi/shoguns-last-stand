@@ -52,12 +52,11 @@ func _ready() -> void:
 	_player.health_changed.connect(_hud.set_player_health)
 	_player.died.connect(_on_player_died)
 	_player.projectile_fired.connect(_on_projectile_fired)
-	_player.get_health().damaged.connect(_on_player_damaged)
 	_gate.health_changed.connect(_hud.set_gate_health)
 	_gate.destroyed.connect(_on_gate_destroyed)
-	_gate.get_health().damaged.connect(_on_gate_damaged)
 	_energy.energy_changed.connect(_hud.set_energy)
 	_summoner.summon_failed.connect(_on_summon_failed)
+	_summoner.ally_summoned.connect(_on_ally_summoned)
 	_wave_director.wave_started.connect(_on_wave_started)
 	_wave_director.wave_cleared.connect(_on_wave_cleared)
 	_wave_director.remaining_changed.connect(_hud.set_remaining)
@@ -286,12 +285,8 @@ func _on_player_died() -> void:
 	_respawn_time_left = PLAYER_RESPAWN_DELAY
 
 
-func _on_player_damaged(_amount: float, _source: Node) -> void:
-	_feedback.on_player_hit()
-
-
-func _on_gate_damaged(_amount: float, _source: Node) -> void:
-	_feedback.on_gate_hit()
+func _on_ally_summoned(_ally: Ally, _slot: int) -> void:
+	AudioManager.play(&"summon")
 
 
 func _on_projectile_fired(projectile: Node2D) -> void:
@@ -317,6 +312,7 @@ func _on_enemy_spawned(enemy: Enemy) -> void:
 
 ## Every enemy killed (wave or debug) is worth its reward.
 func _on_enemy_defeated(enemy: Enemy) -> void:
+	AudioManager.play(&"enemy_death")
 	if not _is_game_over and enemy.data != null:
 		_kills.append(enemy.data)
 
@@ -335,6 +331,8 @@ func _end_battle(victory: bool) -> void:
 	_is_game_over = true
 	_respawn_time_left = -1.0
 	_wave_director.stop()
+	_feedback.end_hit_stop()
+	AudioManager.play(&"victory" if victory else &"defeat")
 	_touch.set_active(false)
 	_pause_menu.close()
 	_hud.hide_status()

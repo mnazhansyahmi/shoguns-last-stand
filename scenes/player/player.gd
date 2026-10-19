@@ -243,7 +243,8 @@ func _activate_hitbox(attack: AttackProfile) -> void:
 	_hitbox_rect.size = attack.hitbox_size
 	_hitbox_shape.position = Vector2(attack.hitbox_offset.x * facing, attack.hitbox_offset.y)
 	_hitbox.knockback_direction_x = facing
-	_hitbox.activate(stats.base_damage * attack.damage_multiplier, attack.knockback, attack.active_time)
+	_hitbox.activate(stats.base_damage * attack.damage_multiplier, attack.knockback, attack.active_time, attack.heavy)
+	AudioManager.play(&"sword_swing", 0.8 if attack.heavy else 1.0 + 0.06 * _combo_index)
 
 
 func _start_dash(input_dir: float) -> void:
@@ -253,6 +254,7 @@ func _start_dash(input_dir: float) -> void:
 	_health.set_invulnerable_for(stats.dash_duration + 0.05)
 	_dash_cooldown.start()
 	_combo_index = 0
+	AudioManager.play(&"dash")
 	_change_state(State.DASH)
 	_visual.play_state(&"dash")
 
@@ -299,6 +301,7 @@ func _fire_spirit_slash() -> void:
 	var start: Vector2 = global_position + Vector2(facing * 40.0, -60.0)
 	projectile.setup(facing, stats.spirit_slash_damage, stats.spirit_slash_speed,
 			stats.spirit_slash_range, stats.spirit_slash_knockback, self, start)
+	AudioManager.play(&"spirit_slash")
 	if projectile_fired.get_connections().is_empty():
 		get_parent().add_child(projectile)
 	else:

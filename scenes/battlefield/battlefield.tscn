@@ -116,9 +116,13 @@ position = Vector2(420, 880)
 
 [node name="Projectiles" type="Node2D" parent="World"]
 
-[node name="BattleFeedback" type="Node" parent="World" node_paths=PackedStringArray("camera")]
+[node name="Effects" type="Node2D" parent="World"]
+
+[node name="BattleFeedback" type="Node" parent="World" node_paths=PackedStringArray("camera", "numbers_parent")]
+process_mode = 3
 script = ExtResource("16_feedback")
 camera = NodePath("../../Camera2D")
+numbers_parent = NodePath("../Effects")
 
 [node name="Hud" parent="." instance=ExtResource("5_hud")]
 

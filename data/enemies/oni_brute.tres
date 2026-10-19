@@ -14,6 +14,7 @@ knockback = 420.0
 hitbox_offset = Vector2(60, -90)
 hitbox_size = Vector2(260, 160)
 lunge_speed = 0.0
+heavy = true
 
 [resource]
 script = ExtResource("1_data")
@@ -24,7 +25,7 @@ move_speed = 40.0
 knockback_resistance = 0.8
 interruptible = false
 hurt_duration = 0.2
-gold_reward = 30
+gold_reward = 40
 xp_reward = 50
 aggro_range = 300.0
 attack_range = 110.0

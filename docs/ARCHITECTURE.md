@@ -114,9 +114,30 @@ Actors:
   - Existing caps stay: `EnemySpawner.max_alive` = 40 (including dying corpses) and `SummonManager.max_allies` = 6.
   - Not measured: GPU and rendering cost, and anything on a real iPhone.
 
+## Game feel (Phase 7)
+
+- **Audio autoload (the only autoload):** `Audio` = `scripts/systems/audio_manager.gd` (`AudioManager`).
+  - **Why it's justified:** a sound owned by a scene is cut off the moment that scene changes (the click on "Start", "Retry"), and the victory/defeat stings must play while the tree is paused. The manager uses `PROCESS_MODE_ALWAYS` and a pool of 12 `AudioStreamPlayer`s on the **SFX** bus, so the SFX volume setting applies.
+  - Gameplay calls the static `AudioManager.play(id)`, which does nothing when no manager exists, so scenes and tests don't depend on the autoload.
+  - It connects to `SceneTree.node_added`, so every `BaseButton` gets a click sound (opt out with the `no_click_sfx` meta).
+  - `shutdown_audio()` stops all players before quitting, so Godot doesn't report still-playing streams as leaked.
+- **Sound data:** `SfxLibrary`/`SfxEntry` in `data/audio/sfx_library.tres` give each id a stream, volume, pitch variation and minimum repeat interval (so 20 hits in one frame play once).
+  - The placeholder WAVs come from `tools/generate_sfx.gd`: deterministic synthesis, 16-bit mono, 22050 Hz, about 240 KB total.
+  - Replace a sound by overwriting its WAV or editing its entry.
+- **Hit reporting:** `HitData` now carries `heavy` (from `AttackProfile.heavy`, set on the samurai's heavy attack and the Oni Brute's slam) and `killed`.
+  - After applying a hit, `HurtboxComponent` calls the static `BattleFeedback.report_hit(victim, position, hit)`. The battlefield's `BattleFeedback` registers itself as `active` while in the tree, and outside a battle the call does nothing.
+  - Player, gate and enemy sounds and feedback now all go through this one path. The battlefield no longer listens to `HealthComponent.damaged` for feedback.
+- **BattleFeedback** (`PROCESS_MODE_ALWAYS`):
+  - **Hit sounds** by victim type.
+  - **Damage numbers** (`DamageNumber`, a self-freeing Node2D under `World/Effects`, at most 40 at a time).
+  - **Screen shake** behind its setting.
+  - **Vibration**, only if `can_vibrate(setting, OS.has_feature("mobile"))`.
+  - **Hit-stop:** `Engine.time_scale = 0.02` for 50 ms of real time on heavy hits and kills. It's ended by real-clock checks in `_process`, and also when the node leaves the tree, at battle end, and in `SceneRoutes.go_to()`, so a freeze can never carry into another scene or the result screen.
+- **Balance:** see the GDD. Kill gold went from 5/30 to 8/40, the clear bonus from 100 to 150, and upgrade cost growth from ×1.5 to ×1.2. A test simulates full progression and checks about 2 upgrades per clear.
+
 ## Tests
 
-Run `godot_console --headless --path . -s res://tests/run_tests.gd`. It covers HealthComponent, hitbox/hurtbox rules, the cooldown timer, Spirit Energy and summon validation, and WaveDirector flow (completion on death, completion when an enemy is freed, no double counting, and the break between waves). It also covers enemy target selection (priorities, range, gate fallback), the gate defeat condition (including the battlefield defeat flow), auto-pause on focus loss, connection cleanup, settings round-trip and validation, touch layout mirroring, the safe area, minimum touch target sizes (including every menu control), multitouch move + attack, and release on pause. It also covers rewards, upgrade purchases, upgrades reaching battle units, and SaveManager round-trip, backup, corruption fallback, validation and reset (using `user://test_saves/`). It also covers units whose target, or a projectile whose source, is freed mid-fight. The runner registers a `Logger`, and any test that logs an engine or script error fails, even if its assertions passed.
+Run `godot_console --headless --path . -s res://tests/run_tests.gd`. It covers HealthComponent, hitbox/hurtbox rules, the cooldown timer, Spirit Energy and summon validation, and WaveDirector flow (completion on death, completion when an enemy is freed, no double counting, and the break between waves). It also covers sound effects (files, SFX bus, throttling, button clicks), hit-stop (triggering, ending, never leaking), shake vs setting, damage numbers, vibration rules, the upgrades-per-clear balance, enemy target selection (priorities, range, gate fallback), the gate defeat condition (including the battlefield defeat flow), auto-pause on focus loss, connection cleanup, settings round-trip and validation, touch layout mirroring, the safe area, minimum touch target sizes (including every menu control), multitouch move + attack, and release on pause. It also covers rewards, upgrade purchases, upgrades reaching battle units, and SaveManager round-trip, backup, corruption fallback, validation and reset (using `user://test_saves/`). It also covers units whose target, or a projectile whose source, is freed mid-fight. The runner registers a `Logger`, and any test that logs an engine or script error fails, even if its assertions passed.
 
 ## Scene flow
 

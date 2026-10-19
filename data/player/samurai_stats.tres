@@ -46,6 +46,7 @@ knockback = 480.0
 hitbox_offset = Vector2(74, -66)
 hitbox_size = Vector2(140, 110)
 lunge_speed = 160.0
+heavy = true
 
 [resource]
 script = ExtResource("1_stats")

@@ -13,6 +13,8 @@ var damage: float = 0.0
 var knockback: float = 0.0
 ## Fixed knockback direction (-1 or 1). 0 pushes targets away from the source.
 var knockback_direction_x: float = 0.0
+## Current attack instance is a heavy attack (passed on in HitData).
+var heavy: bool = false
 
 var _active: bool = false
 var _time_left: float = -1.0
@@ -29,9 +31,10 @@ func _ready() -> void:
 
 
 ## Starts a new attack instance. A negative duration stays active until deactivate().
-func activate(p_damage: float, p_knockback: float, duration: float = -1.0) -> void:
+func activate(p_damage: float, p_knockback: float, duration: float = -1.0, p_heavy: bool = false) -> void:
 	damage = p_damage
 	knockback = p_knockback
+	heavy = p_heavy
 	_time_left = duration
 	_hit_targets.clear()
 	_active = true

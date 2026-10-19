@@ -5,6 +5,10 @@ extends RefCounted
 var damage: float
 var knockback: Vector2
 var source: Node
+## From a heavy attack (AttackProfile.heavy).
+var heavy: bool = false
+## This hit brought the target to 0 health.
+var killed: bool = false
 
 
 func _init(p_damage: float = 0.0, p_knockback: Vector2 = Vector2.ZERO, p_source: Node = null) -> void:
