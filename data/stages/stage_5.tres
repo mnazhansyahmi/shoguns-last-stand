@@ -21,4 +21,4 @@ clear_xp_bonus = 150
 defeat_reward_ratio = 0.5
 replay_gold_multiplier = 0.5
 atmosphere = ExtResource("atmo")
-description = "The Oni's lair. Survive the swarm, then the boss wave of Oni Brutes."
+description = "The Oni's lair. Survive the swarm, then face The Fallen Daimyo, the corrupted lord who commands it."

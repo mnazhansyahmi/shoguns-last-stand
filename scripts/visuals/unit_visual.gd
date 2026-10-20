@@ -186,6 +186,12 @@ func play_ultimate_strike() -> void:
 	play_state(&"strike")
 
 
+## A boss's phase (1..3): its lights burn brighter and it grows a little (the visual change of a phase).
+func set_rage(level: int) -> void:
+	_figure.rage = clampi(level, 1, 3)
+	_figure.scale = Vector2.ONE * (1.0 + 0.035 * float(_figure.rage - 1))
+
+
 ## Brief, partial lightening so damage is visible without losing the silhouette.
 func flash_hit() -> void:
 	_figure.flash = 1.0

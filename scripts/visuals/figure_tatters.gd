@@ -101,6 +101,16 @@ static func def(kind: InkFigure.Kind) -> Def:
 			d.speed = 5.5
 			d.color = InkPalette.HATAMOTO_ORANGE
 			d.flag = true
+		InkFigure.Kind.FALLEN_DAIMYO:
+			# A long torn cloak from the shoulders, streaming behind him.
+			d.back = Vector2(-21.0, -33.0)
+			d.front = Vector2(-4.0, -33.0)
+			d.drop = 78.0
+			d.teeth = 6
+			d.ragged = 0.85
+			d.flutter = 3.4
+			d.speed = 5.0
+			d.color = InkPalette.INK_BACK
 		InkFigure.Kind.ONI_BRUTE:
 			# Strips of hide hanging under the loincloth.
 			d.back = Vector2(-13.0, 3.0)

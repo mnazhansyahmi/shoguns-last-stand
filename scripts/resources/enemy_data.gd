@@ -35,3 +35,5 @@ enum TargetKind { PLAYER, ALLY, GATE }
 ## Collision and hurtbox size; the figure is drawn at this height.
 @export var body_size: Vector2 = Vector2(46.0, 110.0)
 @export var figure: InkFigure.Kind = InkFigure.Kind.HOLLOW_SOLDIER
+## A different scene to spawn this enemy with (a boss uses scenes/enemies/boss.tscn). Null = the generic enemy.
+@export var scene: PackedScene

@@ -99,3 +99,4 @@ Tick each box as you go. If a step fails, note what you saw and stop: later step
 | 11 | The game can be played on Windows | | |
 | 12 | HUD supports simulated mobile controls | | |
 | 13 | Automated tests pass | | |
+- [ ] **Stage 5 boss:** the final wave brings The Fallen Daimyo (a tall, torn lord with a glowing green-yellow blade) and a few Hollow Soldiers. A bar with his name sits at the top of the screen, with ticks at one third and two thirds. Every attack warns first: the sweep (blade coiled high, an oval on the ground), the slam (blade overhead, a ring around him), and in phase 2 the leap (a ring where you stand) and the cursed wave (a strip along the ground). At about 66% and 33% he roars, untouchable, with a shockwave and a banner, and gets faster and brighter; in phase 3 he calls three Hollow Soldiers, each marked by a ring. He ignores hits (no stagger). The stage ends only when he dies, and his soldiers fall with him.

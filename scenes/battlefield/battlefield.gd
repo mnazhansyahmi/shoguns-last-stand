@@ -422,6 +422,32 @@ func _on_wave_cleared(wave_number: int) -> void:
 
 func _on_enemy_spawned(enemy: Enemy) -> void:
 	enemy.defeated.connect(_on_enemy_defeated)
+	var boss: Boss = enemy as Boss
+	if boss != null:
+		_hud.show_boss(boss.data.display_name)
+		boss.boss_health_changed.connect(_hud.set_boss_health)
+		_hud.set_boss_health(boss.get_health().current_health, boss.get_health().max_health)
+		boss.phase_changed.connect(_on_boss_phase_changed)
+		boss.minions_requested.connect(_on_boss_minions_requested.bind(boss))
+		boss.defeated.connect(_on_boss_defeated)
+
+
+func _on_boss_phase_changed(_phase: int, banner: String) -> void:
+	if not banner.is_empty():
+		_hud.show_banner(banner)
+
+
+## The boss calls minions: they rise at the given x positions and fall with him.
+func _on_boss_minions_requested(enemy_data: EnemyData, positions: PackedFloat32Array, boss: Boss) -> void:
+	for x: float in positions:
+		var minion: Enemy = _spawner.spawn(enemy_data)
+		if minion != null:
+			minion.global_position = Vector2(x, boss.global_position.y)
+			boss.register_minion(minion)
+
+
+func _on_boss_defeated(_enemy: Enemy) -> void:
+	_hud.hide_boss()
 
 
 ## Every enemy killed (wave or debug) is worth its reward.

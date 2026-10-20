@@ -23,7 +23,8 @@ func spawn(enemy_data: EnemyData) -> Enemy:
 		push_warning("EnemySpawner: enemy limit (%d) reached, spawn skipped." % max_alive)
 		return null
 	var parent: Node = container if is_instance_valid(container) else get_parent()
-	var enemy: Enemy = ENEMY_SCENE.instantiate() as Enemy
+	var scene: PackedScene = enemy_data.scene if enemy_data.scene != null else ENEMY_SCENE
+	var enemy: Enemy = scene.instantiate() as Enemy
 	enemy.setup(enemy_data)
 	parent.add_child(enemy)
 	enemy.global_position = global_position + Vector2(randf_range(-spawn_jitter_x, spawn_jitter_x), 0.0)

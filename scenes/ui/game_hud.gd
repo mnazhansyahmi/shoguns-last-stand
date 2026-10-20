@@ -36,6 +36,8 @@ const INDICATOR_GAP: float = 14.0
 @onready var _touch_spacer: Control = %TouchSpacer
 
 var _safe_rect: Rect2 = Rect2()
+## The boss's bar with his name, under the wave text at the top of the screen (hidden without a boss).
+var _boss_bar: FillBar
 var _gate_indicator: EdgeIndicator
 var _enemy_indicator: EdgeIndicator
 var _banner_tween: Tween
@@ -55,9 +57,42 @@ func _ready() -> void:
 	_enemy_indicator.points_left = false
 	add_child(_enemy_indicator)
 	_place_indicators(get_viewport().get_visible_rect())
+	_boss_bar = FillBar.new()
+	_boss_bar.name = "BossBar"
+	_boss_bar.custom_minimum_size = Vector2(780.0, 50.0)
+	_boss_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_boss_bar.fill_color = Color(InkPalette.DAIMYO_CURSE.darkened(0.25), 1.0)
+	_boss_bar.font_size = 28
+	# Ticks at one third and two thirds mark where the phases change.
+	_boss_bar.segments = 3
+	_boss_bar.visible = false
+	_wave_box.add_child(_boss_bar)
 	_pause_button.pressed.connect(pause_requested.emit)
 	_top_left.resized.connect(_update_pivots)
 	_wave_box.resized.connect(_update_pivots)
+
+
+## Shows the boss bar with the boss's name.
+func show_boss(boss_name: String) -> void:
+	_boss_bar.caption = boss_name
+	_boss_bar.visible = true
+	_boss_bar.queue_redraw()
+
+
+func set_boss_health(current: float, maximum: float) -> void:
+	_boss_bar.set_ratio_text(current / maxf(maximum, 0.001), "%d%%" % ceili(current / maxf(maximum, 0.001) * 100.0))
+
+
+func hide_boss() -> void:
+	_boss_bar.visible = false
+
+
+func is_boss_bar_visible() -> bool:
+	return _boss_bar.visible
+
+
+func get_boss_bar() -> FillBar:
+	return _boss_bar
 
 
 func set_player_health(current: float, maximum: float) -> void:

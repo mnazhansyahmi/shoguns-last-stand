@@ -24,6 +24,8 @@ const HEALER_JADE: Color = Color("#5fd4a0")
 const GUARDIAN_AZURE: Color = Color("#4f86e0")
 const ONMYOJI_MAGENTA: Color = Color("#d65db1")
 const HATAMOTO_ORANGE: Color = Color("#f08a2e")
+## The Fallen Daimyo's one accent: a sickly cursed green-yellow.
+const DAIMYO_CURSE: Color = Color("#b4ec3c")
 
 # --- Shared effects ---------------------------------------------------------
 const SPIRIT: Color = Color("#8fe3ff")

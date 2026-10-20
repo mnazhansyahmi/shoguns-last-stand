@@ -66,7 +66,7 @@ An ally's upgrades show in the upgrade menu from the start but can only be bough
 
 Every stage is a different sunset (indigo to crimson to gold): Golden Sunset, Rose Dusk, Misty Grove, Broken Shrine (blood red) and Oni's Hollow (an eclipse). Pampas grass and reeds sway in wind that gusts and changes, red maple leaves and petals drift on it, light rays cut through the fog, and a thin rim of the sun's light outlines every fighter. See docs/ART_BIBLE.md.
 
-Stages unlock in order (stage N needs stage N-1 cleared) and are picked on the stage select screen (Start). Only Hollow Soldiers and Oni Brutes appear. Oni Brutes head for the gate once it is in range (target priority gate → allies → player).
+Stages unlock in order (stage N needs stage N-1 cleared) and are picked on the stage select screen (Start). Hollow Soldiers and Oni Brutes appear, and stage 5 ends with a boss, The Fallen Daimyo (below). Oni Brutes head for the gate once it is in range (target priority gate → allies → player).
 
 | # | Stage | Waves | Soldiers | Oni | Fastest spawn | First clear gold | Replay gold |
 |---|---|---|---|---|---|---|---|
@@ -120,3 +120,19 @@ The first stage 1 clear buys 2 upgrades. Stage 1 is winnable with no upgrades.
 - **Screen shake:** player hits, gate hits, heavy hits and kills, if Screen shake is on.
 - **Damage numbers:** float up from every hit. Pale yellow means damage to enemies, orange "N!" a heavy hit, and red damage to the samurai, allies or gate. Quick hits on the same target merge into one growing number, numbers that would overlap stack upward with a gap, and at most 6 are on screen (a new one pushes out the oldest).
 - **Vibration:** 45 ms when the samurai is hit and 20 ms when the samurai lands a heavy hit, only on phones/tablets with Vibration on.
+
+## Boss: The Fallen Daimyo (stage 5, final wave)
+
+A corrupted samurai lord, taller and broader than the Oni, in torn armour with a cursed odachi that burns green-yellow. He arrives in the final wave of stage 5 with a few Hollow Soldiers and an Oni Brute; the stage is won only when he dies (his called minions fall with him). He has 3600 health, never staggers and is never pushed back. A bar with his name sits at the top of the screen, with ticks where the phases change.
+
+He goes for the samurai first, then allies, then the gate. Every attack has a wind-up of at least 0.9 s: his pose changes and a warning fills on the ground (a ring, or a strip for the wave) where it will land.
+
+| Attack | Wind-up and warning | What it does | From |
+| --- | --- | --- | --- |
+| Sweeping Cut | blade coiled high behind him, a ground oval in front | a wide cut in front of him; a combo of 2 in phase 2 and 3 in phase 3 | phase 1 |
+| Ground Slam | blade raised overhead, a ring around him | a shockwave on both sides, heavy knockback | phase 1 |
+| Leaping Strike | a deep crouch, a ring where the target stands | he jumps there and lands with a blast | phase 2 |
+| Cursed Wave | blade held up and glowing, a strip along the ground | a wave races along the ground through everything (each hit once) | phase 2 |
+| Call of the Fallen | blade up, a ring under each soldier | three Hollow Soldiers rise (never more than six alive) | phase 3 |
+
+Phases: 100 to 66% (normal), 66 to 33% (1.2x speed, 1.15x damage, leap and wave), 33 to 0% (1.4x speed, 1.3x damage, the summon, longer combos). At each change he roars for 1.4 to 1.6 s, untouchable, with a shockwave, a short freeze and a banner; his lights burn brighter and he grows a little. Reward: 400 gold, 300 XP.

@@ -50,8 +50,8 @@ func test_region_has_five_loadable_stages() -> void:
 		for wave: WaveData in stage.waves:
 			assert_true(wave != null and not wave.entries.is_empty(), "%s: every wave has entries" % stage.stage_id)
 			for entry: WaveEntry in wave.entries:
-				assert_true(entry.enemy == HOLLOW_SOLDIER or entry.enemy == ONI_BRUTE,
-						"%s uses only Hollow Soldiers and Oni Brutes" % stage.stage_id)
+				assert_true(entry.enemy == HOLLOW_SOLDIER or entry.enemy == ONI_BRUTE or entry.enemy is BossData,
+						"%s uses only Hollow Soldiers, Oni Brutes and bosses" % stage.stage_id)
 	assert_eq(region.stages[0].stage_id, "stage_1", "stage 1 keeps its id (existing saves stay valid)")
 
 
@@ -66,11 +66,18 @@ func test_difficulty_rises_each_stage() -> void:
 		assert_true(_min_interval(after) <= _min_interval(before), "%s spawns at least as fast" % after.stage_id)
 		assert_true(after.get_full_clear_gold() > before.get_full_clear_gold(), "%s pays more" % after.stage_id)
 	var boss_wave: WaveData = stages[4].waves[stages[4].waves.size() - 1]
-	var boss_oni: int = 0
+	var bosses: int = 0
+	var minions: int = 0
 	for entry: WaveEntry in boss_wave.entries:
-		if entry.enemy == ONI_BRUTE:
-			boss_oni += entry.count
-	assert_true(boss_oni >= 3, "stage 5 ends with a boss wave of several Oni Brutes (%d)" % boss_oni)
+		if entry.enemy is BossData:
+			bosses += entry.count
+		else:
+			minions += entry.count
+	assert_eq(bosses, 1, "stage 5 ends with one boss, The Fallen Daimyo")
+	assert_true(minions >= 3 and minions <= 12, "with a few minions (%d)" % minions)
+	for i: int in 4:
+		for entry: WaveEntry in stages[4].waves[i].entries:
+			assert_true(not (entry.enemy is BossData), "the boss comes only in the final wave")
 
 
 # --- Unlocks ----------------------------------------------------------------

@@ -7,7 +7,7 @@
 [sub_resource type="Resource" id="Entry_1"]
 script = ExtResource("2_entry")
 enemy = ExtResource("3_hollow")
-count = 16
+count = 18
 start_delay = 0.0
 spawn_interval = 0.45
 

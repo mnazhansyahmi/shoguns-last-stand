@@ -337,6 +337,43 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.death_accent = InkPalette.HATAMOTO_ORANGE
 			s.springy = true
 			s.loose_armour = true
+		InkFigure.Kind.FALLEN_DAIMYO:
+			s.accent = InkPalette.DAIMYO_CURSE
+			# A boss: heavy and slow to breathe, the odachi held in two hands, nothing springs loose.
+			s.hip_y = 46.0
+			s.thigh = 23.0
+			s.shin = 23.0
+			s.thigh_w = Vector2(11.0, 9.5)
+			s.shin_w = Vector2(9.5, 7.5)
+			s.foot = 11.0
+			s.stance = Vector2(8.0, -8.0)
+			s.stride_len = 11.0
+			s.shoulder_front = Vector2(7.0, -32.0)
+			s.shoulder_back = Vector2(-6.0, -32.0)
+			s.upper_arm = 13.5
+			s.fore_arm = 13.5
+			s.arm_w = Vector2(8.5, 7.0)
+			s.fore_w = Vector2(7.0, 6.0)
+			s.hand_r = 4.0
+			s.neck = Vector2(3.0, -35.0)
+			s.head_top = 118.0
+			s.back_hand_on_weapon = Vector2(-16.0, 0.0)
+			s.cadence = 7.5
+			s.windup_rate = 12.0
+			s.shadow_width = 34.0
+			s.trail_span = Vector2(30.0, 108.0)
+			s.trail_core = Color(InkPalette.DAIMYO_CURSE.lerp(InkPalette.PAPER, 0.35), 0.85)
+			s.trail_edge = Color(InkPalette.DAIMYO_CURSE, 0.8)
+			s.is_enemy = true
+			s.death_accent = InkPalette.DAIMYO_CURSE
+			s.springy = true
+			# Proud and heavy: slow breath, a blade that hardly moves, a head that turns like a lord's.
+			s.breath_hz = 0.2
+			s.breath_amp = 0.012
+			s.idle_blade = Vector2(0.025, 1.0)
+			s.idle_lean = Vector2(0.015, 0.7)
+			s.idle_head = Vector2(0.05, 0.4)
+			s.idle_grip = 0.5
 	return s
 
 
@@ -362,6 +399,8 @@ static func pose(kind: InkFigure.Kind, state: StringName, step: int = 0, heavy: 
 			return _onmyoji(state)
 		InkFigure.Kind.HATAMOTO:
 			return _hatamoto(state)
+		InkFigure.Kind.FALLEN_DAIMYO:
+			return _daimyo(state, heavy)
 	return FigurePose.new()
 
 
@@ -422,7 +461,7 @@ static func samurai_title_pose() -> FigurePose:
 
 ## How a state moves for springy kinds (see PoseSpring).
 static func feel(kind: InkFigure.Kind, state: StringName, heavy: bool = false) -> PoseSpring.Feel:
-	if kind == InkFigure.Kind.HATAMOTO:
+	if kind == InkFigure.Kind.HATAMOTO or kind == InkFigure.Kind.FALLEN_DAIMYO:
 		return _hatamoto_feel(state)
 	if kind != InkFigure.Kind.SAMURAI:
 		return PoseSpring.Feel.new()
@@ -616,6 +655,37 @@ static func _hatamoto(state: StringName) -> FigurePose:
 		_:
 			p = FigurePose.make(0.05, 2.0, Vector2(13.0, -20.0), -0.85).with_spread(1.15)
 	p.pivot = Vector2(6.0, -31.0)
+	return p
+
+
+## The Fallen Daimyo: an odachi in both hands. Wind-ups are big and readable (a boss is fought by
+## reading them): `windup` coils the blade high behind him for the sweep (and crouches for the leap),
+## `heavy_windup` raises it overhead (the slam; in the air during the leap), `cast` holds it straight up
+## and glowing (the cursed wave and the summon), `strike` swings it (flat for a sweep, down for `heavy`).
+static func _daimyo(state: StringName, heavy: bool) -> FigurePose:
+	var p: FigurePose
+	match state:
+		&"run":
+			p = FigurePose.make(0.2, 3.0, Vector2(13.0, -14.0), 0.85).with_spread(1.1)
+		&"windup":
+			p = FigurePose.make(-0.2, 8.0, Vector2(2.0, -26.0), -2.1).with_head(-0.12).with_spread(1.6)
+		&"heavy_windup":
+			p = FigurePose.make(-0.28, 9.0, Vector2(15.0, -46.0), -1.4).with_head(-0.16).with_spread(1.7)
+		&"cast":
+			p = FigurePose.make(-0.12, 4.0, Vector2(13.0, -42.0), -1.52).with_head(-0.22).with_glow(1.0).with_spread(1.45)
+		&"strike":
+			if heavy:
+				p = FigurePose.make(0.42, 11.0, Vector2(28.0, -10.0), 0.9).with_offset(5.0).with_spread(1.8)
+			else:
+				p = FigurePose.make(0.3, 6.0, Vector2(28.0, -23.0), 0.05).with_offset(5.0).with_spread(1.7)
+		&"hurt":
+			p = FigurePose.make(-0.2, 3.0, Vector2(12.0, -14.0), 0.7).with_head(-0.25).with_offset(-3.0)
+		&"dead":
+			p = FigurePose.make(0.0, 0.0, Vector2(14.0, -5.0), 1.5).with_head(-0.2)
+		_:
+			# Dragging the blade: the point low in front, shoulders hunched, feet wide.
+			p = FigurePose.make(0.1, 2.0, Vector2(12.0, -13.0), 1.0).with_spread(1.2)
+	p.pivot = Vector2(7.0, -32.0)
 	return p
 
 

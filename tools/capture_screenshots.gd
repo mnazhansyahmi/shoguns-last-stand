@@ -63,6 +63,10 @@ func _run() -> void:
 		await _capture_crowd()
 		quit(0)
 		return
+	if _only == "boss":
+		await _capture_boss()
+		quit(0)
+		return
 	if _only == "playtest":
 		await _capture_playtest()
 		quit(0)
@@ -194,6 +198,71 @@ func _capture_ultimate(field: Node, spawner: EnemySpawner) -> void:
 	await _capture("ultimate_hold")
 	await _frames(60)
 	await _capture("ultimate_after")
+
+
+## The Fallen Daimyo in stage 5: each phase, the phase change, and the wind-up warning of every attack.
+func _capture_boss() -> void:
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
+	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
+	SceneRoutes.battle_stage = StageProgression.default_region().stages[4]
+	var field: Node = BATTLEFIELD.instantiate()
+	field.set("save_path", DATA_DIR + "/save.json")
+	field.set("settings_path", DATA_DIR + "/settings.cfg")
+	root.add_child(field)
+	_battle = field
+	var spawner: EnemySpawner = field.get_node("World/EnemySpawner")
+	var energy: SpiritEnergy = field.get_node("World/SpiritEnergy")
+	var summoner: SummonManager = field.get_node("World/SummonManager")
+	var player: Node2D = field.get_node("World/Player")
+	(player.get_node("HealthComponent") as HealthComponent).set_invulnerable_for(9999.0)
+	energy.max_energy = 3000.0
+	energy.set_energy(3000.0)
+	for slot: int in summoner.get_slot_count():
+		summoner.request_summon(slot)
+		await _frames(5)
+	var data: BossData = load("res://data/enemies/fallen_daimyo.tres") as BossData
+	var boss: Boss = spawner.spawn(data) as Boss
+	boss.global_position.x = 1250.0
+	player.global_position.x = 760.0
+	var health: HealthComponent = boss.get_node("HealthComponent") as HealthComponent
+	await _frames(100)
+	await _capture("boss_1_phase1")
+	for attack: BossAttackData in data.attacks:
+		if attack.min_phase > 1:
+			continue
+		await _boss_windup(boss, attack, "boss_1_%s_windup" % attack.id)
+	# Phase 2 at 66%: the roar, then the new attacks.
+	health.take_damage(health.max_health * 0.35)
+	await _frames(25)
+	await _capture("boss_2_roar")
+	await _frames(100)
+	await _capture("boss_2_phase2")
+	for attack: BossAttackData in data.attacks:
+		if attack.min_phase == 2:
+			await _boss_windup(boss, attack, "boss_2_%s_windup" % attack.id)
+	# Phase 3 at 33%.
+	health.take_damage(health.max_health * 0.33)
+	await _frames(25)
+	await _capture("boss_3_roar")
+	await _frames(110)
+	await _capture("boss_3_phase3")
+	for attack: BossAttackData in data.attacks:
+		if attack.min_phase == 3:
+			await _boss_windup(boss, attack, "boss_3_%s_windup" % attack.id)
+	field.free()
+
+
+## Starts one attack and captures it near the end of its wind-up, when the warning is almost full.
+func _boss_windup(boss: Boss, attack: BossAttackData, shot_name: String) -> void:
+	boss.call("_cancel_attack")
+	boss.call("_resume")
+	boss.set("_gap_left", 0.0)
+	boss.call("_begin_attack", attack)
+	var seconds: float = attack.windup / boss.get_phase_data().speed_multiplier * 0.85
+	await _frames(int(seconds * 60.0))
+	await _capture(shot_name)
+	await _frames(70)
 
 
 ## A crowded battle for the playtest checks: six allies at the gate, a column of soldiers, an Oni

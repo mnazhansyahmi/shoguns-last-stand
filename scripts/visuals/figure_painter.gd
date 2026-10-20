@@ -107,12 +107,18 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			order.append_array([&"hakama_f", &"skirt", &"torso", &"head"])
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"pauldron_front", &"weapon"])
+		InkFigure.Kind.FALLEN_DAIMYO:
+			# The torn cloak ("hem") hangs behind everything; he holds the odachi in both hands.
+			order.append_array([&"hem", &"pauldron_back"] + _BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
+			order.append_array([&"torso", &"head", &"weapon"])
+			order.append_array(_FRONT_ARM + [&"pauldron_front"])
 	return order
 
 
 ## True for the six allies, who wear the lighter blue-slate ink (InkPalette.ALLY_INK).
 static func is_ally_tone(kind: InkFigure.Kind) -> bool:
-	return kind != InkFigure.Kind.SAMURAI and kind != InkFigure.Kind.HOLLOW_SOLDIER and kind != InkFigure.Kind.ONI_BRUTE
+	return kind != InkFigure.Kind.SAMURAI and kind != InkFigure.Kind.HOLLOW_SOLDIER and kind != InkFigure.Kind.ONI_BRUTE \
+			and kind != InkFigure.Kind.FALLEN_DAIMYO
 
 
 ## The ink colour `color` becomes on a kind: the allies' lighter tones, everyone else's unchanged.
@@ -145,7 +151,8 @@ static func part(kind: InkFigure.Kind, part_name: StringName) -> InkBatch:
 
 
 ## Glowing spots of a kind, one entry per part they sit on (one additive canvas item each):
-## { part, points (part space), radii (units), colors, follows, flicker }. follows = &"fall" (fades
+## { part, points (part space), radii (units), colors, follows, flicker, rage_min }. rage_min is the
+## first rage level (a boss's phase, InkFigure.rage) at which that light shows. follows = &"fall" (fades
 ## as the body falls) or &"pose_glow" (the spirit blade's glow). flicker (0..1) is how deeply the
 ## light pulses, each figure on its own random phase (InkFigure.flicker_phase).
 static func glows(kind: InkFigure.Kind) -> Array[Dictionary]:
@@ -173,6 +180,19 @@ static func glows(kind: InkFigure.Kind) -> Array[Dictionary]:
 			# The azure rim of the shield.
 			for y: float in [-34.0, -16.0, 2.0]:
 				_add_glow(merged, &"shield", Vector2(19.0, y), 6.0, Color(InkPalette.GUARDIAN_AZURE, 0.38), &"fall", 0.15)
+		InkFigure.Kind.FALLEN_DAIMYO:
+			# The cursed edge of the odachi, his eyes and the cracks in his armour. Phase 2 and 3 add a
+			# burning aura around the whole body.
+			var reach: float = 14.0
+			while reach <= 112.0:
+				_add_glow(merged, &"weapon", Vector2(reach, 0.5), 15.0, Color(InkPalette.DAIMYO_CURSE, 0.26), &"fall", 0.3)
+				reach += 9.0
+			_add_glow(merged, &"head", Vector2(6.5, -8.5), 6.0, Color(InkPalette.DAIMYO_CURSE, 0.95), &"fall", 0.25)
+			_add_glow(merged, &"head", Vector2(2.5, -9.0), 5.0, Color(InkPalette.DAIMYO_CURSE, 0.85), &"fall", 0.25)
+			for crack: Vector2 in [Vector2(3.0, -28.0), Vector2(6.0, -19.0), Vector2(-6.0, -24.0)]:
+				_add_glow(merged, &"torso", crack, 11.0, Color(InkPalette.DAIMYO_CURSE, 0.32), &"fall", 0.5)
+			_add_glow(merged, &"torso", Vector2(0.0, -22.0), 62.0, Color(InkPalette.DAIMYO_CURSE, 0.10), &"fall", 0.2, 2)
+			_add_glow(merged, &"torso", Vector2(0.0, -20.0), 100.0, Color(InkPalette.DAIMYO_CURSE, 0.11), &"fall", 0.3, 3)
 		InkFigure.Kind.ONMYOJI:
 			# The seal on the talisman burns, flickering like a candle.
 			_add_glow(merged, &"weapon", Vector2(20.0, 0.0), 11.0, Color(InkPalette.ONMYOJI_MAGENTA, 0.48), &"fall", 0.6)
@@ -195,11 +215,11 @@ static func glows(kind: InkFigure.Kind) -> Array[Dictionary]:
 	return result
 
 
-static func _add_glow(merged: Dictionary, part_name: StringName, point: Vector2, radius: float, color: Color, follows: StringName, flicker: float = 0.0) -> void:
-	var key: String = "%s/%s/%.2f" % [part_name, follows, flicker]
+static func _add_glow(merged: Dictionary, part_name: StringName, point: Vector2, radius: float, color: Color, follows: StringName, flicker: float = 0.0, rage_min: int = 1) -> void:
+	var key: String = "%s/%s/%.2f/%d" % [part_name, follows, flicker, rage_min]
 	if not merged.has(key):
 		merged[key] = {"part": part_name, "points": PackedVector2Array(), "radii": PackedFloat32Array(),
-				"colors": PackedColorArray(), "follows": follows, "flicker": flicker}
+				"colors": PackedColorArray(), "follows": follows, "flicker": flicker, "rage_min": rage_min}
 	# Packed arrays are values: append to copies and store them back.
 	var entry: Dictionary = merged[key]
 	var points: PackedVector2Array = entry["points"]
@@ -334,6 +354,8 @@ static func _build(kind: InkFigure.Kind) -> Dictionary:
 			_build_hollow(parts)
 		InkFigure.Kind.ONI_BRUTE:
 			_build_oni(parts)
+		InkFigure.Kind.FALLEN_DAIMYO:
+			DaimyoFigurePainter.build(parts)
 		_:
 			AllyFigurePainter.build(kind, parts)
 	# Every body part gets the sun's rim light (drawn once per part with the shared rim material).

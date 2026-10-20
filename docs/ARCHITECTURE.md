@@ -231,3 +231,20 @@ For now, Esc on the battlefield returns to the menu. A real pause menu replaces 
 - Ground top surface: y = 880
 - Gate: x = 180 (left edge)
 - Enemy spawn point: x = 1800 (right edge)
+
+## Bosses
+
+- **Data:** `BossData` extends `EnemyData` with `phases` (`BossPhaseData`: start health ratio, speed and damage multipliers,
+  pause time, attack gap, banner) and `attacks` (`BossAttackData`: kind SWEEP / SLAM / LEAP / WAVE / SUMMON, first phase,
+  range window, wind-up / active / recovery / cooldown, repeats per phase, hitbox, projectile and summon settings).
+  `EnemyData.scene` lets an enemy name its own scene: `EnemySpawner.spawn()` uses it (a boss is `scenes/enemies/boss.tscn`,
+  an inherited `enemy.tscn` with `boss.gd`). The fight is `data/enemies/fallen_daimyo.tres`; nothing about it is hard-coded.
+- **`Boss`** (`scenes/enemies/boss.gd`) extends `Enemy` and keeps its targeting, health and death. It overrides the attack
+  part of the state machine: `_choose_attack()` picks an attack that fits the distance and is off cooldown, `_start_windup()`
+  sets the pose and a ground warning, `_fire()` makes it land (the Enemy's own hitbox resized per attack, a leap, a
+  `CursedWave` projectile or a summon request), then recovery and a gap. At 66% and 33% health `_enter_phase()` cancels the
+  attack, makes him untouchable for the phase's pause and emits `phase_changed`. He has no random variation and no world
+  health bar. Damage still only flows through hitboxes and hurtboxes.
+- **Summons:** `minions_requested` carries the enemy data and the x positions; the battlefield spawns them through the spawner
+  and calls `register_minion()`. They are not part of the wave (the wave ends when the boss does) and die with him.
+- **HUD:** the battlefield shows the boss bar (`GameHud.show_boss()`, `set_boss_health()`, `hide_boss()`) when a `Boss` spawns.

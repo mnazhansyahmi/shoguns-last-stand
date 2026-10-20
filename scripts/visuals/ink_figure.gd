@@ -8,7 +8,7 @@ extends Node2D
 ## Soldier's hem are repainted. Feet are at the origin and the figure faces +x; the parent
 ## mirrors it for facing left. Glowing spots are additive child parts that fade by alpha.
 
-enum Kind { SAMURAI, ASHIGARU, YUMI_ARCHER, HOLLOW_SOLDIER, ONI_BRUTE, SHRINE_HEALER, SPEAR_GUARDIAN, ONMYOJI, HATAMOTO }
+enum Kind { SAMURAI, ASHIGARU, YUMI_ARCHER, HOLLOW_SOLDIER, ONI_BRUTE, SHRINE_HEALER, SPEAR_GUARDIAN, ONMYOJI, HATAMOTO, FALLEN_DAIMYO }
 
 ## Figure units per figure height (all proportions are authored at height 100).
 const UNIT: float = 100.0
@@ -36,6 +36,8 @@ var bob: float = 0.0
 var breath: float = 0.0
 ## Random phase of the glow's flicker, so a crowd's lights do not pulse together.
 var flicker_phase: float = 0.0
+## A boss's phase (1..3): more of its lights show and they burn brighter (FigurePainter.glows rage_min).
+var rage: int = 1
 ## 0 = standing still, 1 = running (cloth streams back).
 var trail: float = 0.0
 ## Seconds, drives cloth flutter.
@@ -79,6 +81,8 @@ var _dynamic_parts: Array[FigurePart] = []
 var _fall_glows: Array[FigurePart] = []
 ## How deeply each of _fall_glows flickers (0 = steady), index for index.
 var _glow_flicker: PackedFloat32Array = PackedFloat32Array()
+## The rage level each of _fall_glows first shows at, index for index.
+var _glow_rage_min: PackedInt32Array = PackedInt32Array()
 var _pose_glows: Array[FigurePart] = []
 var _bow_part: FigurePart
 var _bow_step: int = -1
@@ -226,7 +230,11 @@ func refresh() -> void:
 			# Two uneven sine waves read as a flame, not a metronome; the phase is the figure's own.
 			var wave: float = 0.5 + 0.3 * sin(clock * 5.3 + flicker_phase) + 0.2 * sin(clock * 8.9 + flicker_phase * 2.3)
 			pulse = 1.0 - _glow_flicker[i] * (1.0 - wave)
-		_fall_glows[i].modulate.a = strength * pulse
+		var burn: float = 1.0
+		if kind == Kind.FALLEN_DAIMYO:
+			burn = 0.7 + 0.15 * float(rage)
+		_fall_glows[i].visible = rage >= _glow_rage_min[i]
+		_fall_glows[i].modulate.a = strength * pulse * burn
 	# Hit flash: brighten every part toward paper.
 	modulate = Color.WHITE.lerp(FLASH_MODULATE, flash) if flash > 0.0 else Color.WHITE
 
@@ -314,6 +322,7 @@ func _build_parts() -> void:
 	_dynamic_parts.clear()
 	_fall_glows.clear()
 	_glow_flicker.resize(0)
+	_glow_rage_min.resize(0)
 	_pose_glows.clear()
 	_bow_part = null
 	_bow_step = -1
@@ -364,6 +373,7 @@ func _build_parts() -> void:
 		else:
 			_fall_glows.append(glow)
 			_glow_flicker.append(float(definition.get("flicker", 0.0)))
+			_glow_rage_min.append(int(definition.get("rage_min", 1)))
 
 
 ## The ground ring under the player (unit space, scaled by the MARKER slot).

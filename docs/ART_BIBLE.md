@@ -341,3 +341,22 @@ Effects never deal damage, never block input, and free themselves.
 2. Draw it with `InkBrush` helpers in a figure or backdrop painter.
 3. Check it against the silhouette test and the contrast rules. Run the tests, then render
    screenshots with `tools/capture_screenshots.gd` and look at them at phone size.
+
+## The Fallen Daimyo (stage 5 boss)
+
+A corrupted samurai lord in the same ink style, bigger than the Oni (250 px tall against 190). Original design:
+a hunched, broad dō with uneven tassets (some broken off), a rope sash with a frayed end, one cracked-away shoulder
+plate, a battered kabuto with one tall bent horn and one snapped stump and ragged neck lames, and a long torn cloak
+streaming from his shoulders (`FigureTatters`). His one accent is the cursed green-yellow `DAIMYO_CURSE` (`#B4EC3C`):
+the cracks in his armour, his eyes and the cutting edge of his two-handed odachi, all with a flickering glow (the blade's
+glow runs along its whole length). `DaimyoFigurePainter` builds him; he wears the enemies' near-black ink.
+
+- **Phases look different** (`UnitVisual.set_rage()`, `InkFigure.rage`): lights burn brighter in each phase, a burning
+  aura appears around his whole body in phase 2 and a bigger one in phase 3, and he is 3.5% bigger per phase.
+- **Poses are readable wind-ups** (`FigureKinds._daimyo`): `windup` coils the blade high behind him and crouches (sweep, leap),
+  `heavy_windup` raises it overhead (slam; also in the air during the leap), `cast` holds it straight up and glowing (wave,
+  summon), `strike` swings it flat (sweep) or down (heavy).
+- **Warnings** (`AttackTelegraph`): an outline always visible plus a fill that grows over the wind-up, in the accent colour,
+  on the ground where the attack lands: an oval for the sweep, slam, leap and each summoned soldier, a fainter strip for the
+  wave. They are visual only.
+- **Cursed wave** (`CursedWave`): a dark crescent with a cursed edge racing along the ground; it fades over its last 160 px.
