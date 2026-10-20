@@ -356,7 +356,7 @@ func test_project_uses_the_one_ink_theme() -> void:
 	if saved == null:
 		return
 	var built: Theme = InkThemeBuilder.build()
-	for variation: StringName in InkThemeBuilder.LABEL_VARIATIONS + InkThemeBuilder.BUTTON_VARIATIONS:
+	for variation: StringName in InkThemeBuilder.LABEL_VARIATIONS + InkThemeBuilder.BUTTON_VARIATIONS + InkThemeBuilder.PANEL_VARIATIONS:
 		assert_true(saved.get_type_variation_base(variation) != &"", "saved theme has %s (re-run tools/make_ui_theme.gd)" % variation)
 		if saved.has_color(&"font_color", variation):
 			assert_eq(saved.get_color(&"font_color", variation), built.get_color(&"font_color", variation), "%s colour is up to date" % variation)

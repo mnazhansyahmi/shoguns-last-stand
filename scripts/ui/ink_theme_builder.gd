@@ -12,7 +12,9 @@ const SERIF_FONTS: PackedStringArray = ["Yu Mincho", "Hiragino Mincho ProN", "No
 const LABEL_VARIATIONS: Array[StringName] = [&"TitleLabel", &"HeaderLabel", &"GoldLabel", &"DimLabel",
 		&"WarningLabel", &"SuccessLabel", &"SpiritLabel", &"HudLabel", &"HudDimLabel", &"HudTitleLabel",
 		&"HudBannerLabel", &"HudMessageLabel"]
-const BUTTON_VARIATIONS: Array[StringName] = [&"ToggleButton", &"PrimaryButton", &"DangerButton"]
+const BUTTON_VARIATIONS: Array[StringName] = [&"ToggleButton", &"PrimaryButton", &"DangerButton", &"CostButton", &"CostButtonShort"]
+## The upgrade shop's cards: an upgrade you can see, and one for an ally not yet unlocked.
+const PANEL_VARIATIONS: Array[StringName] = [&"CardPanel", &"CardPanelLocked"]
 
 
 static func build() -> Theme:
@@ -119,6 +121,17 @@ static func _buttons(theme: Theme) -> void:
 	theme.set_color(&"font_color", &"DangerButton", InkPalette.EMBER_TEXT)
 	theme.set_color(&"font_hover_color", &"DangerButton", InkPalette.PARCHMENT)
 
+	# The cost button of an upgrade card: gold when the upgrade can be bought, red when the gold is short.
+	theme.set_type_variation(&"CostButton", &"Button")
+	theme.set_stylebox(&"normal", &"CostButton", box(InkPalette.UI_BUTTON.lerp(InkPalette.GOLD, 0.14), InkPalette.GOLD_BRIGHT, 3))
+	theme.set_color(&"font_color", &"CostButton", InkPalette.GOLD_BRIGHT)
+	theme.set_color(&"font_focus_color", &"CostButton", InkPalette.GOLD_BRIGHT)
+	theme.set_type_variation(&"CostButtonShort", &"Button")
+	theme.set_stylebox(&"normal", &"CostButtonShort", box(InkPalette.UI_BUTTON, Color(InkPalette.CRIMSON, 0.9), 2))
+	theme.set_color(&"font_color", &"CostButtonShort", InkPalette.EMBER_TEXT)
+	theme.set_color(&"font_focus_color", &"CostButtonShort", InkPalette.EMBER_TEXT)
+	theme.set_color(&"font_hover_color", &"CostButtonShort", InkPalette.EMBER_TEXT)
+
 
 static func _panels(theme: Theme) -> void:
 	var panel: StyleBoxFlat = box(Color(InkPalette.UI_CHARCOAL, 0.94), InkPalette.GOLD, 2, 6)
@@ -127,6 +140,15 @@ static func _panels(theme: Theme) -> void:
 	panel.set_content_margin_all(24.0)
 	theme.set_stylebox(&"panel", &"PanelContainer", panel)
 	theme.set_stylebox(&"panel", &"Panel", panel)
+	# Upgrade cards: a charcoal card with a thin gold edge; a locked one is dimmer.
+	theme.set_type_variation(&"CardPanel", &"PanelContainer")
+	var card: StyleBoxFlat = box(Color(InkPalette.UI_CHARCOAL, 0.92), Color(InkPalette.GOLD, 0.75), 2, 8)
+	card.set_content_margin_all(14.0)
+	theme.set_stylebox(&"panel", &"CardPanel", card)
+	theme.set_type_variation(&"CardPanelLocked", &"PanelContainer")
+	var locked: StyleBoxFlat = box(Color(InkPalette.INK, 0.85), Color(InkPalette.UI_DISABLED, 0.5), 2, 8)
+	locked.set_content_margin_all(14.0)
+	theme.set_stylebox(&"panel", &"CardPanelLocked", locked)
 	# Dialogs (reset confirmation): framed window, transparent inner panel.
 	var window: StyleBoxFlat = box(Color(InkPalette.UI_CHARCOAL, 0.97), InkPalette.GOLD, 2, 6)
 	window.set_expand_margin_all(8.0)

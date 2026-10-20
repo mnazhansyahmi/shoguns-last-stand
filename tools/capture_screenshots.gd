@@ -111,6 +111,10 @@ func _run() -> void:
 		await _capture_ally_sheet("ally_silhouettes", Color.BLACK)
 		quit(0)
 		return
+	if _only == "upgrades":
+		await _capture_upgrades()
+		quit(0)
+		return
 	if _only.begins_with("kind:"):
 		await _capture_kind_sheet(_only.trim_prefix("kind:"))
 		quit(0)
@@ -739,6 +743,32 @@ func _label(sheet: Node2D, text: String, origin: Vector2) -> void:
 	label.add_theme_font_size_override("font_size", 18)
 	label.add_theme_color_override("font_color", InkPalette.INK)
 	sheet.add_child(label)
+
+
+## The upgrade shop on each of its four tabs, with some gold, some levels bought and only the first two stages cleared
+## (so the later allies are locked).
+func _capture_upgrades() -> void:
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.gold = 1280
+	progress.xp = 140
+	progress.stages_cleared = ["stage_1", "stage_2"] as Array[String]
+	for pair: Array in [["samurai_max_health", 3], ["samurai_damage", 5], ["ashigaru_health", 2], ["spirit_regen", 1],
+			["samurai_dash_cooldown", 2], ["army_command", 1], ["spirit_capacity", 4]]:
+		progress.set_upgrade_level(pair[0], pair[1])
+	SaveManager.new(DATA_DIR + "/upgrade_save.json").save_progress(progress)
+	var menu: Node = load("res://scenes/upgrade_menu/upgrade_menu.tscn").instantiate()
+	menu.set("save_path", DATA_DIR + "/upgrade_save.json")
+	root.add_child(menu)
+	await _frames(20)
+	for tab: int in UpgradeTabs.NAMES.size():
+		menu.call("select_tab", tab)
+		await _frames(12)
+		await _capture("upgrades_tab%d" % tab)
+		if tab == UpgradeTabs.Tab.ALLIES:
+			(menu.get_node("%Scroll") as ScrollContainer).scroll_vertical = 100000
+			await _frames(8)
+			await _capture("upgrades_tab2_locked")
+	menu.free()
 
 
 ## One character kind alone in every state (`--only=kind:hatamoto`): idle, run, windup, strike (all three combo steps
