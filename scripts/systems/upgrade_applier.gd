@@ -3,6 +3,18 @@ extends RefCounted
 ## Builds upgraded copies of base stats for a battle. Shared .tres resources are never modified.
 
 
+## Allies on the field at the start: six, plus one for every stage cleared, up to eleven.
+const BASE_ALLY_CAP: int = 6
+const MAX_STAGE_ALLY_CAP: int = 11
+
+
+## How many allies may stand at once: the stage-clear cap plus the Command upgrade's levels.
+static func build_ally_cap(progress: PlayerProgress, catalog: UpgradeCatalog) -> int:
+	var cleared: int = progress.stages_cleared.size() if progress != null else 0
+	var cap: int = clampi(BASE_ALLY_CAP + cleared, BASE_ALLY_CAP, MAX_STAGE_ALLY_CAP)
+	return cap + roundi(get_bonus(progress, catalog, UpgradeData.Target.ARMY, UpgradeData.Stat.ALLY_CAP))
+
+
 static func get_bonus(progress: PlayerProgress, catalog: UpgradeCatalog, target: UpgradeData.Target,
 		stat: UpgradeData.Stat, ally_id: String = "") -> float:
 	if progress == null or catalog == null:

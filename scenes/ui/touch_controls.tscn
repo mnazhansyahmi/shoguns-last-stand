@@ -97,6 +97,16 @@ caption = "Ultimate"
 base_color = Color(0.788, 0.635, 0.29, 1)
 font_size = 28
 
+[node name="StanceButton" type="Control" parent="Root"]
+layout_mode = 0
+mouse_filter = 2
+script = ExtResource("3_button")
+action = &"stance"
+caption = "Allies"
+sub_caption = "CHARGE"
+base_color = Color(0.843, 0.216, 0.169, 1)
+font_size = 28
+
 [node name="SummonCluster" type="Control" parent="Root"]
 layout_mode = 0
 offset_left = 770.0

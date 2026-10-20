@@ -6,6 +6,8 @@ extends Node2D
 signal ally_summoned(ally: Ally, slot: int)
 signal summon_failed(slot: int, result: Result)
 signal ally_count_changed(count: int, maximum: int)
+## The stance of every ally changed (key F / the stance button).
+signal stance_changed(stance: Ally.Stance)
 
 enum Result { OK, INVALID_SLOT, MAX_UNITS, ON_COOLDOWN, NOT_ENOUGH_ENERGY, NO_VALID_POSITION }
 
@@ -19,6 +21,8 @@ const POSITION_ATTEMPTS: int = 5
 ## Where summoned allies are parented. Defaults to this node's parent.
 @export var container: Node
 @export var max_allies: int = 6
+## CHARGE (default): allies advance to meet enemies. HOLD: they defend near the gate.
+@export var stance: Ally.Stance = Ally.Stance.CHARGE
 ## Valid world x range for spawning.
 @export var min_x: float = 200.0
 @export var max_x: float = 1750.0
@@ -59,6 +63,28 @@ func request_summon(slot: int) -> Result:
 		return result
 	_spawn(slot, spawn_x)
 	return Result.OK
+
+
+func get_stance() -> Ally.Stance:
+	return stance
+
+
+## Switches every ally on the field, and every ally summoned from now on.
+func set_stance(value: Ally.Stance) -> void:
+	stance = value
+	for node: Node in get_tree().get_nodes_in_group("allies"):
+		var ally: Ally = node as Ally
+		if ally != null:
+			ally.set_stance(value)
+	stance_changed.emit(value)
+
+
+func toggle_stance() -> void:
+	set_stance(Ally.Stance.HOLD if stance == Ally.Stance.CHARGE else Ally.Stance.CHARGE)
+
+
+static func stance_name(value: Ally.Stance) -> String:
+	return "CHARGE" if value == Ally.Stance.CHARGE else "HOLD"
 
 
 func get_slot_count() -> int:
@@ -132,6 +158,7 @@ func _spawn(slot: int, spawn_x: float) -> void:
 	var data: AllyData = ally_slots[slot]
 	var ally: Ally = ALLY_SCENE.instantiate() as Ally
 	ally.setup(data, spawn_x)
+	ally.stance = stance
 	var parent: Node = container if is_instance_valid(container) else get_parent()
 	parent.add_child(ally)
 	ally.global_position = Vector2(spawn_x, global_position.y)

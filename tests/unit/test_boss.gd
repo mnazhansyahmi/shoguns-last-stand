@@ -69,8 +69,11 @@ func test_the_boss_is_data_driven_like_other_enemies() -> void:
 	assert_eq(DAIMYO.figure, InkFigure.Kind.FALLEN_DAIMYO, "he is drawn as the Fallen Daimyo")
 	var spawner: EnemySpawner = add_to_tree(EnemySpawner.new()) as EnemySpawner
 	var spawned: Enemy = spawner.spawn(DAIMYO)
+	track(spawned)
 	assert_true(spawned is Boss, "the spawner makes a Boss from his data (and a plain Enemy from any other)")
-	assert_true(not (spawner.spawn(HOLLOW_SOLDIER) is Boss), "other enemies stay generic")
+	var plain: Enemy = spawner.spawn(HOLLOW_SOLDIER)
+	track(plain)
+	assert_true(not (plain is Boss), "other enemies stay generic")
 
 
 func test_three_phases_each_faster_and_harder() -> void:
@@ -388,6 +391,8 @@ func test_the_stage_is_won_only_when_the_boss_dies() -> void:
 	director.start()
 	director.tick(0.1)
 	director.tick(0.1)
+	for enemy: Enemy in spawned:
+		track(enemy)
 	assert_eq(spawned.size(), 2, "the boss and a minion are spawned")
 	var boss: Boss = null
 	var minion: Enemy = null

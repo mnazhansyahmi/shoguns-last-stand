@@ -14,6 +14,7 @@ extends CanvasLayer
 	"dash": $Root/ActionCluster/DashButton,
 	"slash": $Root/ActionCluster/SlashButton,
 	"ultimate": $Root/ActionCluster/UltimateButton,
+	"stance": $Root/StanceButton,
 	"summon_1": $Root/SummonCluster/Summon1Button,
 	"summon_2": $Root/SummonCluster/Summon2Button,
 	"summon_3": $Root/SummonCluster/Summon3Button,
@@ -71,6 +72,7 @@ func apply_layout(viewport_size: Vector2, safe_rect: Rect2, ui_scale: float, lef
 	_place(_joystick, rects["joystick"], viewport_size)
 	_place(_action_cluster, rects["actions"], viewport_size)
 	_place(_summon_cluster, rects["summons"], viewport_size)
+	_place(_buttons["stance"], rects["stance"], viewport_size)
 	var action_rects: Dictionary = TouchLayout.action_button_rects(ui_scale, left_handed)
 	for key: String in action_rects:
 		_set_local_rect(_buttons[key], action_rects[key])
@@ -118,7 +120,7 @@ func get_keep_out_rects() -> Array[Rect2]:
 	var rects: Array[Rect2] = []
 	if not _active:
 		return rects
-	for control: Control in [_joystick, _action_cluster, _summon_cluster]:
+	for control: Control in [_joystick, _action_cluster, _summon_cluster, _buttons["stance"]]:
 		rects.append(control.get_global_rect())
 	return rects
 
@@ -148,6 +150,16 @@ func set_ultimate_charge(ratio: float, is_ready: bool) -> void:
 		return
 	button.set_charge(ratio, is_ready)
 	button.set_captions("Ultimate", "READY" if is_ready else "%d%%" % floori(ratio * 100.0))
+
+
+## The ally stance button: "Allies" over the current stance, red while charging, blue while holding.
+func set_stance_state(stance_name: String, charging: bool) -> void:
+	var button: TouchActionButton = _buttons["stance"]
+	var color: Color = InkPalette.SAMURAI_RED if charging else InkPalette.GUARDIAN_AZURE
+	if color != button.base_color:
+		button.base_color = color
+		button.queue_redraw()
+	button.set_captions("Allies", stance_name)
 
 
 func set_summon_state(slot: int, name: String, cost: int, ratio: float, seconds: float, affordable: bool,

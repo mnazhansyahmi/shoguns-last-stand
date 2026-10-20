@@ -130,6 +130,18 @@ base_cost = 190
 cost_growth = 1.2
 effect_format = "+%s damage"
 
+[sub_resource type="Resource" id="Resource_command"]
+script = ExtResource("2_upgrade")
+id = "army_command"
+display_name = "Command (more allies)"
+target = 3
+stat = 3
+amount_per_level = 1.0
+max_level = 3
+base_cost = 400
+cost_growth = 1.6
+effect_format = "+%s allies on the field"
+
 [resource]
 script = ExtResource("1_catalog")
-upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_samurai_hp"), SubResource("Resource_samurai_damage"), SubResource("Resource_ashigaru_hp"), SubResource("Resource_ashigaru_damage"), SubResource("Resource_archer_damage"), SubResource("Resource_spirit_regen"), SubResource("Resource_healer_blessing"), SubResource("Resource_guardian_health"), SubResource("Resource_onmyoji_damage"), SubResource("Resource_hatamoto_damage")])
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_samurai_hp"), SubResource("Resource_samurai_damage"), SubResource("Resource_ashigaru_hp"), SubResource("Resource_ashigaru_damage"), SubResource("Resource_archer_damage"), SubResource("Resource_spirit_regen"), SubResource("Resource_healer_blessing"), SubResource("Resource_guardian_health"), SubResource("Resource_onmyoji_damage"), SubResource("Resource_hatamoto_damage"), SubResource("Resource_command")])

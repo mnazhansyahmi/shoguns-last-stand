@@ -23,6 +23,9 @@ const SUMMON_MIN_SIZE: float = 125.0
 const SUMMON_GAP: float = 18.0
 ## Free space kept between the summon bar and the joystick / action cluster.
 const SUMMON_SIDE_GAP: float = 24.0
+## The ally stance button sits above the summon bar.
+const STANCE_SIZE: Vector2 = Vector2(210.0, 125.0)
+const STANCE_GAP: float = 14.0
 ## Right-handed positions inside the action cluster (Attack nearest the thumb's corner).
 const ACTION_BUTTONS: Dictionary = {
 	"attack": Rect2(350.0, 160.0, 190.0, 190.0),
@@ -87,7 +90,10 @@ static func compute(viewport_size: Vector2, safe_rect: Rect2, ui_scale: float, l
 	if summons.intersects(joystick) or summons.intersects(actions):
 		summons.position.x = safe.get_center().x - summons_size.x * 0.5
 		summons.position.y = minf(joystick.position.y, actions.position.y) - MARGIN - summons_size.y
-	return {"joystick": joystick, "actions": actions, "summons": summons}
+	var stance_size: Vector2 = STANCE_SIZE * minf(scale_factor, 1.15)
+	stance_size = Vector2(maxf(stance_size.x, MIN_TOUCH_TARGET), maxf(stance_size.y, MIN_TOUCH_TARGET))
+	var stance: Rect2 = Rect2(Vector2(summons.get_center().x - stance_size.x * 0.5, summons.position.y - STANCE_GAP - stance_size.y), stance_size)
+	return {"joystick": joystick, "actions": actions, "summons": summons, "stance": stance}
 
 
 ## How far (in screen units) the view must move up so the ground line, currently at

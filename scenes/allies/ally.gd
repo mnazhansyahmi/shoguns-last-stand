@@ -20,6 +20,14 @@ const FRICTION: float = 1800.0
 const CORPSE_TIME: float = 0.8
 const HOME_TOLERANCE: float = 10.0
 const LOSE_TARGET_FACTOR: float = 1.5
+## CHARGE: allies notice enemies this far away (the whole field) and advance to fight them, but stop at this
+## front line (world x), so they meet the enemies halfway and never walk into the spawn portal.
+const CHARGE_AGGRO: float = 1800.0
+const CHARGE_FRONT_X: float = 1250.0
+
+## CHARGE: advance to meet enemies as they spawn and fight forward. HOLD: wait near where they were
+## summoned (by the gate) and fight what comes within their own range.
+enum Stance { CHARGE, HOLD }
 const INTERRUPT_ATTACK_DELAY: float = 0.3
 ## Allies are DRAWN in their own sideways lane (px), so a group standing on one spot reads as separate
 ## people, not one dark blob. Only the picture moves: bodies, hitboxes, reach and summoning are
@@ -29,6 +37,8 @@ const LANES: Array[float] = [0.0, -42.0, 42.0, -21.0, 21.0, -63.0, 63.0, -10.0, 
 @export var data: AllyData
 ## Where the ally waits when no enemy is in range. NAN = position when it enters the tree.
 @export var home_x: float = NAN
+## Set by the SummonManager. An ally made without one (a test) holds, as allies always did.
+var stance: Stance = Stance.HOLD
 ## The sideways offset this ally is drawn at (see LANES).
 var lane_x: float = 0.0
 
@@ -122,6 +132,15 @@ func _physics_process(delta: float) -> void:
 
 # --- Public API -------------------------------------------------------------
 
+func set_stance(value: Stance) -> void:
+	stance = value
+
+
+## How far it notices enemies: its own range, or the whole field while charging.
+func _aggro_range() -> float:
+	return maxf(data.aggro_range, CHARGE_AGGRO) if stance == Stance.CHARGE else data.aggro_range
+
+
 func is_targetable() -> bool:
 	return _state != State.DEAD
 
@@ -146,7 +165,7 @@ func get_target() -> Enemy:
 ## Nearest living enemy within aggro range, or null.
 func select_target() -> Enemy:
 	var best: Enemy = null
-	var best_distance: float = data.aggro_range
+	var best_distance: float = _aggro_range()
 	for node: Node in get_tree().get_nodes_in_group("enemies"):
 		var enemy: Enemy = node as Enemy
 		if not _is_valid_enemy(enemy):
@@ -176,6 +195,12 @@ func _process_idle(delta: float) -> void:
 
 
 func _idle_at_home(delta: float) -> void:
+	if stance == Stance.CHARGE:
+		# Charging allies wait where they are: the next enemies come to the front line.
+		_brake(delta)
+		_set_facing(1)
+		_visual.play_state(&"idle")
+		return
 	var dx: float = home_x - global_position.x
 	if absf(dx) > HOME_TOLERANCE:
 		_walk(-1 if dx < 0.0 else 1, delta)
@@ -220,7 +245,7 @@ func _find_heal_target() -> Ally:
 		var ally: Ally = node as Ally
 		if ally == null or ally == self or not ally.is_inside_tree() or ally.is_dead():
 			continue
-		if absf(ally.global_position.x - global_position.x) > data.aggro_range:
+		if absf(ally.global_position.x - global_position.x) > _aggro_range():
 			continue
 		var ratio: float = ally.get_health().get_ratio()
 		if ratio < best_ratio:
@@ -252,7 +277,7 @@ func _process_advance(delta: float) -> void:
 		_change_state(State.IDLE)
 		return
 	var dx: float = _target.global_position.x - global_position.x
-	if absf(dx) > data.aggro_range * LOSE_TARGET_FACTOR:
+	if absf(dx) > _aggro_range() * LOSE_TARGET_FACTOR:
 		_target = null
 		_change_state(State.IDLE)
 		return
@@ -362,6 +387,8 @@ func _walk(direction: int, delta: float) -> void:
 	_set_facing(direction)
 	var speed: float = data.move_speed * _visual.speed_variation
 	var desired: float = 0.0 if _is_blocked_by_other_ally(direction) else direction * speed
+	if stance == Stance.CHARGE and direction > 0 and global_position.x >= CHARGE_FRONT_X:
+		desired = 0.0
 	velocity.x = move_toward(velocity.x, desired, speed * 8.0 * delta)
 	_visual.play_state(&"run" if absf(velocity.x) > 1.0 else &"idle")
 

@@ -3,8 +3,10 @@ extends Resource
 ## One purchasable upgrade with levels. Bonus = amount_per_level × level.
 ## Cost of the next level = base_cost × cost_growth^current_level (rounded to 5 gold).
 
-enum Target { SAMURAI, ALLY, SPIRIT_ENERGY }
-enum Stat { MAX_HEALTH, DAMAGE, REGEN }
+enum Target { SAMURAI, ALLY, SPIRIT_ENERGY, ARMY }
+## ALLY_CAP: more allies on the field (ARMY). The cooldown and charge stats are in PERCENT per level (SAMURAI):
+## the dash and spirit slash cooldowns and the Ultimate's charge needed get that much shorter.
+enum Stat { MAX_HEALTH, DAMAGE, REGEN, ALLY_CAP, DASH_COOLDOWN, SLASH_COOLDOWN, ULTIMATE_CHARGE }
 
 ## Stable key stored in the save file. Never rename once shipped.
 @export var id: String = ""

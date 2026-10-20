@@ -125,7 +125,11 @@ func _process(delta: float) -> void:
 				_summoner.request_summon(slot)
 		if Input.is_action_just_pressed("ultimate"):
 			_ultimate.request()
+		if Input.is_action_just_pressed("stance"):
+			_summoner.toggle_stance()
+			_hud.show_message("Allies: %s" % SummonManager.stance_name(_summoner.get_stance()), 1.2)
 	_update_cooldown_displays()
+	_update_stance_display()
 	_hud.set_summon_text(_build_summon_text())
 	_update_wave_text()
 	_update_respawn(delta)
@@ -294,7 +298,14 @@ func _apply_upgrades() -> void:
 	for data: AllyData in ALLY_ROSTER.get_unlocked(_progress):
 		upgraded_slots.append(UpgradeApplier.build_ally_data(data, _progress, UPGRADE_CATALOG))
 	_summoner.ally_slots = upgraded_slots
+	_summoner.max_allies = UpgradeApplier.build_ally_cap(_progress, UPGRADE_CATALOG)
 	_energy.regen_per_second = UpgradeApplier.build_spirit_regen(_energy.regen_per_second, _progress, UPGRADE_CATALOG)
+
+
+func _update_stance_display() -> void:
+	var stance: Ally.Stance = _summoner.get_stance()
+	_hud.set_stance(SummonManager.stance_name(stance))
+	_touch.set_stance_state(SummonManager.stance_name(stance), stance == Ally.Stance.CHARGE)
 
 
 func _update_cooldown_displays() -> void:

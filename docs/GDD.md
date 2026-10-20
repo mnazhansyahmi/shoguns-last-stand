@@ -136,3 +136,11 @@ He goes for the samurai first, then allies, then the gate. Every attack has a wi
 | Call of the Fallen | blade up, a ring under each soldier | three Hollow Soldiers rise (never more than six alive) | phase 3 |
 
 Phases: 100 to 66% (normal), 66 to 33% (1.2x speed, 1.15x damage, leap and wave), 33 to 0% (1.4x speed, 1.3x damage, the summon, longer combos). At each change he roars for 1.4 to 1.6 s, untouchable, with a shockwave, a short freeze and a banner; his lights burn brighter and he grows a little. Reward: 400 gold, 300 XP.
+
+## Army size and ally stance
+
+- **Ally cap:** six allies at the start, plus one for every stage cleared (up to 11), plus the **Command** upgrade (+1 per level, 3 levels, 400 gold base). At most 14.
+- **Stance (key F, the Allies button above the summon bar on a phone, "Allies: CHARGE" on the HUD):**
+  - **CHARGE (default):** allies notice enemies anywhere on the field and advance to meet them, fighting forward. They stop at a front line (world x 1250) so they never walk into the spawn portal, and wait where they stand when no enemy is left.
+  - **HOLD:** allies wait near where they were summoned, by the gate, and fight what comes within their own range (the old behaviour).
+- **Balance (tools/balance_sim.gd, `stance=charge|hold`, 3 runs, no upgrades, stage caps in force):** allies-only stage 1: hold 2/3 wins (gate 41%, 251 s), charge 3/3 (gate 100%, 363 s). Allies-only stage 3: hold 1/3 (33%, 279 s), charge 1/3 (14%, 725 s). Bot stage 3: hold gate 100% in 165 s (9 allies summoned), charge gate 100% in 158 s (24 summoned). Bot stage 5: hold gate 75% in 319 s (36 summoned), charge gate 79% in 335 s (55 summoned). Charging allies are as good as holding ones at keeping the gate safe, but they die more (they fight forward in a trickle), so they cost more Spirit Energy; a front line at x 900 was tried and was not better.

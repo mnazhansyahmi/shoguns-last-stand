@@ -38,6 +38,8 @@ const INDICATOR_GAP: float = 14.0
 var _safe_rect: Rect2 = Rect2()
 ## The boss's bar with his name, under the wave text at the top of the screen (hidden without a boss).
 var _boss_bar: FillBar
+## "Allies: CHARGE (F)" under the ability bars.
+var _stance_label: Label
 var _gate_indicator: EdgeIndicator
 var _enemy_indicator: EdgeIndicator
 var _banner_tween: Tween
@@ -57,6 +59,12 @@ func _ready() -> void:
 	_enemy_indicator.points_left = false
 	add_child(_enemy_indicator)
 	_place_indicators(get_viewport().get_visible_rect())
+	_stance_label = Label.new()
+	_stance_label.name = "StanceLabel"
+	_stance_label.theme_type_variation = &"HudLabel"
+	_stance_label.add_theme_font_size_override("font_size", 26)
+	_stance_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_top_left.add_child(_stance_label)
 	_boss_bar = FillBar.new()
 	_boss_bar.name = "BossBar"
 	_boss_bar.custom_minimum_size = Vector2(780.0, 50.0)
@@ -70,6 +78,15 @@ func _ready() -> void:
 	_pause_button.pressed.connect(pause_requested.emit)
 	_top_left.resized.connect(_update_pivots)
 	_wave_box.resized.connect(_update_pivots)
+
+
+## The ally stance ("CHARGE" or "HOLD"), shown top left with its key.
+func set_stance(stance_name: String) -> void:
+	_stance_label.text = "Allies: %s%s" % [stance_name, "" if _touch_mode else "  [F]"]
+
+
+func get_stance_text() -> String:
+	return _stance_label.text
 
 
 ## Shows the boss bar with the boss's name.

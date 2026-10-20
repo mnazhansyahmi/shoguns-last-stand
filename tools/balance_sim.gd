@@ -40,6 +40,8 @@ class Clock extends Node:
 ## Allies the scripted summoner may use (ids); empty = every unlocked one.
 var _roster_filter: PackedStringArray = PackedStringArray()
 var _unlock_mode: String = "progressive"
+## "charge" or "hold" (the ally stance); empty = the game's default.
+var _stance_name: String = ""
 var _pressed: Dictionary = {}
 var _taps_this_frame: Array[StringName] = []
 
@@ -68,6 +70,8 @@ func _run() -> void:
 				upgrades[parts[0]] = int(parts[1])
 		elif arg.begins_with("roster="):
 			_roster_filter = arg.substr(7).split(",", false)
+		elif arg.begins_with("stance="):
+			_stance_name = arg.substr(7)
 		elif arg.begins_with("unlock="):
 			_unlock_mode = arg.substr(7)
 		elif arg == "curve" or arg == "zero":
@@ -93,7 +97,7 @@ func _run() -> void:
 			start.set_upgrade_level(id, upgrades[id])
 		for r: int in runs:
 			results.append(await run_battle(stage, mode, start))
-		_print_summary(stage, mode, upgrades, results)
+		_print_summary(stage, mode + (" stance=" + _stance_name if not _stance_name.is_empty() else ""), upgrades, results)
 	_cleanup_files()
 	await AudioManager.shutdown_audio(self)
 	quit()
@@ -135,6 +139,10 @@ func run_battle(stage: StageData, mode: String, progress: PlayerProgress) -> Dic
 	var summoner: SummonManager = field.get_node("World/SummonManager")
 	var energy: SpiritEnergy = field.get_node("World/SpiritEnergy")
 	var result_screen: ResultScreen = field.get_node("ResultScreen")
+	if _stance_name == "hold":
+		summoner.set_stance(Ally.Stance.HOLD)
+	elif _stance_name == "charge":
+		summoner.set_stance(Ally.Stance.CHARGE)
 	var stats: Dictionary = {"player_deaths": 0, "allies_summoned": 0, "allies_lost": 0}
 	player.died.connect(func() -> void: stats["player_deaths"] += 1)
 	summoner.ally_summoned.connect(func(ally: Ally, _slot: int) -> void:

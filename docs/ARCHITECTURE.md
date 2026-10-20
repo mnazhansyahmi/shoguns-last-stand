@@ -248,3 +248,8 @@ For now, Esc on the battlefield returns to the menu. A real pause menu replaces 
 - **Summons:** `minions_requested` carries the enemy data and the x positions; the battlefield spawns them through the spawner
   and calls `register_minion()`. They are not part of the wave (the wave ends when the boss does) and die with him.
 - **HUD:** the battlefield shows the boss bar (`GameHud.show_boss()`, `set_boss_health()`, `hide_boss()`) when a `Boss` spawns.
+
+## Army size and stance
+
+- `UpgradeApplier.build_ally_cap()` gives the cap: `BASE_ALLY_CAP` (6) plus the stages cleared (max `MAX_STAGE_ALLY_CAP`, 11) plus the `army_command` upgrade (`UpgradeData.Target.ARMY`, `Stat.ALLY_CAP`). The battlefield sets `SummonManager.max_allies` from it.
+- The stance lives on `SummonManager` (`stance`, `set_stance()`, `toggle_stance()`, `stance_changed`) and is copied to every `Ally` (`Ally.Stance`). An ally made without a manager holds. `Ally._aggro_range()` is the whole field while charging, `_walk()` stops a charging ally at `CHARGE_FRONT_X`, and `_idle_at_home()` keeps it where it stands. Key F is the `stance` input action; the touch button (`StanceButton`, rect `"stance"` from `TouchLayout.compute()`) presses the same action; the HUD label is `GameHud.set_stance()`.
