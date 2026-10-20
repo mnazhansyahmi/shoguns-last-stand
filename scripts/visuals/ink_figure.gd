@@ -181,15 +181,18 @@ func refresh() -> void:
 	var swing: float = sin(stride_phase) * stride * spec.stride_len
 	var front_foot: Vector2 = Vector2(spec.stance.x * pose.spread + swing, -maxf(0.0, cos(stride_phase)) * stride * spec.lift)
 	var back_foot: Vector2 = Vector2(spec.stance.y * pose.spread - swing, -maxf(0.0, -cos(stride_phase)) * stride * spec.lift)
-	front_ankle = front_foot + Vector2(0.0, -2.5)
-	back_ankle = back_foot + Vector2(0.0, -2.5)
+	front_ankle = _plant(hip + Vector2(2.0, 0.0), front_foot + Vector2(0.0, -2.5))
+	back_ankle = _plant(hip + Vector2(-2.0, 0.0), back_foot + Vector2(0.0, -2.5))
 	front_knee = InkBrush.solve_joint(hip + Vector2(2.0, 0.0), front_ankle, spec.thigh, spec.shin, -1.0)
 	back_knee = InkBrush.solve_joint(hip + Vector2(-2.0, 0.0), back_ankle, spec.thigh, spec.shin, -1.0)
 
+	_lift_fallen_legs()
 	torso_xf = root_xf * Transform2D(pose.lean, Vector2(1.0, 1.0 + spec.breath_amp * breath), 0.0, hip)
 	head_xf = torso_xf * Transform2D(pose.head_tilt + breath * 0.02, spec.neck)
 	weapon_local = Transform2D(pose.blade, pose.grip)
 	weapon_xf = torso_xf * weapon_local
+	_rest_weapon_on_ground()
+	weapon_local = torso_xf.affine_inverse() * weapon_xf
 
 	front_hand = pose.grip
 	var bow_hands: bool = kind == Kind.YUMI_ARCHER or (spec.has_back_bow and pose.sheathed > 0.5)
@@ -257,6 +260,75 @@ func refresh() -> void:
 	# Hit flash: brighten every part toward paper.
 	var tint: Color = Color.WHITE.lerp(FLASH_MODULATE, flash) if flash > 0.0 else Color.WHITE
 	modulate = tint.lerp(GOLD_MODULATE, gold_flash) if gold_flash > 0.0 else tint
+
+
+## Raises an ankle just enough that the foot (or the hakama hem) does not sink below the ground line, whatever the
+## stance and however the shin is tilted: a foot turns with its shin, so a tilted one would dig its toe in.
+func _plant(hip_point: Vector2, ankle: Vector2) -> Vector2:
+	var contacts: FigurePainter.GroundContacts = FigurePainter.ground_contacts(kind)
+	if contacts.points.is_empty():
+		return ankle
+	for pass_index: int in 2:
+		var dip: float = _lowest_contact(hip_point, ankle, Transform2D.IDENTITY) - contacts.allow
+		if dip <= 0.01:
+			break
+		ankle.y -= dip
+	return ankle
+
+
+## How far down (y, in the space `xf` maps root space to) the lowest point of a leg reaches: its foot, or its hem.
+func _lowest_contact(hip_point: Vector2, ankle: Vector2, xf: Transform2D) -> float:
+	var contacts: FigurePainter.GroundContacts = FigurePainter.ground_contacts(kind)
+	var origin: Vector2 = hip_point if contacts.from_hip else InkBrush.solve_joint(hip_point, ankle, spec.thigh, spec.shin, -1.0)
+	var offset: Vector2 = ankle - origin
+	var frame: Transform2D = xf * Transform2D(offset.angle(), Vector2(maxf(offset.length(), 0.001) / contacts.length, 1.0), 0.0, origin)
+	var lowest: float = -INF
+	for point: Vector2 in contacts.points:
+		lowest = maxf(lowest, (frame * point).y)
+	return lowest
+
+
+## While the body falls (it turns about the feet) the legs swing down through the ground: lift the whole body by the
+## depth they would reach.
+func _lift_fallen_legs() -> void:
+	var contacts: FigurePainter.GroundContacts = FigurePainter.ground_contacts(kind)
+	if fall <= 0.0 or contacts.points.is_empty():
+		return
+	var lowest: float = maxf(_lowest_contact(hip + Vector2(2.0, 0.0), front_ankle, root_xf),
+			_lowest_contact(hip + Vector2(-2.0, 0.0), back_ankle, root_xf))
+	var dip: float = lowest - contacts.allow * get_unit_scale()
+	if dip > 0.0:
+		root_xf.origin.y -= dip
+
+
+## A weapon never dips below the ground line (the feet are at y = 0): if its lowest point would, it is turned about
+## the grip just far enough to rest on the line, so a slam, a dropped weapon or a spring overshoot ends on the
+## ground and not in it.
+func _rest_weapon_on_ground() -> void:
+	var points: PackedVector2Array = FigurePainter.weapon_points(kind)
+	if points.is_empty():
+		return
+	for pass_index: int in 3:
+		var lowest: float = -INF
+		var low_point: Vector2 = Vector2.ZERO
+		for point: Vector2 in points:
+			var world: Vector2 = weapon_xf * point
+			if world.y > lowest:
+				lowest = world.y
+				low_point = world
+		if lowest <= 0.0:
+			return
+		var grip_point: Vector2 = weapon_xf.origin
+		var arm: Vector2 = low_point - grip_point
+		if arm.length() < 0.001:
+			return
+		# Turn it so the lowest point's height above the grip is exactly the grip's own height above the line.
+		var sine: float = clampf(-grip_point.y / arm.length(), -1.0, 1.0)
+		var current: float = arm.angle()
+		var first: float = wrapf(asin(sine) - current, -PI, PI)
+		var second: float = wrapf(PI - asin(sine) - current, -PI, PI)
+		var turn: float = first if absf(first) < absf(second) else second
+		weapon_xf = Transform2D(weapon_xf.x.rotated(turn), weapon_xf.y.rotated(turn), grip_point)
 
 
 ## Lets the cloth catch up with the time the figure's animator has advanced `clock` by. A long

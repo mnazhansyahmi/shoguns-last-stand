@@ -24,6 +24,56 @@ static var _bows: Dictionary = {}
 static var _hems: Dictionary = {}
 
 
+## Where a kind's legs touch the ground, for InkFigure planting its feet: the lower vertices of the leg part that
+## reaches the floor (the shin with its foot, or the samurai's hakama wedge down to its hem), in that part's space.
+class GroundContacts extends RefCounted:
+	var points: PackedVector2Array = PackedVector2Array()
+	## True when the part hangs from the hip (a hakama wedge); false when it hangs from the knee (a shin).
+	var from_hip: bool = false
+	## The part's rest length (its space's x axis ends there).
+	var length: float = 1.0
+	## How far below the ground line the part may rest (a hakama hem lies a little on the ground).
+	var allow: float = 0.0
+
+
+static var _contacts: Dictionary = {}
+## Kind -> the original vertices of its weapon (before the rim-light copy), weapon space.
+static var _weapon_points: Dictionary = {}
+
+
+static func ground_contacts(kind: InkFigure.Kind) -> GroundContacts:
+	if _contacts.has(kind):
+		return _contacts[kind]
+	var contacts: GroundContacts = GroundContacts.new()
+	var spec: FigureKinds.Spec = FigureKinds.spec(kind)
+	var hem: bool = layout(kind).has(&"hakama_f")
+	var batch: InkBatch = part(kind, &"hakama_f" if hem else &"shin_f")
+	if batch != null:
+		contacts.from_hip = hem
+		contacts.length = spec.thigh + spec.shin if hem else spec.shin
+		contacts.allow = 1.0 if hem else 0.0
+		for vertex: Vector2 in _original_vertices(batch):
+			if vertex.x > contacts.length * 0.5:
+				contacts.points.append(vertex)
+	_contacts[kind] = contacts
+	return contacts
+
+
+## The vertices of a kind's weapon in weapon space (empty if it carries none).
+static func weapon_points(kind: InkFigure.Kind) -> PackedVector2Array:
+	if not _weapon_points.has(kind):
+		var batch: InkBatch = part(kind, &"weapon")
+		_weapon_points[kind] = _original_vertices(batch) if batch != null else PackedVector2Array()
+	return _weapon_points[kind]
+
+
+## A part's own vertices: with the rim-light copy the batch holds them twice.
+static func _original_vertices(batch: InkBatch) -> PackedVector2Array:
+	if batch.uvs.size() == batch.vertices.size() and not batch.uvs.is_empty():
+		return batch.vertices.slice(0, batch.vertices.size() / 2)
+	return batch.vertices
+
+
 ## Body part slots: where a part sits each frame (InkFigure computes one transform per slot).
 enum Slot { SHADOW, MARKER, LOCAL, THIGH_F, SHIN_F, FOOT_F, THIGH_B, SHIN_B, FOOT_B, UPPER_F, FORE_F,
 		HAND_F, UPPER_B, FORE_B, HAND_B, TORSO, HEAD, WEAPON, PAULDRON_FRONT, HAKAMA_F, HAKAMA_B, SKIRT,

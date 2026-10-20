@@ -323,7 +323,10 @@ func test_all_touch_buttons_fit_the_phone_without_overlapping() -> void:
 		assert_true(cluster.encloses(rect), "%s is inside the cluster" % names[i])
 		assert_true(rect.size.x >= 130.0 and rect.size.y >= 130.0, "%s is big enough to hit" % names[i])
 		for j: int in range(i + 1, names.size()):
-			assert_true(not rect.intersects(TouchLayout.ACTION_BUTTONS[names[j]]), "%s and %s do not overlap" % [names[i], names[j]])
+			# The buttons are circles, so they may sit diagonally with their corners' boxes overlapping.
+			var other: Rect2 = TouchLayout.ACTION_BUTTONS[names[j]]
+			var gap: float = rect.get_center().distance_to(other.get_center()) - rect.size.x * 0.5 - other.size.x * 0.5
+			assert_true(gap >= 4.0, "%s and %s do not touch (gap %.0f)" % [names[i], names[j], gap])
 	for size: Vector2 in [Vector2(1920.0, 1080.0), Vector2(2341.0, 1080.0), Vector2(2560.0, 1080.0), Vector2(1664.0, 1080.0)]:
 		for ui_scale: float in [GameSettings.MIN_UI_SCALE, 1.0, 1.2]:
 			for left_handed: bool in [false, true]:

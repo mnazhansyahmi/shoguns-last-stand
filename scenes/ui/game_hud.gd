@@ -8,8 +8,8 @@ signal pause_requested
 
 const BANNER_FADE_TIME: float = 0.4
 const SCREEN_MARGIN: Vector2 = Vector2(32.0, 24.0)
-## Room kept free above the touch summon buttons for messages.
-const TOUCH_BOTTOM_SPACE: float = 230.0
+## Room kept free above the touch summon buttons and the Allies button for messages.
+const TOUCH_BOTTOM_SPACE: float = 380.0
 ## Edge indicator tabs start at least this far below the top of the safe area, and always below
 ## the top-left bars (left tab) or the pause button (right tab).
 const INDICATOR_TOP: float = 196.0
@@ -111,7 +111,6 @@ func set_skills_unlocked(bow: bool, war_cry: bool) -> void:
 		var bar: FillBar = _ability_bars[pair[0]]
 		bar.visible = true
 		bar.set_locked("" if pair[1] else SkillHints.locked_text_for(StringName(pair[0])))
-	_skill_row.visible = true
 
 
 ## True when the skill's bar is shown and usable (not locked).
@@ -250,6 +249,14 @@ func get_enemy_indicator() -> EdgeIndicator:
 	return _enemy_indicator
 
 
+## Screen y of the bottom edge of a top HUD block (the bars at the top left, the pause button): its top margin plus its
+## real content height times the UI scale. Computed, not read from the node, because a container is only laid out
+## a frame after its content changes (and a scaled control's own rect ignores its scale).
+func block_bottom(control: Control) -> float:
+	var height: float = maxf(control.size.y, control.get_combined_minimum_size().y)
+	return _safe_rect.position.y + SCREEN_MARGIN.y + height * _ui_scale
+
+
 ## Tabs sit at the screen edges just below the top HUD (health bars, pause button), above
 ## the fighters' heads and well clear of the touch controls.
 func _place_indicators(safe_rect: Rect2) -> void:
@@ -262,7 +269,7 @@ func _place_indicators(safe_rect: Rect2) -> void:
 		var width: float = EdgeIndicator.TAB_SIZE.x * _ui_scale
 		var x: float = safe_rect.position.x + 8.0 if indicator.points_left else safe_rect.end.x - 8.0 - width
 		var above: Control = _top_left if indicator.points_left else _pause_button
-		var below_hud: float = above.get_global_rect().end.y + INDICATOR_GAP if above.is_visible_in_tree() else top
+		var below_hud: float = block_bottom(above) + INDICATOR_GAP if above.is_visible_in_tree() else top
 		indicator.position = Vector2(x, maxf(top, below_hud))
 
 
@@ -310,7 +317,15 @@ func _refresh_bottom() -> void:
 	_summon_label.visible = not _touch_mode
 	_hint_label.visible = not _touch_mode
 	_debug_hint_label.visible = _debug_hint_allowed and not _touch_mode
+	# Touch buttons show their own cooldowns and the Allies button shows the stance, so the timer rows and the stance
+	# line are for the keyboard only.
 	_ability_row.visible = not _touch_mode
+	if _skill_row != null:
+		_skill_row.visible = not _touch_mode
+	if _stance_label != null:
+		_stance_label.visible = not _touch_mode
+	if _safe_rect.size != Vector2.ZERO:
+		_place_indicators(_safe_rect)
 	_touch_spacer.custom_minimum_size.y = TOUCH_BOTTOM_SPACE * _ui_scale if _touch_mode else 0.0
 
 

@@ -26,17 +26,18 @@ const SUMMON_SIDE_GAP: float = 24.0
 ## The ally stance button sits above the summon bar.
 const STANCE_SIZE: Vector2 = Vector2(210.0, 125.0)
 const STANCE_GAP: float = 14.0
-## Right-handed positions inside the action cluster (Attack nearest the thumb's corner).
+## Right-handed positions inside the action cluster: arcs around the Attack button, which sits under the thumb in the
+## corner. Closest ring: Heavy (to its left) and Dash (above it). Next ring: Spirit and Bow. Furthest: the Ultimate
+## (bottom left) and the War Cry (top). Every button is a circle at least 44 pt across and none touch.
 const ACTION_BUTTONS: Dictionary = {
 	"attack": Rect2(350.0, 308.0, 190.0, 190.0),
-	"heavy": Rect2(180.0, 348.0, 150.0, 150.0),
-	"dash": Rect2(370.0, 152.0, 150.0, 150.0),
-	"slash": Rect2(190.0, 172.0, 150.0, 150.0),
-	# The Ultimate sits apart, beside the other skills: big, and it glows when it is ready.
-	"ultimate": Rect2(0.0, 250.0, 170.0, 170.0),
-	# The two later skills in a row on top: the War Cry (Q) and the Bow (E). A locked skill has no button.
-	"war_cry": Rect2(230.0, 0.0, 140.0, 140.0),
-	"bow": Rect2(390.0, 0.0, 140.0, 140.0),
+	"heavy": Rect2(186.0, 328.0, 150.0, 150.0),
+	"dash": Rect2(370.0, 149.0, 150.0, 150.0),
+	"slash": Rect2(120.0, 170.0, 140.0, 140.0),
+	"bow": Rect2(235.0, 65.0, 140.0, 140.0),
+	# The Ultimate is big, and glows when it is ready.
+	"ultimate": Rect2(3.0, 310.0, 170.0, 170.0),
+	"war_cry": Rect2(385.0, 0.0, 140.0, 140.0),
 }
 
 
