@@ -186,7 +186,7 @@ func test_pressing_a_locked_skill_says_so_and_does_nothing() -> void:
 	assert_true(_arrows(player).is_empty(), "no arrow")
 
 
-func test_the_bow_fires_a_strong_arrow_then_has_a_short_cooldown() -> void:
+func test_the_bow_fires_a_light_quick_arrow_with_a_very_short_cooldown() -> void:
 	var player: Player = _player()
 	_press(&"bow", player)
 	assert_eq(player.get_state_name(), "BOW", "he draws the bow")
@@ -196,11 +196,14 @@ func test_the_bow_fires_a_strong_arrow_then_has_a_short_cooldown() -> void:
 	assert_eq(arrows.size(), 1, "one arrow flies")
 	if arrows.size() == 1:
 		var hitbox: HitboxComponent = arrows[0].get_node("Hitbox") as HitboxComponent
-		assert_almost_eq(hitbox.damage, player.stats.base_damage * player.stats.bow_damage_multiplier, "it hits harder than a plain cut (x1.5)")
+		assert_almost_eq(hitbox.damage, player.stats.base_damage * player.stats.bow_damage_multiplier, "it hits for the bow damage")
+		assert_true(hitbox.damage < player.stats.base_damage * 0.6, "lighter than a plain cut (%.0f against %.0f)" % [hitbox.damage, player.stats.base_damage])
 		assert_true(float(arrows[0].get("_range")) >= 1400.0, "and flies far (%.0f px)" % float(arrows[0].get("_range")))
 		assert_true(float(arrows[0].get("_speed")) >= 1200.0, "fast")
 	var cooldowns: Dictionary = player.get_ability_cooldowns()
-	assert_true((cooldowns["bow"] as Vector2).x > 1.0 and (cooldowns["bow"] as Vector2).y <= 3.0, "a short cooldown (2 s)")
+	assert_almost_eq((cooldowns["bow"] as Vector2).y, 0.4, "a very short cooldown (0.4 s)")
+	assert_true(player.stats.bow_windup + player.stats.bow_recovery <= player.stats.bow_cooldown, "and the shot is over before it ends")
+	assert_true(player.stats.bow_windup <= 0.2, "fast to fire (%.2f s)" % player.stats.bow_windup)
 	_tick_player(player, player.stats.bow_windup + player.stats.bow_recovery)
 	_press(&"bow", player)
 	assert_eq(_arrows(player).size(), 1, "no second arrow while it cools down")

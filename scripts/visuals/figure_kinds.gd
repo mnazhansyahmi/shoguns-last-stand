@@ -464,11 +464,11 @@ static func _samurai(state: StringName, step: int, heavy: bool) -> FigurePose:
 
 
 ## The Bow, in seconds from the key press: the samurai sheathes the katana and reaches back for the yumi on his
-## back (0.07), pulls it out (0.14), draws (0.28), aims, and looses at SHOOT_RELEASE_TIME (when the arrow leaves,
-## PlayerStats.bow_windup); then he follows through, stows the bow on his back and draws the katana again by
-## SHOOT_TIME (windup + recovery, about half a second).
-const SHOOT_RELEASE_TIME: float = 0.3
-const SHOOT_TIME: float = 0.5
+## back, pulls it out, draws, aims, and looses at SHOOT_RELEASE_TIME (when the arrow leaves, PlayerStats.bow_windup);
+## then he follows through, stows the bow on his back and draws the katana again by SHOOT_TIME (windup + recovery,
+## 0.3 s: the Bow fires every 0.4 s). The key poses are placed at fractions of SHOOT_TIME.
+const SHOOT_RELEASE_TIME: float = 0.18
+const SHOOT_TIME: float = 0.3
 ## The samurai's back hand rests here on the stowed yumi (torso space).
 const BACK_BOW_GRIP: Vector2 = Vector2(-20.5, -31.0)
 ## The War Cry: he gathers, then (at WAR_CRY_SHOUT_TIME, PlayerStats.war_cry_windup) throws the katana up and shouts.
@@ -483,17 +483,17 @@ static func samurai_shoot(t: float) -> FigurePose:
 		_shoot_keys = [
 			{"t": 0.0, "pose": _samurai(&"idle", 0, false)},
 			# Reach back: katana sheathed, the free hand goes over the shoulder to the yumi.
-			{"t": 0.07, "pose": _shoot_key(-0.06, 3.0, Vector2(15.0, -27.0), -0.1, BACK_BOW_GRIP, 0.0, false)},
+			{"t": 0.14 * SHOOT_TIME, "pose": _shoot_key(-0.06, 3.0, Vector2(15.0, -27.0), -0.1, BACK_BOW_GRIP, 0.0, false)},
 			# Pull it out: the bow is in the front hand, held out at head height.
-			{"t": 0.14, "pose": _shoot_key(0.04, 3.0, Vector2(24.0, -40.0), -0.06, Vector2(-14.0, -42.0), 0.0, true)},
+			{"t": 0.28 * SHOOT_TIME, "pose": _shoot_key(0.04, 3.0, Vector2(24.0, -40.0), -0.06, Vector2(-14.0, -42.0), 0.0, true)},
 			# Draw and aim.
-			{"t": 0.28, "pose": _shoot_key(0.1, 3.0, Vector2(25.0, -41.0), -0.06, Vector2(-14.0, -42.0), 1.0, true)},
+			{"t": 0.56 * SHOOT_TIME, "pose": _shoot_key(0.1, 3.0, Vector2(25.0, -41.0), -0.06, Vector2(-14.0, -42.0), 1.0, true)},
 			{"t": SHOOT_RELEASE_TIME, "pose": _shoot_key(0.1, 3.0, Vector2(25.0, -41.0), -0.06, Vector2(-14.0, -42.0), 1.0, true)},
 			# Release: the string snaps forward, the drawing hand flings back, the bow hand kicks.
-			{"t": 0.33, "pose": _shoot_key(0.06, 3.0, Vector2(23.0, -40.0), -0.1, Vector2(-17.0, -36.0), 0.0, true)},
-			{"t": 0.4, "pose": _shoot_key(0.04, 3.0, Vector2(22.0, -39.0), -0.12, Vector2(-17.0, -37.0), 0.0, true)},
+			{"t": 0.66 * SHOOT_TIME, "pose": _shoot_key(0.06, 3.0, Vector2(23.0, -40.0), -0.1, Vector2(-17.0, -36.0), 0.0, true)},
+			{"t": 0.8 * SHOOT_TIME, "pose": _shoot_key(0.04, 3.0, Vector2(22.0, -39.0), -0.12, Vector2(-17.0, -37.0), 0.0, true)},
 			# Stow: the bow goes back over the shoulder, the hand takes the katana again.
-			{"t": 0.46, "pose": _shoot_key(-0.02, 3.0, Vector2(16.0, -30.0), -0.2, BACK_BOW_GRIP, 0.0, true)},
+			{"t": 0.92 * SHOOT_TIME, "pose": _shoot_key(-0.02, 3.0, Vector2(16.0, -30.0), -0.2, BACK_BOW_GRIP, 0.0, true)},
 			{"t": SHOOT_TIME, "pose": _samurai(&"idle", 0, false)},
 		]
 	var keys: Array[Dictionary] = _shoot_keys

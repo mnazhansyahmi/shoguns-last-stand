@@ -33,16 +33,17 @@ extends Resource
 @export var spirit_slash_recovery: float = 0.25
 
 @export_group("Bow")
-## Arrow damage = base_damage x this. The arrow flies straight at any height, so it also reaches enemies
-## that are far away (and, later, flying ones).
-@export var bow_damage_multiplier: float = 1.5
+## The Bow is a ranged light slash: a quick, light arrow every 0.4 s. Arrow damage = base_damage x this. The arrow
+## flies straight at any height, so it also reaches enemies that are far away (and, later, flying ones).
+@export var bow_damage_multiplier: float = 0.45
 @export var bow_speed: float = 1500.0
 @export var bow_range: float = 1500.0
-@export var bow_knockback: float = 120.0
-@export var bow_cooldown: float = 2.0
-## The shot takes 0.5 s in all: the samurai takes the yumi off his back and draws (windup), looses, stows it.
-@export var bow_windup: float = 0.3
-@export var bow_recovery: float = 0.2
+@export var bow_knockback: float = 40.0
+@export var bow_cooldown: float = 0.4
+## The shot takes 0.3 s in all (shorter than the cooldown): the samurai takes the yumi off his back and draws
+## (windup), looses, stows it.
+@export var bow_windup: float = 0.18
+@export var bow_recovery: float = 0.12
 
 @export_group("War Cry")
 ## Allies within `war_cry_radius` of the samurai deal this much more damage and attack this much faster.

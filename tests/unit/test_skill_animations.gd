@@ -1,6 +1,6 @@
 extends "res://tests/test_case.gd"
 ## Playtest feedback, part 1: the Bow and the War Cry look right. The samurai carries a yumi on his back and takes it
-## out for the shot (reach, draw, aim, release, stow in half a second, the arrow leaving from the string); the War
+## out for the shot (reach, draw, aim, release, stow in 0.3 s, the arrow leaving from the string); the War
 ## Cry plants his feet, throws the katana up and shouts, a gold ring shows the range and rallied allies flash gold.
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/player/player.tscn")
@@ -59,17 +59,17 @@ func test_the_samurai_carries_a_yumi_on_his_back() -> void:
 	assert_true(not archer.spec.has_back_bow, "the archer holds his bow, it is not stowed")
 
 
-func test_the_bow_shot_takes_the_yumi_out_and_puts_it_back_in_half_a_second() -> void:
+func test_the_bow_shot_takes_the_yumi_out_and_puts_it_back_in_0_3_seconds() -> void:
 	var visual: UnitVisual = _visual()
 	_tick(visual, 0.3)
 	visual.play_state(&"shoot")
-	_tick(visual, 0.2)
+	_tick(visual, 0.12)
 	assert_true(_part(visual, "bow").visible, "mid-draw the yumi is in his hand")
 	assert_true(not _part(visual, "yumi_back").visible, "and no longer on his back")
 	assert_true(not _part(visual, "weapon").visible, "the katana is sheathed")
 	assert_true(visual.get_figure().pose.bow_draw > 0.3, "the string is being drawn")
-	_tick(visual, 0.4)
-	assert_true(not _part(visual, "bow").visible, "after half a second the bow is stowed again")
+	_tick(visual, 0.3)
+	assert_true(not _part(visual, "bow").visible, "after 0.3 s the bow is stowed again")
 	assert_true(_part(visual, "yumi_back").visible, "on his back")
 	assert_true(_part(visual, "weapon").visible, "and the katana is back in his hand")
 
@@ -78,12 +78,12 @@ func test_the_shot_is_keyed_to_the_players_timing() -> void:
 	var stats: PlayerStats = PlayerStats.new()
 	assert_almost_eq(stats.bow_windup, FigureKinds.SHOOT_RELEASE_TIME, "the arrow leaves when the string is released")
 	assert_almost_eq(stats.bow_windup + stats.bow_recovery, FigureKinds.SHOOT_TIME, "the whole shot is the animation")
-	assert_almost_eq(FigureKinds.SHOOT_TIME, 0.5, "about half a second")
+	assert_almost_eq(FigureKinds.SHOOT_TIME, 0.3, "0.3 s, shorter than the 0.4 s cooldown")
 	assert_almost_eq(FigureKinds.samurai_shoot(FigureKinds.SHOOT_RELEASE_TIME).bow_draw, 1.0, "fully drawn at the release")
 	assert_true(FigureKinds.samurai_shoot(FigureKinds.SHOOT_RELEASE_TIME + 0.05).bow_draw < 0.1, "the string snaps forward just after")
 	var previous: float = -1.0
 	for step: int in 8:
-		var draw: float = FigureKinds.samurai_shoot(0.14 + 0.02 * float(step)).bow_draw
+		var draw: float = FigureKinds.samurai_shoot((0.28 + 0.04 * float(step)) * FigureKinds.SHOOT_TIME).bow_draw
 		assert_true(draw >= previous, "the draw only grows (%.2f at step %d)" % [draw, step])
 		previous = draw
 	assert_almost_eq(FigureKinds.samurai_shoot(0.0).sheathed, 0.0, "he starts with the katana in hand")
@@ -96,7 +96,7 @@ func test_his_arms_never_stretch_during_the_bow_or_the_war_cry() -> void:
 	var reach: float = figure.spec.upper_arm + figure.spec.fore_arm
 	var poses: Array[FigurePose] = [FigureKinds.samurai_war_cry_gather(), FigureKinds.pose(InkFigure.Kind.SAMURAI, &"war_cry")]
 	for step: int in 31:
-		poses.append(FigureKinds.samurai_shoot(0.02 * float(step)))
+		poses.append(FigureKinds.samurai_shoot(0.02 * float(step) * FigureKinds.SHOOT_TIME / 0.3))
 	for pose: FigurePose in poses:
 		figure.pose.copy_from(pose)
 		figure.refresh()
