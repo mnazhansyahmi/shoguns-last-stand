@@ -1,0 +1,7 @@
+variant,run,average_ms,p95_ms,maximum_ms,render_cpu_ms,gpu_ms,enemies,allies_at_end,measured_frames,warmup_frames,seed,features_disabled,budget_pass
+baseline,1,9.06,11.99,20.38,3.13,0.73,30,6,900,120,1337,none,False
+baseline,2,9.25,12.2,21.0,3.22,0.74,30,6,900,120,1337,none,False
+baseline,3,9.11,12.03,18.85,3.17,0.69,30,6,900,120,1337,none,False
+final,1,8.12,10.53,18.96,2.99,0.46,30,6,900,120,1337,none,False
+final,2,8.17,10.47,18.29,3.05,0.48,30,6,900,120,1337,none,False
+final,3,7.95,10.38,17.05,2.91,0.48,30,6,900,120,1337,none,True

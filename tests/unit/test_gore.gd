@@ -141,6 +141,25 @@ func test_stains_fade_away_and_are_capped() -> void:
 	assert_true(feedback.stains_parent.get_child_count() <= BattleFeedback.MAX_STAINS, "old stains are cleaned away past the cap")
 
 
+func test_retained_stain_keeps_its_geometry_and_the_original_fade_and_lifetime() -> void:
+	var stain: BloodStain = BloodStain.new()
+	stain.setup(2.0, -1.0)
+	add_to_tree(stain)
+	stain.set_process(false)
+	var vertices: PackedVector2Array = stain._batch.vertices.duplicate()
+	var indices: PackedInt32Array = stain._batch.indices.duplicate()
+	assert_true(not vertices.is_empty() and stain._spots.size() == 9, "a kill retains its blot and every spot")
+	for age_value: float in [0.0, 0.1, 0.25, 1.0, 4.0, 8.9]:
+		stain.age = age_value
+		stain._process(0.0)
+		assert_almost_eq(stain.self_modulate.a, stain.opacity(), "retained drawing follows the original fade at %.2f s" % age_value)
+		assert_eq(stain._batch.vertices, vertices, "aging never changes the stain's shape")
+		assert_eq(stain._batch.indices, indices, "aging never retriangulates the stain")
+		assert_true(not stain.is_queued_for_deletion(), "stain stays for its full lifetime")
+	stain._process(0.11)
+	assert_true(stain.is_queued_for_deletion(), "stain frees itself at the original nine-second lifetime")
+
+
 func test_drops_fall_to_the_ground_and_vanish() -> void:
 	var burst: InkBlood = InkBlood.new()
 	burst.setup(1.0, 90.0, false, false, false)

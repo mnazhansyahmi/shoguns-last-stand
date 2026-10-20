@@ -137,7 +137,8 @@ func get_state() -> StringName:
 
 
 func set_facing(direction: int) -> void:
-	if direction != 0:
+	# Reassigning the same scale still invalidates the whole character transform tree.
+	if direction != 0 and scale.x != signf(direction):
 		scale.x = signf(direction)
 
 

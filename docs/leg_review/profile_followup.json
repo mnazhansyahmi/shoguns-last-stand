@@ -1,0 +1,387 @@
+{
+  "description": "Godot --debug --profiling snapshots; first startup snapshot excluded. Top 30 self-time methods plus tracked targets. Absent methods were not observed in the sampled frames. Inclusive times overlap. These instrumented samples are diagnostic, not the acceptance timings.",
+  "profiles": {
+    "before": {
+      "sampled_frames": 10,
+      "methods": [
+        {
+          "method": "res://scripts/visuals/ink_figure.gd::InkFigure.refresh",
+          "self_ms": 0.6889000000000001,
+          "inclusive_ms": 1.4692,
+          "calls": 36.3
+        },
+        {
+          "method": "res://scripts/visuals/vfx/blood_stain.gd::BloodStain._draw",
+          "self_ms": 0.5536,
+          "inclusive_ms": 0.7175,
+          "calls": 13.9
+        },
+        {
+          "method": "res://scripts/visuals/ink_batch.gd::InkBatch.draw",
+          "self_ms": 0.328,
+          "inclusive_ms": 0.328,
+          "calls": 61.2
+        },
+        {
+          "method": "res://scenes/enemies/enemy.gd::Enemy._physics_process",
+          "self_ms": 0.21339999999999998,
+          "inclusive_ms": 0.7452,
+          "calls": 30.0
+        },
+        {
+          "method": "res://scenes/enemies/enemy.gd::Enemy._is_blocked_by_other_enemy",
+          "self_ms": 0.15309999999999999,
+          "inclusive_ms": 0.2868,
+          "calls": 29.0
+        },
+        {
+          "method": "res://scripts/visuals/unit_visual.gd::UnitVisual._update_motion",
+          "self_ms": 0.1516,
+          "inclusive_ms": 0.39249999999999996,
+          "calls": 36.6
+        },
+        {
+          "method": "res://scripts/visuals/unit_visual.gd::UnitVisual.set_facing",
+          "self_ms": 0.1493,
+          "inclusive_ms": 0.1493,
+          "calls": 32.6
+        },
+        {
+          "method": "res://scripts/visuals/leg_gait.gd::LegGait.step",
+          "self_ms": 0.13240000000000002,
+          "inclusive_ms": 0.13240000000000002,
+          "calls": 33.1
+        },
+        {
+          "method": "res://scripts/visuals/figure_pose.gd::FigurePose.blend_toward",
+          "self_ms": 0.0995,
+          "inclusive_ms": 0.1336,
+          "calls": 72.0
+        },
+        {
+          "method": "res://scripts/visuals/ink_figure.gd::InkFigure._update_slots",
+          "self_ms": 0.0849,
+          "inclusive_ms": 0.15,
+          "calls": 36.3
+        },
+        {
+          "method": "res://scripts/visuals/vfx/ink_blood.gd::InkBlood._draw",
+          "self_ms": 0.0833,
+          "inclusive_ms": 0.1905,
+          "calls": 1.9
+        },
+        {
+          "method": "res://scripts/visuals/ink_figure.gd::InkFigure._rest_weapon_on_ground",
+          "self_ms": 0.0665,
+          "inclusive_ms": 0.0888,
+          "calls": 36.3
+        },
+        {
+          "method": "res://scripts/visuals/ink_batch.gd::InkBatch.stroke",
+          "self_ms": 0.0661,
+          "inclusive_ms": 0.10070000000000001,
+          "calls": 33.0
+        },
+        {
+          "method": "res://scripts/visuals/unit_visual.gd::UnitVisual._apply_idle",
+          "self_ms": 0.057999999999999996,
+          "inclusive_ms": 0.057999999999999996,
+          "calls": 32.8
+        },
+        {
+          "method": "res://scripts/visuals/unit_visual.gd::UnitVisual._process",
+          "self_ms": 0.0536,
+          "inclusive_ms": 2.3504,
+          "calls": 36.6
+        },
+        {
+          "method": "res://scripts/visuals/unit_visual.gd::UnitVisual._set_opacity",
+          "self_ms": 0.0455,
+          "inclusive_ms": 0.0455,
+          "calls": 36.6
+        },
+        {
+          "method": "res://scripts/visuals/ink_batch.gd::InkBatch._add_points",
+          "self_ms": 0.0445,
+          "inclusive_ms": 0.0445,
+          "calls": 90.6
+        },
+        {
+          "method": "res://scripts/visuals/figure_tatters.gd::FigureTatters.def",
+          "self_ms": 0.0445,
+          "inclusive_ms": 0.0445,
+          "calls": 9.5
+        },
+        {
+          "method": "res://scripts/visuals/atmosphere_leaves.gd::AtmosphereLeaves._process",
+          "self_ms": 0.0433,
+          "inclusive_ms": 0.0533,
+          "calls": 2.0
+        },
+        {
+          "method": "res://scenes/allies/ally.gd::Ally._physics_process",
+          "self_ms": 0.0431,
+          "inclusive_ms": 0.1066,
+          "calls": 5.6
+        },
+        {
+          "method": "res://scripts/visuals/figure_kinds.gd::FigureKinds.spec",
+          "self_ms": 0.0423,
+          "inclusive_ms": 0.0423,
+          "calls": 2.0
+        },
+        {
+          "method": "res://scripts/visuals/ink_batch.gd::InkBatch.fill",
+          "self_ms": 0.041100000000000005,
+          "inclusive_ms": 0.059,
+          "calls": 15.0
+        },
+        {
+          "method": "res://scripts/visuals/leg_ik.gd::LegIK.fit_hip",
+          "self_ms": 0.0382,
+          "inclusive_ms": 0.0511,
+          "calls": 36.3
+        },
+        {
+          "method": "res://scripts/visuals/backdrop_layer.gd::BackdropLayer._process",
+          "self_ms": 0.0379,
+          "inclusive_ms": 0.0708,
+          "calls": 16.0
+        },
+        {
+          "method": "res://scripts/visuals/atmosphere_leaves.gd::AtmosphereLeaves._draw",
+          "self_ms": 0.0366,
+          "inclusive_ms": 0.189,
+          "calls": 2.0
+        },
+        {
+          "method": "res://scripts/visuals/cloth_chain.gd::ClothChain.step",
+          "self_ms": 0.034100000000000005,
+          "inclusive_ms": 0.034100000000000005,
+          "calls": 9.2
+        },
+        {
+          "method": "res://scripts/visuals/ink_batch.gd::InkBatch.fill_convex",
+          "self_ms": 0.0319,
+          "inclusive_ms": 0.0784,
+          "calls": 75.6
+        },
+        {
+          "method": "res://tools/perf_battle.gd::_run",
+          "self_ms": 0.029699999999999997,
+          "inclusive_ms": 0.045700000000000005,
+          "calls": 1.0
+        },
+        {
+          "method": "res://scripts/visuals/secondary_motion.gd::SecondaryMotion.tail_rest",
+          "self_ms": 0.028300000000000002,
+          "inclusive_ms": 0.040400000000000005,
+          "calls": 7.2
+        },
+        {
+          "method": "res://scripts/visuals/unit_visual.gd::UnitVisual._apply",
+          "self_ms": 0.028199999999999996,
+          "inclusive_ms": 1.6863,
+          "calls": 36.3
+        }
+      ]
+    },
+    "final": {
+      "sampled_frames": 8,
+      "methods": [
+        {
+          "method": "res://scripts/visuals/ink_figure.gd::InkFigure.refresh",
+          "self_ms": 0.60875,
+          "inclusive_ms": 1.26525,
+          "calls": 36.0
+        },
+        {
+          "method": "res://scripts/visuals/ink_batch.gd::InkBatch.draw",
+          "self_ms": 0.31,
+          "inclusive_ms": 0.31,
+          "calls": 60.875
+        },
+        {
+          "method": "res://scenes/enemies/enemy.gd::Enemy._physics_process",
+          "self_ms": 0.300125,
+          "inclusive_ms": 0.7205,
+          "calls": 30.0
+        },
+        {
+          "method": "res://scenes/enemies/enemy.gd::Enemy._is_blocked_by_other_enemy",
+          "self_ms": 0.1565,
+          "inclusive_ms": 0.29300000000000004,
+          "calls": 29.0
+        },
+        {
+          "method": "res://scripts/visuals/unit_visual.gd::UnitVisual._update_motion",
+          "self_ms": 0.132875,
+          "inclusive_ms": 0.332125,
+          "calls": 36.25
+        },
+        {
+          "method": "res://scripts/visuals/vfx/ink_blood.gd::InkBlood._draw",
+          "self_ms": 0.131,
+          "inclusive_ms": 0.299,
+          "calls": 2.0
+        },
+        {
+          "method": "res://scripts/visuals/leg_gait.gd::LegGait.step",
+          "self_ms": 0.115375,
+          "inclusive_ms": 0.115375,
+          "calls": 32.375
+        },
+        {
+          "method": "res://scripts/visuals/figure_pose.gd::FigurePose.blend_toward",
+          "self_ms": 0.08787500000000001,
+          "inclusive_ms": 0.11937500000000001,
+          "calls": 71.5
+        },
+        {
+          "method": "res://scripts/visuals/ink_batch.gd::InkBatch.stroke",
+          "self_ms": 0.081125,
+          "inclusive_ms": 0.12612500000000001,
+          "calls": 48.125
+        },
+        {
+          "method": "res://scripts/visuals/ink_figure.gd::InkFigure._update_slots",
+          "self_ms": 0.076375,
+          "inclusive_ms": 0.1345,
+          "calls": 36.0
+        },
+        {
+          "method": "res://scripts/visuals/ink_figure.gd::InkFigure._rest_weapon_on_ground",
+          "self_ms": 0.058625000000000003,
+          "inclusive_ms": 0.077875,
+          "calls": 36.0
+        },
+        {
+          "method": "res://scenes/allies/ally.gd::Ally._physics_process",
+          "self_ms": 0.050125,
+          "inclusive_ms": 0.095625,
+          "calls": 5.25
+        },
+        {
+          "method": "res://scripts/visuals/unit_visual.gd::UnitVisual._apply_idle",
+          "self_ms": 0.05,
+          "inclusive_ms": 0.05,
+          "calls": 32.125
+        },
+        {
+          "method": "res://scripts/visuals/unit_visual.gd::UnitVisual._process",
+          "self_ms": 0.049749999999999996,
+          "inclusive_ms": 2.027,
+          "calls": 36.25
+        },
+        {
+          "method": "res://scripts/visuals/atmosphere_leaves.gd::AtmosphereLeaves._process",
+          "self_ms": 0.042499999999999996,
+          "inclusive_ms": 0.050625,
+          "calls": 2.0
+        },
+        {
+          "method": "res://scripts/visuals/ink_brush.gd::InkBrush.stroke",
+          "self_ms": 0.041875,
+          "inclusive_ms": 0.309375,
+          "calls": 39.125
+        },
+        {
+          "method": "res://scripts/visuals/ink_batch.gd::InkBatch._strip_indices",
+          "self_ms": 0.03475,
+          "inclusive_ms": 0.03475,
+          "calls": 48.625
+        },
+        {
+          "method": "res://scripts/visuals/figure_kinds.gd::FigureKinds.spec",
+          "self_ms": 0.03425,
+          "inclusive_ms": 0.03425,
+          "calls": 2.0
+        },
+        {
+          "method": "res://scripts/visuals/figure_tatters.gd::FigureTatters.def",
+          "self_ms": 0.033625,
+          "inclusive_ms": 0.033625,
+          "calls": 9.0
+        },
+        {
+          "method": "res://scripts/visuals/atmosphere_leaves.gd::AtmosphereLeaves._draw",
+          "self_ms": 0.03275,
+          "inclusive_ms": 0.1675,
+          "calls": 2.0
+        },
+        {
+          "method": "res://scripts/visuals/leg_ik.gd::LegIK.fit_hip",
+          "self_ms": 0.030625,
+          "inclusive_ms": 0.0445,
+          "calls": 36.0
+        },
+        {
+          "method": "res://scripts/visuals/backdrop_layer.gd::BackdropLayer._process",
+          "self_ms": 0.029875,
+          "inclusive_ms": 0.0575,
+          "calls": 16.0
+        },
+        {
+          "method": "res://scripts/visuals/cloth_chain.gd::ClothChain.step",
+          "self_ms": 0.027625,
+          "inclusive_ms": 0.027625,
+          "calls": 9.0
+        },
+        {
+          "method": "res://scripts/visuals/ink_batch.gd::InkBatch._add_points",
+          "self_ms": 0.027375,
+          "inclusive_ms": 0.027375,
+          "calls": 76.875
+        },
+        {
+          "method": "res://scripts/visuals/unit_visual.gd::UnitVisual._set_opacity",
+          "self_ms": 0.027375,
+          "inclusive_ms": 0.027375,
+          "calls": 36.25
+        },
+        {
+          "method": "res://scripts/visuals/ink_batch.gd::InkBatch.fill_convex",
+          "self_ms": 0.026,
+          "inclusive_ms": 0.06775,
+          "calls": 75.125
+        },
+        {
+          "method": "res://tools/perf_battle.gd::_run",
+          "self_ms": 0.024625,
+          "inclusive_ms": 0.029875,
+          "calls": 1.0
+        },
+        {
+          "method": "res://scenes/enemies/enemy.gd::Enemy.get_half_width",
+          "self_ms": 0.023375,
+          "inclusive_ms": 0.023375,
+          "calls": 322.5
+        },
+        {
+          "method": "res://scripts/visuals/unit_visual.gd::UnitVisual._apply",
+          "self_ms": 0.022625,
+          "inclusive_ms": 1.457625,
+          "calls": 36.0
+        },
+        {
+          "method": "res://scripts/visuals/secondary_motion.gd::SecondaryMotion.tail_rest",
+          "self_ms": 0.022375,
+          "inclusive_ms": 0.032625,
+          "calls": 7.0
+        },
+        {
+          "method": "res://scripts/visuals/unit_visual.gd::UnitVisual.set_facing",
+          "self_ms": 0.012375,
+          "inclusive_ms": 0.012375,
+          "calls": 32.0
+        },
+        {
+          "method": "res://scripts/visuals/vfx/blood_stain.gd::BloodStain._process",
+          "self_ms": 0.007375,
+          "inclusive_ms": 0.0165,
+          "calls": 11.5
+        }
+      ]
+    }
+  }
+}

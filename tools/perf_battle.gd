@@ -2,8 +2,9 @@ extends SceneTree
 ## Frame-time probe for a crowded battle: exactly 30 enemies alive (topped up as they die),
 ## the player in the middle of the field, allies summoned to the cap, everyone fighting.
 ##   godot_console --fixed-fps 60 --path . -s res://tools/perf_battle.gd [-- <flags>]
-## --fixed-fps keeps the simulation identical from run to run; vsync and the frame cap are
-## turned off so the measured time is real work, not waiting. Reports wall-clock frame time
+## --fixed-fps keeps simulation timesteps identical; units/effects retain their own random
+## variation. Vsync and the frame cap are off so measured time is real work, not waiting.
+## Reports wall-clock frame time
 ## (average / p95 / max) and the renderer's own CPU and GPU time for the viewport.
 ## Diagnostic flags (to attribute cost): --hide-figures, --freeze-visuals, --no-backdrop,
 ## --no-effects, --no-hud.
