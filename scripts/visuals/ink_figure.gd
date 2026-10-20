@@ -90,10 +90,9 @@ var _glow_rage_min: PackedInt32Array = PackedInt32Array()
 var _pose_glows: Array[FigurePart] = []
 var _bow_part: FigurePart
 var _bow_step: int = -1
-## The samurai's katana, his yumi stowed on his back and his back arm (raised above the torso while he draws).
+## The samurai's katana and his yumi stowed on his back.
 var _weapon_part: FigurePart
 var _back_bow_part: FigurePart
-var _back_arm_parts: Array[FigurePart] = []
 var _hem_part: FigurePart
 var _hem_key: int = -1
 var _blade_glow_part: FigurePart
@@ -177,9 +176,9 @@ func _root_for(for_pose: FigurePose) -> Transform2D:
 func refresh() -> void:
 	root_xf = _root_for(pose)
 
-	hip = Vector2(0.0, -(spec.hip_y - pose.crouch))
+	hip = Vector2(pose.hip_shift, -(spec.hip_y - pose.crouch))
 	var swing: float = sin(stride_phase) * stride * spec.stride_len
-	var front_foot: Vector2 = Vector2(spec.stance.x * pose.spread + swing, -maxf(0.0, cos(stride_phase)) * stride * spec.lift)
+	var front_foot: Vector2 = Vector2(spec.stance.x * pose.spread + swing + pose.lunge, -maxf(0.0, cos(stride_phase)) * stride * spec.lift)
 	var back_foot: Vector2 = Vector2(spec.stance.y * pose.spread - swing, -maxf(0.0, -cos(stride_phase)) * stride * spec.lift)
 	front_ankle = _plant(hip + Vector2(2.0, 0.0), front_foot + Vector2(0.0, -2.5))
 	back_ankle = _plant(hip + Vector2(-2.0, 0.0), back_foot + Vector2(0.0, -2.5))
@@ -229,8 +228,6 @@ func refresh() -> void:
 			_weapon_part.visible = not drawing
 		if _back_bow_part != null:
 			_back_bow_part.visible = pose.bow_out < 0.5
-		for arm: FigurePart in _back_arm_parts:
-			arm.z_index = 1 if drawing else 0
 	if _hem_part != null:
 		var own_hem: bool = kind == Kind.HOLLOW_SOLDIER
 		var key: int = FigurePainter.hem_key(self) if own_hem else FigureTatters.key(self)
@@ -279,6 +276,11 @@ func _plant(hip_point: Vector2, ankle: Vector2) -> Vector2:
 ## How far down (y, in the space `xf` maps root space to) the lowest point of a leg reaches: its foot, or its hem.
 func _lowest_contact(hip_point: Vector2, ankle: Vector2, xf: Transform2D) -> float:
 	var contacts: FigurePainter.GroundContacts = FigurePainter.ground_contacts(kind)
+	if contacts.flat:
+		var lowest_flat: float = -INF
+		for point: Vector2 in contacts.points:
+			lowest_flat = maxf(lowest_flat, (xf * (ankle + point)).y)
+		return lowest_flat
 	var origin: Vector2 = hip_point if contacts.from_hip else InkBrush.solve_joint(hip_point, ankle, spec.thigh, spec.shin, -1.0)
 	var offset: Vector2 = ankle - origin
 	var frame: Transform2D = xf * Transform2D(offset.angle(), Vector2(maxf(offset.length(), 0.001) / contacts.length, 1.0), 0.0, origin)
@@ -420,7 +422,6 @@ func _build_parts() -> void:
 	_bow_step = -1
 	_weapon_part = null
 	_back_bow_part = null
-	_back_arm_parts.clear()
 	_hem_part = null
 	_hem_key = -1
 	_blade_glow_part = null
@@ -455,8 +456,6 @@ func _build_parts() -> void:
 			_weapon_part = part
 		elif part_name == &"yumi_back":
 			_back_bow_part = part
-		elif spec.has_back_bow and (part_name == &"upper_b" or part_name == &"fore_b"):
-			_back_arm_parts.append(part)
 		if part_name == &"bow" and spec.has_back_bow:
 			part.visible = false
 		add_child(part)

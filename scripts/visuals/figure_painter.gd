@@ -34,6 +34,8 @@ class GroundContacts extends RefCounted:
 	var length: float = 1.0
 	## How far below the ground line the part may rest (a hakama hem lies a little on the ground).
 	var allow: float = 0.0
+	## A foot part that stays flat on the ground whatever the shin does (its points are around the ankle, unrotated).
+	var flat: bool = false
 
 
 static var _contacts: Dictionary = {}
@@ -47,13 +49,19 @@ static func ground_contacts(kind: InkFigure.Kind) -> GroundContacts:
 	var contacts: GroundContacts = GroundContacts.new()
 	var spec: FigureKinds.Spec = FigureKinds.spec(kind)
 	var hem: bool = layout(kind).has(&"hakama_f")
-	var batch: InkBatch = part(kind, &"hakama_f" if hem else &"shin_f")
-	if batch != null:
+	var flat: bool = layout(kind).has(&"foot_f")
+	var batch: InkBatch = part(kind, &"foot_f" if flat else (&"hakama_f" if hem else &"shin_f"))
+	if batch != null and flat:
+		contacts.flat = true
+		contacts.points = _original_vertices(batch)
+	elif batch != null:
 		contacts.from_hip = hem
 		contacts.length = spec.thigh + spec.shin if hem else spec.shin
 		contacts.allow = 1.0 if hem else 0.0
 		for vertex: Vector2 in _original_vertices(batch):
-			if vertex.x > contacts.length * 0.5:
+			# A hakama wedge reaches the ground with its whole lower half; a leg with a foot, with the foot only
+			# (the foot polygon is the part beyond the ankle).
+			if vertex.x > (contacts.length * 0.5 if hem else contacts.length + 0.5):
 				contacts.points.append(vertex)
 	_contacts[kind] = contacts
 	return contacts
@@ -114,9 +122,11 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			# is the hakama's front panel, the tassets, the sash and the scabbard (they swing together);
 			# the scarf (drawn over the neck guard so its red shows) and sleeve flaps are cloth chains.
 			# The yumi is slung on his back, behind everything; the Bow skill takes it into his hand.
-			order.append_array([&"yumi_back", &"hem", &"sleeve_b", &"hakama_b", &"pauldron_back"])
+			# He has legs (hakama trousers over bent knees), the back leg behind the body. Both hands hold the hilt in
+			# front of him, so the back arm is drawn over the torso, under the front arm.
+			order.append_array([&"yumi_back", &"hem", &"sleeve_b", &"thigh_b", &"shin_b", &"foot_b", &"pauldron_back"])
+			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head", &"tails"])
 			order.append_array(_BACK_ARM)
-			order.append_array([&"hakama_f", &"skirt", &"torso", &"head", &"tails"])
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"sleeve_f", &"pauldron_front", &"weapon", &"bow", &"blade_glow"])
 		InkFigure.Kind.ASHIGARU:
@@ -446,27 +456,14 @@ static func _build_samurai(parts: Dictionary) -> void:
 	var spec: FigureKinds.Spec = FigureKinds.spec(InkFigure.Kind.SAMURAI)
 	var leg: float = spec.thigh + spec.shin
 
-	# Hakama: each leg is a wide wedge from the hip flaring to a softly rounded hem on the ground.
-	# The two together plus the front panel (skirt part) make the A-line from waist to feet.
-	for front: bool in [true, false]:
-		var hakama: InkBatch = InkBatch.new()
-		var color: Color = ink if front else back_ink
-		hakama.fill(PackedVector2Array([Vector2(-3.0, -6.0), Vector2(leg * 0.5, -9.0), Vector2(leg + 0.5, -14.0),
-				Vector2(leg + 3.2, -12.5), Vector2(leg + 4.6, 0.0), Vector2(leg + 3.2, 12.5), Vector2(leg + 0.5, 14.0),
-				Vector2(leg * 0.5, 9.0), Vector2(-3.0, 6.0)]), color)
-		if front:
-			# Pleats fanning from the hip, and a hem band.
-			hakama.limb(Vector2(leg * 0.3, 2.0), Vector2(leg + 1.0, 5.5), 1.5, 1.8, detail)
-			hakama.limb(Vector2(leg * 0.3, -2.0), Vector2(leg + 1.0, -5.5), 1.5, 1.8, detail)
-			hakama.stroke(PackedVector2Array([Vector2(leg - 1.4, -12.0), Vector2(leg + 0.2, 0.0), Vector2(leg - 1.4, 12.0)]), 1.6, 1.6, detail)
-		parts[&"hakama_f" if front else &"hakama_b"] = hakama
+	_samurai_legs(parts, spec, ink, back_ink, detail)
 
 	# Sode: layered shoulder lames, swinging from the shoulder.
 	parts[&"pauldron_front"] = _sode(ink, detail)
 	parts[&"pauldron_back"] = _sode(back_ink, back_ink)
 
-	parts[&"skirt"] = _samurai_skirt(ink, detail, red)
-	parts[&"torso"] = _samurai_do(ink, detail, red)
+	parts[&"skirt"] = _samurai_kusazuri(ink, detail, red)
+	parts[&"torso"] = _samurai_body(ink, detail, red)
 
 	# Kote: armoured sleeves on the forearms (a plate with lacing lines before the wrist).
 	for front: bool in [true, false]:
@@ -483,7 +480,12 @@ static func _build_samurai(parts: Dictionary) -> void:
 	parts[&"yumi_back"] = _samurai_yumi_back(ink, detail, red)
 
 	var katana: InkBatch = InkBatch.new()
-	katana.limb(Vector2(-11.0, 0.0), Vector2(1.0, 0.0), 3.8, 3.8, ink)
+	# A long hilt for two hands: the front hand at the guard, the back hand at the pommel end, with the wrapped
+	# diamonds of the hilt cord and a pommel.
+	katana.limb(Vector2(-17.0, 0.0), Vector2(1.0, 0.0), 3.6, 3.8, ink)
+	for x: float in [-14.5, -11.5, -8.5, -5.5, -2.5]:
+		katana.limb(Vector2(x, -1.9), Vector2(x + 1.5, 1.9), 1.0, 1.0, detail)
+	katana.ellipse(Vector2(-17.5, 0.0), Vector2(1.7, 2.5), detail, 8)
 	katana.ellipse(Vector2(1.8, 0.0), Vector2(1.7, 4.2), ink, 10)
 	var tip: float = 3.0 + KATANA_LENGTH
 	katana.fill(PackedVector2Array([Vector2(3.0, -1.9), Vector2(30.0, -2.7), Vector2(55.0, -3.4),
@@ -517,6 +519,108 @@ static func _samurai_yumi_back(ink: Color, detail: Color, red: Color) -> InkBatc
 
 static func _quadratic(a: Vector2, control: Vector2, b: Vector2, u: float) -> Vector2:
 	return a.lerp(control, u).lerp(control.lerp(b, u), u)
+
+
+## The samurai's legs: wide hakama trousers over the thigh and the shin, a knee tied at the joint and a flared hem,
+## with the tabi foot below. The thigh and shin are the limb segments the IK bends, so knees show. Limb space.
+static func _samurai_legs(parts: Dictionary, spec: FigureKinds.Spec, ink: Color, back_ink: Color, detail: Color) -> void:
+	for front: bool in [true, false]:
+		var color: Color = ink if front else back_ink
+		var line: Color = detail if front else back_ink
+		var suffix: String = "_f" if front else "_b"
+		var thigh: InkBatch = InkBatch.new()
+		thigh.limb(Vector2.ZERO, Vector2(spec.thigh, 0.0), 11.0, 10.0, color)
+		thigh.circle(Vector2(spec.thigh, 0.0), 5.0, color)
+		thigh.limb(Vector2(4.0, 0.0), Vector2(spec.thigh - 5.0, 0.0), 1.3, 1.3, line)
+		parts[StringName("thigh" + suffix)] = thigh
+		var shin: InkBatch = InkBatch.new()
+		shin.circle(Vector2.ZERO, 5.0, color)
+		shin.limb(Vector2.ZERO, Vector2(spec.shin, 0.0), 9.5, 12.0, color)
+		# A pleat down the trouser and the hem band.
+		shin.limb(Vector2(4.0, 0.0), Vector2(spec.shin - 6.0, 0.0), 1.3, 1.3, line)
+		shin.limb(Vector2(spec.shin - 3.0, -6.0), Vector2(spec.shin - 3.0, 6.0), 1.8, 1.8, line)
+		parts[StringName("shin" + suffix)] = shin
+		# The foot is its own part, flat on the ground whatever the shin does: a rounded tabi and sandal, the sole level
+		# with the ground 2.5 below the ankle. Space: origin at the ankle, +x forward, +y down.
+		var foot: InkBatch = InkBatch.new()
+		foot.fill_convex(PackedVector2Array([Vector2(-4.0, -2.0), Vector2(1.5, -2.6), Vector2(6.0, -1.4), Vector2(spec.foot, 0.8),
+				Vector2(spec.foot - 1.0, 2.5), Vector2(-3.5, 2.5)]), color)
+		parts[StringName("foot" + suffix)] = foot
+
+
+## The samurai's body (torso space): shoulders and a short neck, a chest that narrows to the waist, plates that curve
+## with the body (each bulging a little at the front, their lower edges sagging) and not boxes.
+const _BODY_Y: Array[float] = [-1.0, -10.0, -19.0, -26.0, -30.0]
+const _BODY_BACK: Array[float] = [-9.0, -8.2, -10.5, -12.0, -9.0]
+const _BODY_FRONT: Array[float] = [9.5, 8.8, 11.8, 13.8, 10.0]
+
+
+static func _samurai_body(ink: Color, detail: Color, red: Color) -> InkBatch:
+	var batch: InkBatch = InkBatch.new()
+	# The neck, running up into the helmet.
+	batch.limb(Vector2(-0.5, -28.0), Vector2(1.5, -34.5), 5.4, 4.8, ink)
+	var edges: Array[float] = [-1.0, -10.0, -18.0, -25.0, -30.0]
+	for index: int in 4:
+		var y_bottom: float = edges[index]
+		var y_top: float = edges[index + 1]
+		var y_mid: float = (y_bottom + y_top) * 0.5
+		var back_bottom: float = _table(_BODY_Y, _BODY_BACK, y_bottom)
+		var front_bottom: float = _table(_BODY_Y, _BODY_FRONT, y_bottom)
+		var back_top: float = _table(_BODY_Y, _BODY_BACK, y_top)
+		var front_top: float = _table(_BODY_Y, _BODY_FRONT, y_top)
+		var back_mid: float = _table(_BODY_Y, _BODY_BACK, y_mid) - 0.3
+		var front_mid: float = _table(_BODY_Y, _BODY_FRONT, y_mid) + 0.9
+		var sag: float = 1.3
+		batch.fill(PackedVector2Array([Vector2(back_top, y_top), Vector2(front_top, y_top + 0.6), Vector2(front_mid, y_mid),
+				Vector2(front_bottom, y_bottom + 0.8), Vector2((back_bottom + front_bottom) * 0.5, y_bottom + sag),
+				Vector2(back_bottom, y_bottom), Vector2(back_mid, y_mid)]), ink)
+		# The pale seam along the lower edge, and the lacing ticks between the plate edges.
+		batch.stroke(PackedVector2Array([Vector2(back_bottom + 0.6, y_bottom - 0.6), Vector2((back_bottom + front_bottom) * 0.5, y_bottom + sag - 0.8),
+				Vector2(front_bottom - 0.6, y_bottom + 0.2)]), 1.4, 1.4, detail)
+		if index < 3:
+			for tick: int in 4:
+				var u: float = (float(tick) + 0.5 + (0.5 if index % 2 == 1 else 0.0)) / 5.0
+				var x: float = lerpf(lerpf(back_top, back_bottom, 0.5), lerpf(front_top, front_bottom, 0.5), u)
+				batch.limb(Vector2(x, y_top + 1.8), Vector2(x, y_bottom - 2.0), 1.1, 1.1, detail)
+	# The breast plate's curve and the cords crossing it toward the neck.
+	batch.stroke(PackedVector2Array([Vector2(-8.0, -24.0), Vector2(1.0, -22.6), Vector2(11.5, -24.5)]), 1.5, 1.5, detail)
+	batch.stroke(PackedVector2Array([Vector2(8.5, -29.0), Vector2(5.0, -26.0), Vector2(1.5, -24.0)]), 1.3, 1.3, detail)
+	batch.stroke(PackedVector2Array([Vector2(-7.0, -29.0), Vector2(-4.0, -26.0), Vector2(-1.0, -24.0)]), 1.3, 1.3, detail)
+	# Scarf wrapped around the neck (accent).
+	batch.stroke(PackedVector2Array([Vector2(-5.5, -30.5), Vector2(-1.0, -32.2), Vector2(4.0, -32.0), Vector2(8.0, -29.8)]), 3.6, 2.4, red)
+	return batch
+
+
+## The hips: five hanging tassets fanned over the thighs, the sash with its knot and the scabbard angled back from
+## the left hip. They hang from the waist and swing together (the part pivots about the waist). The hakama itself is
+## the legs.
+static func _samurai_kusazuri(ink: Color, detail: Color, red: Color) -> InkBatch:
+	var batch: InkBatch = InkBatch.new()
+	# Scabbard (saya), the sword drawn: angled back and down from the left hip, with the wakizashi hilt beside it.
+	batch.stroke(PackedVector2Array([Vector2(5.0, -5.0), Vector2(-10.0, 2.0), Vector2(-24.0, 9.5), Vector2(-33.0, 15.0)]), 4.8, 4.0, ink)
+	batch.limb(Vector2(-6.0, -1.2), Vector2(-5.0, 2.8), 1.5, 1.5, detail)
+	batch.limb(Vector2(3.5, -6.5), Vector2(1.5, -2.5), 1.8, 1.8, detail)
+	batch.limb(Vector2(4.0, -6.0), Vector2(12.0, -10.0), 3.6, 3.4, ink)
+	batch.ellipse(Vector2(4.5, -6.2), Vector2(1.4, 3.2), ink, 10)
+	# Tassets: five hanging plates, fanned a little, with a lacing line each.
+	var bottoms: Array[float] = [11.0, 13.5, 15.0, 14.0, 11.5]
+	for i: int in 5:
+		var left: float = -12.5 + float(i) * 5.4
+		var splay: float = float(i - 2) * 0.07
+		var pivot: Vector2 = Vector2(left + 2.5, -3.0)
+		var bottom: float = bottoms[i]
+		var xf: Transform2D = Transform2D(splay, Vector2.ZERO)
+		var corners: PackedVector2Array = PackedVector2Array([Vector2(left, -4.0), Vector2(left + 5.2, -4.0),
+				Vector2(left + 6.0, bottom - 1.0), Vector2(left + 2.6, bottom + 1.2), Vector2(left - 0.9, bottom - 1.0)])
+		var lace: PackedVector2Array = PackedVector2Array([Vector2(left + 0.2, 3.6), Vector2(left + 2.6, 4.3), Vector2(left + 5.0, 3.6)])
+		batch.fill_convex(_about(xf, pivot, corners), ink)
+		batch.stroke(_about(xf, pivot, lace), 1.3, 1.3, detail)
+	# Sash (obi) and the knot with two tails (accent).
+	batch.fill(PackedVector2Array([Vector2(-9.4, -6.0), Vector2(9.6, -5.6), Vector2(10.2, -1.0), Vector2(-9.8, -1.4)]), detail)
+	batch.fill_convex(PackedVector2Array([Vector2(7.0, -3.5), Vector2(13.5, -6.5), Vector2(12.5, -0.5)]), red)
+	batch.fill_convex(PackedVector2Array([Vector2(7.0, -3.5), Vector2(12.0, 3.5), Vector2(8.0, 4.5)]), red)
+	batch.circle(Vector2(8.0, -3.0), 2.4, red)
+	return batch
 
 
 ## The do (chest armour): overlapping lamellar bands, each tilted a little toward the viewer (the
@@ -612,7 +716,7 @@ static func _about(xf: Transform2D, pivot: Vector2, points: PackedVector2Array) 
 ## wings and the face mask. Head space: origin at the neck.
 static func _samurai_head(ink: Color, detail: Color) -> InkBatch:
 	var head: InkBatch = InkBatch.new()
-	head.limb(Vector2(0.0, 0.0), Vector2(0.5, -4.0), 6.0, 6.0, ink)
+	head.limb(Vector2(0.0, 3.0), Vector2(0.5, -4.0), 5.0, 6.0, ink)
 	head.ellipse(Vector2(2.0, -8.5), Vector2(6.5, 7.0), ink)
 	# Menpo: chin guard.
 	head.fill_convex(PackedVector2Array([Vector2(4.0, -6.5), Vector2(10.5, -5.5), Vector2(9.0, -0.5), Vector2(3.0, 0.5)]), ink)

@@ -38,6 +38,8 @@ var _lean: float = 0.0
 var _crouch: float = 0.0
 var _offset: float = 0.0
 var _spread: float = 0.0
+var _hip_shift: float = 0.0
+var _lunge: float = 0.0
 var _head: float = 0.0
 var _blade: float = 0.0
 var _hand_angle: float = 0.0
@@ -51,6 +53,8 @@ func stop() -> void:
 	_crouch = 0.0
 	_offset = 0.0
 	_spread = 0.0
+	_hip_shift = 0.0
+	_lunge = 0.0
 	_head = 0.0
 	_blade = 0.0
 	_hand_angle = 0.0
@@ -92,6 +96,10 @@ func _step_once(pose: FigurePose, target: FigurePose, feel: Feel, h: float) -> v
 	pose.offset_x += _offset * h
 	_spread += _accel(target.spread - pose.spread, _spread, body_k, body_c) * h
 	pose.spread += _spread * h
+	_hip_shift += _accel(target.hip_shift - pose.hip_shift, _hip_shift, body_k, body_c) * h
+	pose.hip_shift += _hip_shift * h
+	_lunge += _accel(target.lunge - pose.lunge, _lunge, body_k, body_c) * h
+	pose.lunge += _lunge * h
 	_head += _accel(target.head_tilt - pose.head_tilt, _head, body_k, body_c) * h
 	pose.head_tilt += _head * h
 

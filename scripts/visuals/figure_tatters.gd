@@ -40,9 +40,9 @@ static func def(kind: InkFigure.Kind) -> Def:
 	match kind:
 		InkFigure.Kind.SAMURAI:
 			# A torn strip of under-robe trailing behind his hip.
-			d.back = Vector2(-14.0, -3.0)
-			d.front = Vector2(-2.0, -3.0)
-			d.drop = 38.0
+			d.back = Vector2(-12.0, -4.0)
+			d.front = Vector2(-3.0, -4.0)
+			d.drop = 22.0
 			d.teeth = 4
 			d.ragged = 0.7
 			d.flutter = 2.6

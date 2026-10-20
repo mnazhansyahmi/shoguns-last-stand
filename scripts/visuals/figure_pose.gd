@@ -29,6 +29,11 @@ var spread: float = 1.0
 var sheathed: float = 0.0
 ## The samurai's yumi is in his hand (0..1, shown from 0.5) instead of stowed on his back.
 var bow_out: float = 0.0
+## The hips move this far forward over the feet (figure units): weight onto the front leg. The feet stay where they
+## are, so a hip shifted forward bends the front knee and keeps the back foot planted.
+var hip_shift: float = 0.0
+## The front foot steps this far forward of its rest stance (the back foot stays planted).
+var lunge: float = 0.0
 ## The front shoulder (torso space). When set, `grip` moves along arcs around it (the arm
 ## swings like a pendulum) instead of in straight lines. NAN x = straight lines.
 var pivot: Vector2 = Vector2(NAN, 0.0)
@@ -68,6 +73,13 @@ func with_spread(p_spread: float) -> FigurePose:
 	return self
 
 
+## Weight forward: hips `p_hip_shift` over the feet, the front foot stepping `p_lunge` ahead.
+func with_weight(p_hip_shift: float, p_lunge: float) -> FigurePose:
+	hip_shift = p_hip_shift
+	lunge = p_lunge
+	return self
+
+
 func with_bow(p_draw: float, p_release: float = 0.0) -> FigurePose:
 	bow_draw = p_draw
 	release = p_release
@@ -94,6 +106,8 @@ func blend_toward(target: FigurePose, weight: float) -> void:
 	bow_draw = lerpf(bow_draw, target.bow_draw, weight)
 	release = lerpf(release, target.release, weight)
 	spread = lerpf(spread, target.spread, weight)
+	hip_shift = lerpf(hip_shift, target.hip_shift, weight)
+	lunge = lerpf(lunge, target.lunge, weight)
 	sheathed = lerpf(sheathed, target.sheathed, weight)
 	bow_out = lerpf(bow_out, target.bow_out, weight)
 

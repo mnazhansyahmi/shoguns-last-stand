@@ -87,8 +87,10 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.idle_lean = Vector2(0.008, 0.9)
 			s.idle_head = Vector2(0.035, 0.45)
 			# Legs are drawn as flared hakama wedges (FigurePainter), so the stance is wide.
-			s.stance = Vector2(10.0, -10.0)
-			s.back_hand_on_weapon = Vector2(-7.0, 0.0)
+			s.stance = Vector2(6.5, -8.5)
+			# Two hands on a long hilt: the back hand 9 units behind the front one.
+			s.back_hand_on_weapon = Vector2(-9.0, 0.0)
+			s.foot = 9.0
 			s.head_top = 112.0
 			s.shadow_width = 26.0
 			s.springy = true
@@ -415,47 +417,48 @@ static func _samurai(state: StringName, step: int, heavy: bool) -> FigurePose:
 	var p: FigurePose
 	match state:
 		&"run":
-			# Blade carried forward and up, out of the legs' way.
-			p = FigurePose.make(0.2, 3.0, Vector2(14.0, -18.0), -0.62)
+			# Carried in two hands up and forward, the body leaning into the run.
+			p = FigurePose.make(0.2, 1.5, Vector2(14.0, -24.0), -1.05).with_weight(2.0, 0.0)
 		&"windup":
 			match step:
-				1: # rising cut: blade low in front, edge turned down
-					p = FigurePose.make(0.1, 5.0, Vector2(17.0, -10.0), 0.68).with_spread(1.4)
-				2: # thrust: drawn back to the hip, point forward
-					p = FigurePose.make(-0.06, 3.0, Vector2(14.0, -13.0), -0.1).with_spread(1.45)
-				_: # downward cut: raised blade, body coiled back
-					p = FigurePose.make(-0.14, 3.0, Vector2(20.0, -44.0), -1.2).with_head(-0.08).with_spread(1.35)
+				1: # rising cut: the katana low at the hip, point down and forward, the hips turned back, knees bent
+					p = FigurePose.make(0.16, 8.0, Vector2(13.0, -11.0), 0.8).with_spread(1.6).with_weight(-3.0, 0.0)
+				2: # thrust: drawn back to the hip, the point forward and a little up, the weight on the back foot
+					p = FigurePose.make(-0.12, 7.0, Vector2(10.0, -15.0), -0.3).with_spread(1.7).with_weight(-5.0, 0.0)
+				_: # downward cut: the katana raised high in front, the body coiled back, knees bent
+					p = FigurePose.make(-0.2, 5.0, Vector2(21.0, -46.0), -1.4).with_head(-0.1).with_spread(1.55).with_weight(-5.0, 0.0)
 		&"heavy_windup":
-			p = FigurePose.make(-0.22, 8.0, Vector2(19.0, -45.0), -1.3).with_head(-0.14).with_spread(1.6)
+			p = FigurePose.make(-0.28, 10.0, Vector2(20.0, -49.0), -1.45).with_head(-0.16).with_spread(1.9).with_weight(-7.0, 0.0)
 		&"strike":
 			if heavy:
-				p = FigurePose.make(0.4, 9.0, Vector2(25.0, -17.0), 0.62).with_offset(4.0).with_spread(1.7)
+				# The full cut: hips driven over a deep front knee, the back foot planted, the point low in front.
+				p = FigurePose.make(0.45, 13.0, Vector2(25.0, -17.0), 0.62).with_offset(2.0).with_spread(2.0).with_weight(9.0, 12.0)
 			else:
 				match step:
-					1:
-						p = FigurePose.make(0.1, 1.0, Vector2(24.0, -36.0), -0.95).with_spread(1.4)
-					2:
-						p = FigurePose.make(0.3, 5.0, Vector2(27.0, -22.0), -0.05).with_offset(5.0).with_spread(1.6)
-					_:
-						p = FigurePose.make(0.22, 4.0, Vector2(25.0, -18.0), 0.55).with_spread(1.5)
+					1: # the rising cut finishing high at the front
+						p = FigurePose.make(0.02, 7.0, Vector2(24.0, -34.0), -0.95).with_spread(1.7).with_weight(5.0, 8.0)
+					2: # the thrust, lunging on a bent front knee
+						p = FigurePose.make(0.38, 11.0, Vector2(27.0, -23.0), -0.12).with_offset(2.0).with_spread(1.95).with_weight(9.0, 12.0)
+					_: # the downward cut
+						p = FigurePose.make(0.32, 10.0, Vector2(24.0, -22.0), 0.45).with_spread(1.85).with_weight(8.0, 11.0)
 		&"shoot":
 			# The yumi at full draw (UnitVisual plays the whole shot from samurai_shoot).
 			return samurai_shoot(SHOOT_RELEASE_TIME)
 		&"war_cry":
 			p = _samurai_war_cry_shout()
 		&"cast":
-			p = FigurePose.make(-0.02, 3.0, Vector2(21.0, -45.0), -1.25).with_head(-0.1).with_glow(1.0).with_spread(1.4)
+			p = FigurePose.make(-0.02, 5.0, Vector2(21.0, -45.0), -1.25).with_head(-0.1).with_glow(1.0).with_spread(1.5).with_weight(-1.0, 0.0)
 		&"dash":
-			# A forward thrust leads the charge.
-			p = FigurePose.make(0.5, 9.0, Vector2(20.0, -16.0), -0.1).with_spread(1.5)
+			# A low forward thrust leads the charge.
+			p = FigurePose.make(0.5, 10.0, Vector2(22.0, -18.0), -0.15).with_spread(1.6).with_weight(5.0, 6.0)
 		&"hurt":
-			p = FigurePose.make(-0.32, 2.0, Vector2(13.0, -14.0), -0.2).with_head(-0.35).with_offset(-5.0)
+			p = FigurePose.make(-0.32, 3.0, Vector2(13.0, -14.0), -0.2).with_head(-0.35).with_offset(-5.0).with_weight(-3.0, 0.0)
 		&"dead":
 			# Falls with the body; the katana ends up lying on the ground (the body turns -1.45).
 			p = FigurePose.make(0.0, 0.0, Vector2(14.0, -5.0), 1.5).with_head(-0.2)
 		_:
-			# Guard (seigan): blade forward at the opponent's eyes, feet planted wide.
-			p = FigurePose.make(0.04, 2.0, Vector2(14.0, -17.0), -0.5).with_spread(1.3)
+			# Guard (chudan): both hands low in front of the belly, the point up toward the opponent's eyes, knees bent.
+			p = FigurePose.make(0.05, 1.5, Vector2(17.0, -19.0), -0.62).with_spread(1.2).with_weight(1.0, 0.0)
 	p.pivot = Vector2(5.0, -31.0)
 	return p
 
@@ -518,14 +521,14 @@ static func _shoot_key(lean: float, crouch: float, grip: Vector2, blade: float, 
 
 ## The War Cry's gathering (crouched, katana held low and pointing down) before the shout, which throws it up.
 static func samurai_war_cry_gather() -> FigurePose:
-	var p: FigurePose = FigurePose.make(0.18, 9.0, Vector2(16.0, -14.0), 0.9).with_head(0.12).with_spread(1.75)
+	var p: FigurePose = FigurePose.make(0.18, 10.0, Vector2(16.0, -14.0), 0.9).with_head(0.12).with_spread(1.8).with_weight(2.0, 0.0)
 	p.pivot = Vector2(5.0, -31.0)
 	return p
 
 
 ## The shout: feet planted wide, the body arched back, the katana thrown straight up, the head up.
 static func _samurai_war_cry_shout() -> FigurePose:
-	return FigurePose.make(-0.12, 5.0, Vector2(19.0, -49.0), -1.35).with_head(-0.22).with_glow(0.6).with_spread(1.9)
+	return FigurePose.make(-0.12, 6.0, Vector2(19.0, -49.0), -1.35).with_head(-0.22).with_glow(0.6).with_spread(1.9)
 
 
 ## The title screen pose: hasso no kamae, katana raised in both hands beside the head, wide stance.
@@ -571,13 +574,14 @@ static func feel(kind: InkFigure.Kind, state: StringName, heavy: bool = false) -
 ## (see FigurePainter._build_samurai), a little generously.
 static func samurai_body_zones(pose_in: FigurePose) -> Array[PackedVector2Array]:
 	var s: Spec = spec(InkFigure.Kind.SAMURAI)
-	var hip: Vector2 = Vector2(0.0, -(s.hip_y - pose_in.crouch))
+	var hip: Vector2 = Vector2(pose_in.hip_shift, -(s.hip_y - pose_in.crouch))
 	var torso: Transform2D = Transform2D(pose_in.lean, hip)
 	var head: Transform2D = torso * Transform2D(pose_in.head_tilt, s.neck)
 	var zones: Array[PackedVector2Array] = []
-	# Do (chest armour) and the shoulder lames.
-	zones.append(torso * PackedVector2Array([Vector2(-15.0, -3.0), Vector2(15.0, -3.0), Vector2(16.0, -14.0),
-			Vector2(17.0, -26.0), Vector2(13.0, -33.0), Vector2(-13.0, -33.0), Vector2(-16.0, -22.0)]))
+	# Do (chest armour) and the shoulder lames: narrow at the waist, broad at the chest, a little generous.
+	zones.append(torso * PackedVector2Array([Vector2(-10.5, -1.0), Vector2(11.0, -1.0), Vector2(10.3, -10.0), Vector2(13.3, -19.0),
+			Vector2(15.3, -26.0), Vector2(11.5, -31.0), Vector2(-10.5, -31.0), Vector2(-13.5, -26.0), Vector2(-12.0, -19.0),
+			Vector2(-9.7, -10.0)]))
 	# Kusazuri and the hakama: one wide triangle down to the ground.
 	zones.append(PackedVector2Array([hip + Vector2(-12.0, -2.0), hip + Vector2(12.0, -2.0), Vector2(27.0, 0.0),
 			Vector2(-27.0, 0.0)]))

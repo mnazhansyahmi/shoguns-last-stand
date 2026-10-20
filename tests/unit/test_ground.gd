@@ -7,7 +7,7 @@ const STEP: float = 1.0 / 60.0
 ## and the shadow are about this thick. 3.6 units = 4 px on a 110 px figure.
 const TOLERANCE: float = 3.6
 const GROUND_PARTS: Array[StringName] = [&"thigh_f", &"thigh_b", &"shin_f", &"shin_b", &"hakama_f", &"hakama_b",
-		&"weapon", &"bow", &"shield"]
+		&"weapon", &"bow", &"shield", &"foot_f", &"foot_b"]
 const SEQUENCES: Array = [
 	[&"idle", &"run", &"idle"],
 	[&"windup", &"strike", &"idle"],
