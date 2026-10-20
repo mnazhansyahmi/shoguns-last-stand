@@ -6,6 +6,7 @@ const MAIN_MENU: String = "res://scenes/main_menu/main_menu.tscn"
 const BATTLEFIELD: String = "res://scenes/battlefield/battlefield.tscn"
 const UPGRADE_MENU: String = "res://scenes/upgrade_menu/upgrade_menu.tscn"
 const STAGE_SELECT: String = "res://scenes/stage_select/stage_select.tscn"
+const CREDITS: String = "res://scenes/credits/credits.tscn"
 
 ## Stage the next battlefield will play. Set by go_to_battle(); kept for Retry/Restart.
 ## Null means the battlefield's own default (stage 1).

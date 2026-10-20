@@ -21,6 +21,7 @@
 [sub_resource type="Resource" id="Entry_sword_swing"]
 script = ExtResource("2_entry")
 id = &"sword_swing"
+override_paths = PackedStringArray("res://assets/audio/sfx_kenney/knifeSlice.ogg", "res://assets/audio/sfx_kenney/knifeSlice2.ogg", "res://assets/audio/sfx_kenney/drawKnife1.ogg", "res://assets/audio/sfx_kenney/drawKnife2.ogg", "res://assets/audio/sfx_kenney/drawKnife3.ogg")
 stream = ExtResource("s0_sword_swing")
 volume_db = -4.0
 pitch_variation = 0.08
@@ -29,6 +30,7 @@ min_interval = 0.03
 [sub_resource type="Resource" id="Entry_hit"]
 script = ExtResource("2_entry")
 id = &"hit"
+override_paths = PackedStringArray("res://assets/audio/sfx_kenney/impactMetal_light_000.ogg", "res://assets/audio/sfx_kenney/impactMetal_light_001.ogg", "res://assets/audio/sfx_kenney/impactMetal_light_002.ogg", "res://assets/audio/sfx_kenney/impactMetal_light_003.ogg")
 stream = ExtResource("s1_hit")
 volume_db = -2.0
 pitch_variation = 0.08
@@ -37,6 +39,7 @@ min_interval = 0.03
 [sub_resource type="Resource" id="Entry_heavy_hit"]
 script = ExtResource("2_entry")
 id = &"heavy_hit"
+override_paths = PackedStringArray("res://assets/audio/sfx_kenney/impactMetal_heavy_000.ogg", "res://assets/audio/sfx_kenney/impactMetal_heavy_001.ogg", "res://assets/audio/sfx_kenney/impactMetal_heavy_002.ogg")
 stream = ExtResource("s2_heavy_hit")
 volume_db = 0.0
 pitch_variation = 0.05
@@ -61,6 +64,7 @@ min_interval = 0.05
 [sub_resource type="Resource" id="Entry_summon"]
 script = ExtResource("2_entry")
 id = &"summon"
+override_paths = PackedStringArray("res://assets/audio/sfx_kenney/impactBell_heavy_000.ogg")
 stream = ExtResource("s5_summon")
 volume_db = -3.0
 pitch_variation = 0.0
@@ -69,6 +73,7 @@ min_interval = 0.1
 [sub_resource type="Resource" id="Entry_enemy_death"]
 script = ExtResource("2_entry")
 id = &"enemy_death"
+override_paths = PackedStringArray("res://assets/audio/sfx_kenney/impactSoft_heavy_000.ogg", "res://assets/audio/sfx_kenney/impactSoft_heavy_001.ogg", "res://assets/audio/sfx_kenney/impactSoft_heavy_002.ogg")
 stream = ExtResource("s6_enemy_death")
 volume_db = -3.0
 pitch_variation = 0.06
@@ -77,6 +82,7 @@ min_interval = 0.04
 [sub_resource type="Resource" id="Entry_gate_hit"]
 script = ExtResource("2_entry")
 id = &"gate_hit"
+override_paths = PackedStringArray("res://assets/audio/sfx_kenney/impactWood_heavy_000.ogg", "res://assets/audio/sfx_kenney/impactWood_heavy_001.ogg", "res://assets/audio/sfx_kenney/impactWood_heavy_002.ogg")
 stream = ExtResource("s7_gate_hit")
 volume_db = -3.0
 pitch_variation = 0.06
@@ -101,6 +107,7 @@ min_interval = 0.5
 [sub_resource type="Resource" id="Entry_button_click"]
 script = ExtResource("2_entry")
 id = &"button_click"
+override_paths = PackedStringArray("res://assets/audio/sfx_kenney/click_001.ogg", "res://assets/audio/sfx_kenney/click_002.ogg", "res://assets/audio/sfx_kenney/click_003.ogg")
 stream = ExtResource("s10_button_click")
 volume_db = -6.0
 pitch_variation = 0.04
@@ -117,6 +124,7 @@ min_interval = 0.5
 [sub_resource type="Resource" id="Entry_ultimate_ready"]
 script = ExtResource("2_entry")
 id = &"ultimate_ready"
+override_paths = PackedStringArray("res://assets/audio/sfx_kenney/impactBell_heavy_002.ogg")
 stream = ExtResource("s12_ultimate_ready")
 volume_db = -3.0
 pitch_variation = 0.0

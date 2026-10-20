@@ -8,6 +8,7 @@ extends Control
 @onready var _start_button: Button = %StartButton
 @onready var _upgrades_button: Button = %UpgradesButton
 @onready var _settings_button: Button = %SettingsButton
+@onready var _credits_button: Button = %CreditsButton
 @onready var _quit_button: Button = %QuitButton
 @onready var _progress_label: Label = %ProgressLabel
 @onready var _warning_label: Label = %WarningLabel
@@ -21,6 +22,7 @@ func _ready() -> void:
 	_start_button.pressed.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.STAGE_SELECT))
 	_upgrades_button.pressed.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.UPGRADE_MENU))
 	_settings_button.pressed.connect(_open_settings)
+	_credits_button.pressed.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.CREDITS))
 	_quit_button.pressed.connect(_on_quit_pressed)
 	_settings_panel.changed.connect(_on_settings_changed)
 	_settings_panel.closed.connect(_on_settings_closed)
@@ -28,6 +30,7 @@ func _ready() -> void:
 	_settings_store = SettingsStore.new(settings_path)
 	_settings = _settings_store.load_settings()
 	_settings.apply_audio()
+	AudioManager.play_music(&"menu")
 
 	var save_manager: SaveManager = SaveManager.new(save_path)
 	var progress: PlayerProgress = save_manager.load_progress()

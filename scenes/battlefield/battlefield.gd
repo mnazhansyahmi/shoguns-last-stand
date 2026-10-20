@@ -117,6 +117,7 @@ func _ready() -> void:
 
 	_camera.target = _player
 	_camera.snap()
+	AudioManager.play_music(&"battle")
 
 	# Started after the signals above are connected so no wave event is missed.
 	_wave_director.start()
@@ -470,6 +471,8 @@ func _on_enemy_spawned(enemy: Enemy) -> void:
 		boss.phase_changed.connect(_on_boss_phase_changed)
 		boss.minions_requested.connect(_on_boss_minions_requested.bind(boss))
 		boss.defeated.connect(_on_boss_defeated)
+		# The most intense track, crossfaded in as he arrives.
+		AudioManager.play_music(&"boss")
 
 
 func _on_boss_phase_changed(_phase: int, banner: String) -> void:

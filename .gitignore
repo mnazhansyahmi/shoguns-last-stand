@@ -9,6 +9,9 @@ builds/
 *.ipa
 *.pck
 
+# Downloaded asset archives: unzip what the game uses, credit it in docs/CREDITS.md, never commit the zip
+*.zip
+
 # Godot-specific
 *.translation
 export_credentials.cfg

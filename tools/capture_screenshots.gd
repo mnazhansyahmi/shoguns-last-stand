@@ -63,6 +63,21 @@ func _run() -> void:
 		await _capture_crowd()
 		quit(0)
 		return
+	if _only == "menus":
+		var menu: Node = MAIN_MENU.instantiate()
+		menu.set("save_path", DATA_DIR + "/save.json")
+		menu.set("settings_path", DATA_DIR + "/settings.cfg")
+		root.add_child(menu)
+		await _frames(30)
+		await _capture("menu")
+		menu.free()
+		var credits: Node = load("res://scenes/credits/credits.tscn").instantiate()
+		root.add_child(credits)
+		await _frames(30)
+		await _capture("credits")
+		credits.free()
+		quit(0)
+		return
 	if _only == "boss":
 		await _capture_boss()
 		quit(0)

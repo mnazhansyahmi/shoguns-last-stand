@@ -27,6 +27,7 @@ var _rows: Dictionary = {}
 
 
 func _ready() -> void:
+	AudioManager.play_music(&"menu")
 	_save_manager = SaveManager.new(save_path)
 	_progress = _save_manager.load_progress()
 	_build_rows()

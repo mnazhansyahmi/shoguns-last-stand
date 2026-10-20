@@ -24,7 +24,8 @@ Godot 4.7.2 game, typed GDScript. The full spec is `docs/MASTER_PROMPT.md`. Work
 - Systems talk through signals; avoid hardcoded cross-scene node paths.
 - Avoid autoload singletons unless a later phase justifies one (document it in `docs/ARCHITECTURE.md`). The only one is `Audio` (`AudioManager`). Call `AudioManager.play(id)`; it is a no-op without the autoload, so scenes and tests must not depend on it.
 - Sound effects: ids live in `data/audio/sfx_library.tres`. Placeholders come from `tools/generate_sfx.gd`. Call `AudioManager.shutdown_audio(tree)` before quitting, or Godot reports still-playing streams as leaked.
-- All art is drawn by code (`scripts/visuals/`, style guide `docs/ART_BIBLE.md`). No image files, downloads or third-party assets. Colours come from `InkPalette`; UI colours come from the theme's variations, not per-node overrides.
+- All art is drawn by code (`scripts/visuals/`, style guide `docs/ART_BIBLE.md`). No image files. Colours come from `InkPalette`; UI colours come from the theme's variations, not per-node overrides.
+- Third-party assets (audio so far) are allowed ONLY if their licence permits commercial use AND they are credited. Every one is listed in `docs/CREDITS.md` (what, author, licence, the exact credit line the licence requires, where it is used) and shown on the Credits screen. Add the entry in the same commit as the asset; never add an asset whose licence you cannot confirm. Keep only the files the game uses, and never commit `.zip` archives (they are git-ignored). Credits that a licence REQUIRES are never removed or shortened.
 - Text files use LF line endings (enforced by `.gitattributes`).
 - Commit `*.uid` files; ignore `.godot/`.
 - Stored node references (targets, projectile sources) can be freed at any time. Check `is_instance_valid(member)` on the member itself before using it or passing it on: passing a freed object into a typed parameter is a script error. Clear the reference when it's invalid.

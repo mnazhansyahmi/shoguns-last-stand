@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="MusicLibrary" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/music_library.gd" id="1_library"]
+[ext_resource type="Script" path="res://scripts/resources/music_entry.gd" id="2_entry"]
+
+[sub_resource type="Resource" id="Track_menu"]
+script = ExtResource("2_entry")
+id = &"menu"
+paths = PackedStringArray("res://assets/audio/music/Voice of Evening Calm.mp3")
+volume_db = -10.0
+
+[sub_resource type="Resource" id="Track_stage_select"]
+script = ExtResource("2_entry")
+id = &"stage_select"
+paths = PackedStringArray("res://assets/audio/music/Honobono Teahouse_Loop.ogg")
+prefer_keyword = "tokaido"
+volume_db = -10.0
+
+[sub_resource type="Resource" id="Track_battle"]
+script = ExtResource("2_entry")
+id = &"battle"
+paths = PackedStringArray("res://assets/audio/music/Mountain God's Shrine_Loop.ogg")
+volume_db = -11.0
+
+[sub_resource type="Resource" id="Track_boss"]
+script = ExtResource("2_entry")
+id = &"boss"
+paths = PackedStringArray("res://assets/audio/music/Shamisen Samurai Rock_Loop.ogg")
+volume_db = -9.0
+
+[resource]
+script = ExtResource("1_library")
+entries = Array[ExtResource("2_entry")]([SubResource("Track_menu"), SubResource("Track_stage_select"), SubResource("Track_battle"), SubResource("Track_boss")])

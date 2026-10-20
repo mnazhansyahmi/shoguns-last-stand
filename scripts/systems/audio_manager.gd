@@ -5,8 +5,15 @@ extends Node
 ## click that changes scene) and keep playing while the tree is paused (victory/defeat stings).
 ## Gameplay code calls the static AudioManager.play(id); it is a no-op when no manager exists,
 ## so scenes and tests work without the autoload. Every Button anywhere gets a click sound.
+## It also plays the music (play_music): one looping track per slot (menu, stage select, battle, boss) on the
+## "Music" bus, crossfaded when the slot changes. The Music volume setting is that bus's volume.
 
 const LIBRARY_PATH: String = "res://data/audio/sfx_library.tres"
+const MUSIC_LIBRARY_PATH: String = "res://data/audio/music_library.tres"
+const MUSIC_BUS: StringName = &"Music"
+## Seconds a track takes to fade in while the one before fades out.
+const MUSIC_FADE_TIME: float = 1.6
+const MUSIC_SILENT_DB: float = -60.0
 const BUS: StringName = &"SFX"
 const POOL_SIZE: int = 12
 const CLICK_ID: StringName = &"button_click"
@@ -16,10 +23,20 @@ const NO_CLICK_META: StringName = &"no_click_sfx"
 static var instance: AudioManager
 
 var library: SfxLibrary
+var music_library: MusicLibrary
+## The music slot playing now (&"" = none).
+var current_music: StringName = &""
 var last_played: StringName = &""
 var play_count: int = 0
 
 var _players: Array[AudioStreamPlayer] = []
+## Two players take turns: one fades in the new track while the other fades the old one out.
+var _music_players: Array[AudioStreamPlayer] = []
+var _music_active: int = 0
+var _music_tween: Tween
+var _music_warned: Dictionary = {}
+## SFX id -> the streams to pick from (the recorded sounds that exist, else the generated placeholder).
+var _streams: Dictionary = {}
 var _next_player: int = 0
 var _last_played_msec: Dictionary = {}
 var _warned: Dictionary = {}
@@ -30,6 +47,19 @@ static func play(id: StringName, pitch_scale: float = 1.0) -> bool:
 	if not is_instance_valid(instance):
 		return false
 	return instance.play_sfx(id, pitch_scale)
+
+
+## Plays the music of a slot ("menu", "stage_select", "battle", "boss"), crossfading from what plays now.
+## The same slot again does nothing. Returns false if the slot has no playable file.
+static func play_music(id: StringName, fade: float = MUSIC_FADE_TIME) -> bool:
+	if not is_instance_valid(instance):
+		return false
+	return instance.play_music_track(id, fade)
+
+
+static func stop_music_fading(fade: float = MUSIC_FADE_TIME) -> void:
+	if is_instance_valid(instance):
+		instance.stop_music(fade)
 
 
 func _enter_tree() -> void:
@@ -55,10 +85,13 @@ static func shutdown_audio(tree: SceneTree) -> void:
 
 ## Stops every sound and drops the streams, so nothing is left playing (or leaked) at exit.
 func stop_all() -> void:
-	for player: AudioStreamPlayer in _players:
+	if _music_tween != null:
+		_music_tween.kill()
+	for player: AudioStreamPlayer in _players + _music_players:
 		if is_instance_valid(player):
 			player.stop()
 			player.stream = null
+	current_music = &""
 
 
 func _ready() -> void:
@@ -69,12 +102,63 @@ func _ready() -> void:
 		push_error("AudioManager: could not load %s; sounds disabled." % LIBRARY_PATH)
 	if AudioServer.get_bus_index(BUS) < 0:
 		push_warning("AudioManager: audio bus '%s' missing; sounds use Master." % BUS)
+	_build_streams()
+	if music_library == null:
+		music_library = load(MUSIC_LIBRARY_PATH) as MusicLibrary
+	if music_library == null:
+		push_error("AudioManager: could not load %s; no music." % MUSIC_LIBRARY_PATH)
+	# The two music players live under their own node, apart from the sound-effect pool.
+	var music_root: Node = Node.new()
+	music_root.name = "MusicPlayers"
+	add_child(music_root)
+	for i: int in 2:
+		var music_player: AudioStreamPlayer = AudioStreamPlayer.new()
+		music_player.bus = MUSIC_BUS
+		music_player.volume_db = MUSIC_SILENT_DB
+		music_root.add_child(music_player)
+		_music_players.append(music_player)
 	for i: int in POOL_SIZE:
 		var player: AudioStreamPlayer = AudioStreamPlayer.new()
 		player.bus = BUS
 		add_child(player)
 		_players.append(player)
 	get_tree().node_added.connect(_on_node_added)
+
+
+## Picks, for every effect, the recorded sounds that exist (they replace the generated placeholder);
+## an effect with none of them keeps its placeholder.
+func _build_streams() -> void:
+	_streams.clear()
+	if library == null:
+		return
+	for entry: SfxEntry in library.entries:
+		if entry == null:
+			continue
+		var found: Array[AudioStream] = []
+		for path: String in entry.override_paths:
+			if ResourceLoader.exists(path):
+				var stream: AudioStream = load(path) as AudioStream
+				if stream != null:
+					found.append(stream)
+		if found.is_empty() and entry.stream != null:
+			found.append(entry.stream)
+		_streams[entry.id] = found
+
+
+## How many different sounds `id` picks from (several recorded takes, or the one placeholder).
+func get_sfx_variant_count(id: StringName) -> int:
+	return (_streams.get(id, []) as Array).size()
+
+
+## True if `id` plays a recorded sound (not the generated placeholder).
+func uses_recorded_sfx(id: StringName) -> bool:
+	var entry: SfxEntry = library.find(id) if library != null else null
+	if entry == null:
+		return false
+	for stream: AudioStream in _streams.get(id, []):
+		if stream != entry.stream:
+			return true
+	return false
 
 
 func has_sfx(id: StringName) -> bool:
@@ -93,13 +177,83 @@ func play_sfx(id: StringName, pitch_scale: float = 1.0) -> bool:
 		return false
 	_last_played_msec[id] = now
 	var player: AudioStreamPlayer = _pick_player()
-	player.stream = entry.stream
+	var choices: Array = _streams.get(id, [])
+	player.stream = choices.pick_random() as AudioStream if not choices.is_empty() else entry.stream
 	player.volume_db = entry.volume_db
 	player.pitch_scale = maxf(pitch_scale * (1.0 + randf_range(-entry.pitch_variation, entry.pitch_variation)), 0.05)
 	player.play()
 	last_played = id
 	play_count += 1
 	return true
+
+
+# --- Music ------------------------------------------------------------------
+
+## See the static play_music().
+func play_music_track(id: StringName, fade: float = MUSIC_FADE_TIME) -> bool:
+	if id == current_music and _music_players.size() == 2 and _music_players[_music_active].playing:
+		return true
+	var entry: MusicEntry = music_library.find(id) if music_library != null else null
+	var path: String = entry.resolve_path() if entry != null else ""
+	var stream: AudioStream = load(path) as AudioStream if not path.is_empty() else null
+	if stream == null:
+		if not _music_warned.has(id):
+			_music_warned[id] = true
+			push_warning("AudioManager: no music for '%s'." % id)
+		return false
+	_loop(stream)
+	var outgoing: AudioStreamPlayer = _music_players[_music_active]
+	_music_active = 1 - _music_active
+	var incoming: AudioStreamPlayer = _music_players[_music_active]
+	incoming.stream = stream
+	incoming.volume_db = entry.volume_db if fade <= 0.0 else MUSIC_SILENT_DB
+	incoming.play()
+	if _music_tween != null:
+		_music_tween.kill()
+	if fade <= 0.0:
+		outgoing.stop()
+		outgoing.volume_db = MUSIC_SILENT_DB
+	else:
+		_music_tween = create_tween().set_parallel(true).set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		_music_tween.tween_property(incoming, "volume_db", entry.volume_db, fade)
+		if outgoing.playing:
+			_music_tween.tween_property(outgoing, "volume_db", MUSIC_SILENT_DB, fade)
+			_music_tween.chain().tween_callback(outgoing.stop)
+	current_music = id
+	return true
+
+
+## Fades the music out and stops it.
+func stop_music(fade: float = MUSIC_FADE_TIME) -> void:
+	if _music_players.size() < 2:
+		return
+	var active: AudioStreamPlayer = _music_players[_music_active]
+	current_music = &""
+	if _music_tween != null:
+		_music_tween.kill()
+	if fade <= 0.0 or not active.playing:
+		active.stop()
+		return
+	_music_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_music_tween.tween_property(active, "volume_db", MUSIC_SILENT_DB, fade)
+	_music_tween.tween_callback(active.stop)
+
+
+func is_music_playing() -> bool:
+	return _music_players.size() == 2 and _music_players[_music_active].playing
+
+
+## The player that has the current track (tests read its stream and volume).
+func get_music_player() -> AudioStreamPlayer:
+	return _music_players[_music_active] if _music_players.size() == 2 else null
+
+
+## Music loops until it is changed.
+static func _loop(stream: AudioStream) -> void:
+	if stream is AudioStreamOggVorbis:
+		(stream as AudioStreamOggVorbis).loop = true
+	elif stream is AudioStreamMP3:
+		(stream as AudioStreamMP3).loop = true
 
 
 ## Prefers an idle player; otherwise reuses the oldest (round-robin).

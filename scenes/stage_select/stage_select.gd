@@ -25,6 +25,7 @@ var _buttons: Array[Button] = []
 func _ready() -> void:
 	if region == null:
 		region = StageProgression.default_region()
+	AudioManager.play_music(&"stage_select")
 	var save_manager: SaveManager = SaveManager.new(save_path)
 	_progress = save_manager.load_progress()
 	_title_label.text = region.display_name if region != null else "Stages"
