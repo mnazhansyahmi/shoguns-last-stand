@@ -130,6 +130,14 @@ func _process(delta: float) -> void:
 	_update_wave_text()
 	_update_respawn(delta)
 	_update_edge_indicators()
+	_update_leaf_keep_out()
+
+
+## Falling leaves never fly over the HUD or the touch controls.
+func _update_leaf_keep_out() -> void:
+	var rects: Array[Rect2] = _hud.get_keep_out_rects()
+	rects.append_array(_touch.get_keep_out_rects())
+	_backdrop.set_keep_out(rects)
 
 
 ## Pause when the app is backgrounded or loses focus (phone call, home gesture, alt-tab),

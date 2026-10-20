@@ -21,6 +21,11 @@ const AFTERIMAGE_COUNT: int = 3
 ## A figure further than this outside the screen (screen pixels) is not re-posed each frame;
 ## it catches up the moment it comes back into view. The largest figure is under 350 px tall.
 const CULL_MARGIN: float = 360.0
+## Variation ranges (fractions): size, walking speed; and the vertical offset in pixels.
+const VARY_SIZE: float = 0.06
+const VARY_SPEED: float = 0.1
+const VARY_OFFSET_UP: float = 4.0
+const VARY_OFFSET_DOWN: float = 1.5
 const STATES: Array[StringName] = [&"idle", &"run", &"windup", &"heavy_windup", &"strike", &"cast",
 		&"dash", &"hurt", &"spawn", &"dead"]
 
@@ -55,6 +60,18 @@ var _blink_clock: float = 0.0
 var _dissolve_spawned: bool = false
 var _afterimages_left: int = 0
 
+## Per-unit variation (enable_variation): no two soldiers in a crowd move alike.
+var vary: bool = false
+## Multiplies the figure's height (about +-6%) and the unit's walking speed (about +-10%).
+var size_variation: float = 1.0
+var speed_variation: float = 1.0
+## Occasional idle/run events: a quick head turn or a stumble (visual only).
+var _event: StringName = &""
+var _event_time: float = 0.0
+var _event_length: float = 0.5
+var _event_timer: float = 6.0
+var _event_side: float = 1.0
+
 
 func _ready() -> void:
 	_figure = get_node_or_null("Figure") as InkFigure
@@ -66,12 +83,36 @@ func _ready() -> void:
 	configure(figure_kind, figure_height)
 
 
+## Gives this unit its own look and rhythm: a random animation phase and cloth phase, about +-6%
+## size, about +-10% speed, a small vertical offset and a random time to its first head turn or
+## stumble. Call before configure(). `seed_value` 0 = random; a seed makes it repeatable (tests).
+func enable_variation(seed_value: int = 0) -> void:
+	vary = true
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	if seed_value != 0:
+		rng.seed = seed_value
+	else:
+		rng.randomize()
+	size_variation = rng.randf_range(1.0 - VARY_SIZE, 1.0 + VARY_SIZE)
+	speed_variation = rng.randf_range(1.0 - VARY_SPEED, 1.0 + VARY_SPEED)
+	position.y = rng.randf_range(-VARY_OFFSET_UP, VARY_OFFSET_DOWN)
+	_breath_phase = rng.randf() * TAU
+	_time = rng.randf() * 60.0
+	_event_timer = rng.randf_range(2.0, 9.0)
+	if _figure != null:
+		_figure.clock = rng.randf() * 40.0
+		_figure.stride_phase = rng.randf() * TAU
+		_figure.flicker_phase = rng.randf() * TAU
+
+
 ## Sets which figure is drawn and its height in pixels. Returns the local y of the head top.
 func configure(kind: InkFigure.Kind, height: float) -> float:
 	figure_kind = kind
 	figure_height = height
 	if _figure == null:
 		return -height
+	if vary:
+		height *= size_variation
 	_figure.height = height
 	_figure.kind = kind
 	_figure.ground_marker = Color(InkPalette.SAMURAI_RED, 0.85) if ground_marker else Color(0.0, 0.0, 0.0, 0.0)
@@ -218,13 +259,14 @@ func _update_motion(delta: float) -> void:
 	fig.stride = lerpf(fig.stride, 1.0 if running else 0.0, settle)
 	fig.trail = lerpf(fig.trail, 1.0 if running or _state == &"dash" else 0.0, 1.0 - exp(-4.0 * delta))
 	if running:
-		var cadence: float = fig.spec.cadence
+		var cadence: float = fig.spec.cadence * speed_variation * (0.3 if _event == &"stumble" and _event_time < _event_length * 0.5 else 1.0)
 		if figure_kind == InkFigure.Kind.HOLLOW_SOLDIER:
 			# Shambling: uneven steps.
 			cadence *= 0.7 + 0.6 * absf(sin(fig.stride_phase))
 		fig.stride_phase = fmod(fig.stride_phase + delta * cadence, TAU)
 	fig.bob = absf(sin(fig.stride_phase)) * 2.5 * fig.stride
-	fig.breath = sin(_time * TAU * BREATH_HZ + _breath_phase)
+	fig.breath = sin(_time * TAU * fig.spec.breath_hz + _breath_phase)
+	_tick_event(delta)
 
 	match _state:
 		&"dead":
@@ -276,9 +318,65 @@ func _apply() -> void:
 	live.copy_from(_pose)
 	var calm: float = 1.0 - _figure.stride
 	if _state == &"idle" or _state == &"run":
-		live.blade += sin(_time * 1.7 + _breath_phase) * 0.04 * calm
-		live.lean += _figure.breath * 0.012 * calm
+		_apply_idle(live, calm)
+		_apply_event(live)
 	_figure.refresh()
+
+
+## The figure's personality while it stands: how it breathes, shifts its weight, sways its weapon and
+## moves its head (FigureKinds.Spec idle_*): the samurai is calm, the Oni restless, the healer gentle.
+func _apply_idle(live: FigurePose, calm: float) -> void:
+	var spec: FigureKinds.Spec = _figure.spec
+	var phase: float = _breath_phase
+	live.blade += sin(_time * spec.idle_blade.y + phase) * spec.idle_blade.x * calm
+	live.lean += (_figure.breath * spec.breath_lean + sin(_time * spec.idle_lean.y + phase * 1.3) * spec.idle_lean.x) * calm
+	if spec.idle_bob.x != 0.0:
+		live.crouch += (0.5 + 0.5 * sin(_time * spec.idle_bob.y + phase * 0.7)) * spec.idle_bob.x * calm
+	if spec.idle_head.x != 0.0:
+		live.head_tilt += sin(_time * spec.idle_head.y + phase * 2.1) * spec.idle_head.x * calm
+	if spec.idle_grip != 0.0:
+		live.grip += Vector2(cos(_time * 1.3 + phase), sin(_time * 1.9 + phase)) * spec.idle_grip * calm
+
+
+## Counts down to the next head turn or stumble (only for units with variation).
+func _tick_event(delta: float) -> void:
+	if not vary:
+		return
+	if _event != &"":
+		_event_time += delta
+		if _event_time >= _event_length:
+			_event = &""
+			_event_timer = randf_range(5.0, 13.0)
+		return
+	if _state != &"idle" and _state != &"run":
+		return
+	_event_timer -= delta
+	if _event_timer > 0.0:
+		return
+	_event_side = 1.0 if randf() < 0.5 else -1.0
+	_event_time = 0.0
+	# Stumbles only while running; a head turn any time.
+	if _state == &"run" and randf() < 0.35:
+		_event = &"stumble"
+		_event_length = 0.45
+	else:
+		_event = &"head_turn"
+		_event_length = randf_range(0.6, 1.1)
+
+
+## Lays the current event on the pose: a head turn (head and a little lean) or a stumble (a dip and a
+## lurch forward as the feet catch).
+func _apply_event(live: FigurePose) -> void:
+	if _event == &"":
+		return
+	var bump: float = sin(PI * clampf(_event_time / _event_length, 0.0, 1.0))
+	if _event == &"head_turn":
+		live.head_tilt += _event_side * 0.4 * bump
+		live.lean += -0.02 * bump
+	else:
+		live.crouch += 3.0 * bump
+		live.lean += 0.2 * bump
+		live.head_tilt += 0.15 * bump
 
 
 # --- Effects (visual only) ----------------------------------------------------

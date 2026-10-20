@@ -113,6 +113,16 @@ func get_summon_count() -> int:
 	return _summon_count
 
 
+## Screen rectangles the controls cover (joystick, action buttons, summon bar), or none when hidden.
+func get_keep_out_rects() -> Array[Rect2]:
+	var rects: Array[Rect2] = []
+	if not _active:
+		return rects
+	for control: Control in [_joystick, _action_cluster, _summon_cluster]:
+		rects.append(control.get_global_rect())
+	return rects
+
+
 func is_left_handed() -> bool:
 	return _left_handed
 

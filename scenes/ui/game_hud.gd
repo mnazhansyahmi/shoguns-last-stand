@@ -166,6 +166,17 @@ func _place_indicators(safe_rect: Rect2) -> void:
 		indicator.position = Vector2(x, maxf(top, below_hud))
 
 
+## Screen rectangles the HUD covers (bars, wave text, pause button, hints and the edge tabs), for
+## keeping the falling leaves out of them.
+func get_keep_out_rects() -> Array[Rect2]:
+	var rects: Array[Rect2] = []
+	for control: Control in [_top_left, _wave_box, _pause_button, get_node_or_null("Margin/BottomBox") as Control,
+			_gate_indicator, _enemy_indicator]:
+		if control != null and control.is_visible_in_tree():
+			rects.append(control.get_global_transform() * Rect2(Vector2.ZERO, control.size))
+	return rects
+
+
 func get_pause_button_rect() -> Rect2:
 	return _pause_button.get_global_rect()
 

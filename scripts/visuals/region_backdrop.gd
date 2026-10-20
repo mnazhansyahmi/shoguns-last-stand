@@ -26,6 +26,14 @@ func _ready() -> void:
 			item.set_process(false)
 
 
+## Keeps the falling leaves out of these screen rectangles (the HUD and the touch controls).
+func set_keep_out(rects: Array[Rect2]) -> void:
+	for child: Node in get_children():
+		var leaves: AtmosphereLeaves = child as AtmosphereLeaves
+		if leaves != null:
+			leaves.keep_out = rects
+
+
 ## Paints every layer and recolours the leaves and the characters' rim light with `new_theme`.
 func apply_theme(new_theme: AtmosphereTheme) -> void:
 	theme = new_theme

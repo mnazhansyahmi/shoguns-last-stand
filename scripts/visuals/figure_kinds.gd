@@ -44,6 +44,17 @@ class Spec:
 	var is_enemy: bool = false
 	## Colour of the motes rising when the body dissolves.
 	var death_accent: Color = InkPalette.SPIRIT
+	## Idle personality: how fast and how deep it breathes (and how much its lean follows the breath),
+	## and how its weapon sways (amplitude rad, speed rad/s), its body leans, it shifts its weight
+	## (crouch units), its head moves, and its hand wanders (pixels).
+	var breath_hz: float = 0.3
+	var breath_amp: float = 0.015
+	var breath_lean: float = 0.012
+	var idle_blade: Vector2 = Vector2(0.04, 1.7)
+	var idle_lean: Vector2 = Vector2(0.0, 1.9)
+	var idle_bob: Vector2 = Vector2.ZERO
+	var idle_head: Vector2 = Vector2.ZERO
+	var idle_grip: float = 0.0
 	## The figure's one accent colour (summon buttons wear it).
 	var accent: Color = InkPalette.PAPER
 	## Strikes slam the ground with a shockwave of this radius (0 = none).
@@ -66,6 +77,13 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 	match kind:
 		InkFigure.Kind.SAMURAI:
 			s.accent = InkPalette.SAMURAI_RED
+			# Calm: slow deep breaths, a still blade, only the head turns now and then.
+			s.breath_hz = 0.22
+			s.breath_amp = 0.012
+			s.breath_lean = 0.008
+			s.idle_blade = Vector2(0.025, 1.1)
+			s.idle_lean = Vector2(0.008, 0.9)
+			s.idle_head = Vector2(0.035, 0.45)
 			# Legs are drawn as flared hakama wedges (FigurePainter), so the stance is wide.
 			s.stance = Vector2(10.0, -10.0)
 			s.back_hand_on_weapon = Vector2(-7.0, 0.0)
@@ -76,6 +94,14 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.loose_armour = true
 		InkFigure.Kind.ASHIGARU:
 			s.accent = InkPalette.ASHIGARU_GOLD
+			# Nervous foot soldier: shifts his weight, glances about, the spear never quite still.
+			s.breath_hz = 0.38
+			s.breath_lean = 0.018
+			s.idle_blade = Vector2(0.06, 2.1)
+			s.idle_lean = Vector2(0.025, 1.7)
+			s.idle_bob = Vector2(1.0, 2.3)
+			s.idle_head = Vector2(0.08, 1.0)
+			s.idle_grip = 0.5
 			s.hip_y = 44.0
 			s.thigh = 22.0
 			s.shin = 22.0
@@ -95,6 +121,12 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.trail_edge = InkPalette.ASHIGARU_GOLD
 		InkFigure.Kind.YUMI_ARCHER:
 			s.accent = InkPalette.ARCHER_TEAL
+			# Alert: scans the field, the bow hand always adjusting.
+			s.breath_hz = 0.3
+			s.idle_blade = Vector2(0.035, 1.6)
+			s.idle_lean = Vector2(0.015, 1.4)
+			s.idle_head = Vector2(0.11, 1.3)
+			s.idle_grip = 0.5
 			s.hip_y = 44.0
 			s.thigh = 22.0
 			s.shin = 22.0
@@ -112,6 +144,13 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.cloth = true
 		InkFigure.Kind.HOLLOW_SOLDIER:
 			s.accent = InkPalette.HOLLOW_PURPLE
+			# Unquiet: sways on its feet, the head jerks, the sword drifts.
+			s.breath_hz = 0.24
+			s.breath_lean = 0.02
+			s.idle_blade = Vector2(0.09, 2.7)
+			s.idle_lean = Vector2(0.045, 0.8)
+			s.idle_bob = Vector2(1.3, 0.9)
+			s.idle_head = Vector2(0.13, 2.5)
 			s.hip_y = 45.0
 			s.thigh_w = Vector2(7.0, 5.5)
 			s.shin_w = Vector2(5.5, 4.5)
@@ -133,6 +172,15 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.death_accent = InkPalette.HOLLOW_PURPLE
 		InkFigure.Kind.ONI_BRUTE:
 			s.accent = InkPalette.ONI_EMBER
+			# Restless: heaves for breath, stomps from foot to foot, the club twitches.
+			s.breath_hz = 0.6
+			s.breath_amp = 0.03
+			s.breath_lean = 0.03
+			s.idle_blade = Vector2(0.08, 2.4)
+			s.idle_lean = Vector2(0.06, 2.0)
+			s.idle_bob = Vector2(2.6, 2.7)
+			s.idle_head = Vector2(0.11, 1.7)
+			s.idle_grip = 1.0
 			s.hip_y = 40.0
 			s.thigh = 20.0
 			s.shin = 20.0
@@ -164,6 +212,13 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.slam_radius = 170.0
 		InkFigure.Kind.SHRINE_HEALER:
 			s.accent = InkPalette.HEALER_JADE
+			# Gentle: sways like grass, the head tilts softly, the wand drifts slowly.
+			s.breath_hz = 0.26
+			s.breath_amp = 0.014
+			s.idle_blade = Vector2(0.055, 1.0)
+			s.idle_lean = Vector2(0.022, 0.9)
+			s.idle_bob = Vector2(0.6, 1.1)
+			s.idle_head = Vector2(0.075, 0.7)
 			s.hip_y = 44.0
 			s.thigh = 22.0
 			s.shin = 22.0
@@ -188,6 +243,12 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.sleeve_width = Vector2(10.0, 5.0)
 		InkFigure.Kind.SPEAR_GUARDIAN:
 			s.accent = InkPalette.GUARDIAN_AZURE
+			# Stoic: planted, hardly moves; a slow shift of the shield.
+			s.breath_hz = 0.3
+			s.idle_blade = Vector2(0.015, 1.2)
+			s.idle_lean = Vector2(0.01, 1.0)
+			s.idle_bob = Vector2(0.5, 0.8)
+			s.idle_head = Vector2(0.04, 0.6)
 			s.hip_y = 44.0
 			s.thigh = 22.0
 			s.shin = 22.0
@@ -214,6 +275,12 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.death_accent = InkPalette.GUARDIAN_AZURE
 		InkFigure.Kind.ONMYOJI:
 			s.accent = InkPalette.ONMYOJI_MAGENTA
+			# Serene: the talisman drifts by itself, the hand wanders, the body barely sways.
+			s.breath_hz = 0.24
+			s.idle_blade = Vector2(0.075, 1.4)
+			s.idle_lean = Vector2(0.025, 0.8)
+			s.idle_head = Vector2(0.085, 0.6)
+			s.idle_grip = 0.9
 			s.hip_y = 44.0
 			s.thigh = 22.0
 			s.shin = 22.0
@@ -238,6 +305,11 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.sleeve_width = Vector2(11.0, 5.0)
 		InkFigure.Kind.HATAMOTO:
 			s.accent = InkPalette.HATAMOTO_ORANGE
+			# Proud: upright, a steady naginata, a slow sweep of the eyes.
+			s.breath_hz = 0.28
+			s.idle_blade = Vector2(0.03, 1.3)
+			s.idle_lean = Vector2(0.012, 1.2)
+			s.idle_head = Vector2(0.05, 0.5)
 			s.hip_y = 45.0
 			s.thigh = 22.5
 			s.shin = 22.5
@@ -414,7 +486,7 @@ static func _ashigaru(state: StringName) -> FigurePose:
 			return FigurePose.make(-0.3, 1.0, Vector2(8.0, -14.0), -0.3).with_head(-0.3).with_offset(-4.0)
 		&"dead":
 			return FigurePose.make(0.0, 0.0, Vector2(10.0, -10.0), 0.2)
-	return FigurePose.make(0.05, 1.0, Vector2(12.0, -15.0), -0.12)
+	return FigurePose.make(0.09, 2.0, Vector2(11.0, -14.0), -0.2).with_spread(1.1)
 
 
 static func _archer(state: StringName) -> FigurePose:
@@ -463,7 +535,7 @@ static func _oni(state: StringName) -> FigurePose:
 		&"dead":
 			p = FigurePose.make(0.0, 0.0, Vector2(16.0, -10.0), 0.8)
 		_:
-			p = FigurePose.make(0.1, 1.0, Vector2(21.0, -17.0), 1.05)
+			p = FigurePose.make(0.15, 3.0, Vector2(21.0, -17.0), 1.05).with_spread(1.1)
 	p.pivot = Vector2(10.0, -43.0)
 	return p
 
@@ -504,7 +576,7 @@ static func _guardian(state: StringName) -> FigurePose:
 		&"dead":
 			p = FigurePose.make(0.0, 0.0, Vector2(10.0, -10.0), 0.3).with_back(Vector2(4.0, -6.0))
 		_:
-			p = FigurePose.make(0.04, 1.0, Vector2(10.0, -22.0), -0.14).with_back(Vector2(13.0, -15.0))
+			p = FigurePose.make(0.07, 2.0, Vector2(10.0, -22.0), -0.14).with_back(Vector2(14.0, -15.0)).with_spread(1.2)
 	return p
 
 

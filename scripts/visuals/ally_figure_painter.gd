@@ -232,13 +232,11 @@ static func _build_hatamoto(parts: Dictionary) -> void:
 	head.stroke(PackedVector2Array([Vector2(7.0, -2.0), Vector2(8.0, 4.0), Vector2(7.5, 9.0)]), 3.2, 1.6, orange)
 	parts[&"head"] = head
 
-	# Sashimono: the banner on his back, a pole above his head and a flag with a mon (accent).
+	# Sashimono: the banner on his back, a pole above his head and the mon on its flag (accent). The flag
+	# itself, torn and fluttering, is the "hem" part (FigureTatters).
 	var banner: InkBatch = InkBatch.new()
 	banner.limb(Vector2(-7.0, -6.0), Vector2(-12.0, -100.0), 2.8, 2.4, back_ink)
-	banner.fill(PackedVector2Array([Vector2(-11.7, -99.0), Vector2(-26.0, -96.0), Vector2(-34.0, -92.0), Vector2(-34.0, -62.0),
-			Vector2(-26.0, -65.5), Vector2(-11.0, -63.0)]), orange)
 	banner.circle(Vector2(-23.0, -79.0), 5.4, ink)
-	banner.limb(Vector2(-12.0, -64.0), Vector2(-33.0, -64.0), 1.6, 1.6, ink)
 	parts[&"banner"] = banner
 
 	# Naginata: a long shaft with a sweeping curved blade (not a straight spear head).

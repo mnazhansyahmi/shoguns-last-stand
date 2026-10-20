@@ -69,7 +69,8 @@ func test_units_build_their_figure_from_data() -> void:
 	add_to_tree(enemy)
 	var figure: InkFigure = (enemy.get_node("Visual") as UnitVisual).get_figure()
 	assert_eq(figure.kind, InkFigure.Kind.ONI_BRUTE, "enemy draws its data's figure")
-	assert_almost_eq(figure.height, ONI_BRUTE.body_size.y, "figure is drawn at the body height")
+	assert_true(figure.height >= ONI_BRUTE.body_size.y * 0.939 and figure.height <= ONI_BRUTE.body_size.y * 1.061,
+			"figure is drawn at the body height, give or take the +-6%% size variation (%.1f)" % figure.height)
 	var bar: Node2D = enemy.get_node("HealthBar")
 	assert_true(bar.position.y < -ONI_BRUTE.body_size.y, "health bar sits above the horns")
 
@@ -496,9 +497,13 @@ func test_glows_are_merged_per_part_and_not_lost() -> void:
 		assert_eq((definitions[0]["radii"] as PackedFloat32Array).size(), 2, "one radius per eye")
 	var oni: Array[Dictionary] = FigurePainter.glows(InkFigure.Kind.ONI_BRUTE)
 	var spots: int = 0
+	var parts_lit: Dictionary = {}
 	for definition: Dictionary in oni:
 		spots += (definition["points"] as PackedVector2Array).size()
-	assert_eq(oni.size(), 2, "the oni's glows sit on two parts (torso, head)")
+		parts_lit[definition["part"]] = true
+	assert_eq(parts_lit.size(), 2, "the oni's glows sit on two parts (torso, head)")
+	# One additive item per part and flicker depth: the steady halo, the flickering cracks, the eyes.
+	assert_eq(oni.size(), 3, "the oni's glows merge into three additive items")
 	assert_eq(spots, 9, "no oni glow spot is lost in merging")
 
 
@@ -532,7 +537,8 @@ func test_overlapping_enemy_bars_stack_upward() -> void:
 	var b: WorldHealthBar = second.get_node("HealthBar")
 	var c: WorldHealthBar = far.get_node("HealthBar")
 	assert_true(a.get_stagger_level() != b.get_stagger_level(), "overlapping bars take different levels")
-	assert_almost_eq(absf(a.position.y - b.position.y), WorldHealthBar.STAGGER_STEP, "stacked one step apart")
+	# Each unit has its own size, so its bar rests at its own height: what counts is the level.
+	assert_eq(absf(float(a.get_stagger_level() - b.get_stagger_level())), 1.0, "stacked one level apart")
 	assert_eq(c.get_stagger_level(), 0, "a bar with no neighbours stays on its unit")
 
 

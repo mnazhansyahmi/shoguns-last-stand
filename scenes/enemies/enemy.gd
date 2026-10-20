@@ -40,6 +40,8 @@ var _attack_cooldown_left: float = 0.0
 var _target: Node2D
 var _scan_timer: float = 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity", 980.0)
+## How much room this soldier keeps from the one in front (random: a crowd is never evenly spaced).
+var _spacing_scale: float = 1.0
 
 
 ## Call before adding to the tree.
@@ -239,8 +241,9 @@ func _resume() -> void:
 
 func _walk(direction: int, delta: float) -> void:
 	_set_facing(direction)
-	var desired: float = 0.0 if _is_blocked_by_other_enemy(direction) else direction * data.move_speed
-	velocity.x = move_toward(velocity.x, desired, data.move_speed * 8.0 * delta)
+	var speed: float = data.move_speed * _visual.speed_variation
+	var desired: float = 0.0 if _is_blocked_by_other_enemy(direction) else direction * speed
+	velocity.x = move_toward(velocity.x, desired, speed * 8.0 * delta)
 	_visual.play_state(&"run" if absf(velocity.x) > 1.0 else &"idle")
 
 
@@ -258,7 +261,7 @@ func _is_blocked_by_other_enemy(direction: int) -> bool:
 		if other == null or other.is_dead():
 			continue
 		var dx: float = other.global_position.x - global_position.x
-		var spacing: float = (my_half + other.get_half_width()) * 0.85
+		var spacing: float = (my_half + other.get_half_width()) * 0.85 * _spacing_scale
 		if absf(dx) >= spacing:
 			continue
 		if absf(dx) < 1.0:
@@ -344,6 +347,9 @@ func _set_facing(direction: int) -> void:
 # --- Visuals from data ----------------------------------------------------
 
 func _apply_data() -> void:
+	# Every soldier gets its own phase, size (+-6%), speed (+-10%) and personal space.
+	_visual.enable_variation()
+	_spacing_scale = randf_range(0.8, 1.25)
 	UnitRig.build_collision(_body_shape, _hurtbox_shape, _hitbox_shape, data.body_size, _attack.hitbox_size)
 	var head_top: float = _visual.configure(data.figure, data.body_size.y)
 	# Short bar, shown only once hurt; overlapping bars stack (WorldHealthBar.stagger).

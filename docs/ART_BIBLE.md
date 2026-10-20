@@ -137,6 +137,54 @@ Back to front:
   colour, then the part itself on top. Only the edge that sticks out shows. The ground shadow and the
   spirit glow are not lit.
 
+## Characters with life
+
+The Hollow Soldier is the reference: uneven, torn shapes, cloth that moves, a light that flickers, a way of
+standing that tells you who it is. Every character now has the same things (original designs, nothing copied).
+
+- **Torn, fluttering cloth** (`FigureTatters`): each character has a strip, skirt, cloak or flag with a torn free
+  edge. The shape of the tear is fixed per kind; only the ripple changes. Every shape is built once per kind,
+  flutter phase and wind level (12 x 3) and cached, so a figure only swaps between a few cached batches about a
+  dozen times a second (the same trick as the Hollow Soldier's hem). The cloth follows the figure's own clock,
+  so no two soldiers ripple together.
+
+  | Kind | Cloth |
+  | --- | --- |
+  | Samurai | torn under-robe strip trailing from his hip |
+  | Ashigaru | ragged tabard under the do |
+  | Yumi Archer | short cloak from the shoulders |
+  | Shrine Healer, Onmyoji | torn hem under the hakama |
+  | Spear Guardian | torn tabard over the legs |
+  | Hatamoto | the banner's flag, torn along its free edge (the pole and mon stay solid) |
+  | Oni Brute | strips of hide under the loincloth |
+
+- **One glowing detail each**, flickering (two uneven sine waves, each figure on its own phase, never in step):
+  samurai the blade's point (calm), ashigaru the tassel, archer the fletching, healer the gohei streamers, guardian
+  the shield rim, onmyoji the seal on the talisman (a candle), hatamoto the mon on the banner, Hollow its eyes,
+  Oni its cracks and eyes.
+- **Allies are a lighter tone.** The six allies are drawn in a blue-slate ink (`ALLY_INK`, `ALLY_INK_BACK`,
+  `ALLY_INK_DETAIL`: `FigurePainter.tone_batch()` swaps the three inks when the part is built), the enemies and
+  the samurai in the near-black ink. The ally tones keep at least 3.5:1 (near) and 2.8:1 (far limbs) against
+  every theme's backdrop. The accents are untouched.
+- **Idle personality** (`FigureKinds.Spec` `breath_*`, `idle_*`): the samurai is calm (slow deep breathing, a still
+  blade, a slow turn of the head), the Oni restless (fast heaving breath, stomping from foot to foot, a twitching
+  club), the healer gentle (slow sway, soft head tilt), the ashigaru nervous, the archer alert, the Hollow unquiet,
+  the guardian stoic, the onmyoji serene (the talisman drifts), the hatamoto proud. Standing poses are stronger: a
+  braced ashigaru, a planted guardian, a hunched Oni.
+- **No two soldiers alike** (`UnitVisual.enable_variation()`, used by every enemy and ally, not the player): a
+  random animation, stride, cloth and flicker phase, +-6% size, +-10% walking speed, a small vertical offset
+  (-4 to +1.5 px), and now and then a head turn or (while running) a stumble. Enemies also keep a random,
+  irregular distance from the one in front (0.8 to 1.25 times the usual), so a column never marches as one line.
+- **Allies are drawn apart.** Each ally is drawn in its own sideways lane (`Ally.LANES`, up to 63 px either
+  side, handed out in turn), and its health bar goes with it, so a group standing on one spot reads as separate
+  people. Only the picture moves: bodies, hitboxes, reach and summoning are exactly as before. Physically
+  spreading the allies (formation offsets, summon spacing, pushing each other apart) was tried and made them
+  clearly weaker in `tools/balance_sim.gd` (allies-only stage 1: about 215 s and 35 allies summoned became about
+  280 to 300 s and 50), because stacked allies fight better, so it was not kept.
+- **Health bars** of a hurt enemy hide 2 s after the last hit (fading over the last 0.4 s) and come back on the
+  next one, so a crowd is not a row of bars.
+- **Leaves** never fly over the HUD or the touch controls (`AtmosphereLeaves.keep_out`).
+
 ## Value and contrast rules (phone readability)
 
 The game is played on a 6-inch phone at arm's length, so **value contrast is the main

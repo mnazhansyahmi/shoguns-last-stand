@@ -4,6 +4,11 @@ extends Node2D
 ## Enemy bars use `hide_until_damaged` (a full-health crowd shows no bars) and `stagger`: bars
 ## that would overlap are stacked upward so each stays readable in a melee.
 
+## A bar that hides until damaged goes away again this long after the unit was last hit.
+const HIDE_DELAY: float = 2.0
+## It fades over the last part of that time.
+const FADE_TIME: float = 0.4
+
 ## Height of one stagger step (bar plus frame and a gap).
 const STAGGER_STEP: float = 16.0
 ## Bars closer than this (plus their half widths) count as overlapping.
@@ -24,6 +29,8 @@ var _ratio: float = 1.0
 var _base_position: Vector2 = Vector2.ZERO
 var _has_base: bool = false
 var _level: int = 0
+var _last_current: float = -1.0
+var _since_hit: float = 0.0
 
 
 func _enter_tree() -> void:
@@ -55,8 +62,18 @@ func get_stagger_level() -> int:
 
 func set_values(current: float, maximum: float) -> void:
 	set_ratio(current / maxf(maximum, 0.001))
-	if hide_until_damaged and current < maximum - 0.001:
+	var was_hit: bool = _last_current >= 0.0 and current < _last_current - 0.001
+	_last_current = current
+	if hide_until_damaged and current < maximum - 0.001 and (was_hit or not visible):
+		# Every hit brings the bar back and restarts the two-second timer.
 		visible = true
+		_since_hit = 0.0
+		modulate.a = 1.0
+
+
+## True while the bar is on screen because the unit was hit recently.
+func is_showing_recent_hit() -> bool:
+	return visible and _since_hit < HIDE_DELAY
 
 
 func set_ratio(ratio: float) -> void:
@@ -64,7 +81,13 @@ func set_ratio(ratio: float) -> void:
 	queue_redraw()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if hide_until_damaged and visible:
+		_since_hit += delta
+		if _since_hit >= HIDE_DELAY:
+			visible = false
+		else:
+			modulate.a = clampf((HIDE_DELAY - _since_hit) / FADE_TIME, 0.0, 1.0)
 	if stagger and Engine.get_process_frames() != _layout_frame:
 		_layout_frame = Engine.get_process_frames()
 		layout_staggered()

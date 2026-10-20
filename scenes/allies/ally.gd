@@ -21,10 +21,17 @@ const CORPSE_TIME: float = 0.8
 const HOME_TOLERANCE: float = 10.0
 const LOSE_TARGET_FACTOR: float = 1.5
 const INTERRUPT_ATTACK_DELAY: float = 0.3
+## Allies are DRAWN in their own sideways lane (px), so a group standing on one spot reads as separate
+## people, not one dark blob. Only the picture moves: bodies, hitboxes, reach and summoning are
+## untouched (physically spreading allies made them measurably weaker in tools/balance_sim.gd).
+const LANES: Array[float] = [0.0, -42.0, 42.0, -21.0, 21.0, -63.0, 63.0, -10.0, 10.0, -32.0, 32.0, -52.0, 52.0]
+static var _lanes_given: int = 0
 
 @export var data: AllyData
 ## Where the ally waits when no enemy is in range. NAN = position when it enters the tree.
 @export var home_x: float = NAN
+## The sideways offset this ally is drawn at (see LANES).
+var lane_x: float = 0.0
 
 @onready var _visual: UnitVisual = $Visual
 @onready var _health: HealthComponent = $HealthComponent
@@ -65,8 +72,12 @@ func _ready() -> void:
 		push_error("Ally '%s': AllyData '%s' has no attack, using defaults." % [name, data.display_name])
 		_attack = AttackProfile.new()
 	UnitRig.build_collision(_body_shape, _hurtbox_shape, _hitbox_shape, data.body_size, _attack.hitbox_size)
+	_visual.enable_variation()
+	lane_x = LANES[_lanes_given % LANES.size()]
+	_lanes_given += 1
+	_visual.position.x = lane_x
 	var head_top: float = _visual.configure(data.figure, data.body_size.y)
-	_health_bar.position = Vector2(0.0, head_top - 22.0)
+	_health_bar.position = Vector2(lane_x, head_top - 22.0)
 	_health_bar.bar_size = Vector2(clampf(data.body_size.x * 1.4, 56.0, 120.0), 8.0)
 
 	_health.health_changed.connect(_health_bar.set_values)
@@ -351,8 +362,9 @@ func _resume() -> void:
 
 func _walk(direction: int, delta: float) -> void:
 	_set_facing(direction)
-	var desired: float = 0.0 if _is_blocked_by_other_ally(direction) else direction * data.move_speed
-	velocity.x = move_toward(velocity.x, desired, data.move_speed * 8.0 * delta)
+	var speed: float = data.move_speed * _visual.speed_variation
+	var desired: float = 0.0 if _is_blocked_by_other_ally(direction) else direction * speed
+	velocity.x = move_toward(velocity.x, desired, speed * 8.0 * delta)
 	_visual.play_state(&"run" if absf(velocity.x) > 1.0 else &"idle")
 
 

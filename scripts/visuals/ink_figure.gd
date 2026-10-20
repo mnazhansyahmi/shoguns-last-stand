@@ -34,6 +34,8 @@ var stride_phase: float = 0.0
 var bob: float = 0.0
 ## -1..1 breathing cycle.
 var breath: float = 0.0
+## Random phase of the glow's flicker, so a crowd's lights do not pulse together.
+var flicker_phase: float = 0.0
 ## 0 = standing still, 1 = running (cloth streams back).
 var trail: float = 0.0
 ## Seconds, drives cloth flutter.
@@ -75,6 +77,8 @@ var _parts: Array[FigurePart] = []
 var _part_slots: PackedInt32Array = PackedInt32Array()
 var _dynamic_parts: Array[FigurePart] = []
 var _fall_glows: Array[FigurePart] = []
+## How deeply each of _fall_glows flickers (0 = steady), index for index.
+var _glow_flicker: PackedFloat32Array = PackedFloat32Array()
 var _pose_glows: Array[FigurePart] = []
 var _bow_part: FigurePart
 var _bow_step: int = -1
@@ -170,7 +174,7 @@ func refresh() -> void:
 	front_knee = InkBrush.solve_joint(hip + Vector2(2.0, 0.0), front_ankle, spec.thigh, spec.shin, -1.0)
 	back_knee = InkBrush.solve_joint(hip + Vector2(-2.0, 0.0), back_ankle, spec.thigh, spec.shin, -1.0)
 
-	torso_xf = root_xf * Transform2D(pose.lean, Vector2(1.0, 1.0 + 0.015 * breath), 0.0, hip)
+	torso_xf = root_xf * Transform2D(pose.lean, Vector2(1.0, 1.0 + spec.breath_amp * breath), 0.0, hip)
 	head_xf = torso_xf * Transform2D(pose.head_tilt + breath * 0.02, spec.neck)
 	weapon_local = Transform2D(pose.blade, pose.grip)
 	weapon_xf = torso_xf * weapon_local
@@ -202,10 +206,11 @@ func refresh() -> void:
 			_bow_part.batch = FigurePainter.bow(pose.bow_draw)
 			_bow_part.queue_redraw()
 	if _hem_part != null:
-		var key: int = FigurePainter.hem_key(self)
+		var own_hem: bool = kind == Kind.HOLLOW_SOLDIER
+		var key: int = FigurePainter.hem_key(self) if own_hem else FigureTatters.key(self)
 		if key != _hem_key:
 			_hem_key = key
-			_hem_part.batch = FigurePainter.hem(key)
+			_hem_part.batch = FigurePainter.hem(key) if own_hem else FigureTatters.batch(kind, key)
 			_hem_part.queue_redraw()
 	var lit: bool = pose.glow > 0.02
 	if _blade_glow_part != null:
@@ -215,8 +220,13 @@ func refresh() -> void:
 		part.visible = lit
 		part.modulate.a = pose.glow
 	var strength: float = 1.0 - fall * 0.7
-	for part: FigurePart in _fall_glows:
-		part.modulate.a = strength
+	for i: int in _fall_glows.size():
+		var pulse: float = 1.0
+		if _glow_flicker[i] > 0.0:
+			# Two uneven sine waves read as a flame, not a metronome; the phase is the figure's own.
+			var wave: float = 0.5 + 0.3 * sin(clock * 5.3 + flicker_phase) + 0.2 * sin(clock * 8.9 + flicker_phase * 2.3)
+			pulse = 1.0 - _glow_flicker[i] * (1.0 - wave)
+		_fall_glows[i].modulate.a = strength * pulse
 	# Hit flash: brighten every part toward paper.
 	modulate = Color.WHITE.lerp(FLASH_MODULATE, flash) if flash > 0.0 else Color.WHITE
 
@@ -303,6 +313,7 @@ func _build_parts() -> void:
 	_part_slots.resize(0)
 	_dynamic_parts.clear()
 	_fall_glows.clear()
+	_glow_flicker.resize(0)
 	_pose_glows.clear()
 	_bow_part = null
 	_bow_step = -1
@@ -328,6 +339,7 @@ func _build_parts() -> void:
 			_bow_part = part
 		elif part_name == &"hem":
 			_hem_part = part
+			part.material = Atmosphere.rim_material()
 		else:
 			part.batch = FigurePainter.part(kind, part_name)
 			if part.batch != null and not part.batch.uvs.is_empty():
@@ -351,6 +363,7 @@ func _build_parts() -> void:
 			_pose_glows.append(glow)
 		else:
 			_fall_glows.append(glow)
+			_glow_flicker.append(float(definition.get("flicker", 0.0)))
 
 
 ## The ground ring under the player (unit space, scaled by the MARKER slot).

@@ -10,7 +10,7 @@ const RIM_SHADER_PATH: String = "res://scripts/visuals/shaders/rim_light.gdshade
 ## Screen direction toward the sun (up and to the right), and how far the rim sliver reaches in
 ## world pixels (about 2 px on screen with the battle zoom).
 const SUN_DIRECTION: Vector2 = Vector2(0.62, -0.78)
-const RIM_THICKNESS: float = 1.5
+const RIM_THICKNESS: float = 2.3
 
 static var theme: AtmosphereTheme
 ## Seconds the wind has been blowing (advanced by the backdrop).
@@ -59,9 +59,32 @@ static func rim_material() -> ShaderMaterial:
 	return _rim_material
 
 
+## The rim light's colour for a theme: the sun's warm light, pushed whichever way makes it stand out
+## most against the theme's bright sky: toward white on a dark or saturated sky, toward a deep vivid
+## sun-fire on a pale one (a test checks the contrast for every theme).
+static func rim_color_for(theme_now: AtmosphereTheme) -> Color:
+	var base: Color = theme_now.rim_color
+	var candidates: Array[Color] = [Color(base.lerp(Color(1.0, 0.97, 0.9), 0.6), 1.0)]
+	for hue_shift: float in [-0.14, -0.07, 0.0, 0.07, 0.14]:
+		for value: float in [0.7, 0.85, 1.0]:
+			candidates.append(Color.from_hsv(fposmod(base.h + hue_shift, 1.0), 1.0, value))
+	var best: Color = candidates[0]
+	var best_ratio: float = -1.0
+	for candidate: Color in candidates:
+		# It must also read against the dark body it outlines.
+		if InkPalette.contrast(candidate, InkPalette.INK) < 5.5:
+			continue
+		var ratio: float = INF
+		for backdrop: Color in [theme_now.sky_horizon, theme_now.mist, theme_now.ground_top]:
+			ratio = minf(ratio, InkPalette.contrast(candidate, backdrop))
+		if ratio > best_ratio:
+			best_ratio = ratio
+			best = candidate
+	return best
+
+
 static func _update_rim() -> void:
 	if _rim_material == null:
 		return
-	var rim: Color = current().rim_color
-	_rim_material.set_shader_parameter("rim_color", Color(rim.lightened(0.15), 1.0))
+	_rim_material.set_shader_parameter("rim_color", rim_color_for(current()))
 	_rim_material.set_shader_parameter("rim_offset", SUN_DIRECTION.normalized() * RIM_THICKNESS)

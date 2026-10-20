@@ -8,6 +8,11 @@ const INK_BACK: Color = Color("#2a2633")
 const INK_DETAIL: Color = Color("#3b3646")
 const PAPER: Color = Color("#efe6cf")
 const STEEL: Color = Color("#c9ced6")
+## The six allies wear a slightly lighter, blue-slate ink than the enemies' near-black, so a group of
+## them reads apart from the enemies and from the backdrop (FigurePainter.tone_batch swaps the inks).
+const ALLY_INK: Color = Color("#272e45")
+const ALLY_INK_BACK: Color = Color("#343d5a")
+const ALLY_INK_DETAIL: Color = Color("#566187")
 
 # --- Character accents (one per character) ---------------------------------
 const SAMURAI_RED: Color = Color("#d7372b")

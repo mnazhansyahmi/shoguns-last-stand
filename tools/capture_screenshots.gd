@@ -51,6 +51,18 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if _only == "sheets":
+		await _capture_figure_sheet("figures", Color.WHITE)
+		await _capture_figure_sheet("silhouettes", Color.BLACK)
+		await _capture_ally_sheet("allies", Color.WHITE)
+		await _capture_ally_sheet("ally_silhouettes", Color.BLACK)
+		await _capture_samurai_sheet()
+		quit(0)
+		return
+	if _only == "crowd":
+		await _capture_crowd()
+		quit(0)
+		return
 	if _only == "allies":
 		await _capture_ally_sheet("allies", Color.WHITE)
 		await _capture_ally_sheet("ally_silhouettes", Color.BLACK)
@@ -217,6 +229,46 @@ func _capture_figure_sheet(shot_name: String, tint: Color) -> void:
 	await _frames(2)
 	await _capture(shot_name)
 	sheet.free()
+
+
+## A crowded battle: twelve allies against twenty-odd enemies, two Oni among them, captured twice as
+## the lines meet (to judge variation between units, ally separation and the health bars).
+func _capture_crowd() -> void:
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
+	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
+	var region: RegionData = StageProgression.default_region()
+	SceneRoutes.battle_stage = region.stages[clampi(_stage_number, 1, region.stages.size()) - 1]
+	var field: Node = BATTLEFIELD.instantiate()
+	field.set("save_path", DATA_DIR + "/save.json")
+	field.set("settings_path", DATA_DIR + "/settings.cfg")
+	root.add_child(field)
+	(field.get_node("World/WaveDirector") as WaveDirector).stop()
+	var spawner: EnemySpawner = field.get_node("World/EnemySpawner")
+	var energy: SpiritEnergy = field.get_node("World/SpiritEnergy")
+	var summoner: SummonManager = field.get_node("World/SummonManager")
+	var player: Node2D = field.get_node("World/Player")
+	energy.max_energy = 2000.0
+	energy.set_energy(2000.0)
+	summoner.max_allies = 12
+	_battle = field
+	for round: int in 2:
+		for slot: int in summoner.get_slot_count():
+			summoner.tick(100.0)
+			summoner.request_summon(slot)
+			await _frames(4)
+	player.global_position.x = 760.0
+	var spawned: int = 0
+	for i: int in 22:
+		var enemy: Enemy = spawner.spawn(ONI if i % 11 == 5 else HOLLOW)
+		if enemy != null:
+			enemy.global_position.x = 760.0 + 80.0 * float(i % 12) + (i / 12) * 40.0
+			spawned += 1
+	await _frames(170)
+	await _capture("crowd_a")
+	await _frames(120)
+	await _capture("crowd_b")
+	field.free()
 
 
 ## The six allies in every animation state, each row one ally (the later four are the new ones),

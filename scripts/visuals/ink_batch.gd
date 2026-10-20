@@ -52,6 +52,14 @@ func with_rim() -> InkBatch:
 	return lit
 
 
+## Replaces every vertex colour equal to `from` (ignoring alpha) with `to`, keeping its alpha.
+func remap(from: Color, to: Color) -> void:
+	for i: int in colors.size():
+		var c: Color = colors[i]
+		if absf(c.r - from.r) < 0.004 and absf(c.g - from.g) < 0.004 and absf(c.b - from.b) < 0.004:
+			colors[i] = Color(to, c.a)
+
+
 ## Draws and empties the batch (to keep draw order when other draws must come in between).
 func flush(ci: CanvasItem) -> void:
 	draw(ci)

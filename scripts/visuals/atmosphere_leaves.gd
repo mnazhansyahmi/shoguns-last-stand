@@ -33,6 +33,8 @@ var _is_petal: PackedByteArray = PackedByteArray()
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _clock: float = 0.0
 var _started: bool = false
+## Screen rectangles (HUD, touch controls) the leaves stay out of: a leaf over one is not drawn.
+var keep_out: Array[Rect2] = []
 
 
 func _ready() -> void:
@@ -85,7 +87,12 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var batch: InkBatch = InkBatch.new()
+	var to_screen: Transform2D = Transform2D.IDENTITY
+	if not keep_out.is_empty() and is_inside_tree():
+		to_screen = get_viewport().get_canvas_transform() * get_global_transform()
 	for i: int in _position.size():
+		if not keep_out.is_empty() and _in_keep_out(to_screen * _position[i], _size[i]):
+			continue
 		# A tumbling leaf: its width follows the cosine of its flip angle.
 		var flip: float = cos(_clock * 2.6 + _phase[i] * 3.0)
 		var xf: Transform2D = Transform2D(_angle[i], Vector2(_size[i] * (0.25 + 0.75 * absf(flip)), _size[i]), 0.0, _position[i])
@@ -98,6 +105,14 @@ func _draw() -> void:
 			for part: PackedVector2Array in LEAF_PARTS:
 				batch.fill_convex(xf * part, color)
 	batch.draw(self)
+
+
+## True if a leaf of `radius` (world px) at screen position `screen` touches a keep-out rectangle.
+func _in_keep_out(screen: Vector2, radius: float) -> bool:
+	for rect: Rect2 in keep_out:
+		if rect.grow(radius * 1.5).has_point(screen):
+			return true
+	return false
 
 
 ## World rect the screen shows right now (falls back to the design screen without a viewport).

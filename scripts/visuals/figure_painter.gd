@@ -63,17 +63,17 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			# The hakama hem reaches the ground, so the samurai has no separate feet. The skirt part
 			# is the hakama's front panel, the tassets, the sash and the scabbard (they swing together);
 			# the scarf (drawn over the neck guard so its red shows) and sleeve flaps are cloth chains.
-			order.append_array([&"sleeve_b", &"hakama_b", &"pauldron_back"])
+			order.append_array([&"hem", &"sleeve_b", &"hakama_b", &"pauldron_back"])
 			order.append_array(_BACK_ARM)
 			order.append_array([&"hakama_f", &"skirt", &"torso", &"head", &"tails"])
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"sleeve_f", &"pauldron_front", &"weapon", &"blade_glow"])
 		InkFigure.Kind.ASHIGARU:
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
-			order.append_array([&"torso", &"head", &"weapon"])
+			order.append_array([&"hem", &"torso", &"head", &"weapon"])
 			order.append_array(_FRONT_ARM)
 		InkFigure.Kind.YUMI_ARCHER:
-			order.append_array([&"tails", &"quiver"])
+			order.append_array([&"hem", &"tails", &"quiver"])
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
 			order.append_array([&"torso", &"head", &"bow"])
 			order.append_array(_FRONT_ARM)
@@ -84,7 +84,7 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 		InkFigure.Kind.ONI_BRUTE:
 			order.append(&"mane")
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
-			order.append_array([&"torso", &"head", &"weapon"])
+			order.append_array([&"hem", &"torso", &"head", &"weapon"])
 			order.append_array(_FRONT_ARM)
 		InkFigure.Kind.SHRINE_HEALER, InkFigure.Kind.ONMYOJI:
 			# Long sleeves hang from the arms as cloth flaps; the healer's ponytail is the mane.
@@ -92,22 +92,49 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 				order.append(&"mane")
 			order.append_array(_BACK_LIMBS + _BACK_ARM)
 			order.append_array([&"sleeve_b"] + _FRONT_LEG)
-			order.append_array([&"torso", &"head", &"weapon"])
+			order.append_array([&"hem", &"torso", &"head", &"weapon"])
 			order.append_array(_FRONT_ARM)
 			order.append(&"sleeve_f")
 		InkFigure.Kind.SPEAR_GUARDIAN:
 			order.append_array(_BACK_LIMBS + [&"pauldron_back"] + _BACK_ARM + _FRONT_LEG)
-			order.append_array([&"torso", &"head", &"shield"])
+			order.append_array([&"hem", &"torso", &"head", &"shield"])
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"pauldron_front", &"weapon"])
 		InkFigure.Kind.HATAMOTO:
 			# The banner is on his back, behind everything; he wears the samurai's hakama and skirt.
-			order.append_array([&"banner", &"hakama_b", &"pauldron_back"])
+			order.append_array([&"hem", &"banner", &"hakama_b", &"pauldron_back"])
 			order.append_array(_BACK_ARM)
 			order.append_array([&"hakama_f", &"skirt", &"torso", &"head"])
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"pauldron_front", &"weapon"])
 	return order
+
+
+## True for the six allies, who wear the lighter blue-slate ink (InkPalette.ALLY_INK).
+static func is_ally_tone(kind: InkFigure.Kind) -> bool:
+	return kind != InkFigure.Kind.SAMURAI and kind != InkFigure.Kind.HOLLOW_SOLDIER and kind != InkFigure.Kind.ONI_BRUTE
+
+
+## The ink colour `color` becomes on a kind: the allies' lighter tones, everyone else's unchanged.
+static func tone(kind: InkFigure.Kind, color: Color) -> Color:
+	if not is_ally_tone(kind):
+		return color
+	if color == InkPalette.INK:
+		return InkPalette.ALLY_INK
+	if color == InkPalette.INK_BACK:
+		return InkPalette.ALLY_INK_BACK
+	if color == InkPalette.INK_DETAIL:
+		return InkPalette.ALLY_INK_DETAIL
+	return color
+
+
+## Swaps the three inks of a freshly built batch for the kind's tones (a no-op for non-allies).
+static func tone_batch(kind: InkFigure.Kind, batch: InkBatch) -> void:
+	if not is_ally_tone(kind):
+		return
+	batch.remap(InkPalette.INK, InkPalette.ALLY_INK)
+	batch.remap(InkPalette.INK_BACK, InkPalette.ALLY_INK_BACK)
+	batch.remap(InkPalette.INK_DETAIL, InkPalette.ALLY_INK_DETAIL)
 
 
 ## The cached shapes of one part of a kind (built on first use). Null for dynamic parts.
@@ -118,8 +145,9 @@ static func part(kind: InkFigure.Kind, part_name: StringName) -> InkBatch:
 
 
 ## Glowing spots of a kind, one entry per part they sit on (one additive canvas item each):
-## { part, points (part space), radii (units), colors, follows }. follows = &"fall" (fades as the
-## body falls) or &"pose_glow" (the spirit blade's glow).
+## { part, points (part space), radii (units), colors, follows, flicker }. follows = &"fall" (fades
+## as the body falls) or &"pose_glow" (the spirit blade's glow). flicker (0..1) is how deeply the
+## light pulses, each figure on its own random phase (InkFigure.flicker_phase).
 static func glows(kind: InkFigure.Kind) -> Array[Dictionary]:
 	var merged: Dictionary = {}
 	match kind:
@@ -128,13 +156,36 @@ static func glows(kind: InkFigure.Kind) -> Array[Dictionary]:
 			while along <= 72.0:
 				_add_glow(merged, &"weapon", Vector2(along, -1.5), 13.0, Color(InkPalette.SPIRIT, 0.32), &"pose_glow")
 				along += 6.0
+			# A faint, steady spirit light on the point of the blade: calm.
+			_add_glow(merged, &"weapon", Vector2(66.0, -1.5), 7.0, Color(InkPalette.SPIRIT, 0.34), &"fall", 0.2)
+		InkFigure.Kind.ASHIGARU:
+			# The gold tassel under the spearhead smoulders like a lantern.
+			_add_glow(merged, &"weapon", Vector2(58.5, 5.0), 6.5, Color(InkPalette.ASHIGARU_GOLD, 0.5), &"fall", 0.45)
+		InkFigure.Kind.YUMI_ARCHER:
+			# The fletching of the arrows in the quiver.
+			for tip: Vector2 in [Vector2(-14.5, -42.0), Vector2(-11.5, -43.5), Vector2(-8.5, -42.5)]:
+				_add_glow(merged, &"quiver", tip + Vector2(0.0, -1.0), 4.0, Color(InkPalette.ARCHER_TEAL, 0.5), &"fall", 0.3)
+		InkFigure.Kind.SHRINE_HEALER:
+			# The paper streamers of the gohei glow softly, like a held blessing.
+			for side: float in [1.0, -1.0]:
+				_add_glow(merged, &"weapon", Vector2(48.0, side * 10.0), 7.0, Color(InkPalette.HEALER_JADE, 0.42), &"fall", 0.25)
+		InkFigure.Kind.SPEAR_GUARDIAN:
+			# The azure rim of the shield.
+			for y: float in [-34.0, -16.0, 2.0]:
+				_add_glow(merged, &"shield", Vector2(19.0, y), 6.0, Color(InkPalette.GUARDIAN_AZURE, 0.38), &"fall", 0.15)
+		InkFigure.Kind.ONMYOJI:
+			# The seal on the talisman burns, flickering like a candle.
+			_add_glow(merged, &"weapon", Vector2(20.0, 0.0), 11.0, Color(InkPalette.ONMYOJI_MAGENTA, 0.48), &"fall", 0.6)
+		InkFigure.Kind.HATAMOTO:
+			# The mon on the banner.
+			_add_glow(merged, &"banner", Vector2(-23.0, -79.0), 12.0, Color(InkPalette.HATAMOTO_ORANGE, 0.32), &"fall", 0.35)
 		InkFigure.Kind.HOLLOW_SOLDIER:
-			_add_glow(merged, &"head", Vector2(5.5, -9.0), 6.0, Color(InkPalette.HOLLOW_PURPLE, 0.95), &"fall")
-			_add_glow(merged, &"head", Vector2(2.0, -9.5), 5.0, Color(InkPalette.HOLLOW_PURPLE, 0.85), &"fall")
+			_add_glow(merged, &"head", Vector2(5.5, -9.0), 6.0, Color(InkPalette.HOLLOW_PURPLE, 0.95), &"fall", 0.25)
+			_add_glow(merged, &"head", Vector2(2.0, -9.5), 5.0, Color(InkPalette.HOLLOW_PURPLE, 0.85), &"fall", 0.25)
 		InkFigure.Kind.ONI_BRUTE:
 			_add_glow(merged, &"torso", Vector2(0.0, -26.0), 46.0, Color(InkPalette.ONI_EMBER, 0.16), &"fall")
 			for point: Vector2 in [Vector2(6.0, -37.0), Vector2(8.0, -31.0), Vector2(8.5, -24.0), Vector2(-4.0, -28.0), Vector2(-3.5, -21.0)]:
-				_add_glow(merged, &"torso", point, 7.0, Color(InkPalette.ONI_EMBER, 0.3), &"fall")
+				_add_glow(merged, &"torso", point, 7.0, Color(InkPalette.ONI_EMBER, 0.3), &"fall", 0.45)
 			_add_glow(merged, &"head", Vector2(7.0, -8.0), 5.0, Color(InkPalette.ONI_EMBER, 0.95), &"fall")
 			_add_glow(merged, &"head", Vector2(3.0, -8.5), 4.5, Color(InkPalette.ONI_EMBER, 0.85), &"fall")
 			_add_glow(merged, &"head", Vector2(6.0, -1.5), 4.5, Color(InkPalette.ONI_EMBER, 0.7), &"fall")
@@ -144,11 +195,11 @@ static func glows(kind: InkFigure.Kind) -> Array[Dictionary]:
 	return result
 
 
-static func _add_glow(merged: Dictionary, part_name: StringName, point: Vector2, radius: float, color: Color, follows: StringName) -> void:
-	var key: String = "%s/%s" % [part_name, follows]
+static func _add_glow(merged: Dictionary, part_name: StringName, point: Vector2, radius: float, color: Color, follows: StringName, flicker: float = 0.0) -> void:
+	var key: String = "%s/%s/%.2f" % [part_name, follows, flicker]
 	if not merged.has(key):
 		merged[key] = {"part": part_name, "points": PackedVector2Array(), "radii": PackedFloat32Array(),
-				"colors": PackedColorArray(), "follows": follows}
+				"colors": PackedColorArray(), "follows": follows, "flicker": flicker}
 	# Packed arrays are values: append to copies and store them back.
 	var entry: Dictionary = merged[key]
 	var points: PackedVector2Array = entry["points"]
@@ -187,10 +238,10 @@ static func paint_dynamic(fig: InkFigure, part_name: StringName, ci: CanvasItem)
 				_paint_cloth_tails(fig, ci, InkPalette.ARCHER_TEAL, 4.0, 3.4)
 		&"sleeve_f":
 			if fig.secondary != null and fig.secondary.sleeve_front != null:
-				_paint_sleeve(fig, ci, fig.secondary.sleeve_front, InkPalette.INK)
+				_paint_sleeve(fig, ci, fig.secondary.sleeve_front, tone(fig.kind, InkPalette.INK))
 		&"sleeve_b":
 			if fig.secondary != null and fig.secondary.sleeve_back != null:
-				_paint_sleeve(fig, ci, fig.secondary.sleeve_back, InkPalette.INK_BACK)
+				_paint_sleeve(fig, ci, fig.secondary.sleeve_back, tone(fig.kind, InkPalette.INK_BACK))
 
 
 ## Which cached hem shape a figure shows now: flutter phase step x wind level (from trail).
@@ -216,8 +267,9 @@ static func hem(key: int) -> InkBatch:
 		outline.append(hem_points[i] + Vector2(-trail * 2.0 * float(i % 2), flutter))
 	var batch: InkBatch = InkBatch.new()
 	batch.fill_fan(Vector2(0.0, 4.0), outline, InkPalette.INK)
-	_hems[key] = batch
-	return batch
+	var lit: InkBatch = batch.with_rim()
+	_hems[key] = lit
+	return lit
 
 
 ## The cloth tails (scarf, headband) streaming from the body, from the figure's cloth chains.
@@ -287,6 +339,7 @@ static func _build(kind: InkFigure.Kind) -> Dictionary:
 	# Every body part gets the sun's rim light (drawn once per part with the shared rim material).
 	for part_name: StringName in parts:
 		if part_name != &"shadow" and part_name != &"blade_glow":
+			tone_batch(kind, parts[part_name] as InkBatch)
 			parts[part_name] = (parts[part_name] as InkBatch).with_rim()
 	return parts
 
