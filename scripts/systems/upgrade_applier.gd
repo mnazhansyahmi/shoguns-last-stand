@@ -6,6 +6,8 @@ extends RefCounted
 ## Allies on the field at the start: six, plus one for every stage cleared, up to eleven.
 const BASE_ALLY_CAP: int = 6
 const MAX_STAGE_ALLY_CAP: int = 11
+## No skill upgrade takes more than this off a cooldown (or the Ultimate's charge needed).
+const MAX_SKILL_REDUCTION: float = 0.4
 
 
 ## How many allies may stand at once: the stage-clear cap plus the Command upgrade's levels.
@@ -33,7 +35,16 @@ static func build_player_stats(base: PlayerStats, progress: PlayerProgress, cata
 	var stats: PlayerStats = base.duplicate() as PlayerStats
 	stats.max_health += get_bonus(progress, catalog, UpgradeData.Target.SAMURAI, UpgradeData.Stat.MAX_HEALTH)
 	stats.base_damage += get_bonus(progress, catalog, UpgradeData.Target.SAMURAI, UpgradeData.Stat.DAMAGE)
+	# Skill upgrades: percent shorter cooldowns (and less charge needed for the Ultimate), never more than 40%.
+	stats.dash_cooldown *= 1.0 - _percent_off(progress, catalog, UpgradeData.Stat.DASH_COOLDOWN)
+	stats.spirit_slash_cooldown *= 1.0 - _percent_off(progress, catalog, UpgradeData.Stat.SLASH_COOLDOWN)
+	stats.ultimate_charge_max *= 1.0 - _percent_off(progress, catalog, UpgradeData.Stat.ULTIMATE_CHARGE)
 	return stats
+
+
+## The fraction (0..MAX_SKILL_REDUCTION) a skill upgrade takes off its cooldown or charge.
+static func _percent_off(progress: PlayerProgress, catalog: UpgradeCatalog, stat: UpgradeData.Stat) -> float:
+	return clampf(get_bonus(progress, catalog, UpgradeData.Target.SAMURAI, stat) / 100.0, 0.0, MAX_SKILL_REDUCTION)
 
 
 static func build_ally_data(base: AllyData, progress: PlayerProgress, catalog: UpgradeCatalog) -> AllyData:

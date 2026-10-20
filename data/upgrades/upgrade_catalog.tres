@@ -138,10 +138,46 @@ target = 3
 stat = 3
 amount_per_level = 1.0
 max_level = 3
-base_cost = 400
-cost_growth = 1.6
+base_cost = 200
+cost_growth = 1.3
 effect_format = "+%s allies on the field"
+
+[sub_resource type="Resource" id="Resource_dash_cd"]
+script = ExtResource("2_upgrade")
+id = "samurai_dash_cooldown"
+display_name = "Dash Cooldown"
+target = 0
+stat = 4
+amount_per_level = 8.0
+max_level = 5
+base_cost = 70
+cost_growth = 1.12
+effect_format = "-%s%% dash cooldown"
+
+[sub_resource type="Resource" id="Resource_slash_cd"]
+script = ExtResource("2_upgrade")
+id = "samurai_slash_cooldown"
+display_name = "Spirit Slash Cooldown"
+target = 0
+stat = 5
+amount_per_level = 8.0
+max_level = 5
+base_cost = 70
+cost_growth = 1.12
+effect_format = "-%s%% spirit slash cooldown"
+
+[sub_resource type="Resource" id="Resource_ult_charge"]
+script = ExtResource("2_upgrade")
+id = "samurai_ultimate_charge"
+display_name = "Ultimate Charge Speed"
+target = 0
+stat = 6
+amount_per_level = 8.0
+max_level = 5
+base_cost = 70
+cost_growth = 1.12
+effect_format = "-%s%% Ultimate charge needed"
 
 [resource]
 script = ExtResource("1_catalog")
-upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_samurai_hp"), SubResource("Resource_samurai_damage"), SubResource("Resource_ashigaru_hp"), SubResource("Resource_ashigaru_damage"), SubResource("Resource_archer_damage"), SubResource("Resource_spirit_regen"), SubResource("Resource_healer_blessing"), SubResource("Resource_guardian_health"), SubResource("Resource_onmyoji_damage"), SubResource("Resource_hatamoto_damage"), SubResource("Resource_command")])
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_samurai_hp"), SubResource("Resource_samurai_damage"), SubResource("Resource_ashigaru_hp"), SubResource("Resource_ashigaru_damage"), SubResource("Resource_archer_damage"), SubResource("Resource_spirit_regen"), SubResource("Resource_healer_blessing"), SubResource("Resource_guardian_health"), SubResource("Resource_onmyoji_damage"), SubResource("Resource_hatamoto_damage"), SubResource("Resource_command"), SubResource("Resource_dash_cd"), SubResource("Resource_slash_cd"), SubResource("Resource_ult_charge")])
