@@ -31,6 +31,9 @@ var pose: FigurePose = FigurePose.new()
 var spec: FigureKinds.Spec = FigureKinds.spec(Kind.SAMURAI)
 
 # Motion written by UnitVisual.
+var gait: LegGait = LegGait.new()
+var gait_enabled: bool = false
+var upright: bool = false
 var stride: float = 0.0
 var stride_phase: float = 0.0
 var bob: float = 0.0
@@ -180,18 +183,30 @@ func refresh() -> void:
 	var swing: float = sin(stride_phase) * stride * spec.stride_len
 	var front_foot: Vector2 = Vector2(spec.stance.x * pose.spread + swing + pose.lunge, -maxf(0.0, cos(stride_phase)) * stride * spec.lift)
 	var back_foot: Vector2 = Vector2(spec.stance.y * pose.spread - swing, -maxf(0.0, -cos(stride_phase)) * stride * spec.lift)
-	front_ankle = front_foot + Vector2(0.0, -LegIK.SOLE)
-	back_ankle = back_foot + Vector2(0.0, -LegIK.SOLE)
+	if gait_enabled:
+		front_foot = gait.targets[0] - Vector2(pose.offset_x, 0.0)
+		back_foot = gait.targets[1] - Vector2(pose.offset_x, 0.0)
+		hip.x += gait.hip_shift
+	front_ankle = front_foot + Vector2(0.0, -_sole_height(gait.heel[0] if gait_enabled else 0.0))
+	back_ankle = back_foot + Vector2(0.0, -_sole_height(gait.heel[1] if gait_enabled else 0.0))
 	# Limit extreme authored lunges to horizontal reach, without scaling either bone.
 	var reach_x: float = (spec.thigh + spec.shin) * 0.85
-	front_ankle.x = clampf(front_ankle.x, hip.x + 2.0 - reach_x, hip.x + 2.0 + reach_x)
-	back_ankle.x = clampf(back_ankle.x, hip.x - 2.0 - reach_x, hip.x - 2.0 + reach_x)
+	if not gait_enabled:
+		front_ankle.x = clampf(front_ankle.x, hip.x + 2.0 - reach_x, hip.x + 2.0 + reach_x)
+		back_ankle.x = clampf(back_ankle.x, hip.x - 2.0 - reach_x, hip.x - 2.0 + reach_x)
+	if upright:
+		hip.x = (front_ankle.x + back_ankle.x) * 0.5 + sin(clock * 0.8) * 0.12
+		var dx: float = maxf(absf(front_ankle.x - hip.x - 2.0), absf(back_ankle.x - hip.x + 2.0))
+		var reach: float = spec.thigh + spec.shin - 0.06
+		hip.y = -LegIK.SOLE - sqrt(maxf(0.0, reach * reach - dx * dx))
+		if spec.heavy_gait:
+			hip.y += 0.65 * (1.0 + sin(clock * 2.1))
 	hip = LegIK.fit_hip(hip, front_ankle, back_ankle, spec.thigh, spec.shin)
 	front_knee = LegIK.knee(hip + Vector2(2.0, 0.0), front_ankle, spec.thigh, spec.shin)
 	back_knee = LegIK.knee(hip + Vector2(-2.0, 0.0), back_ankle, spec.thigh, spec.shin)
 
 	_lift_fallen_legs()
-	torso_xf = root_xf * Transform2D(pose.lean, Vector2(1.0, 1.0 + spec.breath_amp * breath), 0.0, hip)
+	torso_xf = root_xf * Transform2D(pose.lean + (gait.counter_turn if gait_enabled else 0.0), Vector2(1.0, 1.0 + spec.breath_amp * breath), 0.0, hip)
 	head_xf = torso_xf * Transform2D(pose.head_tilt + breath * 0.02, spec.neck)
 	weapon_local = Transform2D(pose.blade, pose.grip)
 	weapon_xf = torso_xf * weapon_local
@@ -262,6 +277,11 @@ func refresh() -> void:
 	# Hit flash: brighten every part toward paper.
 	var tint: Color = Color.WHITE.lerp(FLASH_MODULATE, flash) if flash > 0.0 else Color.WHITE
 	modulate = tint.lerp(GOLD_MODULATE, gold_flash) if gold_flash > 0.0 else tint
+
+
+## Lowest sole corner after heel-first swing rotation; no part of the foot can enter the ground.
+func _sole_height(angle: float) -> float:
+	return LegIK.SOLE * cos(angle) + maxf(-3.5 * sin(angle), spec.foot * sin(angle))
 
 
 ## How far down (y, in the space `xf` maps root space to) the lowest point of a leg reaches: its foot, or its hem.
@@ -345,10 +365,10 @@ func _update_slots() -> void:
 	_slot_xf[FigurePainter.Slot.LOCAL] = Transform2D.IDENTITY
 	_slot_xf[FigurePainter.Slot.THIGH_F] = _segment_xf(root_xf, hip + Vector2(2.0, 0.0), front_knee, spec.thigh)
 	_slot_xf[FigurePainter.Slot.SHIN_F] = _segment_xf(root_xf, front_knee, front_ankle, spec.shin)
-	_slot_xf[FigurePainter.Slot.FOOT_F] = root_xf * Transform2D(0.0, front_ankle)
+	_slot_xf[FigurePainter.Slot.FOOT_F] = root_xf * Transform2D(gait.heel[0] if gait_enabled else 0.0, front_ankle)
 	_slot_xf[FigurePainter.Slot.THIGH_B] = _segment_xf(root_xf, hip + Vector2(-2.0, 0.0), back_knee, spec.thigh)
 	_slot_xf[FigurePainter.Slot.SHIN_B] = _segment_xf(root_xf, back_knee, back_ankle, spec.shin)
-	_slot_xf[FigurePainter.Slot.FOOT_B] = root_xf * Transform2D(0.0, back_ankle)
+	_slot_xf[FigurePainter.Slot.FOOT_B] = root_xf * Transform2D(gait.heel[1] if gait_enabled else 0.0, back_ankle)
 	# Hakama legs span the whole leg, hip to ankle, and swing a little about the hip.
 	var hip_front: Vector2 = hip + Vector2(2.0, 0.0)
 	var hip_back: Vector2 = hip + Vector2(-2.0, 0.0)

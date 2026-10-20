@@ -295,13 +295,17 @@ func _update_motion(delta: float) -> void:
 	var settle: float = 1.0 - exp(-10.0 * delta)
 	fig.stride = lerpf(fig.stride, 1.0 if running else 0.0, settle)
 	fig.trail = lerpf(fig.trail, 1.0 if running or _state == &"dash" else 0.0, 1.0 - exp(-4.0 * delta))
-	if running:
-		var cadence: float = fig.spec.cadence * speed_variation * (0.3 if _event == &"stumble" and _event_time < _event_length * 0.5 else 1.0)
-		if figure_kind == InkFigure.Kind.HOLLOW_SOLDIER:
-			# Shambling: uneven steps.
-			cadence *= 0.7 + 0.6 * absf(sin(fig.stride_phase))
-		fig.stride_phase = fmod(fig.stride_phase + delta * cadence, TAU)
-	fig.bob = absf(sin(fig.stride_phase)) * 2.5 * fig.stride
+	var locomotion: bool = running or _state == &"idle" or _state == &""
+	if locomotion:
+		var frame: Transform2D = fig.global_transform * Transform2D(0.0, Vector2.ONE * fig.get_unit_scale(), 0.0, Vector2.ZERO)
+		fig.gait.step(frame, fig.spec, delta)
+		fig.stride_phase = fig.gait.phase * TAU
+		fig.bob = fig.gait.bob
+	else:
+		fig.gait.reset()
+		fig.bob = 0.0
+	fig.gait_enabled = locomotion
+	fig.upright = not running and locomotion
 	fig.breath = sin(_time * TAU * fig.spec.breath_hz + _breath_phase)
 	_tick_event(delta)
 
@@ -357,6 +361,8 @@ func _apply() -> void:
 	if _state == &"idle" or _state == &"run":
 		_apply_idle(live, calm)
 		_apply_event(live)
+	if _state == &"run":
+		live.lean += _figure.gait.run_weight * 0.12
 	_figure.refresh()
 
 

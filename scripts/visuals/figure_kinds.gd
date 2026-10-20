@@ -5,6 +5,9 @@ extends RefCounted
 
 
 class Spec:
+	var run_speed: float = 150.0
+	var heavy_gait: bool = false
+	var limp: bool = false
 	var hip_y: float = 46.0
 	var thigh: float = 23.0
 	var shin: float = 23.0
@@ -151,6 +154,8 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.trail_span = Vector2.ZERO
 			s.cloth = true
 		InkFigure.Kind.HOLLOW_SOLDIER:
+			s.limp = true
+			s.run_speed = 65.0
 			s.accent = InkPalette.HOLLOW_PURPLE
 			# Unquiet: sways on its feet, the head jerks, the sword drifts.
 			s.breath_hz = 0.24
@@ -179,6 +184,8 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.is_enemy = true
 			s.death_accent = InkPalette.HOLLOW_PURPLE
 		InkFigure.Kind.ONI_BRUTE:
+			s.heavy_gait = true
+			s.run_speed = 75.0
 			s.accent = InkPalette.ONI_EMBER
 			# Restless: heaves for breath, stomps from foot to foot, the club twitches.
 			s.breath_hz = 0.6
@@ -346,6 +353,8 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.springy = true
 			s.loose_armour = true
 		InkFigure.Kind.FALLEN_DAIMYO:
+			s.heavy_gait = true
+			s.run_speed = 65.0
 			s.accent = InkPalette.DAIMYO_CURSE
 			# A boss: heavy and slow to breathe, the odachi held in two hands, nothing springs loose.
 			s.hip_y = 46.0
