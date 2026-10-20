@@ -167,7 +167,7 @@ func get_part_count() -> int:
 
 func _root_for(for_pose: FigurePose) -> Transform2D:
 	var s: float = get_unit_scale()
-	var lift: float = bob + fall * spec.lie_lift
+	var lift: float = fall * spec.lie_lift
 	return Transform2D(fall * FALL_ANGLE, Vector2(s, s * maxf(squash, 0.05)), 0.0,
 			Vector2(for_pose.offset_x * s, -lift * s))
 
@@ -176,14 +176,19 @@ func _root_for(for_pose: FigurePose) -> Transform2D:
 func refresh() -> void:
 	root_xf = _root_for(pose)
 
-	hip = Vector2(pose.hip_shift, -(spec.hip_y - pose.crouch))
+	hip = Vector2(pose.hip_shift, -(spec.hip_y - pose.crouch) - bob)
 	var swing: float = sin(stride_phase) * stride * spec.stride_len
 	var front_foot: Vector2 = Vector2(spec.stance.x * pose.spread + swing + pose.lunge, -maxf(0.0, cos(stride_phase)) * stride * spec.lift)
 	var back_foot: Vector2 = Vector2(spec.stance.y * pose.spread - swing, -maxf(0.0, -cos(stride_phase)) * stride * spec.lift)
-	front_ankle = _plant(hip + Vector2(2.0, 0.0), front_foot + Vector2(0.0, -2.5))
-	back_ankle = _plant(hip + Vector2(-2.0, 0.0), back_foot + Vector2(0.0, -2.5))
-	front_knee = InkBrush.solve_joint(hip + Vector2(2.0, 0.0), front_ankle, spec.thigh, spec.shin, -1.0)
-	back_knee = InkBrush.solve_joint(hip + Vector2(-2.0, 0.0), back_ankle, spec.thigh, spec.shin, -1.0)
+	front_ankle = front_foot + Vector2(0.0, -LegIK.SOLE)
+	back_ankle = back_foot + Vector2(0.0, -LegIK.SOLE)
+	# Limit extreme authored lunges to horizontal reach, without scaling either bone.
+	var reach_x: float = (spec.thigh + spec.shin) * 0.85
+	front_ankle.x = clampf(front_ankle.x, hip.x + 2.0 - reach_x, hip.x + 2.0 + reach_x)
+	back_ankle.x = clampf(back_ankle.x, hip.x - 2.0 - reach_x, hip.x - 2.0 + reach_x)
+	hip = LegIK.fit_hip(hip, front_ankle, back_ankle, spec.thigh, spec.shin)
+	front_knee = LegIK.knee(hip + Vector2(2.0, 0.0), front_ankle, spec.thigh, spec.shin)
+	back_knee = LegIK.knee(hip + Vector2(-2.0, 0.0), back_ankle, spec.thigh, spec.shin)
 
 	_lift_fallen_legs()
 	torso_xf = root_xf * Transform2D(pose.lean, Vector2(1.0, 1.0 + spec.breath_amp * breath), 0.0, hip)
@@ -257,20 +262,6 @@ func refresh() -> void:
 	# Hit flash: brighten every part toward paper.
 	var tint: Color = Color.WHITE.lerp(FLASH_MODULATE, flash) if flash > 0.0 else Color.WHITE
 	modulate = tint.lerp(GOLD_MODULATE, gold_flash) if gold_flash > 0.0 else tint
-
-
-## Raises an ankle just enough that the foot (or the hakama hem) does not sink below the ground line, whatever the
-## stance and however the shin is tilted: a foot turns with its shin, so a tilted one would dig its toe in.
-func _plant(hip_point: Vector2, ankle: Vector2) -> Vector2:
-	var contacts: FigurePainter.GroundContacts = FigurePainter.ground_contacts(kind)
-	if contacts.points.is_empty():
-		return ankle
-	for pass_index: int in 2:
-		var dip: float = _lowest_contact(hip_point, ankle, Transform2D.IDENTITY) - contacts.allow
-		if dip <= 0.01:
-			break
-		ankle.y -= dip
-	return ankle
 
 
 ## How far down (y, in the space `xf` maps root space to) the lowest point of a leg reaches: its foot, or its hem.

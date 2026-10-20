@@ -107,10 +107,10 @@ const SLOTS: Dictionary = {
 ## Parts whose shape changes every frame (redrawn through paint_dynamic).
 const DYNAMIC_PARTS: Array[StringName] = [&"tails", &"sleeve_f", &"sleeve_b"]
 
-# Feet are part of the shin and hands part of the forearm (fewer canvas items per figure).
-const _BACK_LIMBS: Array[StringName] = [&"thigh_b", &"shin_b"]
+# Feet have independent ground frames; hands are part of the forearm.
+const _BACK_LIMBS: Array[StringName] = [&"thigh_b", &"shin_b", &"foot_b"]
 const _BACK_ARM: Array[StringName] = [&"upper_b", &"fore_b"]
-const _FRONT_LEG: Array[StringName] = [&"thigh_f", &"shin_f"]
+const _FRONT_LEG: Array[StringName] = [&"thigh_f", &"shin_f", &"foot_f"]
 const _FRONT_ARM: Array[StringName] = [&"upper_f", &"fore_f"]
 
 
@@ -120,14 +120,12 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 	var order: Array[StringName] = []
 	match kind:
 		InkFigure.Kind.SAMURAI:
-			# The hakama hem reaches the ground, so the samurai has no separate feet. The skirt part
-			# is the hakama's front panel, the tassets, the sash and the scabbard (they swing together);
-			# the scarf (drawn over the neck guard so its red shows) and sleeve flaps are cloth chains.
+			# Short hakama and tassets leave both articulated legs and flat tabi visible.
 			# The yumi is slung on his back, behind everything; the Bow skill takes it into his hand.
 			# He has legs (hakama trousers over bent knees), the back leg behind the body. Both hands hold the hilt in
 			# front of him, so the back arm is drawn over the torso, under the front arm.
-			order.append_array([&"yumi_back", &"hem", &"sleeve_b", &"thigh_b", &"shin_b", &"pauldron_back"])
-			order.append_array([&"thigh_f", &"shin_f", &"skirt", &"torso", &"head", &"tails"])
+			order.append_array([&"yumi_back", &"hem", &"sleeve_b", &"thigh_b", &"shin_b", &"foot_b", &"pauldron_back"])
+			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head", &"tails"])
 			order.append_array(_BACK_ARM)
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"sleeve_f", &"pauldron_front", &"weapon", &"bow", &"blade_glow"])
@@ -165,9 +163,9 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			order.append_array([&"pauldron_front", &"weapon"])
 		InkFigure.Kind.HATAMOTO:
 			# The banner is on his back, behind everything; he wears the samurai's hakama and skirt.
-			order.append_array([&"hem", &"banner", &"thigh_b", &"shin_b", &"pauldron_back"])
+			order.append_array([&"hem", &"banner", &"thigh_b", &"shin_b", &"foot_b", &"pauldron_back"])
 			order.append_array(_BACK_ARM)
-			order.append_array([&"thigh_f", &"shin_f", &"skirt", &"torso", &"head"])
+			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head"])
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"pauldron_front", &"weapon"])
 		InkFigure.Kind.FALLEN_DAIMYO:
@@ -390,15 +388,12 @@ static func _build(kind: InkFigure.Kind) -> Dictionary:
 		var color: Color = InkPalette.INK if front else InkPalette.INK_BACK
 		var suffix: String = "_f" if front else "_b"
 		parts[StringName("thigh" + suffix)] = _segment(spec.thigh, spec.thigh_w, color)
-		# Shin with the foot at its end. The foot is authored in root orientation (x forward,
-		# y down) relative to the ankle; in shin space (x along the shin, pointing down at rest)
-		# a root offset (dx, dy) is (dy, -dx).
-		var shin: InkBatch = _segment(spec.shin, spec.shin_w, color)
-		var foot: PackedVector2Array = PackedVector2Array()
-		for point: Vector2 in [Vector2(-3.5, -1.0), Vector2(3.0, -1.5), Vector2(spec.foot, 2.5), Vector2(-3.5, 2.5)]:
-			foot.append(Vector2(spec.shin + point.y, -point.x))
-		shin.fill_convex(foot, color)
-		parts[StringName("shin" + suffix)] = shin
+		parts[StringName("shin" + suffix)] = _segment(spec.shin, Vector2(spec.shin_w.x, minf(spec.shin_w.y, 4.0)), color)
+		# Independent tabi/sole: rotation of the shin cannot tip the foot into the floor.
+		var foot: InkBatch = InkBatch.new()
+		foot.fill_convex(PackedVector2Array([Vector2(-3.5, -1.0), Vector2(3.0, -1.5),
+				Vector2(spec.foot, 2.5), Vector2(-3.5, 2.5)]), color)
+		parts[StringName("foot" + suffix)] = foot
 		parts[StringName("upper" + suffix)] = _segment(spec.upper_arm, spec.arm_w, color)
 		# Forearm with the hand (fist) at its end.
 		var fore: InkBatch = _segment(spec.fore_arm, spec.fore_w, color)
