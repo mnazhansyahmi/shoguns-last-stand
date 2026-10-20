@@ -19,6 +19,10 @@ var unavailable_text: String = ""
 var charge_ratio: float = 0.0
 ## Pulses with a golden glow (the Ultimate is ready).
 var glowing: bool = false
+## The keyboard key of the action ("J", "Q", "1"), read from the Input Map and shown on a badge ("" = none).
+var key_hint: String = ""
+## A locked skill shows a padlock and how to unlock it ("Clear stage 2") instead of its name; "" = unlocked.
+var locked_text: String = ""
 
 var _touch_index: int = -1
 var _press_physics_frame: int = -1
@@ -28,7 +32,21 @@ var _release_pending: bool = false
 func _ready() -> void:
 	set_physics_process(false)
 	set_process(false)
+	key_hint = SkillHints.key_label(action)
 	_update_opacity()
+
+
+## Marks the skill locked ("Clear stage 2") or, with "", unlocked. A tap on a locked button still reaches the
+## player, who says which stage unlocks it.
+func set_locked(text: String) -> void:
+	if text == locked_text:
+		return
+	locked_text = text
+	queue_redraw()
+
+
+func is_locked() -> bool:
+	return not locked_text.is_empty()
 
 
 ## Returns true if the event belongs to this button.
@@ -162,6 +180,10 @@ func _draw() -> void:
 
 	var font: Font = get_theme_default_font()
 	var width: float = size.x
+	if is_locked():
+		_draw_locked(font, center, radius)
+		_draw_key_badge(font, center, radius)
+		return
 	var main_y: float = center.y + font_size * 0.35 - (font_size * 0.55 if not sub_caption.is_empty() else 0.0)
 	_draw_text(font, caption, Vector2(0.0, main_y), width, font_size)
 	var bottom_text: String = sub_caption
@@ -171,6 +193,31 @@ func _draw() -> void:
 		bottom_text = unavailable_text
 	if not bottom_text.is_empty():
 		_draw_text(font, bottom_text, Vector2(0.0, main_y + font_size * 1.1), width, int(font_size * 0.8))
+	_draw_key_badge(font, center, radius)
+
+
+## A locked skill: the disc greyed out, a padlock and "Clear stage N" on two lines ("Clear" / "stage N").
+func _draw_locked(font: Font, center: Vector2, radius: float) -> void:
+	draw_circle(center, radius * 0.9, Color(InkPalette.UI_CHARCOAL, 0.6))
+	LockIcon.draw(self, center + Vector2(0.0, -radius * 0.3), radius * 0.62, Color(InkPalette.PARCHMENT, 0.9))
+	var small: int = maxi(int(font_size * 0.62), 14)
+	var words: PackedStringArray = locked_text.split(" ", true, 1)
+	var first: String = words[0] if words.size() > 0 else ""
+	var second: String = words[1] if words.size() > 1 else ""
+	_draw_text(font, first, Vector2(0.0, center.y + radius * 0.42), size.x, small)
+	_draw_text(font, second, Vector2(0.0, center.y + radius * 0.42 + small * 1.1), size.x, small)
+
+
+## The key on a small badge at the top right of the rim, so the keyboard player learns it from the touch layout too.
+func _draw_key_badge(font: Font, center: Vector2, radius: float) -> void:
+	if key_hint.is_empty():
+		return
+	var badge_radius: float = maxf(radius * 0.24, 17.0)
+	var at: Vector2 = center + Vector2(0.7071, -0.7071) * radius * 0.9
+	draw_circle(at, badge_radius, Color(InkPalette.INK, 0.92))
+	draw_arc(at, badge_radius, 0.0, TAU, 24, Color(InkPalette.GOLD_BRIGHT, 0.95), 2.5, true)
+	var text_size: int = roundi(badge_radius * 1.15)
+	draw_string(font, at + Vector2(-badge_radius, text_size * 0.35), key_hint, HORIZONTAL_ALIGNMENT_CENTER, badge_radius * 2.0, text_size, InkPalette.PARCHMENT)
 
 
 func _draw_text(font: Font, text: String, origin: Vector2, width: float, text_size: int) -> void:

@@ -71,37 +71,37 @@ font_size = 24
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 6
 
 [node name="DashBar" type="Control" parent="Margin/TopLeft/AbilityRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(146, 34)
+custom_minimum_size = Vector2(160, 34)
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Dash"
 fill_color = Color(0.29, 0.435, 0.647, 1)
-font_size = 20
+font_size = 18
 
 [node name="HeavyBar" type="Control" parent="Margin/TopLeft/AbilityRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(146, 34)
+custom_minimum_size = Vector2(160, 34)
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Heavy"
 fill_color = Color(0.722, 0.196, 0.165, 1)
-font_size = 20
+font_size = 18
 
 [node name="SlashBar" type="Control" parent="Margin/TopLeft/AbilityRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(146, 34)
+custom_minimum_size = Vector2(160, 34)
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Slash"
 fill_color = Color(0.184, 0.525, 0.722, 1)
-font_size = 20
+font_size = 18
 
 [node name="WaveBox" type="VBoxContainer" parent="Margin"]
 unique_name_in_owner = true
@@ -188,7 +188,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HudDimLabel"
 theme_override_font_sizes/font_size = 24
-text = "A/D move   J attack (x3 combo)   K heavy   L dash   U spirit slash   I ultimate   1-6 summon   Esc pause"
+text = "A/D move   J attack (x3 combo)   K heavy   L dash   U spirit slash   I ultimate   Q war cry   E bow   F allies   1-6 summon   Esc pause"
 horizontal_alignment = 1
 
 [node name="DebugHintLabel" type="Label" parent="Margin/BottomBox"]

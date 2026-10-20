@@ -19,6 +19,10 @@ var _battle: Node
 var _touch: bool = false
 ## --only=samurai: render just the samurai sheets (poses, attack strip, close-up, run-and-stop strip), then quit.
 var _only: String = ""
+## --locked: the staged battle with no stage cleared (locked skills, fewer allies).
+var _locked: bool = false
+## --skills: also capture the Bow mid-draw and the War Cry mid-shout in the staged battle.
+var _skills: bool = false
 ## --stage=N: play the staged battle on that Region 1 stage (its own sky theme).
 var _stage_number: int = 1
 
@@ -38,6 +42,10 @@ func _initialize() -> void:
 			_touch = true
 		elif arg.begins_with("--only="):
 			_only = arg.trim_prefix("--only=")
+		elif arg == "--locked":
+			_locked = true
+		elif arg == "--skills":
+			_skills = true
 		elif arg.begins_with("--stage="):
 			_stage_number = arg.trim_prefix("--stage=").to_int()
 	DirAccess.make_dir_recursive_absolute(_out_dir)
@@ -140,7 +148,8 @@ func _capture_sheets_and_menus() -> void:
 func _capture_battle() -> void:
 	# Every ally unlocked, so the battle shows the full summon bar and all six allies.
 	var progress: PlayerProgress = PlayerProgress.new()
-	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
+	if not _locked:
+		progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	var region: RegionData = StageProgression.default_region()
 	SceneRoutes.battle_stage = region.stages[clampi(_stage_number, 1, region.stages.size()) - 1]
@@ -171,6 +180,19 @@ func _capture_battle() -> void:
 	await _frames(14)
 	Input.action_release("attack")
 	await _capture("battle")
+	if _skills:
+		Input.action_press("bow")
+		await _frames(2)
+		Input.action_release("bow")
+		await _frames(10)
+		await _capture("battle_bow_draw")
+		await _frames(70)
+		Input.action_press("war_cry")
+		await _frames(2)
+		Input.action_release("war_cry")
+		await _frames(22)
+		await _capture("battle_war_cry")
+		await _frames(30)
 	Input.action_press("spirit_slash")
 	await _frames(20)
 	Input.action_release("spirit_slash")

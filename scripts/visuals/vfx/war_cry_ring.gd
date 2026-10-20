@@ -10,7 +10,7 @@ const WAVE_TIME: float = 0.4
 const WAVES: int = 3
 const DROPS: int = 30
 ## The ring is the ground ellipse: its height is this fraction of its radius.
-const FLATTEN: float = 0.2
+const FLATTEN: float = 0.14
 
 var _radius: float = 700.0
 var _mouth: Vector2 = Vector2.ZERO

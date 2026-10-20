@@ -296,7 +296,7 @@ func test_the_new_skills_have_hud_bars_and_touch_buttons_that_press_their_keys()
 	controls.set_skills_unlocked(false, false)
 	for key: String in ["bow", "war_cry"]:
 		var locked: TouchActionButton = controls.find_child("%sButton" % ("Bow" if key == "bow" else "WarCry"), true, false) as TouchActionButton
-		assert_true(not locked.visible, "the %s button is hidden while locked" % key)
+		assert_true(locked.visible and locked.is_locked(), "the %s button stays, locked with a padlock" % key)
 	controls.set_skills_unlocked(true, true)
 	for pair: Array in [["bow", &"bow"], ["war_cry", &"war_cry"]]:
 		var rect: Rect2 = controls.get_widget_rect(pair[0])

@@ -79,8 +79,7 @@ func apply_layout(viewport_size: Vector2, safe_rect: Rect2, ui_scale: float, lef
 	var action_rects: Dictionary = TouchLayout.action_button_rects(ui_scale, left_handed)
 	for key: String in action_rects:
 		_set_local_rect(_buttons[key], action_rects[key])
-	for key: String in _skills_unlocked:
-		_buttons[key].visible = _skills_unlocked[key]
+	set_skills_unlocked(_skills_unlocked["bow"], _skills_unlocked["war_cry"])
 	var summons: Rect2 = rects["summons"]
 	var summon_rects: Array[Rect2] = TouchLayout.summon_button_rects(_summon_count, summons.size, ui_scale)
 	for slot: int in TouchLayout.MAX_SUMMONS:
@@ -157,14 +156,13 @@ func set_ultimate_charge(ratio: float, is_ready: bool) -> void:
 	button.set_captions("Ultimate", "READY" if is_ready else "%d%%" % floori(ratio * 100.0))
 
 
-## Shows the War Cry and Bow buttons once they are unlocked (a locked skill has no button).
+## The War Cry and Bow buttons are always there; a locked one shows a padlock and "Clear stage N".
 func set_skills_unlocked(bow: bool, war_cry: bool) -> void:
 	_skills_unlocked = {"bow": bow, "war_cry": war_cry}
 	for key: String in _skills_unlocked:
 		var button: TouchActionButton = _buttons[key]
-		button.visible = _skills_unlocked[key]
-		if not button.visible:
-			button.release()
+		button.visible = true
+		button.set_locked("" if _skills_unlocked[key] else SkillHints.locked_text_for(StringName(key)))
 
 
 ## The ally stance button: "Allies" over the current stance, red while charging, blue while holding.

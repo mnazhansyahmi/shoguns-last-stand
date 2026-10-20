@@ -14,6 +14,9 @@ const TOUCH_BOTTOM_SPACE: float = 230.0
 ## the top-left bars (left tab) or the pause button (right tab).
 const INDICATOR_TOP: float = 196.0
 const INDICATOR_GAP: float = 14.0
+## The Input Map action of each skill bar (for the key badge).
+const SKILL_ACTIONS: Dictionary = {"dash": &"dash", "heavy": &"heavy_attack", "slash": &"spirit_slash",
+		"bow": &"bow", "war_cry": &"war_cry"}
 
 @onready var _margin: MarginContainer = $Margin
 @onready var _top_left: VBoxContainer = %TopLeft
@@ -69,14 +72,18 @@ func _ready() -> void:
 	for entry: Array in [["bow", "Bow", Color(0.42, 0.56, 0.3, 1.0)], ["war_cry", "Cry", Color(0.78, 0.56, 0.2, 1.0)]]:
 		var bar: FillBar = FillBar.new()
 		bar.name = "%sBar" % String(entry[0]).capitalize().replace(" ", "")
-		bar.custom_minimum_size = Vector2(146.0, 34.0)
+		bar.custom_minimum_size = Vector2(241.0, 34.0)
 		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		bar.caption = entry[1]
 		bar.fill_color = entry[2]
 		bar.font_size = 20
 		_skill_row.add_child(bar)
 		_ability_bars[entry[0]] = bar
-	_skill_row.visible = false
+	# Every skill bar shows its key (read from the Input Map); locked skills show a padlock until unlocked.
+	for key: String in SKILL_ACTIONS:
+		(_ability_bars[key] as FillBar).set_key_hint(SkillHints.key_label(SKILL_ACTIONS[key]))
+	_ultimate_bar.set_key_hint(SkillHints.key_label(&"ultimate"))
+	set_skills_unlocked(false, false)
 	_stance_label = Label.new()
 	_stance_label.name = "StanceLabel"
 	_stance_label.theme_type_variation = &"HudLabel"
@@ -98,15 +105,27 @@ func _ready() -> void:
 	_wave_box.resized.connect(_update_pivots)
 
 
-## Shows the Bow and War Cry cooldown bars once they are unlocked.
+## The Bow and War Cry bars are always there; a locked one is greyed out with a padlock and "Clear stage N".
 func set_skills_unlocked(bow: bool, war_cry: bool) -> void:
-	(_ability_bars["bow"] as FillBar).visible = bow
-	(_ability_bars["war_cry"] as FillBar).visible = war_cry
-	_skill_row.visible = bow or war_cry
+	for pair: Array in [["bow", bow], ["war_cry", war_cry]]:
+		var bar: FillBar = _ability_bars[pair[0]]
+		bar.visible = true
+		bar.set_locked("" if pair[1] else SkillHints.locked_text_for(StringName(pair[0])))
+	_skill_row.visible = true
 
 
+## True when the skill's bar is shown and usable (not locked).
 func is_skill_bar_visible(key: String) -> bool:
-	return (_ability_bars[key] as FillBar).visible and _skill_row.visible
+	var bar: FillBar = _ability_bars[key]
+	return bar.visible and _skill_row.visible and not bar.is_locked()
+
+
+func is_skill_locked(key: String) -> bool:
+	return (_ability_bars[key] as FillBar).is_locked()
+
+
+func get_skill_bar(key: String) -> FillBar:
+	return _ability_bars[key]
 
 
 ## The ally stance ("CHARGE" or "HOLD"), shown top left with its key.

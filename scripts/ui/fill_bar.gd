@@ -11,6 +11,10 @@ extends Control
 ## Number of segments marked with ticks (0 = none).
 @export var segments: int = 0
 
+## The keyboard key of what the bar stands for, on a small badge at its left ("" = none).
+var key_hint: String = ""
+## A locked skill: the bar is greyed out with a padlock and this text ("Clear stage 2") instead of its value.
+var locked_text: String = ""
 var ratio: float = 1.0
 var value_text: String = ""
 ## Pulses its fill and border (something the bar stands for is ready).
@@ -19,6 +23,24 @@ var pulsing: bool = false
 
 func _ready() -> void:
 	set_process(false)
+
+
+func set_key_hint(text: String) -> void:
+	if text == key_hint:
+		return
+	key_hint = text
+	queue_redraw()
+
+
+func set_locked(text: String) -> void:
+	if text == locked_text:
+		return
+	locked_text = text
+	queue_redraw()
+
+
+func is_locked() -> bool:
+	return not locked_text.is_empty()
 
 
 func set_pulsing(enabled: bool) -> void:
@@ -57,13 +79,29 @@ func _draw() -> void:
 		for i: int in range(1, segments):
 			var x: float = size.x * float(i) / float(segments)
 			draw_line(Vector2(x, 0.0), Vector2(x, size.y), Color(InkPalette.INK, 0.5), 2.0)
+	if is_locked():
+		draw_rect(rect, Color(InkPalette.UI_CHARCOAL, 0.55))
 	draw_rect(rect, border_color, false, 3.0)
 
 	var font: Font = get_theme_default_font()
 	var baseline: float = size.y * 0.5 + font_size * 0.35
-	var padding: float = 12.0
-	_draw_text(font, caption, Vector2(padding, baseline), size.x - padding * 2.0, HORIZONTAL_ALIGNMENT_LEFT)
-	_draw_text(font, value_text, Vector2(padding, baseline), size.x - padding * 2.0, HORIZONTAL_ALIGNMENT_RIGHT)
+	var padding: float = 12.0 if key_hint.is_empty() else 7.0
+	var left: float = padding
+	if not key_hint.is_empty():
+		# The key badge: a small dark square with the letter.
+		var badge: float = size.y - 8.0
+		var badge_rect: Rect2 = Rect2(Vector2(4.0, 4.0), Vector2(badge, badge))
+		draw_rect(badge_rect, Color(InkPalette.INK, 0.92))
+		draw_rect(badge_rect, Color(InkPalette.GOLD_BRIGHT, 0.95), false, 2.0)
+		var key_size: int = maxi(int(font_size * 0.85), 12)
+		draw_string(font, Vector2(4.0, 4.0 + badge * 0.5 + key_size * 0.35), key_hint, HORIZONTAL_ALIGNMENT_CENTER, badge, key_size, InkPalette.PARCHMENT)
+		left = badge + 12.0
+	var value: String = locked_text if is_locked() else value_text
+	if is_locked():
+		LockIcon.draw(self, Vector2(left + size.y * 0.2, size.y * 0.5 - 1.0), size.y * 0.55, Color(InkPalette.PARCHMENT, 0.9))
+		left += size.y * 0.5
+	_draw_text(font, caption, Vector2(left, baseline), size.x - left - padding, HORIZONTAL_ALIGNMENT_LEFT)
+	_draw_text(font, value, Vector2(left, baseline), size.x - left - padding, HORIZONTAL_ALIGNMENT_RIGHT)
 
 
 func _draw_text(font: Font, text: String, origin: Vector2, width: float, alignment: HorizontalAlignment) -> void:
