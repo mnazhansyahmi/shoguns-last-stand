@@ -5,8 +5,9 @@ extends Resource
 
 enum Target { SAMURAI, ALLY, SPIRIT_ENERGY, ARMY }
 ## ALLY_CAP: more allies on the field (ARMY). The cooldown and charge stats are in PERCENT per level (SAMURAI):
-## the dash and spirit slash cooldowns and the Ultimate's charge needed get that much shorter.
-enum Stat { MAX_HEALTH, DAMAGE, REGEN, ALLY_CAP, DASH_COOLDOWN, SLASH_COOLDOWN, ULTIMATE_CHARGE }
+## the dash and spirit slash cooldowns and the Ultimate's charge needed get that much shorter. MAX_ENERGY: a bigger
+## Spirit Energy pool (SPIRIT_ENERGY).
+enum Stat { MAX_HEALTH, DAMAGE, REGEN, ALLY_CAP, DASH_COOLDOWN, SLASH_COOLDOWN, ULTIMATE_CHARGE, MAX_ENERGY }
 
 ## Stable key stored in the save file. Never rename once shipped.
 @export var id: String = ""

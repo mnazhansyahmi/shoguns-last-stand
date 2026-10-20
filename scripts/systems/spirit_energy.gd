@@ -4,7 +4,8 @@ extends Node
 
 signal energy_changed(current: float, maximum: float)
 
-@export var max_energy: float = 150.0
+## The pool: 200 (the Spirit Capacity upgrade adds 25 per level, up to four levels).
+@export var max_energy: float = 200.0
 @export var regen_per_second: float = 5.0
 @export var starting_energy: float = 50.0
 

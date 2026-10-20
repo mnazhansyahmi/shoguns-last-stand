@@ -44,7 +44,7 @@ STAGES = [
         ],
     },
     {
-        "number": 5, "name": "Oni's Hollow", "bonus_gold": 450, "bonus_xp": 150, "break": 6.0,
+        "number": 5, "name": "Oni's Hollow", "bonus_gold": 650, "bonus_xp": 150, "break": 6.0,
         "description": "The Oni's lair. Survive the swarm, then the boss wave of Oni Brutes.",
         "waves": [
             [("H", 16, 0.0, 0.45)],

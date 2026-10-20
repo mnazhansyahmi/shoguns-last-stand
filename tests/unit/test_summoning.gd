@@ -37,11 +37,11 @@ func test_ally_data_matches_spec() -> void:
 
 func test_energy_regenerates_and_caps_at_max() -> void:
 	var energy: SpiritEnergy = _make_energy(0.0)
-	assert_almost_eq(energy.max_energy, 150.0, "max energy is 150")
+	assert_almost_eq(energy.max_energy, 200.0, "max energy is 200")
 	energy.tick(2.0)
 	assert_almost_eq(energy.current, 10.0, "regenerates 5 per second")
 	energy.tick(100.0)
-	assert_almost_eq(energy.current, 150.0, "capped at max")
+	assert_almost_eq(energy.current, 200.0, "capped at max")
 
 
 func test_summon_consumes_energy() -> void:

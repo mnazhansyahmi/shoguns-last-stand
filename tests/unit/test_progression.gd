@@ -141,6 +141,41 @@ func _upgraded_progress() -> PlayerProgress:
 	return progress
 
 
+func test_spirit_capacity_adds_25_energy_per_level_for_four_levels() -> void:
+	var upgrade: UpgradeData = CATALOG.find("spirit_capacity")
+	assert_true(upgrade != null, "the shop has a Spirit Capacity upgrade")
+	if upgrade == null:
+		return
+	assert_eq(upgrade.display_name, "Spirit Capacity", "named Spirit Capacity")
+	assert_eq(upgrade.target, UpgradeData.Target.SPIRIT_ENERGY, "it upgrades the Spirit Energy")
+	assert_eq(upgrade.max_level, 4, "four levels")
+	assert_almost_eq(upgrade.amount_per_level, 25.0, "+25 a level")
+	assert_true(upgrade.describe_bonus(2).contains("50"), "the shop shows the total (%s)" % upgrade.describe_bonus(2))
+	assert_true(upgrade.get_cost(0) > 0 and upgrade.get_cost(3) > upgrade.get_cost(0) and upgrade.get_cost(4) == -1, "it costs more each level and stops at four")
+	assert_almost_eq(SpiritEnergy.new().max_energy, 200.0, "the pool starts at 200 (it was 150)")
+	for level: int in range(0, 5):
+		var progress: PlayerProgress = PlayerProgress.new()
+		progress.set_upgrade_level("spirit_capacity", level)
+		assert_almost_eq(UpgradeApplier.build_spirit_max(200.0, progress, CATALOG), 200.0 + 25.0 * level, "%d levels: %d" % [level, 200 + 25 * level])
+	var beyond: PlayerProgress = PlayerProgress.new()
+	beyond.set_upgrade_level("spirit_capacity", 40)
+	assert_almost_eq(UpgradeApplier.build_spirit_max(200.0, beyond, CATALOG), 300.0, "never past level 4")
+
+
+func test_the_battle_uses_the_upgraded_spirit_pool() -> void:
+	DirAccess.make_dir_recursive_absolute("user://test_saves/")
+	var path: String = "user://test_saves/spirit_capacity_save.json"
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.set_upgrade_level("spirit_capacity", 3)
+	SaveManager.new(path).save_progress(progress)
+	var field: Node = preload("res://scenes/battlefield/battlefield.tscn").instantiate()
+	field.set("save_path", path)
+	field.set("settings_path", "user://test_saves/spirit_capacity_settings.cfg")
+	add_to_tree(field)
+	var energy: SpiritEnergy = field.get_node("World/SpiritEnergy") as SpiritEnergy
+	assert_almost_eq(energy.max_energy, 275.0, "200 + 3 levels of 25")
+
+
 func test_upgrades_apply_to_stat_copies() -> void:
 	var progress: PlayerProgress = _upgraded_progress()
 	var stats: PlayerStats = UpgradeApplier.build_player_stats(SAMURAI_STATS, progress, CATALOG)

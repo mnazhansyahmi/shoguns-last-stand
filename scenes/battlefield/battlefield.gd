@@ -307,6 +307,8 @@ func _apply_upgrades() -> void:
 	_summoner.ally_slots = upgraded_slots
 	_summoner.max_allies = UpgradeApplier.build_ally_cap(_progress, UPGRADE_CATALOG)
 	_energy.regen_per_second = UpgradeApplier.build_spirit_regen(_energy.regen_per_second, _progress, UPGRADE_CATALOG)
+	_energy.max_energy = UpgradeApplier.build_spirit_max(_energy.max_energy, _progress, UPGRADE_CATALOG)
+	_hud.set_energy(_energy.current, _energy.max_energy)
 
 
 func _update_stance_display() -> void:

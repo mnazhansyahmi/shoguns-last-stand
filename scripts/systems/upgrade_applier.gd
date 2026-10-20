@@ -54,5 +54,10 @@ static func build_ally_data(base: AllyData, progress: PlayerProgress, catalog: U
 	return data
 
 
+## The Spirit Energy pool: the base maximum plus the Spirit Capacity upgrade's levels.
+static func build_spirit_max(base_max: float, progress: PlayerProgress, catalog: UpgradeCatalog) -> float:
+	return base_max + get_bonus(progress, catalog, UpgradeData.Target.SPIRIT_ENERGY, UpgradeData.Stat.MAX_ENERGY)
+
+
 static func build_spirit_regen(base_regen: float, progress: PlayerProgress, catalog: UpgradeCatalog) -> float:
 	return base_regen + get_bonus(progress, catalog, UpgradeData.Target.SPIRIT_ENERGY, UpgradeData.Stat.REGEN)
