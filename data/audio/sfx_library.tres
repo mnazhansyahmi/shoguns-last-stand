@@ -80,11 +80,11 @@ min_interval = 0.1
 [sub_resource type="Resource" id="Entry_enemy_death"]
 script = ExtResource("2_entry")
 id = &"enemy_death"
-override_paths = PackedStringArray("res://assets/audio/sfx_kenney/impactSoft_heavy_000.ogg", "res://assets/audio/sfx_kenney/impactSoft_heavy_001.ogg", "res://assets/audio/sfx_kenney/impactSoft_heavy_002.ogg")
+override_paths = PackedStringArray("res://assets/audio/sfx_gore/zombie_groan_1.ogg", "res://assets/audio/sfx_gore/zombie_groan_2.ogg", "res://assets/audio/sfx_gore/zombie_groan_3.ogg", "res://assets/audio/sfx_gore/zombie_groan_4.ogg", "res://assets/audio/sfx_gore/zombie_groan_5.ogg", "res://assets/audio/sfx_gore/zombie_groan_6.ogg")
 stream = ExtResource("s6_enemy_death")
-volume_db = -3.0
-pitch_variation = 0.06
-min_interval = 0.04
+volume_db = -6.0
+pitch_variation = 0.08
+min_interval = 0.10
 
 [sub_resource type="Resource" id="Entry_gate_hit"]
 script = ExtResource("2_entry")
@@ -131,9 +131,9 @@ min_interval = 0.5
 [sub_resource type="Resource" id="Entry_ultimate_ready"]
 script = ExtResource("2_entry")
 id = &"ultimate_ready"
-override_paths = PackedStringArray("res://assets/audio/sfx_kenney/impactBell_heavy_002.ogg")
+override_paths = PackedStringArray("res://assets/audio/sfx_sonniss/ultimate_ready.ogg")
 stream = ExtResource("s12_ultimate_ready")
-volume_db = -3.0
+volume_db = -5.0
 pitch_variation = 0.0
 min_interval = 0.3
 
@@ -191,6 +191,69 @@ pitch_variation = 0.04
 min_interval = 0.05
 max_length = 1.10
 
+[sub_resource type="Resource" id="Entry_roar"]
+script = ExtResource("2_entry")
+id = &"roar"
+override_paths = PackedStringArray("res://assets/audio/sfx_sonniss/roar.ogg")
+stream = ExtResource("s15_war_cry")
+volume_db = -2.0
+pitch_variation = 0.05
+min_interval = 0.8
+
+[sub_resource type="Resource" id="Entry_slam"]
+script = ExtResource("2_entry")
+id = &"slam"
+override_paths = PackedStringArray("res://assets/audio/sfx_sonniss/slam_1.ogg", "res://assets/audio/sfx_sonniss/slam_2.ogg")
+stream = ExtResource("s2_heavy_hit")
+volume_db = -4.0
+pitch_variation = 0.04
+min_interval = 0.25
+
+[sub_resource type="Resource" id="Entry_stone_hit"]
+script = ExtResource("2_entry")
+id = &"stone_hit"
+override_paths = PackedStringArray("res://assets/audio/sfx_sonniss/stone_1.ogg", "res://assets/audio/sfx_sonniss/stone_2.ogg")
+stream = ExtResource("s2_heavy_hit")
+volume_db = -9.0
+pitch_variation = 0.06
+min_interval = 0.06
+
+[sub_resource type="Resource" id="Entry_explosion"]
+script = ExtResource("2_entry")
+id = &"explosion"
+override_paths = PackedStringArray("res://assets/audio/sfx_sonniss/explosion.ogg")
+stream = ExtResource("s14_magic_burst")
+volume_db = -5.0
+pitch_variation = 0.05
+min_interval = 0.15
+
+[sub_resource type="Resource" id="Entry_gate_destroyed"]
+script = ExtResource("2_entry")
+id = &"gate_destroyed"
+override_paths = PackedStringArray("res://assets/audio/sfx_sonniss/gate_destroyed.ogg")
+stream = ExtResource("s7_gate_hit")
+volume_db = -2.0
+pitch_variation = 0.0
+min_interval = 0.5
+
+[sub_resource type="Resource" id="Entry_boss_summon"]
+script = ExtResource("2_entry")
+id = &"boss_summon"
+override_paths = PackedStringArray("res://assets/audio/sfx_sonniss/boss_summon.ogg")
+stream = ExtResource("s5_summon")
+volume_db = -5.0
+pitch_variation = 0.0
+min_interval = 0.5
+
+[sub_resource type="Resource" id="Entry_spirit_whoosh"]
+script = ExtResource("2_entry")
+id = &"spirit_whoosh"
+override_paths = PackedStringArray("res://assets/audio/sfx_sonniss/whoosh.ogg")
+stream = ExtResource("s4_spirit_slash")
+volume_db = -9.0
+pitch_variation = 0.05
+min_interval = 0.05
+
 [resource]
 script = ExtResource("1_library")
-entries = Array[ExtResource("2_entry")]([SubResource("Entry_sword_swing"), SubResource("Entry_hit"), SubResource("Entry_heavy_hit"), SubResource("Entry_dash"), SubResource("Entry_spirit_slash"), SubResource("Entry_summon"), SubResource("Entry_enemy_death"), SubResource("Entry_gate_hit"), SubResource("Entry_victory"), SubResource("Entry_defeat"), SubResource("Entry_button_click"), SubResource("Entry_ultimate"), SubResource("Entry_ultimate_ready"), SubResource("Entry_heal"), SubResource("Entry_magic_burst"), SubResource("Entry_war_cry"), SubResource("Entry_flesh_hit"), SubResource("Entry_flesh_heavy"), SubResource("Entry_spirit_flesh")])
+entries = Array[ExtResource("2_entry")]([SubResource("Entry_sword_swing"), SubResource("Entry_hit"), SubResource("Entry_heavy_hit"), SubResource("Entry_dash"), SubResource("Entry_spirit_slash"), SubResource("Entry_summon"), SubResource("Entry_enemy_death"), SubResource("Entry_gate_hit"), SubResource("Entry_victory"), SubResource("Entry_defeat"), SubResource("Entry_button_click"), SubResource("Entry_ultimate"), SubResource("Entry_ultimate_ready"), SubResource("Entry_heal"), SubResource("Entry_magic_burst"), SubResource("Entry_war_cry"), SubResource("Entry_flesh_hit"), SubResource("Entry_flesh_heavy"), SubResource("Entry_spirit_flesh"), SubResource("Entry_roar"), SubResource("Entry_slam"), SubResource("Entry_stone_hit"), SubResource("Entry_explosion"), SubResource("Entry_gate_destroyed"), SubResource("Entry_boss_summon"), SubResource("Entry_spirit_whoosh")])

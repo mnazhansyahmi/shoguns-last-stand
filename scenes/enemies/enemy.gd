@@ -223,6 +223,8 @@ func _process_attack(delta: float) -> void:
 				_hitbox.knockback_direction_x = facing
 				_hitbox.activate(data.attack_damage * _attack.damage_multiplier, _attack.knockback, _attack.active_time, _attack.heavy)
 				AudioManager.play(&"sword_swing", 0.7 if _attack.heavy else 0.85)
+				if _attack.heavy and CombatSounds.is_big(data):
+					AudioManager.play(&"slam", 0.95)
 				_visual.play_state(&"strike")
 		AttackPhase.ACTIVE:
 			if _state_time >= _attack.windup + _attack.active_time:

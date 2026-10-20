@@ -34,6 +34,9 @@ var _players: Array[AudioStreamPlayer] = []
 var _music_players: Array[AudioStreamPlayer] = []
 var _music_active: int = 0
 var _music_tween: Tween
+## The quiet looping bed under a track that has one (the boss fight's eerie drone), on the Music bus too.
+var _ambience_player: AudioStreamPlayer
+var _ambience_tween: Tween
 var _music_warned: Dictionary = {}
 ## SFX id -> the streams to pick from (the recorded sounds that exist, else the generated placeholder).
 var _streams: Dictionary = {}
@@ -87,7 +90,11 @@ static func shutdown_audio(tree: SceneTree) -> void:
 func stop_all() -> void:
 	if _music_tween != null:
 		_music_tween.kill()
-	for player: AudioStreamPlayer in _players + _music_players:
+	if _ambience_tween != null:
+		_ambience_tween.kill()
+	var all_players: Array[AudioStreamPlayer] = _players + _music_players
+	all_players.append(_ambience_player)
+	for player: AudioStreamPlayer in all_players:
 		if is_instance_valid(player):
 			player.stop()
 			player.stream = null
@@ -117,6 +124,11 @@ func _ready() -> void:
 		music_player.volume_db = MUSIC_SILENT_DB
 		music_root.add_child(music_player)
 		_music_players.append(music_player)
+	_ambience_player = AudioStreamPlayer.new()
+	_ambience_player.name = "AmbiencePlayer"
+	_ambience_player.bus = MUSIC_BUS
+	_ambience_player.volume_db = MUSIC_SILENT_DB
+	music_root.add_child(_ambience_player)
 	for i: int in POOL_SIZE:
 		var player: AudioStreamPlayer = AudioStreamPlayer.new()
 		player.bus = BUS
@@ -236,6 +248,7 @@ func play_music_track(id: StringName, fade: float = MUSIC_FADE_TIME) -> bool:
 			_music_tween.tween_property(outgoing, "volume_db", MUSIC_SILENT_DB, fade)
 			_music_tween.chain().tween_callback(outgoing.stop)
 	current_music = id
+	_set_ambience(entry, fade)
 	return true
 
 
@@ -245,6 +258,7 @@ func stop_music(fade: float = MUSIC_FADE_TIME) -> void:
 		return
 	var active: AudioStreamPlayer = _music_players[_music_active]
 	current_music = &""
+	_set_ambience(null, fade)
 	if _music_tween != null:
 		_music_tween.kill()
 	if fade <= 0.0 or not active.playing:
@@ -257,6 +271,42 @@ func stop_music(fade: float = MUSIC_FADE_TIME) -> void:
 
 func is_music_playing() -> bool:
 	return _music_players.size() == 2 and _music_players[_music_active].playing
+
+
+## Fades the entry's ambience bed in (a random one of its files, looping), or the running one out when it has none.
+func _set_ambience(entry: MusicEntry, fade: float) -> void:
+	if _ambience_player == null:
+		return
+	if _ambience_tween != null:
+		_ambience_tween.kill()
+	var stream: AudioStream = null
+	if entry != null and not entry.ambience_paths.is_empty():
+		var paths: Array[String] = []
+		for path: String in entry.ambience_paths:
+			if ResourceLoader.exists(path):
+				paths.append(path)
+		if not paths.is_empty():
+			stream = load(String(paths.pick_random())) as AudioStream
+	if stream == null:
+		if _ambience_player.playing and fade <= 0.0:
+			_ambience_player.stop()
+		elif _ambience_player.playing:
+			_ambience_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+			_ambience_tween.tween_property(_ambience_player, "volume_db", MUSIC_SILENT_DB, fade)
+			_ambience_tween.tween_callback(_ambience_player.stop)
+		return
+	_loop(stream)
+	_ambience_player.stream = stream
+	_ambience_player.volume_db = MUSIC_SILENT_DB if fade > 0.0 else entry.ambience_db
+	_ambience_player.play()
+	if fade > 0.0:
+		_ambience_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		_ambience_tween.tween_property(_ambience_player, "volume_db", entry.ambience_db, fade)
+
+
+## The quiet bed under the current track, or null when the audio manager has not started.
+func get_ambience_player() -> AudioStreamPlayer:
+	return _ambience_player
 
 
 ## The player that has the current track (tests read its stream and volume).

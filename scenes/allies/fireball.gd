@@ -92,7 +92,7 @@ func _explode(center_x: float) -> void:
 		if absf(enemy.global_position.x - center_x) <= _radius + enemy.get_half_width():
 			blast.try_hit(enemy.get_hurtbox())
 	blast.deactivate()
-	AudioManager.play(&"magic_burst")
+	AudioManager.play(&"explosion")
 	var burst: FireBurst = FireBurst.new()
 	burst.setup(_radius)
 	get_parent().add_child(burst)

@@ -151,6 +151,7 @@ func _enter_phase(new_phase: int) -> void:
 	_visual.flash_hit()
 	_spawn_ring(520.0)
 	AudioManager.play(&"ultimate", 0.6)
+	AudioManager.play(&"roar", 0.75)
 	if is_instance_valid(BattleFeedback.active):
 		BattleFeedback.active.hit_stop(0.12)
 		BattleFeedback.active.shake(12.0, 0.5)
@@ -321,7 +322,7 @@ func _fire() -> void:
 			AudioManager.play(&"magic_burst", 0.7)
 			_begin_active()
 		BossAttackData.Kind.SUMMON:
-			AudioManager.play(&"summon", 0.6)
+			AudioManager.play(&"boss_summon")
 			_visual.flash_hit()
 			minions_requested.emit(_current.summon_enemy, _summon_xs)
 			_spawn_ring(300.0)
@@ -432,5 +433,6 @@ func _spawn_ring(radius: float) -> void:
 
 func _impact_feedback(strength: float) -> void:
 	AudioManager.play(&"heavy_hit", 0.6)
+	AudioManager.play(&"slam", 0.85)
 	if is_instance_valid(BattleFeedback.active):
 		BattleFeedback.active.shake(strength, 0.25)

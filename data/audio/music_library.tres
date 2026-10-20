@@ -27,6 +27,8 @@ script = ExtResource("2_entry")
 id = &"boss"
 paths = PackedStringArray("res://assets/audio/music/Shamisen Samurai Rock_Loop.ogg")
 volume_db = -9.0
+ambience_paths = PackedStringArray("res://assets/audio/sfx_sonniss/eerie_1.ogg", "res://assets/audio/sfx_sonniss/eerie_2.ogg")
+ambience_db = -14.0
 
 [resource]
 script = ExtResource("1_library")

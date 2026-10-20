@@ -467,6 +467,8 @@ func _on_wave_cleared(wave_number: int) -> void:
 
 func _on_enemy_spawned(enemy: Enemy) -> void:
 	enemy.defeated.connect(_on_enemy_defeated)
+	if CombatSounds.is_big(enemy.data):
+		AudioManager.play(&"roar", CombatSounds.roar_pitch(enemy.data))
 	var boss: Boss = enemy as Boss
 	if boss != null:
 		_hud.show_boss(boss.data.display_name)
@@ -499,7 +501,7 @@ func _on_boss_defeated(_enemy: Enemy) -> void:
 
 ## Every enemy killed (wave or debug) is worth its reward.
 func _on_enemy_defeated(enemy: Enemy) -> void:
-	AudioManager.play(&"enemy_death")
+	AudioManager.play(&"enemy_death", CombatSounds.death_pitch(enemy.data))
 	if not _is_game_over and enemy.data != null:
 		_kills.append(enemy.data)
 
@@ -509,6 +511,7 @@ func _on_stage_cleared() -> void:
 
 
 func _on_gate_destroyed() -> void:
+	AudioManager.play(&"gate_destroyed")
 	_end_battle(false)
 
 

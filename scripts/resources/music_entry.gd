@@ -13,6 +13,9 @@ const EXTENSIONS: PackedStringArray = ["ogg", "mp3"]
 @export var prefer_keyword: String = ""
 ## Music is quieter than the sound effects so a hit is never drowned.
 @export_range(-40.0, 6.0) var volume_db: float = -10.0
+## An optional quiet looping bed under the track (one of these, picked at random, plays while the slot does).
+@export var ambience_paths: PackedStringArray = PackedStringArray()
+@export_range(-40.0, 6.0) var ambience_db: float = -14.0
 
 
 ## The file to play, or "" if none of them exist.

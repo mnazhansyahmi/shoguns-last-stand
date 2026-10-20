@@ -92,13 +92,19 @@ func handle_hit(victim: Node, position: Vector2, hit: HitData) -> void:
 	if not victim is VillageGate:
 		spawn_blood(victim, position, hit)
 	if victim is VillageGate:
+		AudioManager.play(&"stone_hit")
 		AudioManager.play(&"gate_hit")
 		shake(5.0, 0.15)
 	elif victim is Player:
+		if hit.heavy:
+			AudioManager.play(&"stone_hit")
 		AudioManager.play(&"heavy_hit" if hit.heavy else &"hit", 0.9)
 		shake(10.0 if hit.heavy else 7.0, 0.2)
 		vibrate(45)
 	else:
+		if hit.heavy:
+			# The stone layer under a heavy blow (the main sound plays after it).
+			AudioManager.play(&"stone_hit")
 		if victim is Enemy:
 			# A blade in an enemy: the recorded gore sounds (randomized), a heavier one for a heavy blow or a kill.
 			_play_flesh(hit, 1.0)

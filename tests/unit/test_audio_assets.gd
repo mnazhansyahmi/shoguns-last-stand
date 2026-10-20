@@ -16,11 +16,15 @@ const KENNEY_DIR: String = "res://assets/audio/sfx_kenney/"
 const REQUIRED_CREDIT: String = "Free Music : MOMIZizm MUSiC - https://music.storyinvention.com/en/"
 const SAVE_DIR: String = "user://test_saves/"
 ## The sounds that now come from Kenney: how many takes each has.
-const RECORDED: Dictionary = {&"hit": 4, &"heavy_hit": 3, &"enemy_death": 3, &"gate_hit": 3,
-		&"button_click": 3, &"summon": 1, &"ultimate_ready": 1}
+const RECORDED: Dictionary = {&"hit": 4, &"heavy_hit": 3, &"gate_hit": 3, &"button_click": 3, &"summon": 1}
 const GORE_DIR: String = "res://assets/audio/sfx_gore/"
 ## The Pixabay gore sounds: sound id -> how many takes (picked at random) it has.
-const GORE: Dictionary = {&"sword_swing": 2, &"flesh_hit": 3, &"flesh_heavy": 1, &"spirit_slash": 1, &"spirit_flesh": 2}
+const GORE: Dictionary = {&"sword_swing": 2, &"flesh_hit": 3, &"flesh_heavy": 1, &"spirit_slash": 1, &"spirit_flesh": 2,
+		&"enemy_death": 6}
+const SONNISS_DIR: String = "res://assets/audio/sfx_sonniss/"
+## The Sonniss sounds: sound id -> how many takes it has, and the generated sound each falls back to.
+const SONNISS: Dictionary = {&"roar": 1, &"slam": 2, &"stone_hit": 2, &"explosion": 1, &"gate_destroyed": 1,
+		&"boss_summon": 1, &"spirit_whoosh": 1, &"ultimate_ready": 1}
 
 
 func _manager() -> AudioManager:
@@ -158,6 +162,65 @@ func test_the_weak_generated_sounds_are_replaced_by_kenney_sounds() -> void:
 		assert_eq(manager.get_sfx_variant_count(id), 1, "%s has one sound" % id)
 
 
+func test_the_sonniss_sounds_replace_the_generated_ones_and_keep_them_as_the_fallback() -> void:
+	var manager: AudioManager = _manager()
+	for id: StringName in SONNISS:
+		var entry: SfxEntry = SFX_LIBRARY.find(id)
+		assert_true(entry != null, "%s is in the library" % id)
+		if entry == null:
+			continue
+		assert_true(manager.uses_recorded_sfx(id), "%s plays a recorded sound" % id)
+		assert_eq(manager.get_sfx_variant_count(id), SONNISS[id], "%s has %d takes" % [id, SONNISS[id]])
+		assert_true(entry.stream != null, "%s keeps a generated sound as the fallback" % id)
+		for path: String in entry.override_paths:
+			assert_true(path.begins_with(SONNISS_DIR) and path.get_extension() == "ogg" and ResourceLoader.exists(path), "%s is a Sonniss .ogg that exists" % path.get_file())
+			var stream: AudioStream = load(path) as AudioStream
+			assert_true(stream != null and stream.get_length() < 4.0, "%s is trimmed to a short sound" % path.get_file())
+		assert_true(manager.play_sfx(id), "%s plays" % id)
+
+
+func test_no_large_original_recording_is_left_in_the_project() -> void:
+	for dir: String in [SONNISS_DIR, GORE_DIR]:
+		for file: String in DirAccess.get_files_at(dir):
+			var name: String = file.trim_suffix(".import")
+			assert_true(name.get_extension() != "wav", "%s: large .wav files are converted to .ogg" % name)
+			assert_true(not name.begins_with("zombie") or name.begins_with("zombie_groan"), "%s: the long zombie recordings are cut up, not kept" % name)
+	for dir: String in [SONNISS_DIR, GORE_DIR]:
+		for file: String in DirAccess.get_files_at(dir):
+			if file.get_extension() == "ogg" or file.get_extension() == "mp3":
+				assert_true(FileAccess.get_file_as_bytes(dir + file).size() < 1024 * 1024, "%s is under 1 MB" % file)
+
+
+func test_death_groans_are_randomized_and_the_oni_and_boss_are_pitched_down() -> void:
+	var soldier: EnemyData = load("res://data/enemies/hollow_soldier.tres") as EnemyData
+	var oni: EnemyData = load("res://data/enemies/oni_brute.tres") as EnemyData
+	assert_almost_eq(CombatSounds.death_pitch(soldier), 1.0, "a soldier groans at its own pitch")
+	assert_true(CombatSounds.death_pitch(oni) < 0.8, "an Oni groans lower")
+	assert_true(CombatSounds.death_pitch(DAIMYO) < CombatSounds.death_pitch(oni), "the boss lowest of all")
+	assert_almost_eq(CombatSounds.death_pitch(null), 1.0, "no data, no change")
+	assert_true(CombatSounds.is_big(oni) and CombatSounds.is_big(DAIMYO) and not CombatSounds.is_big(soldier), "the Oni and the boss are the big ones")
+	assert_true(CombatSounds.roar_pitch(DAIMYO) < CombatSounds.roar_pitch(oni), "the boss roars lower than an Oni")
+	assert_eq(SFX_LIBRARY.find(&"enemy_death").override_paths.size(), 6, "six groans to pick from")
+
+
+func test_the_boss_music_has_a_quiet_eerie_loop_under_it() -> void:
+	var entry: MusicEntry = MUSIC_LIBRARY.find(&"boss")
+	assert_eq(entry.ambience_paths.size(), 2, "two eerie beds to pick from")
+	assert_true(entry.ambience_db <= -10.0, "it sits quietly under the music")
+	for slot: StringName in [&"menu", &"stage_select", &"battle"]:
+		assert_true(MUSIC_LIBRARY.find(slot).ambience_paths.is_empty(), "%s has no bed" % slot)
+	var manager: AudioManager = _manager()
+	manager.play_music_track(&"battle", 0.0)
+	assert_true(not manager.get_ambience_player().playing, "no bed in battle")
+	manager.play_music_track(&"boss", 0.0)
+	var bed: AudioStreamPlayer = manager.get_ambience_player()
+	assert_true(bed.playing and bed.bus == AudioManager.MUSIC_BUS, "the bed plays on the music bus with the boss music")
+	assert_true(bed.stream is AudioStreamOggVorbis and (bed.stream as AudioStreamOggVorbis).loop, "and loops")
+	assert_almost_eq(bed.volume_db, entry.ambience_db, "at its own quiet level")
+	manager.play_music_track(&"battle", 0.0)
+	assert_true(not bed.playing, "it stops when the boss music does")
+
+
 func test_the_gore_sounds_come_from_the_pixabay_recordings_with_the_generated_ones_as_fallback() -> void:
 	var manager: AudioManager = _manager()
 	for id: StringName in GORE:
@@ -167,7 +230,10 @@ func test_the_gore_sounds_come_from_the_pixabay_recordings_with_the_generated_on
 		assert_true(entry.stream != null and FileAccess.file_exists("res://assets/audio/sfx/%s.wav" % id), "%s keeps its generated sound as the fallback" % id)
 		for path: String in entry.override_paths:
 			assert_true(path.begins_with(GORE_DIR) and ResourceLoader.exists(path), "%s is a gore file that exists" % path.get_file())
-		assert_true(entry.max_length > 0.0 and entry.max_length < 2.0, "%s is cut off after %.1f s (the recordings run 1-2 s)" % [id, entry.max_length])
+		var short: bool = true
+		for path: String in entry.override_paths:
+			short = short and (load(path) as AudioStream).get_length() <= 2.2
+		assert_true(short or (entry.max_length > 0.0 and entry.max_length < 2.0), "%s is trimmed or cut off after %.1f s (the recordings run 1-2 s)" % [id, entry.max_length])
 	assert_true(manager.play_sfx(&"sword_swing") and manager.play_sfx(&"flesh_heavy"), "they play")
 	var probe: SfxEntry = SfxEntry.new()
 	probe.id = &"probe_gore"
@@ -295,15 +361,18 @@ func test_the_main_menu_has_a_credits_button_that_opens_the_screen() -> void:
 
 # --- The credits rule ---------------------------------------------------------------------
 
-func test_every_third_party_file_is_used_and_credited() -> void:
-	var credits: String = FileAccess.get_file_as_string("res://docs/CREDITS.md")
-	assert_true(credits.contains(REQUIRED_CREDIT), "the Momiziba credit line is in docs/CREDITS.md exactly")
-	assert_true(credits.contains("CC0") and credits.contains("Kenney"), "Kenney and its licence are credited")
-	assert_true(credits.contains("Sound effects: Pixabay") and credits.contains("Pixabay Content License"), "Pixabay and its licence are credited")
+func test_every_third_party_file_is_used_and_recorded() -> void:
+	assert_true(FileAccess.get_file_as_string("res://docs/CREDITS.md").contains(REQUIRED_CREDIT), "the Momiziba credit line is in docs/CREDITS.md exactly")
+	var credits: String = FileAccess.get_file_as_string("res://docs/ASSET_LICENSES.md")
+	assert_true(credits.contains("CC0") and credits.contains("Kenney"), "Kenney and its licence are recorded")
+	assert_true(credits.contains("Pixabay Content License"), "Pixabay and its licence are recorded")
+	assert_true(credits.contains("Sonniss GDC 2024") and credits.contains("royalty-free"), "Sonniss and its licence are recorded")
+	assert_true(credits.contains("Momiziba") and credits.contains(REQUIRED_CREDIT), "the music source and its required credit are recorded")
 	for entry: SfxEntry in SFX_LIBRARY.entries:
 		for path: String in entry.override_paths:
-			if path.begins_with(GORE_DIR):
-				assert_true(credits.contains(path.get_file()), "%s is listed in docs/CREDITS.md" % path.get_file())
+			if path.begins_with(GORE_DIR) or path.begins_with(SONNISS_DIR):
+				var listed: bool = credits.contains(path.get_file()) or (path.get_file().begins_with("zombie_groan_") and credits.contains("`zombie_groan_1.ogg` to"))
+				assert_true(listed, "%s is listed in docs/ASSET_LICENSES.md" % path.get_file())
 	var used: Dictionary = {}
 	for entry: SfxEntry in SFX_LIBRARY.entries:
 		for path: String in entry.override_paths:
@@ -315,10 +384,10 @@ func test_every_third_party_file_is_used_and_credited() -> void:
 			continue
 		assert_true(used.has(file), "%s is used by the sound library (keep only what the game uses)" % file)
 		var stem: String = regex.sub(file.get_basename(), "")
-		assert_true(credits.contains(stem), "%s is listed in docs/CREDITS.md" % file)
+		assert_true(credits.contains(stem), "%s is listed in docs/ASSET_LICENSES.md" % file)
 	for slot: StringName in [&"menu", &"stage_select", &"battle", &"boss"]:
 		var track_file: String = MUSIC_LIBRARY.find(slot).resolve_path().get_file()
-		assert_true(credits.contains(track_file), "%s is listed in docs/CREDITS.md" % track_file)
+		assert_true(credits.contains(track_file), "%s is listed in docs/ASSET_LICENSES.md" % track_file)
 	for licence: String in ["Impact-Sounds", "Interface-Sounds", "RPG-Audio"]:
 		var text: String = FileAccess.get_file_as_string(KENNEY_DIR + "licenses/Kenney-%s-License.txt" % licence)
 		assert_true(text.contains("Creative Commons Zero") or text.contains("CC0"), "the %s licence text is kept and is CC0" % licence)
