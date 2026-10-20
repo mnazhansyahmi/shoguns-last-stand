@@ -37,6 +37,10 @@ const LANES: Array[float] = [0.0, -42.0, 42.0, -21.0, 21.0, -63.0, 63.0, -10.0, 
 @export var data: AllyData
 ## Where the ally waits when no enemy is in range. NAN = position when it enters the tree.
 @export var home_x: float = NAN
+## The War Cry: damage and attack speed multipliers while `_war_cry_left` runs.
+var _war_cry_left: float = 0.0
+var _war_cry_damage: float = 1.0
+var _war_cry_speed: float = 1.0
 ## Set by the SummonManager. An ally made without one (a test) holds, as allies always did.
 var stance: Stance = Stance.HOLD
 ## The sideways offset this ally is drawn at (see LANES).
@@ -99,6 +103,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_tick_war_cry(delta)
 	if is_nan(home_x):
 		home_x = global_position.x
 	_state_time += delta
@@ -118,8 +123,8 @@ func _physics_process(delta: float) -> void:
 			_process_attack(delta)
 		State.RECOVER:
 			_brake(delta)
-			if _state_time >= _attack.recovery:
-				_attack_cooldown_left = _attack.cooldown
+			if _state_time >= _attack.recovery / _war_cry_speed:
+				_attack_cooldown_left = _attack.cooldown / _war_cry_speed
 				_resume()
 		State.HURT:
 			_brake(delta)
@@ -131,6 +136,38 @@ func _physics_process(delta: float) -> void:
 
 
 # --- Public API -------------------------------------------------------------
+
+## The samurai's War Cry: for `duration` seconds this ally deals `damage_bonus` more damage and attacks
+## `speed_bonus` faster (0.3 = 30%). A new cry restarts the time; the bonuses do not stack.
+func apply_war_cry(duration: float, damage_bonus: float, speed_bonus: float) -> void:
+	_war_cry_left = duration
+	_war_cry_damage = 1.0 + damage_bonus
+	_war_cry_speed = 1.0 + speed_bonus
+	_visual.set_tint(Color(1.3, 1.12, 0.72))
+
+
+func is_rallied() -> bool:
+	return _war_cry_left > 0.0
+
+
+func get_war_cry_damage_multiplier() -> float:
+	return _war_cry_damage
+
+
+func get_war_cry_speed_multiplier() -> float:
+	return _war_cry_speed
+
+
+func _tick_war_cry(delta: float) -> void:
+	if _war_cry_left <= 0.0:
+		return
+	_war_cry_left -= delta
+	if _war_cry_left <= 0.0:
+		_war_cry_left = 0.0
+		_war_cry_damage = 1.0
+		_war_cry_speed = 1.0
+		_visual.set_tint(Color.WHITE)
+
 
 func set_stance(value: Stance) -> void:
 	stance = value
@@ -298,7 +335,7 @@ func _process_attack(delta: float) -> void:
 	_brake(delta)
 	match _attack_phase:
 		AttackPhase.WINDUP:
-			if _state_time >= _attack.windup:
+			if _state_time >= _attack.windup / _war_cry_speed:
 				_attack_phase = AttackPhase.ACTIVE
 				if data.role == AllyData.Role.HEALER:
 					_cast_heal()
@@ -309,11 +346,11 @@ func _process_attack(delta: float) -> void:
 				else:
 					_hitbox_shape.position = Vector2(_attack.hitbox_offset.x * facing, _attack.hitbox_offset.y)
 					_hitbox.knockback_direction_x = facing
-					_hitbox.activate(data.attack_damage * _attack.damage_multiplier, _attack.knockback, _attack.active_time, _attack.heavy)
+					_hitbox.activate(data.attack_damage * _attack.damage_multiplier * _war_cry_damage, _attack.knockback, _attack.active_time, _attack.heavy)
 					AudioManager.play(&"sword_swing", 1.1)
 				_visual.play_state(&"strike")
 		AttackPhase.ACTIVE:
-			if _state_time >= _attack.windup + _attack.active_time:
+			if _state_time >= (_attack.windup + _attack.active_time) / _war_cry_speed:
 				_change_state(State.RECOVER)
 
 
@@ -347,7 +384,7 @@ func _cast_burst() -> void:
 		_area_hitbox.source = self
 		add_child(_area_hitbox)
 	_area_hitbox.global_position = Vector2(center_x, global_position.y)
-	_area_hitbox.activate(data.attack_damage * _attack.damage_multiplier, _attack.knockback, -1.0, _attack.heavy)
+	_area_hitbox.activate(data.attack_damage * _attack.damage_multiplier * _war_cry_damage, _attack.knockback, -1.0, _attack.heavy)
 	for node: Node in get_tree().get_nodes_in_group("enemies"):
 		var enemy: Enemy = node as Enemy
 		if enemy == null or not enemy.is_inside_tree() or enemy.is_dead():
@@ -368,7 +405,7 @@ func _fire_arrow() -> void:
 		push_error("Ally: arrow scene did not instantiate an Arrow.")
 		return
 	var start: Vector2 = global_position + Vector2(facing * 24.0, -data.body_size.y * 0.6)
-	arrow.setup(facing, data.attack_damage * _attack.damage_multiplier, data.projectile_speed,
+	arrow.setup(facing, data.attack_damage * _attack.damage_multiplier * _war_cry_damage, data.projectile_speed,
 			data.projectile_range, _attack.knockback, self, start)
 	get_parent().add_child(arrow)
 

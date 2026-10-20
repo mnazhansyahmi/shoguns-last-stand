@@ -68,6 +68,12 @@ func _ready() -> void:
 	_player.health_changed.connect(_hud.set_player_health)
 	_player.died.connect(_on_player_died)
 	_player.projectile_fired.connect(_on_projectile_fired)
+	_player.war_cry_released.connect(_on_war_cry_released)
+	_player.skill_locked.connect(_on_skill_locked)
+	_player.bow_unlocked = _progress.is_stage_cleared(Player.BOW_UNLOCK_STAGE)
+	_player.war_cry_unlocked = _progress.is_stage_cleared(Player.WAR_CRY_UNLOCK_STAGE)
+	_hud.set_skills_unlocked(_player.bow_unlocked, _player.war_cry_unlocked)
+	_touch.set_skills_unlocked(_player.bow_unlocked, _player.war_cry_unlocked)
 	_gate.health_changed.connect(_hud.set_gate_health)
 	_gate.health_changed.connect(_on_gate_health_changed)
 	_gate.destroyed.connect(_on_gate_destroyed)
@@ -412,6 +418,29 @@ func _on_ultimate_not_ready(ratio: float) -> void:
 
 func _on_ally_summoned(_ally: Ally, _slot: int) -> void:
 	AudioManager.play(&"summon")
+
+
+## The War Cry: every ally near the samurai deals more damage and attacks faster for a while.
+func _on_war_cry_released(origin: Vector2) -> void:
+	var stats: PlayerStats = _player.stats
+	var rallied: int = 0
+	for node: Node in get_tree().get_nodes_in_group("allies"):
+		var ally: Ally = node as Ally
+		if ally != null and not ally.is_dead() and absf(ally.global_position.x - origin.x) <= stats.war_cry_radius:
+			ally.apply_war_cry(stats.war_cry_duration, stats.war_cry_damage_bonus, stats.war_cry_speed_bonus)
+			rallied += 1
+	var ring: ShockRing = ShockRing.new()
+	ring.setup(stats.war_cry_radius * 0.5)
+	_projectiles.add_child(ring)
+	ring.global_position = origin
+	_hud.show_message("War Cry! %d allies rallied" % rallied if rallied > 0 else "War Cry! (no allies nearby)", 1.6)
+
+
+func _on_skill_locked(skill: StringName) -> void:
+	if skill == &"bow":
+		_hud.show_message("The Bow unlocks when you clear Stage 1", 2.0)
+	else:
+		_hud.show_message("War Cry unlocks when you clear Stage 2", 2.0)
 
 
 func _on_projectile_fired(projectile: Node2D) -> void:

@@ -13,7 +13,7 @@ const GROUND_CLEARANCE: float = 24.0
 ## Touch widgets at rest are drawn at this opacity; held widgets are fully opaque.
 const IDLE_OPACITY: float = 0.6
 const JOYSTICK_SIZE: Vector2 = Vector2(320.0, 320.0)
-const ACTION_CLUSTER_SIZE: Vector2 = Vector2(540.0, 350.0)
+const ACTION_CLUSTER_SIZE: Vector2 = Vector2(540.0, 500.0)
 ## Summon buttons: up to six allies, one per unlocked ally. They are as big as fits (up to
 ## SUMMON_MAX_SIZE x the UI scale) in one row between the two side clusters, never smaller than
 ## SUMMON_MIN_SIZE (44 pt); when even that does not fit they wrap to two rows.
@@ -28,12 +28,15 @@ const STANCE_SIZE: Vector2 = Vector2(210.0, 125.0)
 const STANCE_GAP: float = 14.0
 ## Right-handed positions inside the action cluster (Attack nearest the thumb's corner).
 const ACTION_BUTTONS: Dictionary = {
-	"attack": Rect2(350.0, 160.0, 190.0, 190.0),
-	"heavy": Rect2(180.0, 200.0, 150.0, 150.0),
-	"dash": Rect2(370.0, 0.0, 150.0, 150.0),
-	"slash": Rect2(190.0, 30.0, 150.0, 150.0),
+	"attack": Rect2(350.0, 308.0, 190.0, 190.0),
+	"heavy": Rect2(180.0, 348.0, 150.0, 150.0),
+	"dash": Rect2(370.0, 152.0, 150.0, 150.0),
+	"slash": Rect2(190.0, 172.0, 150.0, 150.0),
 	# The Ultimate sits apart, beside the other skills: big, and it glows when it is ready.
-	"ultimate": Rect2(0.0, 105.0, 170.0, 170.0),
+	"ultimate": Rect2(0.0, 250.0, 170.0, 170.0),
+	# The two later skills in a row on top: the War Cry (Q) and the Bow (E). A locked skill has no button.
+	"war_cry": Rect2(230.0, 0.0, 140.0, 140.0),
+	"bow": Rect2(390.0, 0.0, 140.0, 140.0),
 }
 
 

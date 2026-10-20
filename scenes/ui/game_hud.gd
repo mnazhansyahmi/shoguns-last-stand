@@ -40,6 +40,8 @@ var _safe_rect: Rect2 = Rect2()
 var _boss_bar: FillBar
 ## "Allies: CHARGE (F)" under the ability bars.
 var _stance_label: Label
+## Second row of ability bars: the Bow and the War Cry (shown once unlocked).
+var _skill_row: HBoxContainer
 var _gate_indicator: EdgeIndicator
 var _enemy_indicator: EdgeIndicator
 var _banner_tween: Tween
@@ -59,6 +61,22 @@ func _ready() -> void:
 	_enemy_indicator.points_left = false
 	add_child(_enemy_indicator)
 	_place_indicators(get_viewport().get_visible_rect())
+	_skill_row = HBoxContainer.new()
+	_skill_row.name = "SkillRow"
+	_skill_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_skill_row.add_theme_constant_override("separation", 10)
+	_top_left.add_child(_skill_row)
+	for entry: Array in [["bow", "Bow [E]", Color(0.42, 0.56, 0.3, 1.0)], ["war_cry", "Cry [Q]", Color(0.78, 0.56, 0.2, 1.0)]]:
+		var bar: FillBar = FillBar.new()
+		bar.name = "%sBar" % String(entry[0]).capitalize().replace(" ", "")
+		bar.custom_minimum_size = Vector2(146.0, 34.0)
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bar.caption = entry[1]
+		bar.fill_color = entry[2]
+		bar.font_size = 20
+		_skill_row.add_child(bar)
+		_ability_bars[entry[0]] = bar
+	_skill_row.visible = false
 	_stance_label = Label.new()
 	_stance_label.name = "StanceLabel"
 	_stance_label.theme_type_variation = &"HudLabel"
@@ -78,6 +96,17 @@ func _ready() -> void:
 	_pause_button.pressed.connect(pause_requested.emit)
 	_top_left.resized.connect(_update_pivots)
 	_wave_box.resized.connect(_update_pivots)
+
+
+## Shows the Bow and War Cry cooldown bars once they are unlocked.
+func set_skills_unlocked(bow: bool, war_cry: bool) -> void:
+	(_ability_bars["bow"] as FillBar).visible = bow
+	(_ability_bars["war_cry"] as FillBar).visible = war_cry
+	_skill_row.visible = bow or war_cry
+
+
+func is_skill_bar_visible(key: String) -> bool:
+	return (_ability_bars[key] as FillBar).visible and _skill_row.visible
 
 
 ## The ally stance ("CHARGE" or "HOLD"), shown top left with its key.

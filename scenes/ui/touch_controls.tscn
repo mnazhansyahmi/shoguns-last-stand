@@ -97,6 +97,26 @@ caption = "Ultimate"
 base_color = Color(0.788, 0.635, 0.29, 1)
 font_size = 28
 
+[node name="WarCryButton" type="Control" parent="Root/ActionCluster"]
+visible = false
+layout_mode = 0
+mouse_filter = 2
+script = ExtResource("3_button")
+action = &"war_cry"
+caption = "War Cry"
+base_color = Color(0.78, 0.56, 0.2, 1)
+font_size = 26
+
+[node name="BowButton" type="Control" parent="Root/ActionCluster"]
+visible = false
+layout_mode = 0
+mouse_filter = 2
+script = ExtResource("3_button")
+action = &"bow"
+caption = "Bow"
+base_color = Color(0.42, 0.56, 0.3, 1)
+font_size = 28
+
 [node name="StanceButton" type="Control" parent="Root"]
 layout_mode = 0
 mouse_filter = 2

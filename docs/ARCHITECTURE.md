@@ -253,3 +253,9 @@ For now, Esc on the battlefield returns to the menu. A real pause menu replaces 
 
 - `UpgradeApplier.build_ally_cap()` gives the cap: `BASE_ALLY_CAP` (6) plus the stages cleared (max `MAX_STAGE_ALLY_CAP`, 11) plus the `army_command` upgrade (`UpgradeData.Target.ARMY`, `Stat.ALLY_CAP`). The battlefield sets `SummonManager.max_allies` from it.
 - The stance lives on `SummonManager` (`stance`, `set_stance()`, `toggle_stance()`, `stance_changed`) and is copied to every `Ally` (`Ally.Stance`). An ally made without a manager holds. `Ally._aggro_range()` is the whole field while charging, `_walk()` stops a charging ally at `CHARGE_FRONT_X`, and `_idle_at_home()` keeps it where it stands. Key F is the `stance` input action; the touch button (`StanceButton`, rect `"stance"` from `TouchLayout.compute()`) presses the same action; the HUD label is `GameHud.set_stance()`.
+
+## Bow and War Cry
+
+- `Player` has two more states (`BOW`, `WAR_CRY`), cooldown components made in code, `bow_unlocked` / `war_cry_unlocked` (the battlefield sets them from the save: `Player.BOW_UNLOCK_STAGE`, `WAR_CRY_UNLOCK_STAGE`), `use_skill()` (what the keys call; a locked skill emits `skill_locked`) and `read_input` (false = ignore keys, for tests). The numbers are in `PlayerStats` ("Bow", "War Cry").
+- The Bow fires the same `Arrow` the Yumi Archer uses, through `projectile_fired`. The War Cry emits `war_cry_released(origin)`; the battlefield applies `Ally.apply_war_cry()` to the allies in range and shows a ring. A rallied ally multiplies the damage of its melee hit, burst and arrow and divides its wind-up, active time, recovery and cooldown by the speed bonus, and is tinted gold until it ends.
+- Input actions `bow` (E) and `war_cry` (Q); touch buttons `BowButton` / `WarCryButton` in the action cluster (`TouchLayout.ACTION_BUTTONS`), HUD bars in `GameHud`'s second ability row (`set_skills_unlocked()`).

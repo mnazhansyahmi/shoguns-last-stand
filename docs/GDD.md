@@ -148,3 +148,9 @@ Phases: 100 to 66% (normal), 66 to 33% (1.2x speed, 1.15x damage, leap and wave)
 ## Skill cooldown upgrades
 
 Three upgrades in the shop shorten the samurai's skills, 8% per level and 5 levels, so -40% at the top (never more): **Dash Cooldown** (3 s to 1.8 s), **Spirit Slash Cooldown** (6 s to 3.6 s) and **Ultimate Charge Speed** (the Ultimate needs 40% less charge, so it fills 1.67 times as fast). They cost 70 gold at level 1, growing x1.12 a level (the shop's economy stays in the 45 to 80% band before stage 5, see `test_region_economy_curve`).
+
+## War Cry and Bow (new skills)
+
+- **Bow (key E, the Bow button on a phone):** unlocks when stage 1 is cleared. The samurai draws (0.18 s) and shoots an arrow: 1.5x his attack damage (30 at base), speed 1500, range 1500, 2 s cooldown. It flies straight at any height, so it reaches far enemies (and, later, flying ones).
+- **War Cry (key Q, the War Cry button):** unlocks when stage 2 is cleared. A 0.3 s shout; every ally within 700 px of him deals +30% damage and attacks 30% faster for 8 s (a new cry restarts the time, it does not stack) and glows gold. 25 s cooldown.
+- Before the unlock the key says "unlocks when you clear Stage N", the HUD bar and the touch button are not shown, and the touch layout (a 540 x 500 action cluster, with the two skills in a row on top) keeps every button at least 130 units wide.

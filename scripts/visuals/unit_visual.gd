@@ -27,7 +27,7 @@ const VARY_SPEED: float = 0.1
 const VARY_OFFSET_UP: float = 4.0
 const VARY_OFFSET_DOWN: float = 1.5
 const STATES: Array[StringName] = [&"idle", &"run", &"windup", &"heavy_windup", &"strike", &"cast",
-		&"dash", &"hurt", &"spawn", &"dead"]
+		&"dash", &"hurt", &"spawn", &"dead", &"shoot"]
 
 @export var figure_kind: InkFigure.Kind = InkFigure.Kind.SAMURAI
 ## Figure height in pixels.

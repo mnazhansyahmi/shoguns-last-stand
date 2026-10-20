@@ -435,6 +435,9 @@ static func _samurai(state: StringName, step: int, heavy: bool) -> FigurePose:
 						p = FigurePose.make(0.3, 5.0, Vector2(27.0, -22.0), -0.05).with_offset(5.0).with_spread(1.6)
 					_:
 						p = FigurePose.make(0.22, 4.0, Vector2(25.0, -18.0), 0.55).with_spread(1.5)
+		&"shoot":
+			# The bow: the point of the blade levelled forward at shoulder height, the body leaning into the shot.
+			p = FigurePose.make(0.1, 3.0, Vector2(24.0, -34.0), -0.06).with_spread(1.45)
 		&"cast":
 			p = FigurePose.make(-0.02, 3.0, Vector2(21.0, -45.0), -1.25).with_head(-0.1).with_glow(1.0).with_spread(1.4)
 		&"dash":

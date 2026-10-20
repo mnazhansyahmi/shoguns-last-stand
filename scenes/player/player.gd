@@ -11,14 +11,22 @@ signal projectile_fired(projectile: Node2D)
 signal ultimate_started
 ## The Ultimate's sweep lands now (origin = the samurai, facing = -1 or 1).
 signal ultimate_released(origin: Vector2, facing: int)
+## The War Cry goes out now (the battlefield buffs the allies near `origin`).
+signal war_cry_released(origin: Vector2)
+## A skill key was pressed before the skill is unlocked ("bow" or "war_cry").
+signal skill_locked(skill: StringName)
 
-enum State { IDLE, RUN, ATTACK, DASH, SPIRIT_SLASH, HURT, DEAD, ULTIMATE }
+enum State { IDLE, RUN, ATTACK, DASH, SPIRIT_SLASH, HURT, DEAD, ULTIMATE, BOW, WAR_CRY }
 enum AttackPhase { WINDUP, ACTIVE, RECOVERY }
 
 const SPIRIT_SLASH_SCENE: PackedScene = preload("res://scenes/player/spirit_slash.tscn")
 const DEFAULT_STATS_PATH: String = "res://data/player/samurai_stats.tres"
 const HURT_FRICTION: float = 1800.0
 const RESPAWN_INVULNERABILITY: float = 1.5
+const ARROW_SCENE: PackedScene = preload("res://scenes/allies/arrow.tscn")
+## The Bow unlocks when this stage has been cleared, the War Cry when this one has.
+const BOW_UNLOCK_STAGE: String = "stage_1"
+const WAR_CRY_UNLOCK_STAGE: String = "stage_2"
 
 @export var stats: PlayerStats
 @export var min_x: float = 120.0
@@ -34,6 +42,11 @@ const RESPAWN_INVULNERABILITY: float = 1.5
 @onready var _spirit_slash_cooldown: CooldownComponent = $SpiritSlashCooldown
 
 var facing: int = 1
+## Skills the player has earned (the battlefield sets them from the save).
+var bow_unlocked: bool = false
+var war_cry_unlocked: bool = false
+## False: the player ignores the keys and buttons (tests drive him through use_skill() and the like).
+var read_input: bool = true
 
 var _state: State = State.IDLE
 var _state_time: float = 0.0
@@ -49,6 +62,10 @@ var _dash_distance_left: float = 0.0
 var _slash_fired: bool = false
 var _ultimate_released: bool = false
 var _hitbox_rect: RectangleShape2D
+var _bow_cooldown: CooldownComponent
+var _war_cry_cooldown: CooldownComponent
+var _bow_fired: bool = false
+var _war_cry_released: bool = false
 
 
 func _ready() -> void:
@@ -61,6 +78,12 @@ func _ready() -> void:
 		stats = PlayerStats.new()
 	_hitbox_rect = RectangleShape2D.new()
 	_hitbox_shape.shape = _hitbox_rect
+	_bow_cooldown = CooldownComponent.new()
+	_bow_cooldown.name = "BowCooldown"
+	add_child(_bow_cooldown)
+	_war_cry_cooldown = CooldownComponent.new()
+	_war_cry_cooldown.name = "WarCryCooldown"
+	add_child(_war_cry_cooldown)
 
 	_health.health_changed.connect(_on_health_changed)
 	_health.died.connect(_on_died)
@@ -86,6 +109,10 @@ func _physics_process(delta: float) -> void:
 			_process_spirit_slash(delta)
 		State.ULTIMATE:
 			_process_ultimate(delta)
+		State.BOW:
+			_process_bow(delta)
+		State.WAR_CRY:
+			_process_war_cry(delta)
 		State.HURT:
 			_process_hurt(delta)
 		State.DEAD:
@@ -111,6 +138,8 @@ func apply_stats(new_stats: PlayerStats) -> void:
 	_dash_cooldown.duration = stats.dash_cooldown
 	_heavy_cooldown.duration = stats.heavy_cooldown
 	_spirit_slash_cooldown.duration = stats.spirit_slash_cooldown
+	_bow_cooldown.duration = stats.bow_cooldown
+	_war_cry_cooldown.duration = stats.war_cry_cooldown
 	_health.max_health = stats.max_health
 	_health.reset()
 
@@ -172,6 +201,8 @@ func get_ability_cooldowns() -> Dictionary:
 		"dash": Vector2(_dash_cooldown.time_left, _dash_cooldown.duration),
 		"heavy": Vector2(_heavy_cooldown.time_left, _heavy_cooldown.duration),
 		"slash": Vector2(_spirit_slash_cooldown.time_left, _spirit_slash_cooldown.duration),
+		"bow": Vector2(_bow_cooldown.time_left, _bow_cooldown.duration),
+		"war_cry": Vector2(_war_cry_cooldown.time_left, _war_cry_cooldown.duration),
 	}
 
 
@@ -203,9 +234,33 @@ func _process_free(delta: float) -> void:
 	_visual.play_state(&"run" if moving else &"idle")
 
 
+## Starts the Bow (&"bow") or the War Cry (&"war_cry") if it is unlocked and ready, from a free state. A key
+## pressed while the skill is still locked reports `skill_locked` instead. Returns true if the skill started.
+func use_skill(skill: StringName, input_dir: float = 0.0) -> bool:
+	if skill == &"bow":
+		if not bow_unlocked:
+			skill_locked.emit(&"bow")
+		elif _bow_cooldown.is_available():
+			_start_bow(input_dir)
+			return true
+	elif skill == &"war_cry":
+		if not war_cry_unlocked:
+			skill_locked.emit(&"war_cry")
+		elif _war_cry_cooldown.is_available():
+			_start_war_cry()
+			return true
+	return false
+
+
 func _try_start_action(input_dir: float) -> bool:
+	if not read_input:
+		return false
 	if Input.is_action_just_pressed("dash") and _dash_cooldown.is_available():
 		_start_dash(input_dir)
+		return true
+	if Input.is_action_just_pressed("bow") and use_skill(&"bow", input_dir):
+		return true
+	if Input.is_action_just_pressed("war_cry") and use_skill(&"war_cry", input_dir):
 		return true
 	if Input.is_action_just_pressed("spirit_slash") and _spirit_slash_cooldown.is_available():
 		_start_spirit_slash(input_dir)
@@ -328,6 +383,62 @@ func _process_ultimate(delta: float) -> void:
 		_visual.play_ultimate_strike()
 		ultimate_released.emit(global_position, facing)
 	if _ultimate_released and _state_time >= stats.ultimate_windup + stats.ultimate_recovery:
+		_change_state(State.IDLE)
+		_visual.play_state(&"idle")
+
+
+## Bow (key E): a quick shot at range. The arrow leaves at the end of a short draw.
+func _start_bow(input_dir: float) -> void:
+	if absf(input_dir) > 0.01:
+		_set_facing(int(signf(input_dir)))
+	_bow_cooldown.start()
+	_bow_fired = false
+	_combo_index = 0
+	_change_state(State.BOW)
+	_visual.play_state(&"shoot")
+
+
+func _process_bow(delta: float) -> void:
+	velocity.x = move_toward(velocity.x, 0.0, stats.acceleration * delta)
+	if not _bow_fired and _state_time >= stats.bow_windup:
+		_bow_fired = true
+		_fire_arrow()
+	if _state_time >= stats.bow_windup + stats.bow_recovery:
+		_change_state(State.IDLE)
+		_visual.play_state(&"idle")
+
+
+func _fire_arrow() -> void:
+	var arrow: Arrow = ARROW_SCENE.instantiate() as Arrow
+	if arrow == null:
+		push_error("Player: arrow scene did not instantiate an Arrow.")
+		return
+	var start: Vector2 = global_position + Vector2(facing * 44.0, -66.0)
+	arrow.setup(facing, stats.base_damage * stats.bow_damage_multiplier, stats.bow_speed, stats.bow_range,
+			stats.bow_knockback, self, start)
+	AudioManager.play(&"spirit_slash", 1.4)
+	if projectile_fired.get_connections().is_empty():
+		get_parent().add_child(arrow)
+	else:
+		projectile_fired.emit(arrow)
+
+
+## War Cry (key Q): a shout that rallies the allies near him (the battlefield applies the buff).
+func _start_war_cry() -> void:
+	_war_cry_cooldown.start()
+	_war_cry_released = false
+	_combo_index = 0
+	_change_state(State.WAR_CRY)
+	_visual.play_state(&"cast")
+
+
+func _process_war_cry(delta: float) -> void:
+	velocity.x = move_toward(velocity.x, 0.0, stats.acceleration * delta)
+	if not _war_cry_released and _state_time >= stats.war_cry_windup:
+		_war_cry_released = true
+		AudioManager.play(&"ultimate", 0.8)
+		war_cry_released.emit(global_position)
+	if _state_time >= stats.war_cry_windup + stats.war_cry_recovery:
 		_change_state(State.IDLE)
 		_visual.play_state(&"idle")
 

@@ -32,6 +32,27 @@ extends Resource
 @export var spirit_slash_windup: float = 0.15
 @export var spirit_slash_recovery: float = 0.25
 
+@export_group("Bow")
+## Arrow damage = base_damage x this. The arrow flies straight at any height, so it also reaches enemies
+## that are far away (and, later, flying ones).
+@export var bow_damage_multiplier: float = 1.5
+@export var bow_speed: float = 1500.0
+@export var bow_range: float = 1500.0
+@export var bow_knockback: float = 120.0
+@export var bow_cooldown: float = 2.0
+@export var bow_windup: float = 0.18
+@export var bow_recovery: float = 0.22
+
+@export_group("War Cry")
+## Allies within `war_cry_radius` of the samurai deal this much more damage and attack this much faster.
+@export var war_cry_cooldown: float = 25.0
+@export var war_cry_duration: float = 8.0
+@export var war_cry_radius: float = 700.0
+@export var war_cry_damage_bonus: float = 0.3
+@export var war_cry_speed_bonus: float = 0.3
+@export var war_cry_windup: float = 0.3
+@export var war_cry_recovery: float = 0.3
+
 @export_group("Ultimate")
 ## Damage to every enemy on screen = base_damage x this (so attack upgrades raise it too).
 @export var ultimate_damage_multiplier: float = 9.0
