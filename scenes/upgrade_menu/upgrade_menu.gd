@@ -1,8 +1,7 @@
 extends Control
 ## Upgrade shop. Four tabs (Samurai, Skills, Allies, Army & Spirit), each showing only its upgrades as cards: a
 ## picture (a portrait of the real in-game figure, or a skill icon), the name, the level as pips, what the upgrade
-## does now and next, and the cost button. Every purchase is saved immediately. Also hosts the "Reset Progress"
-## option behind a confirmation dialog.
+## does now and next, and the cost button. Every purchase is saved immediately.
 
 const UPGRADE_CATALOG: UpgradeCatalog = preload("res://data/upgrades/upgrade_catalog.tres")
 const ALLY_ROSTER: AllyRoster = preload("res://data/allies/roster.tres")
@@ -21,8 +20,6 @@ const BUTTON_FONT_SIZE: int = 34
 @onready var _message_label: Label = %MessageLabel
 @onready var _battle_button: Button = %BattleButton
 @onready var _back_button: Button = %BackButton
-@onready var _reset_button: Button = %ResetButton
-@onready var _reset_dialog: ConfirmationDialog = %ResetDialog
 
 var _save_manager: SaveManager
 var _progress: PlayerProgress
@@ -40,11 +37,8 @@ func _ready() -> void:
 	_progress = _save_manager.load_progress()
 	_build_tabs()
 	_build_rows()
-	_style_reset_dialog()
 	_battle_button.pressed.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.STAGE_SELECT))
 	_back_button.pressed.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.MAIN_MENU))
-	_reset_button.pressed.connect(_reset_dialog.popup_centered)
-	_reset_dialog.confirmed.connect(_on_reset_confirmed)
 	_message_label.text = _save_manager.last_warning
 	_refresh()
 	select_tab(UpgradeTabs.Tab.SAMURAI)
@@ -52,8 +46,6 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _reset_dialog.visible:
-		return
 	if event.is_action_pressed("pause"):
 		get_viewport().set_input_as_handled()
 		SceneRoutes.go_to(get_tree(), SceneRoutes.MAIN_MENU)
@@ -288,16 +280,3 @@ func _on_buy_pressed(upgrade: UpgradeData) -> UpgradeShop.Result:
 	_refresh()
 	return result
 
-
-func _on_reset_confirmed() -> void:
-	var error: Error = _save_manager.reset_progress()
-	_progress = _save_manager.load_progress()
-	_message_label.text = "Progress reset." if error == OK else "Reset failed (error %d)." % error
-	_refresh()
-
-
-func _style_reset_dialog() -> void:
-	_reset_dialog.get_label().add_theme_font_size_override("font_size", 32)
-	for button: Button in [_reset_dialog.get_ok_button(), _reset_dialog.get_cancel_button()]:
-		button.custom_minimum_size = Vector2(240.0, 124.0)
-		button.add_theme_font_size_override("font_size", 32)

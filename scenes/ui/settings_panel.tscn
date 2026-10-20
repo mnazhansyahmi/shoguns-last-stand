@@ -200,10 +200,33 @@ theme_override_font_sizes/font_size = 30
 toggle_mode = true
 text = "Off"
 
-[node name="BackButton" type="Button" parent="Center/Panel/Margin/VBox"]
+[node name="Actions" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 24
+
+[node name="ResetButton" type="Button" parent="Center/Panel/Margin/VBox/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(340, 124)
+layout_mode = 2
+theme_type_variation = &"DangerButton"
+theme_override_font_sizes/font_size = 34
+text = "Reset Progress"
+
+[node name="BackButton" type="Button" parent="Center/Panel/Margin/VBox/Actions"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(340, 124)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 40
 text = "Back"
+
+[node name="ResetDialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Reset Progress"
+size = Vector2i(1000, 440)
+ok_button_text = "Reset"
+dialog_text = "Reset all progress?
+Gold, XP, upgrades and cleared stages will be deleted.
+This cannot be undone."
+dialog_autowrap = true

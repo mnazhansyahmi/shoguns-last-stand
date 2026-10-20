@@ -14,7 +14,7 @@ static func tab_for(upgrade: UpgradeData) -> Tab:
 		UpgradeData.Target.ARMY, UpgradeData.Target.SPIRIT_ENERGY:
 			return Tab.ARMY_SPIRIT
 	match upgrade.stat:
-		UpgradeData.Stat.DASH_COOLDOWN, UpgradeData.Stat.SLASH_COOLDOWN, UpgradeData.Stat.ULTIMATE_CHARGE:
+		UpgradeData.Stat.DASH_COOLDOWN, UpgradeData.Stat.SLASH_COOLDOWN, UpgradeData.Stat.ULTIMATE_CHARGE, UpgradeData.Stat.BOW_DAMAGE, UpgradeData.Stat.WAR_CRY_DURATION:
 			return Tab.SKILLS
 	return Tab.SAMURAI
 
@@ -29,6 +29,10 @@ static func icon_for(upgrade: UpgradeData) -> int:
 			return UpgradeIcon.Kind.SPIRIT_SLASH
 		UpgradeData.Stat.ULTIMATE_CHARGE:
 			return UpgradeIcon.Kind.ULTIMATE
+		UpgradeData.Stat.BOW_DAMAGE:
+			return UpgradeIcon.Kind.BOW
+		UpgradeData.Stat.WAR_CRY_DURATION:
+			return UpgradeIcon.Kind.WAR_CRY
 		UpgradeData.Stat.ALLY_CAP:
 			return UpgradeIcon.Kind.COMMAND
 		UpgradeData.Stat.REGEN:

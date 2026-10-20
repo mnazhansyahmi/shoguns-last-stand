@@ -39,6 +39,8 @@ static func build_player_stats(base: PlayerStats, progress: PlayerProgress, cata
 	stats.dash_cooldown *= 1.0 - _percent_off(progress, catalog, UpgradeData.Stat.DASH_COOLDOWN)
 	stats.spirit_slash_cooldown *= 1.0 - _percent_off(progress, catalog, UpgradeData.Stat.SLASH_COOLDOWN)
 	stats.ultimate_charge_max *= 1.0 - _percent_off(progress, catalog, UpgradeData.Stat.ULTIMATE_CHARGE)
+	stats.bow_damage_multiplier *= 1.0 + get_bonus(progress, catalog, UpgradeData.Target.SAMURAI, UpgradeData.Stat.BOW_DAMAGE) / 100.0
+	stats.war_cry_duration += get_bonus(progress, catalog, UpgradeData.Target.SAMURAI, UpgradeData.Stat.WAR_CRY_DURATION)
 	return stats
 
 

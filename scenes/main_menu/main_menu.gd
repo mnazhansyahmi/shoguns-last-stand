@@ -24,6 +24,8 @@ func _ready() -> void:
 	_settings_button.pressed.connect(_open_settings)
 	_credits_button.pressed.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.CREDITS))
 	_quit_button.pressed.connect(_on_quit_pressed)
+	_settings_panel.save_path = save_path
+	_settings_panel.progress_reset.connect(_on_progress_reset)
 	_settings_panel.changed.connect(_on_settings_changed)
 	_settings_panel.closed.connect(_on_settings_closed)
 
@@ -70,3 +72,8 @@ func _on_settings_closed(settings: GameSettings) -> void:
 func _on_quit_pressed() -> void:
 	await AudioManager.shutdown_audio(get_tree())
 	get_tree().quit()
+
+
+func _on_progress_reset() -> void:
+	var progress: PlayerProgress = SaveManager.new(save_path).load_progress()
+	_progress_label.text = "Gold %d   -   Level %d" % [progress.gold, progress.get_level()]

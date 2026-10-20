@@ -8,6 +8,7 @@ signal restart_requested
 signal main_menu_requested
 signal settings_changed(settings: GameSettings)
 signal settings_closed(settings: GameSettings)
+signal progress_reset
 
 @onready var _menu: Control = %Menu
 @onready var _resume_button: Button = %ResumeButton
@@ -25,6 +26,7 @@ func _ready() -> void:
 	_restart_button.pressed.connect(restart_requested.emit)
 	_main_menu_button.pressed.connect(main_menu_requested.emit)
 	_settings_button.pressed.connect(_open_settings)
+	_settings_panel.progress_reset.connect(progress_reset.emit)
 	_settings_panel.changed.connect(settings_changed.emit)
 	_settings_panel.closed.connect(_on_settings_closed)
 
@@ -64,3 +66,7 @@ func _on_settings_closed(settings: GameSettings) -> void:
 	if visible:
 		_settings_button.grab_focus()
 	settings_closed.emit(settings)
+
+
+func set_save_path(path: String) -> void:
+	_settings_panel.save_path = path

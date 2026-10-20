@@ -7,6 +7,9 @@ extends Control
 
 signal changed(settings: GameSettings)
 signal closed(settings: GameSettings)
+signal progress_reset
+
+@export var save_path: String = SaveManager.DEFAULT_PATH
 
 const TOUCH_MODE_NAMES: PackedStringArray = ["Auto", "Always", "Off"]
 
@@ -21,6 +24,9 @@ const TOUCH_MODE_NAMES: PackedStringArray = ["Auto", "Always", "Off"]
 @onready var _blood_toggle: Button = %BloodToggle
 @onready var _left_handed_toggle: Button = %LeftHandedToggle
 @onready var _touch_buttons: Array[Button] = [%TouchAutoButton, %TouchAlwaysButton, %TouchOffButton]
+@onready var _reset_button: Button = %ResetButton
+@onready var _reset_dialog: ConfirmationDialog = %ResetDialog
+
 @onready var _back_button: Button = %BackButton
 
 var _settings: GameSettings = GameSettings.new()
@@ -45,6 +51,12 @@ func _ready() -> void:
 	_blood_toggle.toggled.connect(_on_blood_toggled)
 	_left_handed_toggle.toggled.connect(_on_left_handed_toggled)
 	_back_button.pressed.connect(close)
+	_reset_button.pressed.connect(_reset_dialog.popup_centered)
+	_reset_dialog.confirmed.connect(_on_reset_confirmed)
+	_reset_dialog.get_label().add_theme_font_size_override("font_size", 32)
+	for button: Button in [_reset_dialog.get_ok_button(), _reset_dialog.get_cancel_button()]:
+		button.custom_minimum_size = Vector2(240.0, 124.0)
+		button.add_theme_font_size_override("font_size", 32)
 
 
 func open(settings: GameSettings) -> void:
@@ -67,6 +79,7 @@ func open(settings: GameSettings) -> void:
 func close() -> void:
 	if not visible:
 		return
+	_reset_dialog.hide()
 	visible = false
 	closed.emit(_settings)
 
@@ -132,3 +145,12 @@ func _refresh_value_labels() -> void:
 
 func _on_off(enabled: bool) -> String:
 	return "On" if enabled else "Off"
+
+
+func _on_reset_confirmed() -> void:
+	var error: Error = SaveManager.new(save_path).reset_progress()
+	if error == OK:
+		_reset_button.text = "Progress reset"
+		progress_reset.emit()
+	else:
+		_reset_button.text = "Reset failed (%d)" % error

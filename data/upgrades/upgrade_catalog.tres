@@ -190,6 +190,30 @@ base_cost = 70
 cost_growth = 1.12
 effect_format = "-%s%% Ultimate charge needed"
 
+[sub_resource type="Resource" id="Resource_bow_damage"]
+script = ExtResource("2_upgrade")
+id = "samurai_bow_damage"
+display_name = "Bow Damage"
+target = 0
+stat = 8
+amount_per_level = 10.0
+max_level = 5
+base_cost = 45
+cost_growth = 1.12
+effect_format = "+%s%% bow damage"
+
+[sub_resource type="Resource" id="Resource_war_cry_duration"]
+script = ExtResource("2_upgrade")
+id = "samurai_war_cry_duration"
+display_name = "War Cry Duration"
+target = 0
+stat = 9
+amount_per_level = 1.0
+max_level = 5
+base_cost = 45
+cost_growth = 1.12
+effect_format = "+%s s War Cry duration"
+
 [resource]
 script = ExtResource("1_catalog")
-upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_samurai_hp"), SubResource("Resource_samurai_damage"), SubResource("Resource_ashigaru_hp"), SubResource("Resource_ashigaru_damage"), SubResource("Resource_archer_damage"), SubResource("Resource_spirit_regen"), SubResource("Resource_spirit_capacity"), SubResource("Resource_healer_blessing"), SubResource("Resource_guardian_health"), SubResource("Resource_onmyoji_damage"), SubResource("Resource_hatamoto_damage"), SubResource("Resource_command"), SubResource("Resource_dash_cd"), SubResource("Resource_slash_cd"), SubResource("Resource_ult_charge")])
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_samurai_hp"), SubResource("Resource_samurai_damage"), SubResource("Resource_ashigaru_hp"), SubResource("Resource_ashigaru_damage"), SubResource("Resource_archer_damage"), SubResource("Resource_spirit_regen"), SubResource("Resource_spirit_capacity"), SubResource("Resource_healer_blessing"), SubResource("Resource_guardian_health"), SubResource("Resource_onmyoji_damage"), SubResource("Resource_hatamoto_damage"), SubResource("Resource_command"), SubResource("Resource_dash_cd"), SubResource("Resource_slash_cd"), SubResource("Resource_ult_charge"), SubResource("Resource_bow_damage"), SubResource("Resource_war_cry_duration")])

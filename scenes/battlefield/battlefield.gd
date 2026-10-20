@@ -91,6 +91,8 @@ func _ready() -> void:
 	_wave_director.stage_cleared.connect(_on_stage_cleared)
 	_spawner.enemy_spawned.connect(_on_enemy_spawned)
 	_hud.pause_requested.connect(_on_pause_pressed)
+	_pause_menu.set_save_path(save_path)
+	_pause_menu.progress_reset.connect(_on_progress_reset)
 	_pause_menu.resume_requested.connect(_resume)
 	_pause_menu.restart_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.BATTLEFIELD))
 	_pause_menu.main_menu_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.MAIN_MENU))
@@ -542,3 +544,9 @@ func _end_battle(victory: bool) -> void:
 			next_name = next.display_name
 	_result_screen.show_result(reward, _progress, levels_gained, save_error, next_name, new_allies)
 	get_tree().paused = true
+
+
+## Leave the battle after resetting so its old progress cannot be written back by a later result.
+func _on_progress_reset() -> void:
+	_is_game_over = true
+	SceneRoutes.go_to.call_deferred(get_tree(), SceneRoutes.MAIN_MENU)

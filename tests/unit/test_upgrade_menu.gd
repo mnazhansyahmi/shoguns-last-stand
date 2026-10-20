@@ -9,7 +9,7 @@ const SAVE_DIR: String = "user://test_upgrade_menu/"
 const PORTRAIT_IDS: Array[String] = ["samurai_max_health", "samurai_damage", "ashigaru_health", "archer_damage",
 		"healer_blessing", "guardian_health", "onmyoji_damage", "hatamoto_damage"]
 const ICON_IDS: Array[String] = ["samurai_dash_cooldown", "samurai_slash_cooldown", "samurai_ultimate_charge",
-		"spirit_regen", "spirit_capacity", "army_command"]
+		"spirit_regen", "spirit_capacity", "army_command", "samurai_bow_damage", "samurai_war_cry_duration"]
 
 
 func _menu(gold: int, levels: Dictionary = {}, cleared: Array[String] = []) -> Control:
@@ -41,7 +41,7 @@ func test_each_tab_shows_only_its_upgrades() -> void:
 	var menu: Control = _menu(500)
 	var expected: Dictionary = {
 		UpgradeTabs.Tab.SAMURAI: ["samurai_max_health", "samurai_damage"],
-		UpgradeTabs.Tab.SKILLS: ["samurai_dash_cooldown", "samurai_slash_cooldown", "samurai_ultimate_charge"],
+		UpgradeTabs.Tab.SKILLS: ["samurai_dash_cooldown", "samurai_slash_cooldown", "samurai_ultimate_charge", "samurai_bow_damage", "samurai_war_cry_duration"],
 		UpgradeTabs.Tab.ALLIES: ["ashigaru_health", "ashigaru_damage", "archer_damage", "healer_blessing", "guardian_health",
 				"onmyoji_damage", "hatamoto_damage"],
 		UpgradeTabs.Tab.ARMY_SPIRIT: ["spirit_regen", "spirit_capacity", "army_command"],
@@ -162,3 +162,47 @@ func test_tabs_and_cost_buttons_are_big_touch_targets() -> void:
 	for id: String in ["samurai_max_health", "ashigaru_health"]:
 		var button: Button = (menu.call("get_card", id) as Dictionary)["button"]
 		assert_true(button.custom_minimum_size.y >= 121.0, "%s's cost button is a big enough target" % id)
+
+
+func test_bow_and_war_cry_upgrades_persist_and_change_only_their_stats() -> void:
+	var menu: Control = _menu(1000)
+	for id: String in ["samurai_bow_damage", "samurai_war_cry_duration"]:
+		assert_eq(menu.call("buy", id), UpgradeShop.Result.OK, "%s can be purchased" % id)
+	var saved: PlayerProgress = SaveManager.new(SAVE_DIR + "menu_save.json").load_progress()
+	var base: PlayerStats = PlayerStats.new()
+	var upgraded: PlayerStats = UpgradeApplier.build_player_stats(base, saved, CATALOG)
+	assert_almost_eq(upgraded.bow_damage_multiplier, base.bow_damage_multiplier * 1.1, "one level adds 10% bow damage")
+	assert_almost_eq(upgraded.war_cry_duration, base.war_cry_duration + 1.0, "one level adds one second of rally")
+	assert_almost_eq(upgraded.base_damage, base.base_damage, "the base katana damage is unchanged")
+	assert_almost_eq(PlayerStats.new().war_cry_duration, base.war_cry_duration, "shared stats stay unchanged")
+	assert_true(menu.get_node_or_null("%ResetButton") == null, "reset no longer lives in the upgrade shop")
+
+
+func test_settings_reset_requires_confirmation_and_uses_the_owners_save() -> void:
+	var path: String = SAVE_DIR + "reset_save.json"
+	var other: String = SAVE_DIR + "unrelated_save.json"
+	DirAccess.make_dir_recursive_absolute(SAVE_DIR)
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.gold = 500
+	progress.stages_cleared = ["stage_1"]
+	progress.set_upgrade_level("samurai_bow_damage", 2)
+	SaveManager.new(path).save_progress(progress)
+	SaveManager.new(other).save_progress(progress)
+	var panel: SettingsPanel = load("res://scenes/ui/settings_panel.tscn").instantiate() as SettingsPanel
+	panel.save_path = path
+	add_to_tree(panel)
+	panel.open(GameSettings.new())
+	var button: Button = panel.get_node("%ResetButton")
+	var dialog: ConfirmationDialog = panel.get_node("%ResetDialog")
+	button.pressed.emit()
+	assert_true(dialog.visible, "Reset Progress opens the confirmation dialog")
+	assert_eq(SaveManager.new(path).load_progress().gold, 500, "opening the dialog does not delete anything")
+	dialog.get_cancel_button().pressed.emit()
+	assert_eq(SaveManager.new(path).load_progress().gold, 500, "Cancel preserves progress")
+	button.pressed.emit()
+	dialog.confirmed.emit()
+	var reset: PlayerProgress = SaveManager.new(path).load_progress()
+	assert_eq(reset.gold, 0, "confirmation resets gold")
+	assert_true(reset.stages_cleared.is_empty(), "confirmation resets stage clears")
+	assert_eq(reset.get_upgrade_level("samurai_bow_damage"), 0, "confirmation resets upgrades")
+	assert_eq(SaveManager.new(other).load_progress().gold, 500, "another save stays untouched")
