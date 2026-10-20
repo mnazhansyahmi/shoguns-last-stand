@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b7kg8rojyfeyt"
+path="res://.godot/imported/Spirit Slash.mp3-9fe4c0b24ea0f21e7d8dbe1dbec6635c.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/sfx_gore/Spirit Slash.mp3"
+dest_files=["res://.godot/imported/Spirit Slash.mp3-9fe4c0b24ea0f21e7d8dbe1dbec6635c.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

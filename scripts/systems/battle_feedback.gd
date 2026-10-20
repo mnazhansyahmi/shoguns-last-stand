@@ -96,12 +96,14 @@ func handle_hit(victim: Node, position: Vector2, hit: HitData) -> void:
 		shake(5.0, 0.15)
 	elif victim is Player:
 		AudioManager.play(&"heavy_hit" if hit.heavy else &"hit", 0.9)
-		_play_flesh(hit, 0.9)
 		shake(10.0 if hit.heavy else 7.0, 0.2)
 		vibrate(45)
 	else:
-		AudioManager.play(&"heavy_hit" if hit.heavy else &"hit", 1.15 if victim is Ally else 1.0)
-		_play_flesh(hit, 1.15 if victim is Ally else 1.0)
+		if victim is Enemy:
+			# A blade in an enemy: the recorded gore sounds (randomized), a heavier one for a heavy blow or a kill.
+			_play_flesh(hit, 1.0)
+		else:
+			AudioManager.play(&"heavy_hit" if hit.heavy else &"hit", 1.15)
 		if hit.heavy:
 			shake(6.0, 0.12)
 		elif hit.killed:
@@ -186,8 +188,8 @@ func spawn_hit_spark(victim: Node, position: Vector2, hit: HitData) -> HitSpark:
 	return spark
 
 
-## The meat of a hit, layered on the metal of the blow: a wet slice and a low thump, heavier for a heavy blow, and the
-## Spirit Slash's own deeper cut.
+## The sound of a blade in an enemy: the recorded slicing sounds (assets/audio/sfx_gore, randomized), a heavier one for
+## a heavy blow or a kill, and the Spirit Slash's own cut.
 func _play_flesh(hit: HitData, pitch: float) -> void:
 	AudioManager.play(flesh_sound(hit), pitch)
 

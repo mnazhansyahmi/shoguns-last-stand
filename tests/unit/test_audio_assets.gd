@@ -9,13 +9,18 @@ const MAIN_MENU_SCENE: PackedScene = preload("res://scenes/main_menu/main_menu.t
 const STAGE_SELECT_SCENE: PackedScene = preload("res://scenes/stage_select/stage_select.tscn")
 const CREDITS_SCENE: PackedScene = preload("res://scenes/credits/credits.tscn")
 const BATTLEFIELD_SCENE: PackedScene = preload("res://scenes/battlefield/battlefield.tscn")
+const ENEMY_SCENE: PackedScene = preload("res://scenes/enemies/enemy.tscn")
+const ALLY_SCENE: PackedScene = preload("res://scenes/allies/ally.tscn")
 const DAIMYO: BossData = preload("res://data/enemies/fallen_daimyo.tres")
 const KENNEY_DIR: String = "res://assets/audio/sfx_kenney/"
 const REQUIRED_CREDIT: String = "Free Music : MOMIZizm MUSiC - https://music.storyinvention.com/en/"
 const SAVE_DIR: String = "user://test_saves/"
 ## The sounds that now come from Kenney: how many takes each has.
-const RECORDED: Dictionary = {&"sword_swing": 5, &"hit": 4, &"heavy_hit": 3, &"enemy_death": 3, &"gate_hit": 3,
+const RECORDED: Dictionary = {&"hit": 4, &"heavy_hit": 3, &"enemy_death": 3, &"gate_hit": 3,
 		&"button_click": 3, &"summon": 1, &"ultimate_ready": 1}
+const GORE_DIR: String = "res://assets/audio/sfx_gore/"
+## The Pixabay gore sounds: sound id -> how many takes (picked at random) it has.
+const GORE: Dictionary = {&"sword_swing": 2, &"flesh_hit": 3, &"flesh_heavy": 1, &"spirit_slash": 1, &"spirit_flesh": 2}
 
 
 func _manager() -> AudioManager:
@@ -148,9 +153,62 @@ func test_the_weak_generated_sounds_are_replaced_by_kenney_sounds() -> void:
 		assert_true(manager.play_sfx(id), "%s plays" % id)
 		var entry: SfxEntry = SFX_LIBRARY.find(id)
 		assert_true(entry.stream != null, "%s still has its generated sound as the fallback" % id)
-	for id: StringName in [&"dash", &"spirit_slash", &"victory", &"defeat", &"ultimate", &"heal", &"magic_burst"]:
+	for id: StringName in [&"dash", &"victory", &"defeat", &"ultimate", &"heal", &"magic_burst", &"war_cry"]:
 		assert_true(not manager.uses_recorded_sfx(id), "%s keeps its generated sound" % id)
 		assert_eq(manager.get_sfx_variant_count(id), 1, "%s has one sound" % id)
+
+
+func test_the_gore_sounds_come_from_the_pixabay_recordings_with_the_generated_ones_as_fallback() -> void:
+	var manager: AudioManager = _manager()
+	for id: StringName in GORE:
+		assert_true(manager.uses_recorded_sfx(id), "%s plays a recorded sound" % id)
+		assert_eq(manager.get_sfx_variant_count(id), GORE[id], "%s picks from %d recordings" % [id, GORE[id]])
+		var entry: SfxEntry = SFX_LIBRARY.find(id)
+		assert_true(entry.stream != null and FileAccess.file_exists("res://assets/audio/sfx/%s.wav" % id), "%s keeps its generated sound as the fallback" % id)
+		for path: String in entry.override_paths:
+			assert_true(path.begins_with(GORE_DIR) and ResourceLoader.exists(path), "%s is a gore file that exists" % path.get_file())
+		assert_true(entry.max_length > 0.0 and entry.max_length < 2.0, "%s is cut off after %.1f s (the recordings run 1-2 s)" % [id, entry.max_length])
+	assert_true(manager.play_sfx(&"sword_swing") and manager.play_sfx(&"flesh_heavy"), "they play")
+	var probe: SfxEntry = SfxEntry.new()
+	probe.id = &"probe_gore"
+	probe.stream = load("res://assets/audio/sfx/hit.wav") as AudioStream
+	probe.override_paths = PackedStringArray([GORE_DIR + "this_recording_was_deleted.mp3"])
+	var library: SfxLibrary = SfxLibrary.new()
+	library.entries = [probe] as Array[SfxEntry]
+	var bare: AudioManager = AudioManager.new()
+	bare.library = library
+	add_to_tree(bare)
+	assert_true(not bare.uses_recorded_sfx(&"probe_gore") and bare.play_sfx(&"probe_gore"), "a deleted recording falls back to the generated sound")
+
+
+func test_a_long_recording_is_cut_off_by_its_max_length() -> void:
+	var manager: AudioManager = _manager()
+	assert_true(manager.play_sfx(&"flesh_heavy"), "plays")
+	var cut: bool = false
+	for child: Node in manager.get_children():
+		var player: AudioStreamPlayer = child as AudioStreamPlayer
+		if player != null and player.has_meta(&"play_token"):
+			cut = true
+	assert_true(cut, "its player is set to be stopped after the max length")
+
+
+func test_enemies_are_hit_with_the_gore_sounds_and_everyone_else_with_metal() -> void:
+	var audio: AudioManager = AudioManager.instance
+	if audio == null:
+		return
+	var feedback: BattleFeedback = BattleFeedback.new()
+	add_to_tree(feedback)
+	var enemy: Node = track(ENEMY_SCENE.instantiate())
+	var ally: Node = track(ALLY_SCENE.instantiate())
+	var hit: HitData = HitData.new(10.0, Vector2(100.0, 0.0), null)
+	feedback.handle_hit(enemy, Vector2.ZERO, hit)
+	assert_eq(audio.last_played, &"flesh_hit", "a light cut into an enemy sounds like flesh")
+	var heavy: HitData = HitData.new(30.0, Vector2(100.0, 0.0), null)
+	heavy.heavy = true
+	feedback.handle_hit(enemy, Vector2.ZERO, heavy)
+	assert_eq(audio.last_played, &"flesh_heavy", "a heavy blow with the heavy gore sound")
+	feedback.handle_hit(ally, Vector2.ZERO, hit)
+	assert_eq(audio.last_played, &"hit", "an ally struck by an enemy rings like metal")
 
 
 func test_a_missing_recorded_sound_falls_back_to_the_generated_one() -> void:
@@ -188,6 +246,25 @@ func test_credits_text_turns_the_markdown_into_bbcode() -> void:
 	assert_true(CreditsText.load_markdown("res://docs/no_such_file.md").contains(REQUIRED_CREDIT), "if the file is missing the required credit is still shown")
 
 
+func test_the_credits_name_the_creator_first_and_only_then_the_music_and_sound_credits() -> void:
+	var markdown: String = FileAccess.get_file_as_string("res://docs/CREDITS.md")
+	var creator: String = "Created by Muhammad Nazhan Syahmi"
+	assert_true(markdown.contains(creator), "docs/CREDITS.md names the creator")
+	assert_true(markdown.find(creator) < markdown.find("## Music"), "before the music credits")
+	assert_true(markdown.find("## Music") < markdown.find("## Sound effects"), "which come before the sound credits")
+	assert_eq(markdown.count("Created by"), 1, "it is the only creator line")
+	assert_eq(markdown.count("Momiziba"), 1, "the Momiziba credit is kept")
+	for text: String in [markdown, CreditsText.FALLBACK]:
+		for word: String in ["claude", "anthropic", " ai ", "artificial", "generated by ai", "ai-"]:
+			assert_true(not text.to_lower().contains(word), "the credits do not mention '%s'" % word.strip_edges())
+	assert_true(CreditsText.FALLBACK.contains(creator) and CreditsText.FALLBACK.contains(REQUIRED_CREDIT), "the fallback text has the creator and the required credit too")
+	var credits: Node = add_to_tree(CREDITS_SCENE.instantiate())
+	var shown: String = (credits.find_child("Text", true, false) as RichTextLabel).get_parsed_text()
+	assert_true(shown.contains(creator), "the Credits screen shows the creator line")
+	assert_true(shown.find(creator) < shown.find("Momiziba"), "above the music credit")
+	assert_true(shown.contains("Pixabay"), "and Pixabay")
+
+
 func test_the_credits_screen_shows_everything_in_the_credits_file() -> void:
 	var credits: Node = add_to_tree(CREDITS_SCENE.instantiate())
 	var label: RichTextLabel = credits.find_child("Text", true, false) as RichTextLabel
@@ -222,6 +299,11 @@ func test_every_third_party_file_is_used_and_credited() -> void:
 	var credits: String = FileAccess.get_file_as_string("res://docs/CREDITS.md")
 	assert_true(credits.contains(REQUIRED_CREDIT), "the Momiziba credit line is in docs/CREDITS.md exactly")
 	assert_true(credits.contains("CC0") and credits.contains("Kenney"), "Kenney and its licence are credited")
+	assert_true(credits.contains("Sound effects: Pixabay") and credits.contains("Pixabay Content License"), "Pixabay and its licence are credited")
+	for entry: SfxEntry in SFX_LIBRARY.entries:
+		for path: String in entry.override_paths:
+			if path.begins_with(GORE_DIR):
+				assert_true(credits.contains(path.get_file()), "%s is listed in docs/CREDITS.md" % path.get_file())
 	var used: Dictionary = {}
 	for entry: SfxEntry in SFX_LIBRARY.entries:
 		for path: String in entry.override_paths:

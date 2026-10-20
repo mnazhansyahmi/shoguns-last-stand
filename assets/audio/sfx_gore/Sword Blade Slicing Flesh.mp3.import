@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b5jfayedy1gty"
+path="res://.godot/imported/Sword Blade Slicing Flesh.mp3-ec41adbb6b714178380e875b435ff7b5.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/sfx_gore/Sword Blade Slicing Flesh.mp3"
+dest_files=["res://.godot/imported/Sword Blade Slicing Flesh.mp3-ec41adbb6b714178380e875b435ff7b5.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

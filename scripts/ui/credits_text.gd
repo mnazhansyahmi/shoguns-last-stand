@@ -9,6 +9,8 @@ const FILE_PATH: String = "res://docs/CREDITS.md"
 ## never left out.
 const FALLBACK: String = """# Credits
 
+Created by Muhammad Nazhan Syahmi
+
 ## Music
 
 **Free Japanese Fantasy Music Pack** by Momiziba
@@ -18,6 +20,8 @@ Free Music : MOMIZizm MUSiC - https://music.storyinvention.com/en/
 ## Sound effects
 
 **Impact Sounds**, **Interface Sounds** and **RPG Audio** by Kenney (https://www.kenney.nl), CC0.
+
+Sound effects: Pixabay (https://pixabay.com)
 """
 
 

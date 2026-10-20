@@ -163,7 +163,7 @@ func test_the_spirit_slash_marks_its_hits() -> void:
 # --- The sounds ---------------------------------------------------------------------------
 
 func test_hits_get_a_layered_flesh_sound() -> void:
-	for id: StringName in [&"flesh_hit", &"flesh_heavy", &"spirit_flesh", &"spirit_cut"]:
+	for id: StringName in [&"flesh_hit", &"flesh_heavy", &"spirit_flesh"]:
 		var entry: SfxEntry = SFX.find(id)
 		assert_true(entry != null and entry.stream != null, "%s has a sound" % id)
 		assert_true(FileAccess.file_exists("res://assets/audio/sfx/%s.wav" % id), "%s.wav exists" % id)

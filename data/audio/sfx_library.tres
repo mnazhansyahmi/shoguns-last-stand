@@ -21,16 +21,16 @@
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/flesh_hit.wav" id="s16_flesh_hit"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/flesh_heavy.wav" id="s17_flesh_heavy"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/spirit_flesh.wav" id="s18_spirit_flesh"]
-[ext_resource type="AudioStream" path="res://assets/audio/sfx/spirit_cut.wav" id="s19_spirit_cut"]
 
 [sub_resource type="Resource" id="Entry_sword_swing"]
 script = ExtResource("2_entry")
 id = &"sword_swing"
-override_paths = PackedStringArray("res://assets/audio/sfx_kenney/knifeSlice.ogg", "res://assets/audio/sfx_kenney/knifeSlice2.ogg", "res://assets/audio/sfx_kenney/drawKnife1.ogg", "res://assets/audio/sfx_kenney/drawKnife2.ogg", "res://assets/audio/sfx_kenney/drawKnife3.ogg")
+override_paths = PackedStringArray("res://assets/audio/sfx_gore/Katana swings.mp3", "res://assets/audio/sfx_gore/Katana swings2.mp3")
 stream = ExtResource("s0_sword_swing")
 volume_db = -4.0
 pitch_variation = 0.08
 min_interval = 0.03
+max_length = 0.90
 
 [sub_resource type="Resource" id="Entry_hit"]
 script = ExtResource("2_entry")
@@ -61,10 +61,12 @@ min_interval = 0.05
 [sub_resource type="Resource" id="Entry_spirit_slash"]
 script = ExtResource("2_entry")
 id = &"spirit_slash"
+override_paths = PackedStringArray("res://assets/audio/sfx_gore/Spirit Slash.mp3")
 stream = ExtResource("s4_spirit_slash")
-volume_db = -3.0
+volume_db = -2.0
 pitch_variation = 0.03
 min_interval = 0.05
+max_length = 1.20
 
 [sub_resource type="Resource" id="Entry_summon"]
 script = ExtResource("2_entry")
@@ -162,35 +164,33 @@ min_interval = 0.5
 [sub_resource type="Resource" id="Entry_flesh_hit"]
 script = ExtResource("2_entry")
 id = &"flesh_hit"
+override_paths = PackedStringArray("res://assets/audio/sfx_gore/Sword Blade Slicing Flesh.mp3", "res://assets/audio/sfx_gore/Violent Sword Slice.mp3", "res://assets/audio/sfx_gore/Violent Sword Slice 2.mp3")
 stream = ExtResource("s16_flesh_hit")
 volume_db = -3.0
 pitch_variation = 0.07
 min_interval = 0.03
+max_length = 1.00
 
 [sub_resource type="Resource" id="Entry_flesh_heavy"]
 script = ExtResource("2_entry")
 id = &"flesh_heavy"
+override_paths = PackedStringArray("res://assets/audio/sfx_gore/Heavy attack.mp3")
 stream = ExtResource("s17_flesh_heavy")
 volume_db = -1.0
 pitch_variation = 0.05
 min_interval = 0.05
+max_length = 1.30
 
 [sub_resource type="Resource" id="Entry_spirit_flesh"]
 script = ExtResource("2_entry")
 id = &"spirit_flesh"
+override_paths = PackedStringArray("res://assets/audio/sfx_gore/Sword Blade Slicing Flesh.mp3", "res://assets/audio/sfx_gore/Violent Sword Slice 2.mp3")
 stream = ExtResource("s18_spirit_flesh")
-volume_db = -1.0
+volume_db = -2.0
 pitch_variation = 0.04
 min_interval = 0.05
-
-[sub_resource type="Resource" id="Entry_spirit_cut"]
-script = ExtResource("2_entry")
-id = &"spirit_cut"
-stream = ExtResource("s19_spirit_cut")
-volume_db = -4.0
-pitch_variation = 0.03
-min_interval = 0.05
+max_length = 1.10
 
 [resource]
 script = ExtResource("1_library")
-entries = Array[ExtResource("2_entry")]([SubResource("Entry_sword_swing"), SubResource("Entry_hit"), SubResource("Entry_heavy_hit"), SubResource("Entry_dash"), SubResource("Entry_spirit_slash"), SubResource("Entry_summon"), SubResource("Entry_enemy_death"), SubResource("Entry_gate_hit"), SubResource("Entry_victory"), SubResource("Entry_defeat"), SubResource("Entry_button_click"), SubResource("Entry_ultimate"), SubResource("Entry_ultimate_ready"), SubResource("Entry_heal"), SubResource("Entry_magic_burst"), SubResource("Entry_war_cry"), SubResource("Entry_flesh_hit"), SubResource("Entry_flesh_heavy"), SubResource("Entry_spirit_flesh"), SubResource("Entry_spirit_cut")])
+entries = Array[ExtResource("2_entry")]([SubResource("Entry_sword_swing"), SubResource("Entry_hit"), SubResource("Entry_heavy_hit"), SubResource("Entry_dash"), SubResource("Entry_spirit_slash"), SubResource("Entry_summon"), SubResource("Entry_enemy_death"), SubResource("Entry_gate_hit"), SubResource("Entry_victory"), SubResource("Entry_defeat"), SubResource("Entry_button_click"), SubResource("Entry_ultimate"), SubResource("Entry_ultimate_ready"), SubResource("Entry_heal"), SubResource("Entry_magic_burst"), SubResource("Entry_war_cry"), SubResource("Entry_flesh_hit"), SubResource("Entry_flesh_heavy"), SubResource("Entry_spirit_flesh")])

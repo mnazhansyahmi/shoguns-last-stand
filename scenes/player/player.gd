@@ -458,7 +458,6 @@ func _fire_spirit_slash() -> void:
 	projectile.setup(facing, stats.spirit_slash_damage, stats.spirit_slash_speed,
 			stats.spirit_slash_range, stats.spirit_slash_knockback, self, start)
 	AudioManager.play(&"spirit_slash")
-	AudioManager.play(&"spirit_cut")
 	if projectile_fired.get_connections().is_empty():
 		get_parent().add_child(projectile)
 	else:

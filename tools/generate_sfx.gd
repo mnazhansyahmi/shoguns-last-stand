@@ -63,7 +63,6 @@ func _initialize() -> void:
 		"flesh_hit": _flesh_hit,
 		"flesh_heavy": _flesh_heavy,
 		"spirit_flesh": _spirit_flesh,
-		"spirit_cut": _spirit_cut,
 	}
 	var failures: int = 0
 	for id: String in sounds:
@@ -212,7 +211,7 @@ func _war_cry() -> PackedFloat32Array:
 	return _normalize(out)
 
 
-## The meat of a blade landing, layered: a sharp slice (bright noise, cut off fast), a wet squelch (low-passed noise
+## The fallbacks for the recorded gore sounds (assets/audio/sfx_gore, Pixabay). The meat of a blade landing, layered: a sharp slice (bright noise, cut off fast), a wet squelch (low-passed noise
 ## chopped by random bubbles over a falling resonance), a low thump (a sine falling in pitch), optional bone crunch
 ## (a few short noise cracks) and an optional spirit shimmer (a thin falling whistle).
 func _gore(duration: float, slice: float, wet: float, thump: float, thump_hz: Vector2, wet_decay: float, crunch: float, shimmer: float) -> PackedFloat32Array:
@@ -257,11 +256,6 @@ func _flesh_heavy() -> PackedFloat32Array:
 ## The Spirit Slash cutting into someone: the heavy cut with the spirit's thin whistle over it.
 func _spirit_flesh() -> PackedFloat32Array:
 	return _gore(0.45, 1.4, 1.2, 1.6, Vector2(100.0, 42.0), 14.0, 0.4, 1.0)
-
-
-## The Spirit Slash leaving the blade: a long slice over a low thump, no flesh yet.
-func _spirit_cut() -> PackedFloat32Array:
-	return _gore(0.3, 1.5, 0.0, 1.2, Vector2(90.0, 45.0), 30.0, 0.0, 0.6)
 
 
 ## Wooden knock: two damped sines and a short noise burst.

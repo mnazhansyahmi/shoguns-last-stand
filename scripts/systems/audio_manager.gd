@@ -184,7 +184,23 @@ func play_sfx(id: StringName, pitch_scale: float = 1.0) -> bool:
 	player.play()
 	last_played = id
 	play_count += 1
+	if entry.max_length > 0.0:
+		_cut_off_later(player, entry.max_length * player.pitch_scale)
 	return true
+
+
+## Stops `player` after `seconds` of real time (hit-stop slows the game clock, not this) unless it has been given
+## another sound by then.
+func _cut_off_later(player: AudioStreamPlayer, seconds: float) -> void:
+	var token: int = play_count
+	player.set_meta(&"play_token", token)
+	get_tree().create_timer(seconds, true, false, true).timeout.connect(_stop_if_current.bind(player.get_instance_id(), token))
+
+
+func _stop_if_current(player_id: int, token: int) -> void:
+	var player: AudioStreamPlayer = instance_from_id(player_id) as AudioStreamPlayer
+	if player != null and int(player.get_meta(&"play_token", -1)) == token:
+		player.stop()
 
 
 # --- Music ------------------------------------------------------------------
