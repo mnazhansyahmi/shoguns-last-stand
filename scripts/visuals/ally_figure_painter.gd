@@ -194,9 +194,7 @@ static func _build_hatamoto(parts: Dictionary) -> void:
 	var back_ink: Color = InkPalette.INK_BACK
 	var orange: Color = InkPalette.HATAMOTO_ORANGE
 	var spec: FigureKinds.Spec = FigureKinds.spec(InkFigure.Kind.HATAMOTO)
-	# Wide hakama trousers over bent knees with flat feet, so he stands on two visible legs (the old shared skirt
-	# hung a solid panel down to his ankles and hid them).
-	FigurePainter._samurai_legs(parts, spec, ink, back_ink, detail)
+	# Plain tapered legs (the generic construction the Spear Guardian uses), so he stands on two visible legs.
 	parts[&"pauldron_front"] = FigurePainter._sode(ink, detail)
 	parts[&"pauldron_back"] = FigurePainter._sode(back_ink, back_ink)
 	parts[&"skirt"] = FigurePainter._samurai_kusazuri(ink, detail, orange)

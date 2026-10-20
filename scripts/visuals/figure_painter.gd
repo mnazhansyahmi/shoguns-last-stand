@@ -126,8 +126,8 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			# The yumi is slung on his back, behind everything; the Bow skill takes it into his hand.
 			# He has legs (hakama trousers over bent knees), the back leg behind the body. Both hands hold the hilt in
 			# front of him, so the back arm is drawn over the torso, under the front arm.
-			order.append_array([&"yumi_back", &"hem", &"sleeve_b", &"thigh_b", &"shin_b", &"foot_b", &"pauldron_back"])
-			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head", &"tails"])
+			order.append_array([&"yumi_back", &"hem", &"sleeve_b", &"thigh_b", &"shin_b", &"pauldron_back"])
+			order.append_array([&"thigh_f", &"shin_f", &"skirt", &"torso", &"head", &"tails"])
 			order.append_array(_BACK_ARM)
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"sleeve_f", &"pauldron_front", &"weapon", &"bow", &"blade_glow"])
@@ -165,9 +165,9 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			order.append_array([&"pauldron_front", &"weapon"])
 		InkFigure.Kind.HATAMOTO:
 			# The banner is on his back, behind everything; he wears the samurai's hakama and skirt.
-			order.append_array([&"hem", &"banner", &"thigh_b", &"shin_b", &"foot_b", &"pauldron_back"])
+			order.append_array([&"hem", &"banner", &"thigh_b", &"shin_b", &"pauldron_back"])
 			order.append_array(_BACK_ARM)
-			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head"])
+			order.append_array([&"thigh_f", &"shin_f", &"skirt", &"torso", &"head"])
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"pauldron_front", &"weapon"])
 		InkFigure.Kind.FALLEN_DAIMYO:
@@ -452,7 +452,7 @@ static func _build_samurai(parts: Dictionary) -> void:
 	var spec: FigureKinds.Spec = FigureKinds.spec(InkFigure.Kind.SAMURAI)
 	var leg: float = spec.thigh + spec.shin
 
-	_samurai_legs(parts, spec, ink, back_ink, detail)
+	_samurai_hakama_flare(parts, spec, ink, back_ink, detail)
 
 	# Sode: layered shoulder lames, swinging from the shoulder.
 	parts[&"pauldron_front"] = _sode(ink, detail)
@@ -517,31 +517,20 @@ static func _quadratic(a: Vector2, control: Vector2, b: Vector2, u: float) -> Ve
 	return a.lerp(control, u).lerp(control.lerp(b, u), u)
 
 
-## The samurai's legs: wide hakama trousers over the thigh and the shin, a knee tied at the joint and a flared hem,
-## with the tabi foot below. The thigh and shin are the limb segments the IK bends, so knees show. Limb space.
-static func _samurai_legs(parts: Dictionary, spec: FigureKinds.Spec, ink: Color, back_ink: Color, detail: Color) -> void:
+## The samurai's hakama: a short flare hanging from the hip to the knee over the plain tapered leg (the same clean
+## construction as the Spear Guardian's), ending in a hem band at the knee so he still reads as a samurai in
+## silhouette. Thigh space: x along the thigh from the hip to the knee.
+static func _samurai_hakama_flare(parts: Dictionary, spec: FigureKinds.Spec, ink: Color, back_ink: Color, detail: Color) -> void:
 	for front: bool in [true, false]:
 		var color: Color = ink if front else back_ink
-		var line: Color = detail if front else back_ink
-		var suffix: String = "_f" if front else "_b"
-		var thigh: InkBatch = InkBatch.new()
-		thigh.limb(Vector2.ZERO, Vector2(spec.thigh, 0.0), 11.0, 10.0, color)
-		thigh.circle(Vector2(spec.thigh, 0.0), 5.0, color)
-		thigh.limb(Vector2(4.0, 0.0), Vector2(spec.thigh - 5.0, 0.0), 1.3, 1.3, line)
-		parts[StringName("thigh" + suffix)] = thigh
-		var shin: InkBatch = InkBatch.new()
-		shin.circle(Vector2.ZERO, 5.0, color)
-		shin.limb(Vector2.ZERO, Vector2(spec.shin, 0.0), 9.5, 12.0, color)
-		# A pleat down the trouser and the hem band.
-		shin.limb(Vector2(4.0, 0.0), Vector2(spec.shin - 6.0, 0.0), 1.3, 1.3, line)
-		shin.limb(Vector2(spec.shin - 3.0, -6.0), Vector2(spec.shin - 3.0, 6.0), 1.8, 1.8, line)
-		parts[StringName("shin" + suffix)] = shin
-		# The foot is its own part, flat on the ground whatever the shin does: a rounded tabi and sandal, the sole level
-		# with the ground 2.5 below the ankle. Space: origin at the ankle, +x forward, +y down.
-		var foot: InkBatch = InkBatch.new()
-		foot.fill_convex(PackedVector2Array([Vector2(-4.0, -2.0), Vector2(1.5, -2.6), Vector2(6.0, -1.4), Vector2(spec.foot, 0.8),
-				Vector2(spec.foot - 1.0, 2.5), Vector2(-3.5, 2.5)]), color)
-		parts[StringName("foot" + suffix)] = foot
+		var thigh: InkBatch = parts[&"thigh_f" if front else &"thigh_b"]
+		var length: float = spec.thigh
+		thigh.fill(PackedVector2Array([Vector2(-1.0, -7.5), Vector2(length * 0.5, -10.0), Vector2(length + 1.5, -14.0),
+				Vector2(length + 4.0, -11.0), Vector2(length + 4.5, 0.0), Vector2(length + 4.0, 11.0), Vector2(length + 1.5, 14.0),
+				Vector2(length * 0.5, 10.0), Vector2(-1.0, 7.5)]), color)
+		if front:
+			thigh.limb(Vector2(length * 0.3, 0.0), Vector2(length - 1.0, 0.0), 1.3, 1.3, detail)
+			thigh.stroke(PackedVector2Array([Vector2(length + 3.4, -10.5), Vector2(length + 4.0, 0.0), Vector2(length + 3.4, 10.5)]), 1.6, 1.6, detail)
 
 
 ## The samurai's body (torso space): shoulders and a short neck, a chest that narrows to the waist, plates that curve

@@ -90,6 +90,9 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.stance = Vector2(6.5, -8.5)
 			# Two hands on a long hilt: the back hand 9 units behind the front one.
 			s.back_hand_on_weapon = Vector2(-9.0, 0.0)
+			# Legs built like the Spear Guardian's: plain tapered limbs (the hakama flare is added in FigurePainter).
+			s.thigh_w = Vector2(10.0, 9.0)
+			s.shin_w = Vector2(9.0, 7.0)
 			s.foot = 9.0
 			s.head_top = 112.0
 			s.shadow_width = 26.0

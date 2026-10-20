@@ -27,6 +27,8 @@ var _skills: bool = false
 var _fight: bool = false
 ## --fireball: also film the Onmyoji's fireball (windup, flight, explosion) in the staged battle.
 var _fireball: bool = false
+## --black: the kind sheet (--only=kind:<name>) in pure black, to check the silhouette.
+var _black: bool = false
 ## --stage=N: play the staged battle on that Region 1 stage (its own sky theme).
 var _stage_number: int = 1
 
@@ -52,6 +54,8 @@ func _initialize() -> void:
 			_skills = true
 		elif arg == "--fight":
 			_fight = true
+		elif arg == "--black":
+			_black = true
 		elif arg == "--fireball":
 			_fireball = true
 		elif arg.begins_with("--stage="):
@@ -749,6 +753,8 @@ func _capture_kind_sheet(kind_name: String) -> void:
 	for i: int in states.size():
 		var origin: Vector2 = Vector2(float(i % 5) * 380.0 + 190.0, float(i / 5) * 520.0 + 420.0)
 		var visual: UnitVisual = _sheet_visual(sheet, kind as InkFigure.Kind, 170.0, origin)
+		if _black:
+			visual.set_tint(Color.BLACK)
 		visual.play_state(&"idle")
 		_tick_one(visual, 0.5)
 		if states[i] == &"run":

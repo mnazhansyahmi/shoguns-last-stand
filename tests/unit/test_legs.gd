@@ -80,9 +80,14 @@ func test_every_kind_stands_on_two_visible_legs() -> void:
 		visual.free()
 
 
-func test_the_hatamoto_has_real_leg_parts_and_feet() -> void:
+func test_the_hatamoto_and_the_samurai_have_the_guardians_plain_legs() -> void:
+	for kind: InkFigure.Kind in [InkFigure.Kind.SAMURAI, InkFigure.Kind.HATAMOTO]:
+		var plain: FigureKinds.Spec = FigureKinds.spec(kind)
+		var guardian: FigureKinds.Spec = FigureKinds.spec(InkFigure.Kind.SPEAR_GUARDIAN)
+		assert_true(absf(plain.thigh_w.x - guardian.thigh_w.x) < 1.0 and absf(plain.shin_w.x - guardian.shin_w.x) < 1.5, "%s legs are as slim as the Spear Guardian's" % InkFigure.Kind.keys()[kind])
+		assert_true(not FigurePainter.layout(kind).has(&"foot_f"), "with the foot built into the shin, like his")
 	var order: Array[StringName] = FigurePainter.layout(InkFigure.Kind.HATAMOTO)
-	for name: StringName in [&"thigh_f", &"shin_f", &"foot_f", &"thigh_b", &"shin_b", &"foot_b"]:
+	for name: StringName in [&"thigh_f", &"shin_f", &"thigh_b", &"shin_b"]:
 		assert_true(order.has(name), "the Hatamoto draws %s" % name)
 		assert_true(FigurePainter.part(InkFigure.Kind.HATAMOTO, name) != null, "and it has a shape")
 	assert_true(not order.has(&"hakama_f"), "and no solid hakama block over the legs")
