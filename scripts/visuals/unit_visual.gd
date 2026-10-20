@@ -6,7 +6,7 @@ extends Node2D
 ## the current state (FigureKinds), and procedural motion (breathing, stride, recoil, falling,
 ## dissolving) is layered on top. Nothing here affects gameplay.
 
-const FLASH_TIME: float = 0.15
+const FLASH_TIME: float = 0.08
 ## A windup this soon after a strike continues the combo (next cut in the sequence).
 const COMBO_WINDOW: float = 0.7
 const FALL_TIME: float = 0.35
@@ -186,7 +186,7 @@ func play_ultimate_strike() -> void:
 	play_state(&"strike")
 
 
-## Brief paper-white flash so damage is visible.
+## Brief, partial lightening so damage is visible without losing the silhouette.
 func flash_hit() -> void:
 	_figure.flash = 1.0
 

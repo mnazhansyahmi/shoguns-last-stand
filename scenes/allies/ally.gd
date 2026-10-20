@@ -25,7 +25,6 @@ const INTERRUPT_ATTACK_DELAY: float = 0.3
 ## people, not one dark blob. Only the picture moves: bodies, hitboxes, reach and summoning are
 ## untouched (physically spreading allies made them measurably weaker in tools/balance_sim.gd).
 const LANES: Array[float] = [0.0, -42.0, 42.0, -21.0, 21.0, -63.0, 63.0, -10.0, 10.0, -32.0, 32.0, -52.0, 52.0]
-static var _lanes_given: int = 0
 
 @export var data: AllyData
 ## Where the ally waits when no enemy is in range. NAN = position when it enters the tree.
@@ -73,8 +72,7 @@ func _ready() -> void:
 		_attack = AttackProfile.new()
 	UnitRig.build_collision(_body_shape, _hurtbox_shape, _hitbox_shape, data.body_size, _attack.hitbox_size)
 	_visual.enable_variation()
-	lane_x = LANES[_lanes_given % LANES.size()]
-	_lanes_given += 1
+	lane_x = _pick_lane()
 	_visual.position.x = lane_x
 	var head_top: float = _visual.configure(data.figure, data.body_size.y)
 	_health_bar.position = Vector2(lane_x, head_top - 22.0)
@@ -370,6 +368,25 @@ func _walk(direction: int, delta: float) -> void:
 
 func _brake(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, 0.0, FRICTION * delta)
+
+
+## The lane that puts this ally's drawn figure furthest from every other living ally's drawn figure,
+## so two allies standing on one spot are never drawn on top of each other (one lane order on a tie).
+func _pick_lane() -> float:
+	var here: float = home_x if not is_nan(home_x) else global_position.x
+	var best: float = LANES[0]
+	var best_gap: float = -1.0
+	for lane: float in LANES:
+		var gap: float = INF
+		for node: Node in get_tree().get_nodes_in_group("allies"):
+			var other: Ally = node as Ally
+			if other == null or other == self or other.is_dead():
+				continue
+			gap = minf(gap, absf((here + lane) - (other.global_position.x + other.lane_x)))
+		if gap > best_gap + 0.01:
+			best_gap = gap
+			best = lane
+	return best
 
 
 ## Melee allies queue behind each other; ranged allies may stand behind anyone.

@@ -543,5 +543,5 @@ func test_overlapping_enemy_bars_stack_upward() -> void:
 
 
 func test_damage_numbers_are_bigger_with_a_solid_ink_outline() -> void:
-	assert_true(DamageNumber.FONT_SIZE >= 40, "damage numbers are bigger")
-	assert_true(DamageNumber.OUTLINE_SIZE >= 10, "damage numbers have a thick dark outline")
+	assert_true(DamageNumber.FONT_SIZE >= 28 and DamageNumber.FONT_SIZE <= 32, "damage numbers are about 25% smaller than before (40 -> 30)")
+	assert_true(DamageNumber.OUTLINE_SIZE >= 8, "damage numbers have a thick dark outline")

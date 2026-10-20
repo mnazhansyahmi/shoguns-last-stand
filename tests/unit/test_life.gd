@@ -387,3 +387,84 @@ func test_the_battlefield_keeps_leaves_off_the_hud_and_controls() -> void:
 	assert_true(layers.size() >= 2, "the backdrop has its leaf layers")
 	for layer: Node in layers:
 		assert_true(not (layer as AtmosphereLeaves).keep_out.is_empty(), "%s keeps out of the HUD and the touch controls" % layer.name)
+
+
+# --- Playtest fixes: rim light, hit flash, sweep, damage numbers, ally lanes ------------------------
+
+func test_hit_flash_is_short_and_keeps_the_figure_dark() -> void:
+	assert_true(UnitVisual.FLASH_TIME <= 0.09 and UnitVisual.FLASH_TIME >= 0.06, "the flash lasts about 0.08 s")
+	var flashed: Color = InkPalette.INK * InkFigure.FLASH_MODULATE
+	assert_true(InkPalette.luminance(flashed) < 0.2, "ink at full flash is still a dark silhouette (luminance %.3f)" % InkPalette.luminance(flashed))
+	assert_true(InkPalette.luminance(flashed) > InkPalette.luminance(InkPalette.INK), "but the flash is visible: it lightens the figure")
+	var detail_flashed: Color = InkPalette.INK_DETAIL * InkFigure.FLASH_MODULATE
+	assert_true(InkPalette.luminance(detail_flashed) < 0.3, "even the lightest ink detail stays dark when flashed (%.3f)" % InkPalette.luminance(detail_flashed))
+
+
+
+func test_the_ultimate_sweep_is_a_short_crescent_not_a_line_across_the_screen() -> void:
+	assert_true(UltimateSweep.REACH <= 0.4, "the slash reaches at most 40%% of the screen width (%.2f)" % UltimateSweep.REACH)
+	var sweep: UltimateSweep = UltimateSweep.new()
+	sweep.setup(1, 0.15, 3, 600.0, 700.0)
+	add_to_tree(sweep)
+	var view: Vector2 = Vector2(1920.0, 1080.0)
+	var left: float = INF
+	var right: float = -INF
+	for i: int in 21:
+		var at: Vector2 = sweep.call(&"_center", float(i) / 20.0, view)
+		left = minf(left, at.x)
+		right = maxf(right, at.x)
+	assert_true((right - left) <= view.x * 0.4, "the whole stroke is %.0f px wide on a 1920 px screen" % (right - left))
+	assert_true(left >= 700.0 - 1.0, "and it starts at the samurai, not at the gate")
+	sweep.setup(-1, 0.15, 3, 600.0, 1200.0)
+	var back: Vector2 = sweep.call(&"_center", 1.0, view)
+	assert_true(back.x < 1200.0, "facing left it sweeps to the left")
+	assert_true(sweep.get_script().get_script_constant_map().has("REACH"), "the reach is a named constant")
+
+
+func test_a_hit_is_reported_once_per_victim_per_attack() -> void:
+	var feedback: BattleFeedback = add_to_tree(BattleFeedback.new()) as BattleFeedback
+	var numbers: Node2D = add_to_tree(Node2D.new()) as Node2D
+	feedback.numbers_parent = numbers
+	var seen: Array[int] = [0]
+	feedback.hit_reported.connect(func(_victim: Node, _hit: HitData) -> void: seen[0] += 1)
+	var enemy: Enemy = _enemy(900.0)
+	var hitbox: HitboxComponent = add_to_tree(HitboxComponent.new()) as HitboxComponent
+	hitbox.faction = Faction.Type.DEFENDERS
+	hitbox.activate(10.0, 0.0)
+	var hurtbox: HurtboxComponent = enemy.get_node("Hurtbox") as HurtboxComponent
+	assert_true(hitbox.try_hit(hurtbox), "the first contact deals damage")
+	assert_true(not hitbox.try_hit(hurtbox), "the same attack cannot hit the same enemy again")
+	assert_eq(seen[0], 1, "so one attack is one reported hit and one number")
+	assert_eq(numbers.get_child_count(), 1, "and one floating number")
+	hitbox.activate(10.0, 0.0)
+	assert_true(hitbox.try_hit(hurtbox), "a new attack hits again")
+	assert_eq(numbers.get_child_count(), 1, "and merges into the same number, not a second one")
+
+
+func test_damage_numbers_are_smaller() -> void:
+	assert_true(DamageNumber.FONT_SIZE <= 32, "damage numbers are about a quarter smaller than the old 40 px")
+	assert_true(DamageNumber.SPACING <= 36.0, "and stack closer together")
+
+
+func test_two_allies_are_never_drawn_on_the_same_spot() -> void:
+	var group: Array[Ally] = []
+	for i: int in 13:
+		group.append(_ally("ashigaru", 650.0))
+	var spots: Array[float] = []
+	for ally: Ally in group:
+		spots.append(ally.global_position.x + ally.lane_x)
+	spots.sort()
+	for i: int in range(1, spots.size()):
+		assert_true(spots[i] - spots[i - 1] >= 8.0, "13 allies on one spot are drawn at least 8 px apart (%.1f)" % (spots[i] - spots[i - 1]))
+	# One dies and others stay: a newcomer takes a free lane, not an occupied one.
+	group[4].free()
+	group.remove_at(4)
+	var late: Ally = _ally("ashigaru", 650.0)
+	for ally: Ally in group:
+		assert_true(absf((ally.global_position.x + ally.lane_x) - (late.global_position.x + late.lane_x)) >= 8.0, "a late ally is not drawn on top of one already there")
+	var bars: int = 0
+	for ally: Ally in group:
+		for child: Node in ally.get_children():
+			if child is WorldHealthBar:
+				bars += 1
+	assert_eq(bars, group.size(), "every ally has exactly one health bar")

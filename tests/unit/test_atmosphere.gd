@@ -270,7 +270,7 @@ func test_all_figures_share_one_rim_material() -> void:
 	assert_true(torso_a.material == Atmosphere.rim_material(), "which is the Atmosphere's rim material")
 	var offset: Vector2 = Atmosphere.rim_material().get_shader_parameter("rim_offset")
 	assert_true(offset.x > 0.0 and offset.y < 0.0, "the light comes from the upper right, where the sun is")
-	assert_true(offset.length() >= 1.8 and offset.length() <= 3.0, "and the rim is a thin but clearly visible sliver (%.1f world px)" % offset.length())
+	assert_true(offset.length() >= 1.0 and offset.length() <= 1.8, "and the rim is a thin soft sliver (%.1f world px)" % offset.length())
 
 
 func test_shaders_compile_with_the_expected_uniforms() -> void:
@@ -287,9 +287,10 @@ func test_shaders_compile_with_the_expected_uniforms() -> void:
 	assert_true(reed_names.has("wind") and reed_names.has("time"), "the reed shader takes the wind and the time")
 
 
-func test_rim_stands_out_against_the_sky_of_every_theme() -> void:
+func test_rim_is_soft_sunlight_in_every_themes_warm_sun_colour() -> void:
 	for theme: AtmosphereTheme in _themes():
 		var rim: Color = Atmosphere.rim_color_for(theme)
-		for backdrop: Color in [theme.sky_horizon, theme.mist, theme.ground_top]:
-			assert_true(InkPalette.contrast(rim, backdrop) >= 1.35, "%s: the rim is %.2f:1 against a backdrop colour (needs 1.35)" % [theme.theme_id, InkPalette.contrast(rim, backdrop)])
-		assert_true(InkPalette.contrast(rim, InkPalette.INK) >= 5.5, "%s: and strongly against the ink body" % theme.theme_id)
+		assert_eq(Color(rim, 1.0), Color(theme.rim_color, 1.0), "%s: the rim is the theme's own sun colour, not a picked contrast colour" % theme.theme_id)
+		assert_true(rim.a <= 0.55 and rim.a >= 0.3, "%s: the rim is soft (opacity %.2f)" % [theme.theme_id, rim.a])
+		assert_true(rim.r >= rim.g and rim.g >= rim.b, "%s: the rim is warm (gold, orange or rose), never green or lavender" % theme.theme_id)
+		assert_true(rim.h <= 0.15 or rim.h >= 0.9, "%s: hue %.2f is in the sun's warm range" % [theme.theme_id, rim.h])

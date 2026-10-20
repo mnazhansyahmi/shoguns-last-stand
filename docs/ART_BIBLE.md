@@ -130,12 +130,16 @@ Back to front:
 - **Light rays:** nine thin additive beams fanned from the sun across the fog, fading with distance. The
   layer breathes slowly and brightens a little in a gust. They only ever add light, so they lift the
   backdrop behind the fighters and never lower the contrast.
-- **Rim light:** a thin sliver of the sun's colour on the upper-right edge of every character part. Each
-  part's triangles are drawn twice in one command (`InkBatch.with_rim()`): first a copy flagged in the UVs,
-  which the shared `rim_light.gdshader` pushes about 1.5 world pixels toward the sun (in world space, so it
-  stays on the sun's side however the part turns or the figure is mirrored) and tints with the theme's rim
-  colour, then the part itself on top. Only the edge that sticks out shows. The ground shadow and the
-  spirit glow are not lit.
+- **Rim light:** a thin, soft sliver of sunlight on the sun-facing (upper-right) edge of every character part.
+  It must look like sunlight, never like a selection outline: it is the theme's own warm sun colour (gold,
+  orange or rose, `AtmosphereTheme.rim_color`, never a picked contrast colour) at half opacity
+  (`Atmosphere.RIM_STRENGTH` 0.5), about 1.3 world pixels thick (`RIM_THICKNESS`). Each part's triangles are
+  drawn twice in one command (`InkBatch.with_rim()`): first a copy flagged in the UVs, which the shared
+  `rim_light.gdshader` pushes toward the sun (in world space, so it stays on the sun's side however the part
+  turns or the figure is mirrored) and tints, then the part itself on top. Only the edge that sticks out
+  shows. The ground shadow and the spirit glow are not lit.
+- **Hit flash:** 0.08 s, and only a partial lightening (`InkFigure.FLASH_MODULATE` 2.4x): a hit figure stays a
+  dark silhouette against the sky. It never turns pale or white.
 
 ## Characters with life
 
@@ -289,7 +293,7 @@ Loose parts lag behind the body (`SecondaryMotion`, stepped from `InkFigure.refr
 | Enemy spawn | Violet smoke puff at the feet | 0.5 s |
 | Death | Body falls, then breaks into ink droplets that drift up and fade | Done within corpse time |
 | Oni slam | Ground-level ink shockwave ring | 0.3 s |
-| Ultimate slash | One thin, semi-transparent brush stroke through the enemies at chest height: fine crimson edge, ink core, a pale glint, a few dry-brush streaks and six small ink drops. No wash, no flash, so the battle stays visible | Laid down in 0.11 s, a 0.15 s freeze as it lands, fades in 0.25 s (0.4 s in all). Real time, screen space |
+| Ultimate slash | One short, bold crescent in front of the samurai at chest height (reach 30% of the screen width, never a line across the whole screen): crimson glow edge, bright crimson body, pale core and a few crimson drops. No dark ink, no wash, no flash, so the battle stays visible | Laid down in 0.11 s, a 0.15 s freeze as it lands, fades in 0.25 s (0.4 s in all). Real time, screen space |
 
 Effects never deal damage, never block input, and free themselves.
 

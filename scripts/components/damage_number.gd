@@ -5,15 +5,15 @@ extends Node2D
 
 const LIFETIME: float = 0.75
 const RISE: float = 70.0
-const FONT_SIZE: int = 40
+const FONT_SIZE: int = 30
 ## Solid ink outline so numbers read on the pale mist and over dark fighters alike.
-const OUTLINE_SIZE: int = 12
+const OUTLINE_SIZE: int = 9
 const POP_TIME: float = 0.12
 
 ## Rapid hits on one target within this long (seconds of the number's age) add into one number.
 const MERGE_WINDOW: float = 0.4
 ## Vertical gap kept between numbers that would otherwise overlap.
-const SPACING: float = 46.0
+const SPACING: float = 35.0
 
 var text: String = ""
 var color: Color = Color.WHITE

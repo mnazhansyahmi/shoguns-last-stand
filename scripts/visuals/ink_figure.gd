@@ -15,8 +15,8 @@ const UNIT: float = 100.0
 ## Rotation of a fallen body (backward around the feet).
 const FALL_ANGLE: float = -1.45
 const SHADOW_ALPHA: float = 0.3
-## modulate at full hit flash: lifts near-black ink to a pale paper tone.
-const FLASH_MODULATE: Color = Color(11.0, 10.5, 9.5, 1.0)
+## modulate at full hit flash: lightens near-black ink a little (it must stay a dark silhouette).
+const FLASH_MODULATE: Color = Color(2.4, 2.3, 2.2, 1.0)
 
 static var _additive: CanvasItemMaterial
 

@@ -114,9 +114,12 @@ func _play_feedback(facing: int) -> void:
 	var sweep: UltimateSweep = UltimateSweep.new()
 	# The slash crosses the enemies at chest height: find that on screen from the samurai.
 	var focus_y: float = -1.0
+	var focus_x: float = -1.0
 	if is_instance_valid(player) and player.is_inside_tree():
-		focus_y = (player.get_viewport().get_canvas_transform() * (player.global_position + Vector2(0.0, -60.0))).y
-	sweep.setup(facing, pause_seconds, 0, focus_y)
+		var on_screen: Vector2 = player.get_viewport().get_canvas_transform() * (player.global_position + Vector2(0.0, -60.0))
+		focus_y = on_screen.y
+		focus_x = on_screen.x
+	sweep.setup(facing, pause_seconds, 0, focus_y, focus_x)
 	layer.add_child(sweep)
 	add_child(layer)
 	# The layer is only a holder for the sweep: free it with the sweep.

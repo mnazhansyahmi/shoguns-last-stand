@@ -70,7 +70,7 @@ Tick each box as you go. If a step fails, note what you saw and stop: later step
   - Archers have teal headbands and tall bows.
   - Hollow Soldiers are hunched, with glowing violet eyes.
   - The Oni Brute is huge, with horns, a club and an ember glow.
-- [ ] **Animation:** units breathe when idle and stride when running. Combo hits go downward cut, rising cut, then thrust. A hit flashes the unit pale, and hurt units recoil. Dead units fall backward and dissolve into ink. Summoned allies rise out of an ink splash; enemies step out of violet smoke.
+- [ ] **Animation:** units breathe when idle and stride when running. Combo hits go downward cut, rising cut, then thrust. A hit lightens the unit briefly (about 0.08 s) but it stays a dark silhouette, and hurt units recoil. Dead units fall backward and dissolve into ink. Summoned allies rise out of an ink splash; enemies step out of violet smoke.
 - [ ] **Effects:** attacks leave crimson-edged slash arcs, and hits throw sparks (gold on enemies, red on defenders). The Spirit Slash is a glowing blue crescent. The Oni's slam sends a ground ring, and a dash leaves pale afterimages.
 - [ ] **Gate:** lanterns flicker. Cracks appear at about 2/3 and 1/3 health, and the lanterns go out when it falls.
 - [ ] **Zoomed view:** units are about 1.5x bigger than before. The camera follows the samurai, with far layers moving slower than near ones. Walk right: a "Gate NN%" tab appears at the left edge and pulses when enemies reach the gate. Walk left: an "N incoming" tab appears at the right edge ("Oni Brute!" when one is coming).

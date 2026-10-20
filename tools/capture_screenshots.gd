@@ -63,6 +63,10 @@ func _run() -> void:
 		await _capture_crowd()
 		quit(0)
 		return
+	if _only == "playtest":
+		await _capture_playtest()
+		quit(0)
+		return
 	if _only == "allies":
 		await _capture_ally_sheet("allies", Color.WHITE)
 		await _capture_ally_sheet("ally_silhouettes", Color.BLACK)
@@ -190,6 +194,56 @@ func _capture_ultimate(field: Node, spawner: EnemySpawner) -> void:
 	await _capture("ultimate_hold")
 	await _frames(60)
 	await _capture("ultimate_after")
+
+
+## A crowded battle for the playtest checks: six allies at the gate, a column of soldiers, an Oni
+## caught in its hit flash, and the Ultimate's slash mid-effect.
+func _capture_playtest() -> void:
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
+	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
+	var region: RegionData = StageProgression.default_region()
+	SceneRoutes.battle_stage = region.stages[clampi(_stage_number, 1, region.stages.size()) - 1]
+	var field: Node = BATTLEFIELD.instantiate()
+	field.set("save_path", DATA_DIR + "/save.json")
+	field.set("settings_path", DATA_DIR + "/settings.cfg")
+	root.add_child(field)
+	_battle = field
+	var spawner: EnemySpawner = field.get_node("World/EnemySpawner")
+	var energy: SpiritEnergy = field.get_node("World/SpiritEnergy")
+	var summoner: SummonManager = field.get_node("World/SummonManager")
+	var meter: UltimateMeter = field.get_node("World/UltimateMeter")
+	var skill: UltimateSkill = field.get_node("World/UltimateSkill")
+	var player: Node2D = field.get_node("World/Player")
+	energy.max_energy = 3000.0
+	energy.set_energy(3000.0)
+	for round: int in 2:
+		for slot: int in summoner.get_slot_count():
+			summoner.request_summon(slot)
+			await _frames(5)
+	for i: int in 10:
+		var enemy: Enemy = spawner.spawn(HOLLOW)
+		if enemy != null:
+			enemy.global_position.x -= 700.0 - float(i) * 70.0
+	var oni: Enemy = spawner.spawn(ONI)
+	if oni != null:
+		oni.global_position.x = 1150.0
+	player.global_position.x = 760.0
+	await _frames(100)
+	if oni != null and is_instance_valid(oni):
+		(oni.get_node("HealthComponent") as HealthComponent).take_damage(30.0)
+		(oni.get_node("Visual") as UnitVisual).flash_hit()
+	await _frames(2)
+	await _capture("playtest_oni_flash")
+	await _frames(60)
+	meter.add_charge(meter.max_charge)
+	await _frames(10)
+	skill.request()
+	await _frames(24)
+	await _capture("playtest_ultimate_a")
+	await _frames(5)
+	await _capture("playtest_ultimate_b")
+	field.free()
 
 
 ## Every figure kind in every animation state, on the mist colour fighters stand against.
