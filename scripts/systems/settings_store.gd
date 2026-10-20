@@ -6,7 +6,7 @@ extends RefCounted
 ##
 ## user://settings.cfg (version 1):
 ## [meta] version=1
-## [settings] music_volume, sfx_volume, ui_scale (float); vibration, screen_shake,
+## [settings] music_volume, sfx_volume, ui_scale (float); vibration, screen_shake, blood,
 ##            left_handed (bool); touch_mode (int: 0 auto, 1 always, 2 off)
 
 const VERSION: int = 1
@@ -42,6 +42,7 @@ func load_settings() -> GameSettings:
 			GameSettings.MIN_UI_SCALE, GameSettings.MAX_UI_SCALE, problems)
 	settings.vibration = _read_bool(config, "vibration", settings.vibration, problems)
 	settings.screen_shake = _read_bool(config, "screen_shake", settings.screen_shake, problems)
+	settings.blood = _read_bool(config, "blood", settings.blood, problems)
 	settings.left_handed = _read_bool(config, "left_handed", settings.left_handed, problems)
 	var mode: Variant = config.get_value(SECTION, "touch_mode", settings.touch_mode)
 	if typeof(mode) == TYPE_INT and mode >= GameSettings.TouchMode.AUTO and mode <= GameSettings.TouchMode.OFF:
@@ -64,6 +65,7 @@ func save_settings(settings: GameSettings) -> Error:
 	config.set_value(SECTION, "ui_scale", settings.ui_scale)
 	config.set_value(SECTION, "vibration", settings.vibration)
 	config.set_value(SECTION, "screen_shake", settings.screen_shake)
+	config.set_value(SECTION, "blood", settings.blood)
 	config.set_value(SECTION, "left_handed", settings.left_handed)
 	config.set_value(SECTION, "touch_mode", int(settings.touch_mode))
 

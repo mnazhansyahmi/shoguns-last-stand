@@ -13,6 +13,8 @@ var music_volume: float = 0.8
 var sfx_volume: float = 0.8
 var vibration: bool = true
 var screen_shake: bool = true
+## Ink-style blood on hits and kills, and the stains it leaves on the ground.
+var blood: bool = true
 var ui_scale: float = 1.0
 var left_handed: bool = false
 ## AUTO shows touch controls only on touchscreens; ALWAYS is for testing with a mouse.
@@ -70,6 +72,7 @@ func duplicate_settings() -> GameSettings:
 	copy.sfx_volume = sfx_volume
 	copy.vibration = vibration
 	copy.screen_shake = screen_shake
+	copy.blood = blood
 	copy.ui_scale = ui_scale
 	copy.left_handed = left_handed
 	copy.touch_mode = touch_mode

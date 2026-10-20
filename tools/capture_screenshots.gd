@@ -23,6 +23,8 @@ var _only: String = ""
 var _locked: bool = false
 ## --skills: also capture the Bow mid-draw and the War Cry mid-shout in the staged battle.
 var _skills: bool = false
+## --fight: also capture the samurai cutting into enemies: blood in the air, then the stains on the ground.
+var _fight: bool = false
 ## --stage=N: play the staged battle on that Region 1 stage (its own sky theme).
 var _stage_number: int = 1
 
@@ -46,6 +48,8 @@ func _initialize() -> void:
 			_locked = true
 		elif arg == "--skills":
 			_skills = true
+		elif arg == "--fight":
+			_fight = true
 		elif arg.begins_with("--stage="):
 			_stage_number = arg.trim_prefix("--stage=").to_int()
 	DirAccess.make_dir_recursive_absolute(_out_dir)
@@ -193,6 +197,8 @@ func _capture_battle() -> void:
 		await _frames(22)
 		await _capture("battle_war_cry")
 		await _frames(30)
+	if _fight:
+		await _capture_fight(field, player)
 	Input.action_press("spirit_slash")
 	await _frames(20)
 	Input.action_release("spirit_slash")
@@ -206,6 +212,30 @@ func _capture_battle() -> void:
 	if _only != "battle":
 		await _capture_ultimate(field, spawner)
 	field.free()
+
+
+## The samurai in the middle of a fight: light cuts, a heavy blow and the Spirit Slash into a line of enemies, then
+## the stains they leave.
+func _capture_fight(field: Node, player: Node2D) -> void:
+	var enemies: Array[Node] = field.get_tree().get_nodes_in_group("enemies")
+	for i: int in enemies.size():
+		(enemies[i] as Node2D).global_position.x = player.global_position.x + 110.0 + float(i) * 75.0
+	Input.action_press("attack")
+	await _frames(16)
+	await _capture("fight_cut")
+	await _frames(12)
+	Input.action_release("attack")
+	Input.action_press("heavy_attack")
+	await _frames(22)
+	Input.action_release("heavy_attack")
+	await _capture("fight_heavy")
+	await _frames(4)
+	Input.action_press("spirit_slash")
+	await _frames(16)
+	Input.action_release("spirit_slash")
+	await _capture("fight_spirit")
+	await _frames(90)
+	await _capture("fight_stains")
 
 
 ## The Ultimate: the meter filling, the glowing button/bar when ready, and the brush sweep

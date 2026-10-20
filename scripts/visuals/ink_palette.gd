@@ -54,6 +54,9 @@ const UI_DISABLED: Color = Color("#7a7266")
 const GOLD: Color = Color("#c9a24a")
 const GOLD_BRIGHT: Color = Color("#e8c46a")
 const CRIMSON: Color = Color("#b8322a")
+## Ink-style blood: dark crimson spray and the darker stain it leaves on the ground.
+const BLOOD: Color = Color("#8f1326")
+const BLOOD_DARK: Color = Color("#4d0a14")
 ## Readable on charcoal: warnings / defeat text, success / cleared text.
 const EMBER_TEXT: Color = Color("#e8795f")
 const JADE: Color = Color("#8fcb9b")

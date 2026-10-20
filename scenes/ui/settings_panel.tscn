@@ -141,6 +141,17 @@ theme_override_font_sizes/font_size = 30
 toggle_mode = true
 text = "Shake: On"
 
+[node name="BloodToggle" type="Button" parent="Center/Panel/Margin/VBox/Toggles"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 124)
+layout_mode = 2
+theme_type_variation = &"ToggleButton"
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
+toggle_mode = true
+button_pressed = true
+text = "Blood: On"
+
 [node name="LeftHandedToggle" type="Button" parent="Center/Panel/Margin/VBox/Toggles"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 124)

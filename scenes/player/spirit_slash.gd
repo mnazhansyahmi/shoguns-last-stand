@@ -34,6 +34,7 @@ func _ready() -> void:
 	if is_instance_valid(_source):
 		_hitbox.source = _source
 	_hitbox.knockback_direction_x = _direction
+	_hitbox.spirit = true
 	_hitbox.activate(_damage, _knockback)
 
 

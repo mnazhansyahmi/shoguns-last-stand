@@ -60,6 +60,10 @@ func _initialize() -> void:
 		"heal": _heal,
 		"magic_burst": _magic_burst,
 		"war_cry": _war_cry,
+		"flesh_hit": _flesh_hit,
+		"flesh_heavy": _flesh_heavy,
+		"spirit_flesh": _spirit_flesh,
+		"spirit_cut": _spirit_cut,
 	}
 	var failures: int = 0
 	for id: String in sounds:
@@ -206,6 +210,58 @@ func _war_cry() -> PackedFloat32Array:
 		var thump: float = sin(TAU * lerpf(90.0, 48.0, minf(t / 0.2, 1.0)) * t) * exp(-t * 14.0)
 		out[i] = voiced * envelope + thump * 0.5
 	return _normalize(out)
+
+
+## The meat of a blade landing, layered: a sharp slice (bright noise, cut off fast), a wet squelch (low-passed noise
+## chopped by random bubbles over a falling resonance), a low thump (a sine falling in pitch), optional bone crunch
+## (a few short noise cracks) and an optional spirit shimmer (a thin falling whistle).
+func _gore(duration: float, slice: float, wet: float, thump: float, thump_hz: Vector2, wet_decay: float, crunch: float, shimmer: float) -> PackedFloat32Array:
+	var out: PackedFloat32Array = _buffer(duration)
+	var slice_low: float = 0.0
+	var wet_low: float = 0.0
+	var gate: float = 0.5
+	var thump_phase: float = 0.0
+	var squelch_phase: float = 0.0
+	var shimmer_phase: float = 0.0
+	for i: int in out.size():
+		var t: float = _t(i)
+		var n: float = _noise()
+		slice_low = _lowpass(slice_low, n, 2600.0)
+		var slice_sample: float = (n - slice_low) * exp(-t * 55.0) * smoothstep(0.0, 0.002, t) * slice
+		if i % 220 == 0:
+			gate = _rng.randf()
+		wet_low = _lowpass(wet_low, n, 450.0 + 600.0 * exp(-t * 18.0))
+		var wet_sample: float = wet_low * smoothstep(0.004, 0.02, t) * exp(-t * wet_decay) * (0.4 + 0.9 * gate) * wet * 3.0
+		squelch_phase += lerpf(420.0, 150.0, minf(t / 0.14, 1.0)) / MIX_RATE
+		var squelch: float = sin(TAU * squelch_phase) * exp(-t * 26.0) * wet * 0.35
+		thump_phase += lerpf(thump_hz.x, thump_hz.y, minf(t / 0.16, 1.0)) / MIX_RATE
+		var thump_sample: float = sin(TAU * thump_phase) * exp(-t * 16.0) * smoothstep(0.0, 0.003, t) * thump * 0.9
+		var crack: float = 0.0
+		if crunch > 0.0:
+			var since: float = fposmod(t, 0.035)
+			crack = n * exp(-since * 220.0) * exp(-t * 14.0) * crunch * 0.45
+		shimmer_phase += lerpf(1500.0, 800.0, minf(t / 0.3, 1.0)) / MIX_RATE
+		var shimmer_sample: float = sin(TAU * shimmer_phase) * exp(-t * 11.0) * shimmer * 0.25
+		out[i] = slice_sample + wet_sample + squelch + thump_sample + crack + shimmer_sample
+	return _normalize(out)
+
+
+func _flesh_hit() -> PackedFloat32Array:
+	return _gore(0.22, 1.0, 1.0, 1.0, Vector2(120.0, 55.0), 22.0, 0.0, 0.0)
+
+
+func _flesh_heavy() -> PackedFloat32Array:
+	return _gore(0.4, 1.2, 1.5, 1.8, Vector2(95.0, 40.0), 12.0, 0.7, 0.0)
+
+
+## The Spirit Slash cutting into someone: the heavy cut with the spirit's thin whistle over it.
+func _spirit_flesh() -> PackedFloat32Array:
+	return _gore(0.45, 1.4, 1.2, 1.6, Vector2(100.0, 42.0), 14.0, 0.4, 1.0)
+
+
+## The Spirit Slash leaving the blade: a long slice over a low thump, no flesh yet.
+func _spirit_cut() -> PackedFloat32Array:
+	return _gore(0.3, 1.5, 0.0, 1.2, Vector2(90.0, 45.0), 30.0, 0.0, 0.6)
 
 
 ## Wooden knock: two damped sines and a short noise burst.

@@ -47,6 +47,7 @@ func receive_hit(hitbox: HitboxComponent) -> bool:
 	var direction_x: float = hitbox.get_knockback_direction_x(global_position.x)
 	var hit: HitData = HitData.new(hitbox.damage, Vector2(direction_x * hitbox.knockback, 0.0), hitbox.get_source())
 	hit.heavy = hitbox.heavy
+	hit.spirit = hitbox.spirit
 	var applied: float = health_component.take_damage(hit.damage, hit.source)
 	if applied <= 0.0:
 		return false

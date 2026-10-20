@@ -18,6 +18,7 @@ const TOUCH_MODE_NAMES: PackedStringArray = ["Auto", "Always", "Off"]
 @onready var _ui_scale_value: Label = %UiScaleValue
 @onready var _vibration_toggle: Button = %VibrationToggle
 @onready var _shake_toggle: Button = %ShakeToggle
+@onready var _blood_toggle: Button = %BloodToggle
 @onready var _left_handed_toggle: Button = %LeftHandedToggle
 @onready var _touch_buttons: Array[Button] = [%TouchAutoButton, %TouchAlwaysButton, %TouchOffButton]
 @onready var _back_button: Button = %BackButton
@@ -41,6 +42,7 @@ func _ready() -> void:
 	_ui_scale_slider.value_changed.connect(_on_ui_scale_changed)
 	_vibration_toggle.toggled.connect(_on_vibration_toggled)
 	_shake_toggle.toggled.connect(_on_shake_toggled)
+	_blood_toggle.toggled.connect(_on_blood_toggled)
 	_left_handed_toggle.toggled.connect(_on_left_handed_toggled)
 	_back_button.pressed.connect(close)
 
@@ -53,6 +55,7 @@ func open(settings: GameSettings) -> void:
 	_ui_scale_slider.value = _settings.ui_scale
 	_vibration_toggle.button_pressed = _settings.vibration
 	_shake_toggle.button_pressed = _settings.screen_shake
+	_blood_toggle.button_pressed = _settings.blood
 	_left_handed_toggle.button_pressed = _settings.left_handed
 	_touch_buttons[int(_settings.touch_mode)].button_pressed = true
 	_syncing = false
@@ -92,6 +95,10 @@ func _on_shake_toggled(enabled: bool) -> void:
 	_apply(func() -> void: _settings.screen_shake = enabled)
 
 
+func _on_blood_toggled(enabled: bool) -> void:
+	_apply(func() -> void: _settings.blood = enabled)
+
+
 func _on_left_handed_toggled(enabled: bool) -> void:
 	_apply(func() -> void: _settings.left_handed = enabled)
 
@@ -116,6 +123,7 @@ func _refresh_value_labels() -> void:
 	_ui_scale_value.text = "%d%%" % roundi(_settings.ui_scale * 100.0)
 	_vibration_toggle.text = "Vibration: %s" % _on_off(_settings.vibration)
 	_shake_toggle.text = "Shake: %s" % _on_off(_settings.screen_shake)
+	_blood_toggle.text = "Blood: %s" % _on_off(_settings.blood)
 	_left_handed_toggle.text = "Left-handed: %s" % _on_off(_settings.left_handed)
 	for i: int in _touch_buttons.size():
 		var label: String = TOUCH_MODE_NAMES[i]

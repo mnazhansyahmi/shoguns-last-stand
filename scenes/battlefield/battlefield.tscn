@@ -43,6 +43,8 @@ collision_mask = 0
 position = Vector2(960, 1080)
 shape = SubResource("RectangleShape2D_ground")
 
+[node name="Stains" type="Node2D" parent="World"]
+
 [node name="VillageGate" parent="World" instance=ExtResource("2_gate")]
 position = Vector2(180, 880)
 
@@ -91,12 +93,13 @@ script = ExtResource("21_ultimate_skill")
 
 [node name="HitEffects" type="Node2D" parent="World"]
 
-[node name="BattleFeedback" type="Node" parent="World" node_paths=PackedStringArray("camera", "numbers_parent", "effects_parent")]
+[node name="BattleFeedback" type="Node" parent="World" node_paths=PackedStringArray("camera", "numbers_parent", "effects_parent", "stains_parent")]
 process_mode = 3
 script = ExtResource("16_feedback")
 camera = NodePath("../../Camera2D")
 numbers_parent = NodePath("../Effects")
 effects_parent = NodePath("../HitEffects")
+stains_parent = NodePath("../Stains")
 
 [node name="Hud" parent="." instance=ExtResource("5_hud")]
 

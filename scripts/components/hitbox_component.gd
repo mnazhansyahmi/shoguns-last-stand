@@ -15,6 +15,8 @@ var knockback: float = 0.0
 var knockback_direction_x: float = 0.0
 ## Current attack instance is a heavy attack (passed on in HitData).
 var heavy: bool = false
+## This hitbox belongs to the Spirit Slash (passed on in HitData).
+var spirit: bool = false
 
 var _active: bool = false
 var _time_left: float = -1.0
