@@ -66,7 +66,7 @@ func _ready() -> void:
 	_skill_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_skill_row.add_theme_constant_override("separation", 10)
 	_top_left.add_child(_skill_row)
-	for entry: Array in [["bow", "Bow [E]", Color(0.42, 0.56, 0.3, 1.0)], ["war_cry", "Cry [Q]", Color(0.78, 0.56, 0.2, 1.0)]]:
+	for entry: Array in [["bow", "Bow", Color(0.42, 0.56, 0.3, 1.0)], ["war_cry", "Cry", Color(0.78, 0.56, 0.2, 1.0)]]:
 		var bar: FillBar = FillBar.new()
 		bar.name = "%sBar" % String(entry[0]).capitalize().replace(" ", "")
 		bar.custom_minimum_size = Vector2(146.0, 34.0)

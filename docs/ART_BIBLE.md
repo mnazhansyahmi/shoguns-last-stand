@@ -360,3 +360,5 @@ glow runs along its whole length). `DaimyoFigurePainter` builds him; he wears th
   on the ground where the attack lands: an oval for the sweep, slam, leap and each summoned soldier, a fainter strip for the
   wave. They are visual only.
 - **Cursed wave** (`CursedWave`): a dark crescent with a cursed edge racing along the ground; it fades over its last 160 px.
+
+**Keep the blade above the ground.** The Fallen Daimyo's odachi is 116 units long, so a pose that points it down hits the ground fast. Every Daimyo pose keeps the blade tip above the feet (idle and run carry it low and forward, the heavy strike ends with it level), and his springs are nearly critically damped (`FigureKinds._daimyo_feel`) so it never swings past a pose and into the ground. `test_the_daimyos_blade_stays_above_the_ground_in_every_pose` plays sequences of every state frame by frame and fails if the tip goes more than 4 px below the feet.

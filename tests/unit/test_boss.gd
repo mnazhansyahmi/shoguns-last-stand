@@ -433,3 +433,46 @@ func test_the_boss_bar_shows_his_name_and_health_at_the_top() -> void:
 	assert_almost_eq(bar.ratio, 2.0 / 3.0, "it follows his health")
 	hud.hide_boss()
 	assert_true(not hud.is_boss_bar_visible(), "and goes when he dies")
+
+
+# --- The blade stays above the ground ---------------------------------------------------
+
+## Lowest point of the Fallen Daimyo's blade (local y, feet at 0, down is positive) while he plays each
+## state, with the spring overshoot, in the given order of states. `heavy` first plays heavy_windup so that
+## `strike` is the heavy one.
+func _lowest_blade_point(states: Array[StringName]) -> Array:
+	var visual: UnitVisual = UnitVisual.new()
+	visual.figure_kind = InkFigure.Kind.FALLEN_DAIMYO
+	visual.figure_height = DAIMYO.body_size.y
+	add_to_tree(visual)
+	visual.set_process(false)
+	var fig: InkFigure = visual.get_figure()
+	var lowest: float = -INF
+	var where: String = ""
+	for state: StringName in states:
+		visual.play_state(state)
+		for frame: int in 80:
+			visual.call(&"_process", STEP)
+			for along: float in [40.0, 70.0, 100.0, 116.0]:
+				var y: float = fig.get_weapon_point(along).y
+				if y > lowest:
+					lowest = y
+					where = "%s frame %d along %.0f" % [state, frame, along]
+	return [lowest, where]
+
+
+func test_the_daimyos_blade_stays_above_the_ground_in_every_pose() -> void:
+	var sequences: Array = [
+		[&"idle", &"run", &"idle"],
+		[&"windup", &"strike", &"idle"],
+		[&"heavy_windup", &"strike", &"idle"],
+		[&"cast", &"strike", &"idle"],
+		[&"windup", &"heavy_windup", &"strike", &"idle"],
+		[&"hurt", &"idle", &"run", &"hurt"],
+	]
+	for sequence: Array in sequences:
+		var typed: Array[StringName] = []
+		for state: Variant in sequence:
+			typed.append(state)
+		var result: Array = _lowest_blade_point(typed)
+		assert_true(float(result[0]) <= 4.0, "%s: the blade reaches %.1f px below the feet (%s)" % [str(sequence), float(result[0]), result[1]])

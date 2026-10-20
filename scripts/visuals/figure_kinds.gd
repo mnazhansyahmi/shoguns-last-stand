@@ -464,7 +464,9 @@ static func samurai_title_pose() -> FigurePose:
 
 ## How a state moves for springy kinds (see PoseSpring).
 static func feel(kind: InkFigure.Kind, state: StringName, heavy: bool = false) -> PoseSpring.Feel:
-	if kind == InkFigure.Kind.HATAMOTO or kind == InkFigure.Kind.FALLEN_DAIMYO:
+	if kind == InkFigure.Kind.FALLEN_DAIMYO:
+		return _daimyo_feel(state)
+	if kind == InkFigure.Kind.HATAMOTO:
 		return _hatamoto_feel(state)
 	if kind != InkFigure.Kind.SAMURAI:
 		return PoseSpring.Feel.new()
@@ -669,7 +671,7 @@ static func _daimyo(state: StringName, heavy: bool) -> FigurePose:
 	var p: FigurePose
 	match state:
 		&"run":
-			p = FigurePose.make(0.2, 3.0, Vector2(13.0, -14.0), 0.85).with_spread(1.1)
+			p = FigurePose.make(0.2, 3.0, Vector2(13.0, -22.0), 0.0).with_spread(1.1)
 		&"windup":
 			p = FigurePose.make(-0.2, 8.0, Vector2(2.0, -26.0), -2.1).with_head(-0.12).with_spread(1.6)
 		&"heavy_windup":
@@ -678,18 +680,31 @@ static func _daimyo(state: StringName, heavy: bool) -> FigurePose:
 			p = FigurePose.make(-0.12, 4.0, Vector2(13.0, -42.0), -1.52).with_head(-0.22).with_glow(1.0).with_spread(1.45)
 		&"strike":
 			if heavy:
-				p = FigurePose.make(0.42, 11.0, Vector2(28.0, -10.0), 0.9).with_offset(5.0).with_spread(1.8)
+				p = FigurePose.make(0.42, 11.0, Vector2(26.0, -32.0), -0.1).with_offset(5.0).with_spread(1.8)
 			else:
-				p = FigurePose.make(0.3, 6.0, Vector2(28.0, -23.0), 0.05).with_offset(5.0).with_spread(1.7)
+				p = FigurePose.make(0.3, 6.0, Vector2(28.0, -25.0), -0.05).with_offset(5.0).with_spread(1.7)
 		&"hurt":
-			p = FigurePose.make(-0.2, 3.0, Vector2(12.0, -14.0), 0.7).with_head(-0.25).with_offset(-3.0)
+			p = FigurePose.make(-0.2, 3.0, Vector2(12.0, -22.0), 0.3).with_head(-0.25).with_offset(-3.0)
 		&"dead":
 			p = FigurePose.make(0.0, 0.0, Vector2(14.0, -5.0), 1.5).with_head(-0.2)
 		_:
-			# Dragging the blade: the point low in front, shoulders hunched, feet wide.
-			p = FigurePose.make(0.1, 2.0, Vector2(12.0, -13.0), 1.0).with_spread(1.2)
+			# The blade carried low in front, the point well clear of the ground (a test checks it), shoulders hunched.
+			p = FigurePose.make(0.1, 2.0, Vector2(12.0, -22.0), 0.2).with_spread(1.2)
 	p.pivot = Vector2(7.0, -32.0)
 	return p
+
+
+## The Daimyo is heavy: his body and blade settle without bouncing (nearly critically damped), so the
+## blade never swings past its pose and into the ground.
+static func _daimyo_feel(state: StringName) -> PoseSpring.Feel:
+	match state:
+		&"strike":
+			return PoseSpring.Feel.make(Vector2(30.0, 0.92), Vector2(42.0, 0.9), Vector2(46.0, 0.88))
+		&"hurt":
+			return PoseSpring.Feel.make(Vector2(34.0, 0.9), Vector2(40.0, 0.9), Vector2(40.0, 0.9))
+		&"dead":
+			return PoseSpring.Feel.make(Vector2(9.0, 1.0), Vector2(9.0, 1.0), Vector2(9.0, 1.0))
+	return PoseSpring.Feel.make(Vector2(14.0, 0.95), Vector2(18.0, 0.92), Vector2(20.0, 0.9))
 
 
 static func _hatamoto_feel(state: StringName) -> PoseSpring.Feel:
