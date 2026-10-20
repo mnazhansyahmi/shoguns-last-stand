@@ -17,6 +17,8 @@ const FALL_ANGLE: float = -1.45
 const SHADOW_ALPHA: float = 0.3
 ## modulate at full hit flash: lightens near-black ink a little (it must stay a dark silhouette).
 const FLASH_MODULATE: Color = Color(2.4, 2.3, 2.2, 1.0)
+## modulate at the full gold flash of a rallied ally (the War Cry reaching it).
+const GOLD_MODULATE: Color = Color(3.0, 2.2, 0.7, 1.0)
 
 static var _additive: CanvasItemMaterial
 
@@ -44,6 +46,8 @@ var trail: float = 0.0
 var clock: float = 0.0
 ## 0..1 hit flash (brightens the whole figure toward paper).
 var flash: float = 0.0
+## 0..1 gold flash (an ally the War Cry reaches).
+var gold_flash: float = 0.0
 ## 0 = standing, 1 = lying on the ground.
 var fall: float = 0.0
 ## Vertical scale (spawn rise).
@@ -86,6 +90,10 @@ var _glow_rage_min: PackedInt32Array = PackedInt32Array()
 var _pose_glows: Array[FigurePart] = []
 var _bow_part: FigurePart
 var _bow_step: int = -1
+## The samurai's katana, his yumi stowed on his back and his back arm (raised above the torso while he draws).
+var _weapon_part: FigurePart
+var _back_bow_part: FigurePart
+var _back_arm_parts: Array[FigurePart] = []
 var _hem_part: FigurePart
 var _hem_key: int = -1
 var _blade_glow_part: FigurePart
@@ -184,9 +192,10 @@ func refresh() -> void:
 	weapon_xf = torso_xf * weapon_local
 
 	front_hand = pose.grip
-	if not is_nan(spec.back_hand_on_weapon.x):
+	var bow_hands: bool = kind == Kind.YUMI_ARCHER or (spec.has_back_bow and pose.sheathed > 0.5)
+	if not is_nan(spec.back_hand_on_weapon.x) and not bow_hands:
 		back_hand = weapon_local * spec.back_hand_on_weapon
-	elif kind == Kind.YUMI_ARCHER:
+	elif bow_hands:
 		var nock: Vector2 = weapon_local * Vector2(FigurePainter.bow_nock_x(pose.bow_draw), 0.0)
 		back_hand = pose.back_grip.lerp(nock, clampf(pose.bow_draw * 3.0, 0.0, 1.0))
 		back_hand = back_hand.lerp(Vector2(-12.0, -30.0), pose.release)
@@ -207,8 +216,18 @@ func refresh() -> void:
 		var step: int = FigurePainter.bow_step(pose.bow_draw)
 		if step != _bow_step:
 			_bow_step = step
-			_bow_part.batch = FigurePainter.bow(pose.bow_draw)
+			_bow_part.batch = FigurePainter.bow(pose.bow_draw, kind)
 			_bow_part.queue_redraw()
+		if spec.has_back_bow:
+			_bow_part.visible = pose.bow_out >= 0.5
+	if spec.has_back_bow:
+		var drawing: bool = pose.sheathed > 0.5
+		if _weapon_part != null:
+			_weapon_part.visible = not drawing
+		if _back_bow_part != null:
+			_back_bow_part.visible = pose.bow_out < 0.5
+		for arm: FigurePart in _back_arm_parts:
+			arm.z_index = 1 if drawing else 0
 	if _hem_part != null:
 		var own_hem: bool = kind == Kind.HOLLOW_SOLDIER
 		var key: int = FigurePainter.hem_key(self) if own_hem else FigureTatters.key(self)
@@ -218,7 +237,7 @@ func refresh() -> void:
 			_hem_part.queue_redraw()
 	var lit: bool = pose.glow > 0.02
 	if _blade_glow_part != null:
-		_blade_glow_part.visible = lit
+		_blade_glow_part.visible = lit and pose.sheathed <= 0.5
 		_blade_glow_part.modulate.a = pose.glow
 	for part: FigurePart in _pose_glows:
 		part.visible = lit
@@ -236,7 +255,8 @@ func refresh() -> void:
 		_fall_glows[i].visible = rage >= _glow_rage_min[i]
 		_fall_glows[i].modulate.a = strength * pulse * burn
 	# Hit flash: brighten every part toward paper.
-	modulate = Color.WHITE.lerp(FLASH_MODULATE, flash) if flash > 0.0 else Color.WHITE
+	var tint: Color = Color.WHITE.lerp(FLASH_MODULATE, flash) if flash > 0.0 else Color.WHITE
+	modulate = tint.lerp(GOLD_MODULATE, gold_flash) if gold_flash > 0.0 else tint
 
 
 ## Lets the cloth catch up with the time the figure's animator has advanced `clock` by. A long
@@ -326,6 +346,9 @@ func _build_parts() -> void:
 	_pose_glows.clear()
 	_bow_part = null
 	_bow_step = -1
+	_weapon_part = null
+	_back_bow_part = null
+	_back_arm_parts.clear()
 	_hem_part = null
 	_hem_key = -1
 	_blade_glow_part = null
@@ -355,6 +378,14 @@ func _build_parts() -> void:
 				part.material = Atmosphere.rim_material()
 		if part_name == &"blade_glow":
 			_blade_glow_part = part
+			part.visible = false
+		elif part_name == &"weapon":
+			_weapon_part = part
+		elif part_name == &"yumi_back":
+			_back_bow_part = part
+		elif spec.has_back_bow and (part_name == &"upper_b" or part_name == &"fore_b"):
+			_back_arm_parts.append(part)
+		if part_name == &"bow" and spec.has_back_bow:
 			part.visible = false
 		add_child(part)
 		_parts.append(part)

@@ -40,8 +40,9 @@ extends Resource
 @export var bow_range: float = 1500.0
 @export var bow_knockback: float = 120.0
 @export var bow_cooldown: float = 2.0
-@export var bow_windup: float = 0.18
-@export var bow_recovery: float = 0.22
+## The shot takes 0.5 s in all: the samurai takes the yumi off his back and draws (windup), looses, stows it.
+@export var bow_windup: float = 0.3
+@export var bow_recovery: float = 0.2
 
 @export_group("War Cry")
 ## Allies within `war_cry_radius` of the samurai deal this much more damage and attack this much faster.

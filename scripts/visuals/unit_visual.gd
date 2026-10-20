@@ -27,7 +27,8 @@ const VARY_SPEED: float = 0.1
 const VARY_OFFSET_UP: float = 4.0
 const VARY_OFFSET_DOWN: float = 1.5
 const STATES: Array[StringName] = [&"idle", &"run", &"windup", &"heavy_windup", &"strike", &"cast",
-		&"dash", &"hurt", &"spawn", &"dead", &"shoot"]
+		&"dash", &"hurt", &"spawn", &"dead", &"shoot", &"war_cry"]
+const GOLD_FLASH_TIME: float = 0.4
 
 @export var figure_kind: InkFigure.Kind = InkFigure.Kind.SAMURAI
 ## Figure height in pixels.
@@ -46,6 +47,8 @@ var _spring: PoseSpring = PoseSpring.new()
 var _feel: PoseSpring.Feel = PoseSpring.Feel.new()
 var _guard: FigurePose = FigurePose.new()
 var _aim: FigurePose = FigurePose.new()
+## The samurai's War Cry gathering pose (before the shout).
+var _gather: FigurePose = FigurePose.new()
 var _state: StringName = &""
 var _state_time: float = 0.0
 var _time: float = 0.0
@@ -163,6 +166,8 @@ func play_state(state: StringName) -> void:
 			_dissolve_spawned = false
 		&"dash":
 			_afterimages_left = AFTERIMAGE_COUNT
+		&"war_cry":
+			_gather = FigureKinds.samurai_war_cry_gather()
 		&"idle", &"run":
 			if previous == &"dead":
 				# Respawn: stand up again out of an ink splash.
@@ -197,6 +202,24 @@ func flash_hit() -> void:
 	_figure.flash = 1.0
 
 
+## A brief gold flash: the War Cry reaching this unit.
+func flash_gold() -> void:
+	_figure.gold_flash = 1.0
+
+
+## Where the arrow starts when the samurai looses his bow: the nocked end of the arrow at full draw, in
+## world pixels (the figure's drawn bow and the real arrow agree).
+func bow_nock_global() -> Vector2:
+	var drawn: FigurePose = FigureKinds.samurai_shoot(FigureKinds.SHOOT_RELEASE_TIME)
+	var along: float = FigurePainter.bow_nock_x(1.0)
+	return _figure.to_global(_figure.weapon_points_for(drawn, along, along)[0])
+
+
+## Where the shout comes from: in front of the samurai's face, in world pixels.
+func mouth_global() -> Vector2:
+	return _figure.to_global(_figure.head_xf * Vector2(9.0, -6.0))
+
+
 func set_blinking(enabled: bool) -> void:
 	_blinking = enabled
 	if not enabled:
@@ -211,7 +234,12 @@ func _process(delta: float) -> void:
 	_time += delta
 	_state_time += delta
 	if _figure != null and _figure.spec.springy:
-		_spring.step(_pose, _aim_pose(), _feel, delta)
+		if _state == &"shoot" and _figure.spec.has_back_bow:
+			# The Bow is keyframed on the clock of the shot, not sprung.
+			_pose.copy_from(FigureKinds.samurai_shoot(_state_time))
+			_spring.stop()
+		else:
+			_spring.step(_pose, _aim_pose(), _feel, delta)
 	else:
 		_pose.blend_toward(_target, 1.0 - exp(-_blend_rate() * delta))
 	_update_motion(delta)
@@ -233,6 +261,8 @@ func is_on_screen() -> bool:
 ## The pose the spring is pulled toward. After a cut the body relaxes part of the way back to
 ## guard while the blade is still settling, so the follow-through doesn't freeze.
 func _aim_pose() -> FigurePose:
+	if _state == &"war_cry" and _state_time < FigureKinds.WAR_CRY_SHOUT_TIME:
+		return _gather
 	if _state != &"strike":
 		return _target
 	var relax: float = smoothstep(0.1, 0.38, _state_time) * 0.55
@@ -260,6 +290,7 @@ func _update_motion(delta: float) -> void:
 	var fig: InkFigure = _figure
 	fig.clock += delta
 	fig.flash = maxf(fig.flash - delta / FLASH_TIME, 0.0)
+	fig.gold_flash = maxf(fig.gold_flash - delta / GOLD_FLASH_TIME, 0.0)
 	var running: bool = _state == &"run"
 	var settle: float = 1.0 - exp(-10.0 * delta)
 	fig.stride = lerpf(fig.stride, 1.0 if running else 0.0, settle)

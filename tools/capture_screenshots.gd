@@ -91,6 +91,10 @@ func _run() -> void:
 		await _capture_ally_sheet("ally_silhouettes", Color.BLACK)
 		quit(0)
 		return
+	if _only == "skills":
+		await _capture_skill_strips()
+		quit(0)
+		return
 	if _only == "samurai":
 		await _capture_samurai_sheet()
 		await _capture_samurai_strip()
@@ -576,6 +580,82 @@ func _capture_samurai_strip() -> void:
 	await _frames(2)
 	await _capture("samurai_strip")
 	sheet.free()
+
+
+## The Bow (reach, draw, aim, release, stow) and the War Cry (gather, shout) filmed frame by frame, then the
+## War Cry's gold ring racing out over three allies.
+func _capture_skill_strips() -> void:
+	var sheet: Node2D = _blank_sheet()
+	var bow_times: Array[float] = [0.0, 0.04, 0.08, 0.12, 0.18, 0.24, 0.3, 0.33, 0.4, 0.46, 0.5, 0.6]
+	for i: int in bow_times.size():
+		var origin: Vector2 = Vector2(float(i % 6) * 320.0 + 110.0, float(i / 6) * 520.0 + 400.0)
+		var visual: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.SAMURAI, 150.0, origin)
+		visual.play_state(&"idle")
+		_tick_one(visual, 0.5)
+		visual.play_state(&"shoot")
+		_tick_one(visual, bow_times[i])
+		_label(sheet, "bow %d ms" % roundi(bow_times[i] * 1000.0), origin)
+	await _frames(2)
+	await _capture("skill_bow")
+	sheet.free()
+	sheet = _blank_sheet()
+	var cry_times: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.34, 0.4, 0.5, 0.6]
+	for i: int in cry_times.size():
+		var origin: Vector2 = Vector2(float(i % 6) * 320.0 + 110.0, float(i / 6) * 520.0 + 400.0)
+		var visual: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.SAMURAI, 150.0, origin)
+		visual.play_state(&"idle")
+		_tick_one(visual, 0.5)
+		visual.play_state(&"war_cry")
+		_tick_one(visual, cry_times[i])
+		_label(sheet, "war cry %d ms" % roundi(cry_times[i] * 1000.0), origin)
+	await _frames(2)
+	await _capture("skill_war_cry")
+	sheet.free()
+	# The ring at two moments, with allies at 150, 400 and 650 px flashing as it passes them.
+	for age: float in [0.12, 0.3]:
+		sheet = _blank_sheet()
+		sheet.scale = Vector2.ONE * (float(root.size.y) / 1080.0) * 0.75
+		var feet: Vector2 = Vector2(450.0, 760.0)
+		var hero: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.SAMURAI, 150.0, feet)
+		hero.play_state(&"war_cry")
+		_tick_one(hero, 0.34)
+		var ring: WarCryRing = WarCryRing.new()
+		ring.setup(700.0, sheet.to_local(hero.mouth_global()) - feet, 1.0)
+		ring.age = age
+		ring.position = feet
+		sheet.add_child(ring)
+		for distance: float in [150.0, 400.0, 650.0]:
+			var ally: UnitVisual = _sheet_visual(sheet, InkFigure.Kind.ASHIGARU, 130.0, feet + Vector2(distance, 4.0))
+			ally.play_state(&"idle")
+			_tick_one(ally, 0.5)
+			if WarCryRing.time_to_reach(distance, 700.0) < age:
+				ally.flash_gold()
+				_tick_one(ally, 1.0 / 60.0)
+		await _frames(2)
+		await _capture("skill_ring_%d" % roundi(age * 1000.0))
+		sheet.free()
+
+
+func _blank_sheet() -> Node2D:
+	var sheet: Node2D = Node2D.new()
+	sheet.process_mode = Node.PROCESS_MODE_DISABLED
+	root.add_child(sheet)
+	var back: ColorRect = ColorRect.new()
+	back.color = InkPalette.MIST.lerp(InkPalette.SKY_HORIZON, 0.5)
+	back.size = Vector2(4000.0, 3000.0)
+	back.position = Vector2(-100.0, -100.0)
+	sheet.add_child(back)
+	sheet.scale = Vector2.ONE * (float(root.size.y) / 1080.0)
+	return sheet
+
+
+func _label(sheet: Node2D, text: String, origin: Vector2) -> void:
+	var label: Label = Label.new()
+	label.text = text
+	label.position = origin + Vector2(-60.0, 24.0)
+	label.add_theme_font_size_override("font_size", 18)
+	label.add_theme_color_override("font_color", InkPalette.INK)
+	sheet.add_child(label)
 
 
 ## The samurai runs right for half a second at full speed, then stops dead: the scarf streams, the

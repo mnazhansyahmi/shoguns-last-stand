@@ -413,7 +413,8 @@ func _fire_arrow() -> void:
 	if arrow == null:
 		push_error("Player: arrow scene did not instantiate an Arrow.")
 		return
-	var start: Vector2 = global_position + Vector2(facing * 44.0, -66.0)
+	# The arrow leaves from the bow string: the drawn nock, its tail on the string (the arrow's tail is 26 px behind its origin).
+	var start: Vector2 = _visual.bow_nock_global() + Vector2(facing * 26.0, 0.0)
 	arrow.setup(facing, stats.base_damage * stats.bow_damage_multiplier, stats.bow_speed, stats.bow_range,
 			stats.bow_knockback, self, start)
 	AudioManager.play(&"spirit_slash", 1.4)
@@ -429,18 +430,23 @@ func _start_war_cry() -> void:
 	_war_cry_released = false
 	_combo_index = 0
 	_change_state(State.WAR_CRY)
-	_visual.play_state(&"cast")
+	_visual.play_state(&"war_cry")
 
 
 func _process_war_cry(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, 0.0, stats.acceleration * delta)
 	if not _war_cry_released and _state_time >= stats.war_cry_windup:
 		_war_cry_released = true
-		AudioManager.play(&"ultimate", 0.8)
+		AudioManager.play(&"war_cry")
 		war_cry_released.emit(global_position)
 	if _state_time >= stats.war_cry_windup + stats.war_cry_recovery:
 		_change_state(State.IDLE)
 		_visual.play_state(&"idle")
+
+
+## Where the War Cry's shout comes from (his mouth), in world pixels.
+func get_shout_point() -> Vector2:
+	return _visual.mouth_global()
 
 
 func _fire_spirit_slash() -> void:

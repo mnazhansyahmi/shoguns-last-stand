@@ -76,6 +76,8 @@ func step(pose: FigurePose, target: FigurePose, feel: Feel, delta: float) -> voi
 	pose.glow = lerpf(pose.glow, target.glow, settle)
 	pose.bow_draw = lerpf(pose.bow_draw, target.bow_draw, settle)
 	pose.release = lerpf(pose.release, target.release, settle)
+	pose.sheathed = lerpf(pose.sheathed, target.sheathed, settle)
+	pose.bow_out = lerpf(pose.bow_out, target.bow_out, settle)
 	pose.pivot = target.pivot
 
 

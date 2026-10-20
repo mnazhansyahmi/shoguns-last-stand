@@ -70,6 +70,8 @@ class Spec:
 	## width at the shoulder end and at the tip.
 	var sleeve_link: float = 5.2
 	var sleeve_width: Vector2 = Vector2(7.5, 3.0)
+	## Carries a yumi (long bow) stowed on the back that the Bow skill takes out (FigurePainter `yumi_back`).
+	var has_back_bow: bool = false
 
 
 static func spec(kind: InkFigure.Kind) -> Spec:
@@ -92,6 +94,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.springy = true
 			s.cloth = true
 			s.loose_armour = true
+			s.has_back_bow = true
 		InkFigure.Kind.ASHIGARU:
 			s.accent = InkPalette.ASHIGARU_GOLD
 			# Nervous foot soldier: shifts his weight, glances about, the spear never quite still.
@@ -436,8 +439,10 @@ static func _samurai(state: StringName, step: int, heavy: bool) -> FigurePose:
 					_:
 						p = FigurePose.make(0.22, 4.0, Vector2(25.0, -18.0), 0.55).with_spread(1.5)
 		&"shoot":
-			# The bow: the point of the blade levelled forward at shoulder height, the body leaning into the shot.
-			p = FigurePose.make(0.1, 3.0, Vector2(24.0, -34.0), -0.06).with_spread(1.45)
+			# The yumi at full draw (UnitVisual plays the whole shot from samurai_shoot).
+			return samurai_shoot(SHOOT_RELEASE_TIME)
+		&"war_cry":
+			p = _samurai_war_cry_shout()
 		&"cast":
 			p = FigurePose.make(-0.02, 3.0, Vector2(21.0, -45.0), -1.25).with_head(-0.1).with_glow(1.0).with_spread(1.4)
 		&"dash":
@@ -453,6 +458,74 @@ static func _samurai(state: StringName, step: int, heavy: bool) -> FigurePose:
 			p = FigurePose.make(0.04, 2.0, Vector2(14.0, -17.0), -0.5).with_spread(1.3)
 	p.pivot = Vector2(5.0, -31.0)
 	return p
+
+
+## The Bow, in seconds from the key press: the samurai sheathes the katana and reaches back for the yumi on his
+## back (0.07), pulls it out (0.14), draws (0.28), aims, and looses at SHOOT_RELEASE_TIME (when the arrow leaves,
+## PlayerStats.bow_windup); then he follows through, stows the bow on his back and draws the katana again by
+## SHOOT_TIME (windup + recovery, about half a second).
+const SHOOT_RELEASE_TIME: float = 0.3
+const SHOOT_TIME: float = 0.5
+## The samurai's back hand rests here on the stowed yumi (torso space).
+const BACK_BOW_GRIP: Vector2 = Vector2(-20.5, -31.0)
+## The War Cry: he gathers, then (at WAR_CRY_SHOUT_TIME, PlayerStats.war_cry_windup) throws the katana up and shouts.
+const WAR_CRY_SHOUT_TIME: float = 0.3
+
+static var _shoot_keys: Array[Dictionary] = []
+
+
+## The samurai's Bow pose `t` seconds into the shot (see SHOOT_RELEASE_TIME): smooth between the key poses.
+static func samurai_shoot(t: float) -> FigurePose:
+	if _shoot_keys.is_empty():
+		_shoot_keys = [
+			{"t": 0.0, "pose": _samurai(&"idle", 0, false)},
+			# Reach back: katana sheathed, the free hand goes over the shoulder to the yumi.
+			{"t": 0.07, "pose": _shoot_key(-0.06, 3.0, Vector2(15.0, -27.0), -0.1, BACK_BOW_GRIP, 0.0, false)},
+			# Pull it out: the bow is in the front hand, held out at head height.
+			{"t": 0.14, "pose": _shoot_key(0.04, 3.0, Vector2(24.0, -40.0), -0.06, Vector2(-14.0, -42.0), 0.0, true)},
+			# Draw and aim.
+			{"t": 0.28, "pose": _shoot_key(0.1, 3.0, Vector2(25.0, -41.0), -0.06, Vector2(-14.0, -42.0), 1.0, true)},
+			{"t": SHOOT_RELEASE_TIME, "pose": _shoot_key(0.1, 3.0, Vector2(25.0, -41.0), -0.06, Vector2(-14.0, -42.0), 1.0, true)},
+			# Release: the string snaps forward, the drawing hand flings back, the bow hand kicks.
+			{"t": 0.33, "pose": _shoot_key(0.06, 3.0, Vector2(23.0, -40.0), -0.1, Vector2(-17.0, -36.0), 0.0, true)},
+			{"t": 0.4, "pose": _shoot_key(0.04, 3.0, Vector2(22.0, -39.0), -0.12, Vector2(-17.0, -37.0), 0.0, true)},
+			# Stow: the bow goes back over the shoulder, the hand takes the katana again.
+			{"t": 0.46, "pose": _shoot_key(-0.02, 3.0, Vector2(16.0, -30.0), -0.2, BACK_BOW_GRIP, 0.0, true)},
+			{"t": SHOOT_TIME, "pose": _samurai(&"idle", 0, false)},
+		]
+	var keys: Array[Dictionary] = _shoot_keys
+	var result: FigurePose = FigurePose.new()
+	if t <= float(keys[0]["t"]):
+		result.copy_from(keys[0]["pose"] as FigurePose)
+		return result
+	for i: int in range(1, keys.size()):
+		var until: float = keys[i]["t"]
+		if t <= until:
+			var from: float = keys[i - 1]["t"]
+			result.copy_from(keys[i - 1]["pose"] as FigurePose)
+			result.blend_toward(keys[i]["pose"] as FigurePose, smoothstep(0.0, 1.0, (t - from) / (until - from)))
+			return result
+	result.copy_from(keys[keys.size() - 1]["pose"] as FigurePose)
+	return result
+
+
+static func _shoot_key(lean: float, crouch: float, grip: Vector2, blade: float, back: Vector2, draw: float, bow_out: bool) -> FigurePose:
+	var p: FigurePose = FigurePose.make(lean, crouch, grip, blade).with_back(back).with_bow(draw).with_sheathed(bow_out)
+	p.spread = 1.45
+	p.pivot = Vector2(5.0, -31.0)
+	return p
+
+
+## The War Cry's gathering (crouched, katana held low and pointing down) before the shout, which throws it up.
+static func samurai_war_cry_gather() -> FigurePose:
+	var p: FigurePose = FigurePose.make(0.18, 9.0, Vector2(16.0, -14.0), 0.9).with_head(0.12).with_spread(1.75)
+	p.pivot = Vector2(5.0, -31.0)
+	return p
+
+
+## The shout: feet planted wide, the body arched back, the katana thrown straight up, the head up.
+static func _samurai_war_cry_shout() -> FigurePose:
+	return FigurePose.make(-0.12, 5.0, Vector2(19.0, -49.0), -1.35).with_head(-0.22).with_glow(0.6).with_spread(1.9)
 
 
 ## The title screen pose: hasso no kamae, katana raised in both hands beside the head, wide stance.
@@ -483,6 +556,9 @@ static func feel(kind: InkFigure.Kind, state: StringName, heavy: bool = false) -
 			return PoseSpring.Feel.make(Vector2(40.0, 0.62), Vector2(62.0, 0.5), Vector2(66.0, 0.42))
 		&"cast":
 			return PoseSpring.Feel.make(Vector2(14.0, 0.8), Vector2(18.0, 0.72), Vector2(16.0, 0.7))
+		&"war_cry":
+			# Throws the katana up with a snap and overshoot, then holds.
+			return PoseSpring.Feel.make(Vector2(24.0, 0.6), Vector2(34.0, 0.5), Vector2(28.0, 0.5))
 		&"dash", &"hurt":
 			return PoseSpring.Feel.make(Vector2(42.0, 0.55), Vector2(50.0, 0.55), Vector2(50.0, 0.5))
 		&"dead":

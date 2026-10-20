@@ -41,6 +41,8 @@ const LANES: Array[float] = [0.0, -42.0, 42.0, -21.0, 21.0, -63.0, 63.0, -10.0, 
 var _war_cry_left: float = 0.0
 var _war_cry_damage: float = 1.0
 var _war_cry_speed: float = 1.0
+## Seconds until the gold flash of the cry reaching this ally (0 = none pending).
+var _gold_flash_in: float = 0.0
 ## Set by the SummonManager. An ally made without one (a test) holds, as allies always did.
 var stance: Stance = Stance.HOLD
 ## The sideways offset this ally is drawn at (see LANES).
@@ -139,11 +141,15 @@ func _physics_process(delta: float) -> void:
 
 ## The samurai's War Cry: for `duration` seconds this ally deals `damage_bonus` more damage and attacks
 ## `speed_bonus` faster (0.3 = 30%). A new cry restarts the time; the bonuses do not stack.
-func apply_war_cry(duration: float, damage_bonus: float, speed_bonus: float) -> void:
+func apply_war_cry(duration: float, damage_bonus: float, speed_bonus: float, flash_delay: float = 0.0) -> void:
 	_war_cry_left = duration
 	_war_cry_damage = 1.0 + damage_bonus
 	_war_cry_speed = 1.0 + speed_bonus
 	_visual.set_tint(Color(1.3, 1.12, 0.72))
+	# It flashes gold when the cry's ring reaches it (at once if it is standing at the samurai).
+	_gold_flash_in = flash_delay
+	if flash_delay <= 0.0:
+		_visual.flash_gold()
 
 
 func is_rallied() -> bool:
@@ -159,6 +165,10 @@ func get_war_cry_speed_multiplier() -> float:
 
 
 func _tick_war_cry(delta: float) -> void:
+	if _gold_flash_in > 0.0:
+		_gold_flash_in -= delta
+		if _gold_flash_in <= 0.0:
+			_visual.flash_gold()
 	if _war_cry_left <= 0.0:
 		return
 	_war_cry_left -= delta

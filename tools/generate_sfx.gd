@@ -59,6 +59,7 @@ func _initialize() -> void:
 		"ultimate_ready": _ultimate_ready,
 		"heal": _heal,
 		"magic_burst": _magic_burst,
+		"war_cry": _war_cry,
 	}
 	var failures: int = 0
 	for id: String in sounds:
@@ -170,6 +171,40 @@ func _enemy_death() -> PackedFloat32Array:
 			voiced += formants[f].process(source) * gains[f]
 		var envelope: float = smoothstep(0.0, 0.07, t) * (1.0 - smoothstep(0.45, 1.0, progress))
 		out[i] = voiced * envelope
+	return _normalize(out)
+
+
+## The War Cry, a battle shout ("Yaaah!"): a chesty voice whose vowel opens from "ee" to "ah" and closes to "oh",
+## its pitch rising then sagging, with a taiko-like thump under the attack.
+func _war_cry() -> PackedFloat32Array:
+	var duration: float = 0.9
+	var out: PackedFloat32Array = _buffer(duration)
+	var formants: Array[Biquad] = [Biquad.new(), Biquad.new(), Biquad.new()]
+	var gains: Array[float] = [1.0, 0.7, 0.3]
+	var phase: float = 0.0
+	var jitter: float = 0.0
+	for i: int in out.size():
+		var t: float = _t(i)
+		var progress: float = t / duration
+		if i % 64 == 0:
+			var open: float = smoothstep(0.0, 0.12, t)
+			var close: float = smoothstep(0.55, 0.9, t)
+			formants[0].set_bandpass(lerpf(lerpf(330.0, 800.0, open), 520.0, close), 7.0)
+			formants[1].set_bandpass(lerpf(lerpf(2100.0, 1200.0, open), 880.0, close), 9.0)
+			formants[2].set_bandpass(2600.0, 14.0)
+		jitter = clampf(jitter + _noise() * 0.006, -0.04, 0.04)
+		var rise: float = smoothstep(0.0, 0.18, t) * (1.0 - 0.25 * smoothstep(0.3, 0.9, t))
+		var f0: float = lerpf(95.0, 150.0, rise) * (1.0 + jitter + 0.02 * sin(TAU * 6.0 * t))
+		phase = fmod(phase + f0 / MIX_RATE, 1.0)
+		var pulse: float = (1.0 - 2.0 * phase) * 0.8 + sin(TAU * phase) * 0.2
+		var breath_mix: float = 0.25 + 0.2 * smoothstep(0.6, 0.9, progress)
+		var source: float = pulse * (1.0 - breath_mix) + _noise() * breath_mix
+		var voiced: float = 0.0
+		for f: int in formants.size():
+			voiced += formants[f].process(source) * gains[f]
+		var envelope: float = smoothstep(0.0, 0.03, t) * (1.0 - smoothstep(0.55, 1.0, progress))
+		var thump: float = sin(TAU * lerpf(90.0, 48.0, minf(t / 0.2, 1.0)) * t) * exp(-t * 14.0)
+		out[i] = voiced * envelope + thump * 0.5
 	return _normalize(out)
 
 

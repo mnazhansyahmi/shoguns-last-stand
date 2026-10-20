@@ -25,6 +25,10 @@ var bow_draw: float = 0.0
 var release: float = 0.0
 ## How far apart the feet are, as a multiple of the kind's rest stance.
 var spread: float = 1.0
+## The katana is sheathed (hidden; 0..1, shown below 0.5) and the back hand is free: the samurai using the bow.
+var sheathed: float = 0.0
+## The samurai's yumi is in his hand (0..1, shown from 0.5) instead of stowed on his back.
+var bow_out: float = 0.0
 ## The front shoulder (torso space). When set, `grip` moves along arcs around it (the arm
 ## swings like a pendulum) instead of in straight lines. NAN x = straight lines.
 var pivot: Vector2 = Vector2(NAN, 0.0)
@@ -70,6 +74,13 @@ func with_bow(p_draw: float, p_release: float = 0.0) -> FigurePose:
 	return self
 
 
+## The samurai's katana is sheathed; with `p_bow_out` his yumi is in his hand.
+func with_sheathed(p_bow_out: bool) -> FigurePose:
+	sheathed = 1.0
+	bow_out = 1.0 if p_bow_out else 0.0
+	return self
+
+
 ## Moves every value a fraction `weight` (0..1) of the way toward `target`.
 func blend_toward(target: FigurePose, weight: float) -> void:
 	lean = lerpf(lean, target.lean, weight)
@@ -83,6 +94,8 @@ func blend_toward(target: FigurePose, weight: float) -> void:
 	bow_draw = lerpf(bow_draw, target.bow_draw, weight)
 	release = lerpf(release, target.release, weight)
 	spread = lerpf(spread, target.spread, weight)
+	sheathed = lerpf(sheathed, target.sheathed, weight)
+	bow_out = lerpf(bow_out, target.bow_out, weight)
 
 
 func copy_from(other: FigurePose) -> void:

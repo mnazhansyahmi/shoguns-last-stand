@@ -428,10 +428,12 @@ func _on_war_cry_released(origin: Vector2) -> void:
 	for node: Node in get_tree().get_nodes_in_group("allies"):
 		var ally: Ally = node as Ally
 		if ally != null and not ally.is_dead() and absf(ally.global_position.x - origin.x) <= stats.war_cry_radius:
-			ally.apply_war_cry(stats.war_cry_duration, stats.war_cry_damage_bonus, stats.war_cry_speed_bonus)
+			# Each ally flashes gold as the ring passes over it.
+			var flash_delay: float = WarCryRing.time_to_reach(absf(ally.global_position.x - origin.x), stats.war_cry_radius)
+			ally.apply_war_cry(stats.war_cry_duration, stats.war_cry_damage_bonus, stats.war_cry_speed_bonus, flash_delay)
 			rallied += 1
-	var ring: ShockRing = ShockRing.new()
-	ring.setup(stats.war_cry_radius * 0.5)
+	var ring: WarCryRing = WarCryRing.new()
+	ring.setup(stats.war_cry_radius, _player.get_shout_point() - origin, _player.facing)
 	_projectiles.add_child(ring)
 	ring.global_position = origin
 	_hud.show_message("War Cry! %d allies rallied" % rallied if rallied > 0 else "War Cry! (no allies nearby)", 1.6)

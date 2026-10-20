@@ -42,7 +42,7 @@ const SLOTS: Dictionary = {
 	&"head": Slot.HEAD, &"mane": Slot.HEAD,
 	&"weapon": Slot.WEAPON, &"bow": Slot.WEAPON, &"blade_glow": Slot.WEAPON,
 	&"pauldron_front": Slot.PAULDRON_FRONT, &"saya": Slot.TORSO,
-	&"hakama_f": Slot.HAKAMA_F, &"hakama_b": Slot.HAKAMA_B,
+	&"hakama_f": Slot.HAKAMA_F, &"hakama_b": Slot.HAKAMA_B, &"yumi_back": Slot.TORSO,
 }
 ## Parts whose shape changes every frame (redrawn through paint_dynamic).
 const DYNAMIC_PARTS: Array[StringName] = [&"tails", &"sleeve_f", &"sleeve_b"]
@@ -63,11 +63,12 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			# The hakama hem reaches the ground, so the samurai has no separate feet. The skirt part
 			# is the hakama's front panel, the tassets, the sash and the scabbard (they swing together);
 			# the scarf (drawn over the neck guard so its red shows) and sleeve flaps are cloth chains.
-			order.append_array([&"hem", &"sleeve_b", &"hakama_b", &"pauldron_back"])
+			# The yumi is slung on his back, behind everything; the Bow skill takes it into his hand.
+			order.append_array([&"yumi_back", &"hem", &"sleeve_b", &"hakama_b", &"pauldron_back"])
 			order.append_array(_BACK_ARM)
 			order.append_array([&"hakama_f", &"skirt", &"torso", &"head", &"tails"])
 			order.append_array(_FRONT_ARM)
-			order.append_array([&"sleeve_f", &"pauldron_front", &"weapon", &"blade_glow"])
+			order.append_array([&"sleeve_f", &"pauldron_front", &"weapon", &"bow", &"blade_glow"])
 		InkFigure.Kind.ASHIGARU:
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
 			order.append_array([&"hem", &"torso", &"head", &"weapon"])
@@ -238,9 +239,10 @@ static func bow_nock_x(draw_amount: float) -> float:
 	return lerpf(_bow_bend(1.0, draw_amount), -30.0, clampf(draw_amount, 0.0, 1.0))
 
 
-## The bow (limbs, string, nocked arrow) at a draw amount, cached per draw step.
-static func bow(draw_amount: float) -> InkBatch:
-	return _bow(draw_amount)
+## The bow (limbs, string, nocked arrow) at a draw amount, cached per draw step. The samurai's yumi has a
+## red grip wrap and red fletching; the archer's fletching is teal.
+static func bow(draw_amount: float, kind: InkFigure.Kind = InkFigure.Kind.YUMI_ARCHER) -> InkBatch:
+	return _bow(draw_amount, kind == InkFigure.Kind.SAMURAI)
 
 
 static func bow_step(draw_amount: float) -> int:
@@ -428,6 +430,7 @@ static func _build_samurai(parts: Dictionary) -> void:
 		parts[&"fore_f" if front else &"fore_b"] = kote
 
 	parts[&"head"] = _samurai_head(ink, detail)
+	parts[&"yumi_back"] = _samurai_yumi_back(ink, detail, red)
 
 	var katana: InkBatch = InkBatch.new()
 	katana.limb(Vector2(-11.0, 0.0), Vector2(1.0, 0.0), 3.8, 3.8, ink)
@@ -443,6 +446,27 @@ static func _build_samurai(parts: Dictionary) -> void:
 	glow.stroke(PackedVector2Array([Vector2(4.0, -0.4), Vector2(30.0, -1.2), Vector2(55.0, -2.3),
 			Vector2(tip - 1.0, -3.8)]), 2.6, 1.6, InkPalette.SPIRIT)
 	parts[&"blade_glow"] = glow
+
+
+## The yumi slung on the samurai's back (torso space): the long, bowed curve leaning back from the hips to well
+## above the shoulder, its string straight on the body side and the red grip wrap a third of the way up (his
+## back hand reaches it at FigureKinds.BACK_BOW_GRIP). The torso hides its lower end.
+static func _samurai_yumi_back(ink: Color, detail: Color, red: Color) -> InkBatch:
+	var batch: InkBatch = InkBatch.new()
+	var lower: Vector2 = Vector2(-10.0, -2.0)
+	var upper: Vector2 = Vector2(-26.0, -86.0)
+	var control: Vector2 = Vector2(-29.6, -41.0)
+	batch.stroke(PackedVector2Array([lower, upper]), 1.1, 1.1, detail)
+	var curve: PackedVector2Array = PackedVector2Array()
+	for i: int in 15:
+		curve.append(_quadratic(lower, control, upper, float(i) / 14.0))
+	batch.stroke(curve, 4.6, 2.6, ink)
+	batch.stroke(PackedVector2Array([_quadratic(lower, control, upper, 0.3), _quadratic(lower, control, upper, 0.4)]), 5.6, 5.6, red)
+	return batch
+
+
+static func _quadratic(a: Vector2, control: Vector2, b: Vector2, u: float) -> Vector2:
+	return a.lerp(control, u).lerp(control.lerp(b, u), u)
 
 
 ## The do (chest armour): overlapping lamellar bands, each tilted a little toward the viewer (the
@@ -662,10 +686,11 @@ static func _bow_bend(t: float, draw_amount: float) -> float:
 
 
 ## The bow (limbs, string, nocked arrow) at a draw amount, cached per draw step.
-static func _bow(draw_amount: float) -> InkBatch:
+static func _bow(draw_amount: float, samurai: bool = false) -> InkBatch:
 	var step: int = bow_step(draw_amount)
-	if _bows.has(step):
-		return _bows[step]
+	var key: int = step + (BOW_STEPS + 1 if samurai else 0)
+	if _bows.has(key):
+		return _bows[key]
 	var drawn: float = float(step) / float(BOW_STEPS)
 	var ink: Color = InkPalette.INK
 	var batch: InkBatch = InkBatch.new()
@@ -680,18 +705,22 @@ static func _bow(draw_amount: float) -> InkBatch:
 	batch.stroke(PackedVector2Array([upper[8], nock, lower[8]]), 1.4, 1.4, ink)
 	batch.stroke(upper, 5.0, 3.2, ink)
 	batch.stroke(lower, 5.0, 3.2, ink)
+	var fletching: Color = InkPalette.SAMURAI_RED if samurai else InkPalette.ARCHER_TEAL
+	if samurai:
+		# The wrapped grip, a third of the way up from the lower tip (where the front hand holds it).
+		batch.limb(Vector2(0.4, -6.0), Vector2(0.4, 6.0), 5.8, 5.8, InkPalette.SAMURAI_RED)
 	if drawn > 0.25:
 		var alpha: float = clampf((drawn - 0.25) * 2.5, 0.0, 1.0)
 		var head: float = nock.x + 44.0
 		batch.limb(nock, Vector2(head, 0.0), 2.2, 2.2, Color(ink, alpha))
 		batch.fill_convex(PackedVector2Array([Vector2(head - 1.0, -2.6), Vector2(head + 5.0, 0.0),
 				Vector2(head - 1.0, 2.6)]), Color(ink, alpha))
-		var teal: Color = Color(InkPalette.ARCHER_TEAL, alpha)
+		var teal: Color = Color(fletching, alpha)
 		batch.fill_convex(PackedVector2Array([nock + Vector2(1.0, 0.0), nock + Vector2(8.0, 0.0),
 				nock + Vector2(4.0, -3.4)]), teal)
 		batch.fill_convex(PackedVector2Array([nock + Vector2(1.0, 0.0), nock + Vector2(8.0, 0.0),
 				nock + Vector2(4.0, 3.4)]), teal)
-	_bows[step] = batch
+	_bows[key] = batch
 	return batch
 
 

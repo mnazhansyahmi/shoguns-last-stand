@@ -17,6 +17,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/ultimate_ready.wav" id="s12_ultimate_ready"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/heal.wav" id="s13_heal"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/magic_burst.wav" id="s14_magic_burst"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/war_cry.wav" id="s15_war_cry"]
 
 [sub_resource type="Resource" id="Entry_sword_swing"]
 script = ExtResource("2_entry")
@@ -146,6 +147,14 @@ volume_db = -3.0
 pitch_variation = 0.05
 min_interval = 0.15
 
+[sub_resource type="Resource" id="Entry_war_cry"]
+script = ExtResource("2_entry")
+id = &"war_cry"
+stream = ExtResource("s15_war_cry")
+volume_db = -1.0
+pitch_variation = 0.0
+min_interval = 0.5
+
 [resource]
 script = ExtResource("1_library")
-entries = Array[ExtResource("2_entry")]([SubResource("Entry_sword_swing"), SubResource("Entry_hit"), SubResource("Entry_heavy_hit"), SubResource("Entry_dash"), SubResource("Entry_spirit_slash"), SubResource("Entry_summon"), SubResource("Entry_enemy_death"), SubResource("Entry_gate_hit"), SubResource("Entry_victory"), SubResource("Entry_defeat"), SubResource("Entry_button_click"), SubResource("Entry_ultimate"), SubResource("Entry_ultimate_ready"), SubResource("Entry_heal"), SubResource("Entry_magic_burst")])
+entries = Array[ExtResource("2_entry")]([SubResource("Entry_sword_swing"), SubResource("Entry_hit"), SubResource("Entry_heavy_hit"), SubResource("Entry_dash"), SubResource("Entry_spirit_slash"), SubResource("Entry_summon"), SubResource("Entry_enemy_death"), SubResource("Entry_gate_hit"), SubResource("Entry_victory"), SubResource("Entry_defeat"), SubResource("Entry_button_click"), SubResource("Entry_ultimate"), SubResource("Entry_ultimate_ready"), SubResource("Entry_heal"), SubResource("Entry_magic_burst"), SubResource("Entry_war_cry")])
