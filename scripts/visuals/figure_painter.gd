@@ -163,9 +163,9 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			order.append_array([&"pauldron_front", &"weapon"])
 		InkFigure.Kind.HATAMOTO:
 			# The banner is on his back, behind everything; he wears the samurai's hakama and skirt.
-			order.append_array([&"hem", &"banner", &"hakama_b", &"pauldron_back"])
+			order.append_array([&"hem", &"banner", &"thigh_b", &"shin_b", &"foot_b", &"pauldron_back"])
 			order.append_array(_BACK_ARM)
-			order.append_array([&"hakama_f", &"skirt", &"torso", &"head"])
+			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head"])
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"pauldron_front", &"weapon"])
 		InkFigure.Kind.FALLEN_DAIMYO:
@@ -435,12 +435,6 @@ static func _segment(length: float, widths: Vector2, color: Color) -> InkBatch:
 	return batch
 
 
-## Back and front edge of the do (chest armour) at a height y (torso space, y up is negative).
-const _DO_Y: Array[float] = [-3.0, -12.0, -22.0, -31.0]
-const _DO_BACK: Array[float] = [-8.5, -11.5, -13.5, -11.5]
-const _DO_FRONT: Array[float] = [9.0, 12.5, 14.5, 12.0]
-
-
 static func _table(ys: Array[float], values: Array[float], y: float) -> float:
 	for i: int in range(1, ys.size()):
 		if y >= ys[i]:
@@ -617,87 +611,6 @@ static func _samurai_kusazuri(ink: Color, detail: Color, red: Color) -> InkBatch
 		batch.stroke(_about(xf, pivot, lace), 1.3, 1.3, detail)
 	# Sash (obi) and the knot with two tails (accent).
 	batch.fill(PackedVector2Array([Vector2(-9.4, -6.0), Vector2(9.6, -5.6), Vector2(10.2, -1.0), Vector2(-9.8, -1.4)]), detail)
-	batch.fill_convex(PackedVector2Array([Vector2(7.0, -3.5), Vector2(13.5, -6.5), Vector2(12.5, -0.5)]), red)
-	batch.fill_convex(PackedVector2Array([Vector2(7.0, -3.5), Vector2(12.0, 3.5), Vector2(8.0, 4.5)]), red)
-	batch.circle(Vector2(8.0, -3.0), 2.4, red)
-	return batch
-
-
-## The do (chest armour): overlapping lamellar bands, each tilted a little toward the viewer (the
-## front edge sits lower than the back), with lacing ticks, and a curved breast plate on top.
-static func _samurai_do(ink: Color, detail: Color, red: Color) -> InkBatch:
-	var batch: InkBatch = InkBatch.new()
-	# Bands from the waist up: x = top y, y = bottom y.
-	var bands: Array[Vector2] = [Vector2(-9.8, -3.0), Vector2(-16.4, -9.4), Vector2(-23.0, -16.0)]
-	for index: int in bands.size():
-		var y_top: float = bands[index].x
-		var y_bottom: float = bands[index].y
-		var back_top: float = _table(_DO_Y, _DO_BACK, y_top)
-		var front_top: float = _table(_DO_Y, _DO_FRONT, y_top)
-		var back_bottom: float = _table(_DO_Y, _DO_BACK, y_bottom)
-		var front_bottom: float = _table(_DO_Y, _DO_FRONT, y_bottom)
-		var tilt: float = 1.1
-		batch.fill(PackedVector2Array([
-				Vector2(back_top, y_top - tilt), Vector2(front_top, y_top + tilt),
-				Vector2(front_bottom, y_bottom + tilt), Vector2((back_bottom + front_bottom) * 0.5, y_bottom + tilt * 1.8),
-				Vector2(back_bottom, y_bottom - tilt)]), ink)
-		# Lower edge of the plate (the overlap shows as a pale seam).
-		batch.stroke(PackedVector2Array([Vector2(back_bottom + 0.5, y_bottom - tilt - 0.8),
-				Vector2((back_bottom + front_bottom) * 0.5, y_bottom + tilt * 1.8 - 0.9),
-				Vector2(front_bottom - 0.5, y_bottom + tilt - 0.8)]), 1.6, 1.6, detail)
-		# Lacing: short vertical ticks, offset every other band like brickwork.
-		var ticks: int = 5
-		for t: int in ticks:
-			var u: float = (float(t) + 0.5 + (0.5 if index % 2 == 1 else 0.0)) / float(ticks + 1)
-			if u > 0.93:
-				continue
-			var x: float = lerpf(lerpf(back_top, back_bottom, 0.5), lerpf(front_top, front_bottom, 0.5), u)
-			var slope: float = lerpf(-tilt, tilt, u)
-			batch.limb(Vector2(x, y_top + 1.8 + slope), Vector2(x, y_bottom - 2.2 + slope), 1.2, 1.2, detail)
-	# Breast plate (munaita) with the neck opening.
-	batch.fill(PackedVector2Array([Vector2(-11.7, -22.4), Vector2(12.6, -22.4), Vector2(14.0, -27.0),
-			Vector2(12.0, -31.0), Vector2(8.5, -33.8), Vector2(5.0, -34.6), Vector2(-5.0, -34.6),
-			Vector2(-9.0, -33.6), Vector2(-12.0, -30.5), Vector2(-13.2, -26.0)]), ink)
-	batch.stroke(PackedVector2Array([Vector2(-12.0, -23.6), Vector2(0.0, -21.6), Vector2(13.4, -23.4)]), 1.6, 1.6, detail)
-	# Shoulder cords crossing the plate toward the neck.
-	batch.stroke(PackedVector2Array([Vector2(10.5, -31.0), Vector2(5.5, -27.0), Vector2(1.0, -24.5)]), 1.4, 1.4, detail)
-	batch.stroke(PackedVector2Array([Vector2(-9.0, -31.0), Vector2(-5.5, -27.0), Vector2(-1.0, -24.5)]), 1.4, 1.4, detail)
-	# Scarf wrapped around the collar (accent).
-	batch.stroke(PackedVector2Array([Vector2(-6.0, -33.4), Vector2(-1.5, -35.6), Vector2(4.5, -35.4), Vector2(9.0, -32.6)]), 3.8, 2.4, red)
-	return batch
-
-
-## The hakama front panel, the kusazuri (five hanging tassets), the sash with its knot and the
-## scabbard. They hang from the waist and swing together (the part pivots about the waist).
-static func _samurai_skirt(ink: Color, detail: Color, red: Color) -> InkBatch:
-	var batch: InkBatch = InkBatch.new()
-	# Hakama front panel: waist to just above the ankles, with three pleats and a hem line.
-	batch.fill(PackedVector2Array([Vector2(-9.0, -4.0), Vector2(9.0, -4.0), Vector2(13.0, 10.0), Vector2(16.5, 30.0),
-			Vector2(9.0, 34.0), Vector2(0.0, 35.0), Vector2(-9.5, 34.0), Vector2(-16.0, 30.0), Vector2(-12.5, 10.0)]), ink)
-	for x: float in [-4.5, 0.0, 4.5]:
-		batch.limb(Vector2(x * 0.8, 6.0), Vector2(x * 1.9, 30.5), 1.5, 1.7, detail)
-	batch.stroke(PackedVector2Array([Vector2(-14.5, 29.8), Vector2(0.0, 33.0), Vector2(15.0, 29.8)]), 1.6, 1.6, detail)
-	# Scabbard (saya) angled back and down from the left hip, with the wakizashi hilt beside it.
-	batch.stroke(PackedVector2Array([Vector2(5.0, -5.0), Vector2(-10.0, 2.0), Vector2(-24.0, 9.5), Vector2(-33.0, 15.0)]), 4.8, 4.0, ink)
-	batch.limb(Vector2(-6.0, -1.2), Vector2(-5.0, 2.8), 1.5, 1.5, detail)
-	batch.limb(Vector2(3.5, -6.5), Vector2(1.5, -2.5), 1.8, 1.8, detail)
-	batch.limb(Vector2(4.0, -6.0), Vector2(12.0, -10.0), 3.6, 3.4, ink)
-	batch.ellipse(Vector2(4.5, -6.2), Vector2(1.4, 3.2), ink, 10)
-	# Tassets: five hanging plates, fanned a little, with a lacing line each.
-	var bottoms: Array[float] = [10.5, 12.5, 13.5, 13.0, 11.0]
-	for i: int in 5:
-		var left: float = -13.5 + float(i) * 5.8
-		var splay: float = float(i - 2) * 0.05
-		var pivot: Vector2 = Vector2(left + 2.5, -3.0)
-		var bottom: float = bottoms[i]
-		var xf: Transform2D = Transform2D(splay, Vector2.ZERO)
-		var corners: PackedVector2Array = PackedVector2Array([Vector2(left, -4.0), Vector2(left + 5.0, -4.0),
-				Vector2(left + 5.9, bottom - 1.0), Vector2(left + 2.5, bottom + 1.0), Vector2(left - 0.9, bottom - 1.0)])
-		var lace: PackedVector2Array = PackedVector2Array([Vector2(left + 0.2, 3.2), Vector2(left + 2.5, 3.9), Vector2(left + 4.8, 3.2)])
-		batch.fill_convex(_about(xf, pivot, corners), ink)
-		batch.stroke(_about(xf, pivot, lace), 1.3, 1.3, detail)
-	# Sash (obi) and the knot with two tails (accent).
-	batch.fill(PackedVector2Array([Vector2(-9.6, -6.0), Vector2(9.8, -5.6), Vector2(10.4, -1.0), Vector2(-10.0, -1.4)]), detail)
 	batch.fill_convex(PackedVector2Array([Vector2(7.0, -3.5), Vector2(13.5, -6.5), Vector2(12.5, -0.5)]), red)
 	batch.fill_convex(PackedVector2Array([Vector2(7.0, -3.5), Vector2(12.0, 3.5), Vector2(8.0, 4.5)]), red)
 	batch.circle(Vector2(8.0, -3.0), 2.4, red)

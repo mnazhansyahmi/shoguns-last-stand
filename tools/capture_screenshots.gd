@@ -103,6 +103,10 @@ func _run() -> void:
 		await _capture_ally_sheet("ally_silhouettes", Color.BLACK)
 		quit(0)
 		return
+	if _only.begins_with("kind:"):
+		await _capture_kind_sheet(_only.trim_prefix("kind:"))
+		quit(0)
+		return
 	if _only == "skills":
 		await _capture_skill_strips()
 		quit(0)
@@ -708,6 +712,32 @@ func _label(sheet: Node2D, text: String, origin: Vector2) -> void:
 	label.add_theme_font_size_override("font_size", 18)
 	label.add_theme_color_override("font_color", InkPalette.INK)
 	sheet.add_child(label)
+
+
+## One character kind alone in every state (`--only=kind:hatamoto`): idle, run, windup, strike (all three combo steps
+## where they differ), cast, dash, hurt and dead, at 150 px, on a plain background.
+func _capture_kind_sheet(kind_name: String) -> void:
+	var kind: int = InkFigure.Kind.keys().find(kind_name.to_upper())
+	if kind < 0:
+		push_error("unknown kind '%s'" % kind_name)
+		return
+	var sheet: Node2D = _blank_sheet()
+	var states: Array[StringName] = [&"idle", &"run", &"windup", &"heavy_windup", &"strike", &"cast", &"dash", &"hurt", &"dead"]
+	for i: int in states.size():
+		var origin: Vector2 = Vector2(float(i % 5) * 380.0 + 190.0, float(i / 5) * 520.0 + 420.0)
+		var visual: UnitVisual = _sheet_visual(sheet, kind as InkFigure.Kind, 170.0, origin)
+		visual.play_state(&"idle")
+		_tick_one(visual, 0.5)
+		if states[i] == &"run":
+			visual.play_state(&"run")
+			_tick_one(visual, 0.25)
+		elif states[i] != &"idle":
+			visual.play_state(states[i])
+			_tick_one(visual, 0.45)
+		_label(sheet, "%s %s" % [kind_name, states[i]], origin)
+	await _frames(2)
+	await _capture("kind_" + kind_name)
+	sheet.free()
 
 
 ## The samurai runs right for half a second at full speed, then stops dead: the scarf streams, the

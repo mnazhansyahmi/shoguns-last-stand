@@ -730,15 +730,15 @@ static func _hatamoto(state: StringName) -> FigurePose:
 		&"run":
 			p = FigurePose.make(0.18, 3.0, Vector2(13.0, -19.0), -0.95)
 		&"windup", &"heavy_windup":
-			p = FigurePose.make(-0.14, 4.0, Vector2(15.0, -40.0), -1.25).with_head(-0.08).with_spread(1.25)
+			p = FigurePose.make(-0.14, 5.0, Vector2(15.0, -40.0), -1.25).with_head(-0.08).with_spread(1.4).with_weight(-3.0, 0.0)
 		&"strike":
-			p = FigurePose.make(0.34, 6.0, Vector2(25.0, -17.0), 0.5).with_offset(4.0).with_spread(1.5)
+			p = FigurePose.make(0.34, 8.0, Vector2(25.0, -17.0), 0.5).with_offset(2.0).with_spread(1.7).with_weight(5.0, 8.0)
 		&"hurt":
-			p = FigurePose.make(-0.3, 2.0, Vector2(11.0, -15.0), -0.3).with_head(-0.3).with_offset(-5.0)
+			p = FigurePose.make(-0.3, 3.0, Vector2(11.0, -15.0), -0.3).with_head(-0.3).with_offset(-5.0).with_spread(1.4).with_weight(-3.0, 0.0)
 		&"dead":
 			p = FigurePose.make(0.0, 0.0, Vector2(14.0, -5.0), 1.5).with_head(-0.2)
 		_:
-			p = FigurePose.make(0.05, 2.0, Vector2(13.0, -20.0), -0.85).with_spread(1.15)
+			p = FigurePose.make(0.05, 2.0, Vector2(13.0, -20.0), -0.85).with_spread(1.3)
 	p.pivot = Vector2(6.0, -31.0)
 	return p
 

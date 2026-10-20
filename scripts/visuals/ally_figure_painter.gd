@@ -189,20 +189,13 @@ static func _build_hatamoto(parts: Dictionary) -> void:
 	var back_ink: Color = InkPalette.INK_BACK
 	var orange: Color = InkPalette.HATAMOTO_ORANGE
 	var spec: FigureKinds.Spec = FigureKinds.spec(InkFigure.Kind.HATAMOTO)
-	var leg: float = spec.thigh + spec.shin
-
-	for front: bool in [true, false]:
-		var hakama: InkBatch = InkBatch.new()
-		hakama.fill(PackedVector2Array([Vector2(-3.0, -6.0), Vector2(leg * 0.5, -8.5), Vector2(leg + 0.5, -12.5),
-				Vector2(leg + 3.0, -11.5), Vector2(leg + 4.0, 0.0), Vector2(leg + 3.0, 11.5), Vector2(leg + 0.5, 12.5),
-				Vector2(leg * 0.5, 8.5), Vector2(-3.0, 6.0)]), ink if front else back_ink)
-		if front:
-			hakama.limb(Vector2(leg * 0.3, 2.0), Vector2(leg + 1.0, 4.5), 1.5, 1.7, detail)
-		parts[&"hakama_f" if front else &"hakama_b"] = hakama
+	# Wide hakama trousers over bent knees with flat feet, so he stands on two visible legs (the old shared skirt
+	# hung a solid panel down to his ankles and hid them).
+	FigurePainter._samurai_legs(parts, spec, ink, back_ink, detail)
 	parts[&"pauldron_front"] = FigurePainter._sode(ink, detail)
 	parts[&"pauldron_back"] = FigurePainter._sode(back_ink, back_ink)
-	parts[&"skirt"] = FigurePainter._samurai_skirt(ink, detail, orange)
-	parts[&"torso"] = FigurePainter._samurai_do(ink, detail, orange)
+	parts[&"skirt"] = FigurePainter._samurai_kusazuri(ink, detail, orange)
+	parts[&"torso"] = FigurePainter._samurai_body(ink, detail, orange)
 	for front: bool in [true, false]:
 		var kote: InkBatch = InkBatch.new()
 		var color: Color = ink if front else back_ink
