@@ -5,7 +5,7 @@ extends Resource
 @export var id: StringName = &""
 ## The generated placeholder. It plays when none of `override_paths` exists (a fallback that always works).
 @export var stream: AudioStream
-## Recorded sounds (Kenney and Pixabay, credited in docs/CREDITS.md) that replace the placeholder: one is picked at
+## Recorded sounds (Kenney, Pixabay and Sonniss, recorded in docs/ASSET_LICENSES.md) that replace the placeholder: one is picked at
 ## random each time. A path that does not exist is skipped.
 @export var override_paths: PackedStringArray = PackedStringArray()
 @export_range(-40.0, 12.0) var volume_db: float = 0.0

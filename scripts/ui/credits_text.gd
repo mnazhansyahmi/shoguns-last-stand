@@ -1,8 +1,9 @@
 class_name CreditsText
 extends RefCounted
 ## Turns docs/CREDITS.md into the text the Credits screen shows (BBCode for a RichTextLabel), so the screen
-## shows exactly what the credits file says. Handles what that file uses: "#" and "##" headings, "- " bullets,
-## **bold**, `code` and https links.
+## shows exactly what the credits file says: the creator line and the credits a licence REQUIRES, nothing else (every
+## other asset is recorded in docs/ASSET_LICENSES.md, which the game never loads). Handles what that file uses: "#"
+## and "##" headings, "- " bullets, **bold**, `code` and https links.
 
 const FILE_PATH: String = "res://docs/CREDITS.md"
 ## Shown if the file cannot be read (a build that does not ship docs/). The credits a licence REQUIRES are
@@ -11,17 +12,7 @@ const FALLBACK: String = """# Credits
 
 Created by Muhammad Nazhan Syahmi
 
-## Music
-
-**Free Japanese Fantasy Music Pack** by Momiziba
-
-Free Music : MOMIZizm MUSiC - https://music.storyinvention.com/en/
-
-## Sound effects
-
-**Impact Sounds**, **Interface Sounds** and **RPG Audio** by Kenney (https://www.kenney.nl), CC0.
-
-Sound effects: Pixabay (https://pixabay.com)
+Music: Free Music : MOMIZizm MUSiC - https://music.storyinvention.com/en/
 """
 
 

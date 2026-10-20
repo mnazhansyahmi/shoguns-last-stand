@@ -22,7 +22,7 @@ Godot 4.7.2 game, typed GDScript. The full spec is `docs/MASTER_PROMPT.md`. Work
 - Systems talk through signals; avoid hardcoded cross-scene node paths.
 - Avoid autoload singletons unless a later phase justifies one (document it in `docs/ARCHITECTURE.md`).
 - Visuals are placeholder geometric shapes (Polygon2D/ColorRect).
-- Third-party assets (audio so far) are allowed ONLY if their licence permits commercial use AND they are credited: list every one in `docs/CREDITS.md` (author, licence, required credit line, where it is used), in the same commit as the asset. Keep only the files the game uses; never commit `.zip` archives.
+- Third-party assets (audio so far) are allowed ONLY if their licence permits commercial use. Record every third-party asset in `docs/ASSET_LICENSES.md` (author, licence, where it is used; not shown in the game, not exported), in the same commit as the asset; add it to `docs/CREDITS.md` only if its licence requires attribution (today: the creator line and the Momiziba music line only). Keep only the files the game uses; never commit `.zip` archives.
 - Text files use LF line endings (enforced by `.gitattributes`).
 - Commit `*.uid` files; ignore `.godot/`.
 - Stored node references (targets, projectile sources) can be freed at any time. Check `is_instance_valid(member)` on the member itself before using it or passing it on: passing a freed object into a typed parameter is a script error. Clear the reference when it's invalid.

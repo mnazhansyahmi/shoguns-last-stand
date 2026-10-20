@@ -9,7 +9,7 @@ builds/
 *.ipa
 *.pck
 
-# Downloaded asset archives: unzip what the game uses, credit it in docs/CREDITS.md, never commit the zip
+# Downloaded asset archives: unzip what the game uses, record it in docs/ASSET_LICENSES.md, never commit the zip
 *.zip
 
 # Godot-specific
