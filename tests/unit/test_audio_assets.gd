@@ -33,6 +33,21 @@ func _manager() -> AudioManager:
 	return manager
 
 
+func test_stop_all_releases_players_and_fades_and_is_reusable() -> void:
+	var manager: AudioManager = _manager()
+	manager.play_music_track(&"menu", 0.0)
+	manager.play_music_track(&"boss", 1.6)
+	manager.play_sfx(&"button_click")
+	manager.stop_all()
+	manager.stop_all()
+	assert_eq(manager.current_music, &"", "no current music after cleanup")
+	assert_true(manager.get("_music_tween") == null and manager.get("_ambience_tween") == null, "fade callbacks are released")
+	for node: Node in manager.find_children("*", "AudioStreamPlayer", true, false):
+		var player: AudioStreamPlayer = node as AudioStreamPlayer
+		assert_true(not player.playing and player.stream == null and not player.has_stream_playback(), "%s drops its stream and playback" % player.name)
+	assert_true(manager.play_music_track(&"menu", 0.0), "stop_all is reusable during the game; shutdown is terminal")
+
+
 # --- Music ----------------------------------------------------------------------------
 
 func test_there_are_four_music_slots_and_each_has_a_real_track() -> void:

@@ -83,10 +83,9 @@ godot_console --fixed-fps 60 --path . -s res://tools/perf_battle.gd
 - The seeded stage-1 bot balance smoke run won before and after: 82 seconds, gate 100%,
   one player death. Allies summoned/lost: 12/6 before, 13/7 after. This is one smoke run,
   not a statistical balance claim. `balance_sim.gd` now seeds its probes for repeatability.
-- The original game and final code both report a shutdown leak for the menu MP3
-  `Voice of Evening Calm.mp3`. It occurs after the test runner reports success and is
-  also reproducible on the original game's ordinary `--headless --quit` boot. It was
-  not introduced or fixed by the leg work.
+- The leg implementation originally retained the pre-existing menu MP3 shutdown leak.
+  The follow-up audio fix below resolves it. The full suite also had a separate orphan
+  `SpiritEnergy` fixture; verbose diagnostics identified it as distinct from the MP3 leak.
 - Bow Damage adds 10% per level (five levels); War Cry Duration adds 1 second per level
   (five levels). Both live under Skills, persist purchases and apply through copied
   player stats. Their prices preserve the existing region economy test.
@@ -95,3 +94,33 @@ godot_console --fixed-fps 60 --path . -s res://tools/perf_battle.gd
   prevent stale battle progress being saved again. Cancellation and save isolation are tested.
 - Existing untracked audio files were preserved and excluded from all commits.
   `tools/make_region_1.py` was never run.
+
+## Follow-up: audio ownership and shutdown
+
+`AudioStreamPlayer.stop()` queues playback retirement on the audio mixer. The previous
+helper awaited three main-loop frames, then slept, then quit before another collection
+frame. Ordinary engine quits bypassed that helper entirely. AudioManager now stops players,
+clears their stream references, kills/releases music and ambience tweens, lets the mixer
+retire playback for 100 ms of wall time, and then awaits collection frames. Its exit-tree
+fallback also drains pending playback; shutdown rejects late play requests. This changes
+teardown only, not playback, crossfade timing, volume or effects during the game.
+
+The async ownership probe checks weak references to the actual menu stream and playback,
+including a crossfade with ambience, paused players, repeated stop calls, manager destruction,
+and autoload shutdown. All references were released. No asset, decoder or audio driver was
+replaced and no leak diagnostics were suppressed.
+
+Observed after the audio fix:
+
+- `godot_console --headless --import`: exit 0, no errors.
+- `godot_console --headless --path . -s res://tests/run_tests.gd`: **371 passed, 0 failed**,
+  with no shutdown leaks/errors. The orphan fixture is now owned by the test's cleanup list.
+- `godot_console --headless --path . -s res://tools/check_audio_shutdown.gd`: all ownership
+  and shutdown checks passed; no leaked resources.
+- `godot_console --headless --verbose --quit`: exit 0, no leaked instances/resources.
+- `godot_console --verbose --quit`: exit 0 with the real renderer, no leaked instances/resources.
+
+Godot's [player cleanup](https://github.com/godotengine/godot/blob/master/scene/audio/audio_stream_player_internal.cpp)
+and [mixer retirement](https://github.com/godotengine/godot/blob/master/servers/audio/audio_server.cpp)
+were consulted during diagnosis; the ownership and exit results above were measured locally
+on Godot 4.7.2, rather than inferred from those sources.

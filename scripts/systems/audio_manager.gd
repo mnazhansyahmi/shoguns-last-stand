@@ -19,6 +19,8 @@ const POOL_SIZE: int = 12
 const CLICK_ID: StringName = &"button_click"
 ## Set this meta on a button to silence its click.
 const NO_CLICK_META: StringName = &"no_click_sfx"
+## stop() queues retirement on the real-time mixer. It needs wall time, even at --fixed-fps.
+const MIXER_RETIRE_MSEC: int = 100
 
 static var instance: AudioManager
 
@@ -43,6 +45,8 @@ var _streams: Dictionary = {}
 var _next_player: int = 0
 var _last_played_msec: Dictionary = {}
 var _warned: Dictionary = {}
+var _needs_mixer_drain: bool = false
+var _shutting_down: bool = false
 
 
 ## Plays `id` through the active manager. Returns false if nothing was played.
@@ -74,24 +78,30 @@ func _exit_tree() -> void:
 	if instance == self:
 		instance = null
 	stop_all()
+	# Also covers OS/engine quits, which do not pass through the menu's async quit handler.
+	_drain_mixer()
 
 
 ## Call before quitting: stops all sounds and gives the audio thread time to release them
 ## (otherwise Godot reports still-playing streams as leaked at exit).
 static func shutdown_audio(tree: SceneTree) -> void:
 	if is_instance_valid(instance):
+		instance._shutting_down = true
 		instance.stop_all()
+		instance._drain_mixer()
+	# Let the main thread collect retired mixer entries AFTER the mixer has released them.
 	for i: int in 3:
 		await tree.process_frame
-	OS.delay_msec(100)
 
 
 ## Stops every sound and drops the streams, so nothing is left playing (or leaked) at exit.
 func stop_all() -> void:
 	if _music_tween != null:
 		_music_tween.kill()
+		_music_tween = null
 	if _ambience_tween != null:
 		_ambience_tween.kill()
+		_ambience_tween = null
 	var all_players: Array[AudioStreamPlayer] = _players + _music_players
 	all_players.append(_ambience_player)
 	for player: AudioStreamPlayer in all_players:
@@ -99,6 +109,12 @@ func stop_all() -> void:
 			player.stop()
 			player.stream = null
 	current_music = &""
+
+
+func _drain_mixer() -> void:
+	if _needs_mixer_drain:
+		OS.delay_msec(MIXER_RETIRE_MSEC)
+		_needs_mixer_drain = false
 
 
 func _ready() -> void:
@@ -178,6 +194,8 @@ func has_sfx(id: StringName) -> bool:
 
 
 func play_sfx(id: StringName, pitch_scale: float = 1.0) -> bool:
+	if _shutting_down:
+		return false
 	var entry: SfxEntry = library.find(id) if library != null else null
 	if entry == null or entry.stream == null:
 		if not _warned.has(id):
@@ -193,6 +211,7 @@ func play_sfx(id: StringName, pitch_scale: float = 1.0) -> bool:
 	player.stream = choices.pick_random() as AudioStream if not choices.is_empty() else entry.stream
 	player.volume_db = entry.volume_db
 	player.pitch_scale = maxf(pitch_scale * (1.0 + randf_range(-entry.pitch_variation, entry.pitch_variation)), 0.05)
+	_needs_mixer_drain = true
 	player.play()
 	last_played = id
 	play_count += 1
@@ -219,6 +238,8 @@ func _stop_if_current(player_id: int, token: int) -> void:
 
 ## See the static play_music().
 func play_music_track(id: StringName, fade: float = MUSIC_FADE_TIME) -> bool:
+	if _shutting_down:
+		return false
 	if id == current_music and _music_players.size() == 2 and _music_players[_music_active].playing:
 		return true
 	var entry: MusicEntry = music_library.find(id) if music_library != null else null
@@ -235,6 +256,7 @@ func play_music_track(id: StringName, fade: float = MUSIC_FADE_TIME) -> bool:
 	var incoming: AudioStreamPlayer = _music_players[_music_active]
 	incoming.stream = stream
 	incoming.volume_db = entry.volume_db if fade <= 0.0 else MUSIC_SILENT_DB
+	_needs_mixer_drain = true
 	incoming.play()
 	if _music_tween != null:
 		_music_tween.kill()

@@ -152,7 +152,8 @@ func test_spirit_capacity_adds_25_energy_per_level_for_four_levels() -> void:
 	assert_almost_eq(upgrade.amount_per_level, 25.0, "+25 a level")
 	assert_true(upgrade.describe_bonus(2).contains("50"), "the shop shows the total (%s)" % upgrade.describe_bonus(2))
 	assert_true(upgrade.get_cost(0) > 0 and upgrade.get_cost(3) > upgrade.get_cost(0) and upgrade.get_cost(4) == -1, "it costs more each level and stops at four")
-	assert_almost_eq(SpiritEnergy.new().max_energy, 200.0, "the pool starts at 200 (it was 150)")
+	var energy: SpiritEnergy = track(SpiritEnergy.new()) as SpiritEnergy
+	assert_almost_eq(energy.max_energy, 200.0, "the pool starts at 200 (it was 150)")
 	for level: int in range(0, 5):
 		var progress: PlayerProgress = PlayerProgress.new()
 		progress.set_upgrade_level("spirit_capacity", level)
