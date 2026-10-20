@@ -8,6 +8,8 @@ extends RefCounted
 ## Coordinates are figure units (see FigureKinds).
 
 const KATANA_LENGTH: float = 70.0
+## The Onmyoji's staff: its top (where the fireball is lit) along the weapon.
+const ONMYOJI_STAFF_TIP: float = 58.0
 const BOW_UPPER: float = 64.0
 const BOW_LOWER: float = 34.0
 ## The bow's shape is cached at this many draw positions.
@@ -256,7 +258,7 @@ static func glows(kind: InkFigure.Kind) -> Array[Dictionary]:
 			_add_glow(merged, &"torso", Vector2(0.0, -20.0), 100.0, Color(InkPalette.DAIMYO_CURSE, 0.11), &"fall", 0.3, 3)
 		InkFigure.Kind.ONMYOJI:
 			# The seal on the talisman burns, flickering like a candle.
-			_add_glow(merged, &"weapon", Vector2(20.0, 0.0), 11.0, Color(InkPalette.ONMYOJI_MAGENTA, 0.48), &"fall", 0.6)
+			_add_glow(merged, &"weapon", Vector2(ONMYOJI_STAFF_TIP, 0.0), 13.0, Color(InkPalette.HATAMOTO_ORANGE, 0.55), &"fall", 0.6)
 		InkFigure.Kind.HATAMOTO:
 			# The mon on the banner.
 			_add_glow(merged, &"banner", Vector2(-23.0, -79.0), 12.0, Color(InkPalette.HATAMOTO_ORANGE, 0.32), &"fall", 0.35)

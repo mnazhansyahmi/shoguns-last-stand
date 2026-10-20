@@ -30,6 +30,14 @@ func _enemy(x: float) -> Enemy:
 	return enemy
 
 
+## Fireballs and explosions are added next to the fighters, not tracked: clear them after each test.
+func cleanup() -> void:
+	for node: Node in tree_root.get_children():
+		if node is Fireball or node is FireBurst:
+			node.free()
+	super.cleanup()
+
+
 func _tick(unit: CharacterBody2D, seconds: float) -> void:
 	for i: int in ceili(seconds / STEP):
 		unit._physics_process(STEP)
@@ -42,7 +50,13 @@ func _tick_until(units: Array, done: Callable, max_seconds: float = 4.0) -> bool
 			return true
 		for unit: CharacterBody2D in units:
 			if is_instance_valid(unit):
+				# No floor in the tests: keep units on the ground line so a fireball flies level.
+				unit.global_position.y = 880.0
+				unit.velocity.y = 0.0
 				unit._physics_process(STEP)
+		for node: Node in tree_root.get_children():
+			if node is Fireball and is_instance_valid(node):
+				node._physics_process(STEP)
 	return done.call()
 
 
@@ -195,7 +209,7 @@ func test_guardian_is_a_tank() -> void:
 
 # --- Onmyoji --------------------------------------------------------------------
 
-func test_onmyoji_burst_hits_every_enemy_around_the_target_once() -> void:
+func test_onmyoji_fireball_explodes_on_every_enemy_around_the_target_once() -> void:
 	var data: AllyData = ROSTER.find("onmyoji")
 	var mage: Ally = _ally("onmyoji", 400.0)
 	var first: Enemy = _enemy(800.0)
@@ -204,13 +218,13 @@ func test_onmyoji_burst_hits_every_enemy_around_the_target_once() -> void:
 	var outside: Enemy = _enemy(800.0 + data.area_radius + 150.0)
 	var friend: Ally = _ally("ashigaru", 790.0)
 	var units: Array = [mage]
-	assert_true(_tick_until(units, func() -> bool: return _health(first).current_health < HOLLOW_SOLDIER.max_health, 4.0), "the Onmyoji casts at the nearest enemy")
+	assert_true(_tick_until(units, func() -> bool: return _health(first).current_health < HOLLOW_SOLDIER.max_health, 5.0), "the Onmyoji's fireball reaches the nearest enemy")
 	var expected: float = HOLLOW_SOLDIER.max_health - data.attack_damage
-	assert_almost_eq(_health(first).current_health, expected, "the target takes the burst damage")
+	assert_almost_eq(_health(first).current_health, expected, "the target takes the blast damage")
 	assert_almost_eq(_health(second).current_health, expected, "so does an enemy beside it")
 	assert_almost_eq(_health(third).current_health, expected, "and one inside the radius")
 	assert_eq(_health(outside).current_health, HOLLOW_SOLDIER.max_health, "an enemy outside the radius is untouched")
-	assert_eq(_health(friend).current_health, ROSTER.find("ashigaru").max_health, "allies are never hurt by the burst")
+	assert_eq(_health(friend).current_health, ROSTER.find("ashigaru").max_health, "allies are never hurt by the blast")
 
 
 func test_onmyoji_keeps_to_range_and_stands_behind_the_front_line() -> void:

@@ -171,14 +171,19 @@ static func _build_onmyoji(parts: Dictionary) -> void:
 	torso.fill_convex(PackedVector2Array([Vector2(-9.0, -3.5), Vector2(9.2, -3.5), Vector2(9.0, -8.0), Vector2(-9.3, -8.0)]), magenta)
 	parts[&"torso"] = torso
 
-	# Ofuda: a paper talisman held by its end; the seal on it is the accent.
-	var ofuda: InkBatch = InkBatch.new()
-	ofuda.limb(Vector2(-6.0, 0.0), Vector2(3.0, 0.0), 3.0, 3.0, ink)
-	ofuda.fill_convex(PackedVector2Array([Vector2(3.0, -6.0), Vector2(34.0, -6.4), Vector2(34.0, 6.4), Vector2(3.0, 6.0)]), InkPalette.PAPER)
-	ofuda.stroke(PackedVector2Array([Vector2(8.0, -2.2), Vector2(15.0, 2.4), Vector2(22.0, -2.2), Vector2(29.0, 2.4)]), 2.6, 2.6, magenta)
-	ofuda.limb(Vector2(11.0, -4.5), Vector2(27.0, -4.5), 1.4, 1.4, magenta)
-	ofuda.limb(Vector2(11.0, 4.5), Vector2(27.0, 4.5), 1.4, 1.4, magenta)
-	parts[&"weapon"] = ofuda
+	# The staff: a long wooden shaft with a hanging paper talisman (its seal is the accent) and a cup at the top
+	# where the fireball is lit (a little flame always burns there).
+	var staff: InkBatch = InkBatch.new()
+	staff.limb(Vector2(-14.0, 0.0), Vector2(FigurePainter.ONMYOJI_STAFF_TIP - 6.0, 0.0), 3.6, 3.0, ink)
+	staff.fill_convex(PackedVector2Array([Vector2(46.0, -3.0), Vector2(63.0, -6.0), Vector2(63.0, 6.0), Vector2(46.0, 3.0)]), ink)
+	staff.stroke(PackedVector2Array([Vector2(47.0, -3.4), Vector2(62.0, -6.4)]), 1.5, 1.5, magenta)
+	staff.stroke(PackedVector2Array([Vector2(47.0, 3.4), Vector2(62.0, 6.4)]), 1.5, 1.5, magenta)
+	staff.fill_convex(PackedVector2Array([Vector2(60.0, -4.6), Vector2(72.0, 0.0), Vector2(60.0, 4.6), Vector2(64.0, 0.0)]), InkPalette.HATAMOTO_ORANGE)
+	staff.fill_convex(PackedVector2Array([Vector2(60.0, -2.4), Vector2(67.0, 0.0), Vector2(60.0, 2.4)]), InkPalette.PAPER)
+	staff.fill_convex(PackedVector2Array([Vector2(26.0, 1.5), Vector2(38.0, 1.5), Vector2(38.0, 9.0), Vector2(26.0, 9.0)]), InkPalette.PAPER)
+	staff.limb(Vector2(28.0, 3.0), Vector2(36.0, 7.5), 1.6, 1.6, magenta)
+	staff.limb(Vector2(26.0, 0.0), Vector2(26.0, 2.0), 1.4, 1.4, magenta)
+	parts[&"weapon"] = staff
 
 
 # --- Hatamoto ---------------------------------------------------------------

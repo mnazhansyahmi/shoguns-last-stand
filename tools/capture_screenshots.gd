@@ -25,6 +25,8 @@ var _locked: bool = false
 var _skills: bool = false
 ## --fight: also capture the samurai cutting into enemies: blood in the air, then the stains on the ground.
 var _fight: bool = false
+## --fireball: also film the Onmyoji's fireball (windup, flight, explosion) in the staged battle.
+var _fireball: bool = false
 ## --stage=N: play the staged battle on that Region 1 stage (its own sky theme).
 var _stage_number: int = 1
 
@@ -50,6 +52,8 @@ func _initialize() -> void:
 			_skills = true
 		elif arg == "--fight":
 			_fight = true
+		elif arg == "--fireball":
+			_fireball = true
 		elif arg.begins_with("--stage="):
 			_stage_number = arg.trim_prefix("--stage=").to_int()
 	DirAccess.make_dir_recursive_absolute(_out_dir)
@@ -201,6 +205,8 @@ func _capture_battle() -> void:
 		await _frames(22)
 		await _capture("battle_war_cry")
 		await _frames(30)
+	if _fireball:
+		await _capture_fireball(field)
 	if _fight:
 		await _capture_fight(field, player)
 	Input.action_press("spirit_slash")
@@ -216,6 +222,23 @@ func _capture_battle() -> void:
 	if _only != "battle":
 		await _capture_ultimate(field, spawner)
 	field.free()
+
+
+## The Onmyoji casting at a group: filmed every few frames from the windup to the explosion.
+func _capture_fireball(field: Node) -> void:
+	var mage: Node2D = null
+	for node: Node in field.get_tree().get_nodes_in_group("allies"):
+		if node is Ally and (node as Ally).data.id == "onmyoji":
+			mage = node as Node2D
+	if mage == null:
+		return
+	mage.global_position.x = 600.0
+	var enemies: Array[Node] = field.get_tree().get_nodes_in_group("enemies")
+	for i: int in enemies.size():
+		(enemies[i] as Node2D).global_position.x = 1000.0 + float(i) * 70.0
+	for i: int in 16:
+		await _frames(5)
+		await _capture("fireball_%02d" % i)
 
 
 ## The samurai in the middle of a fight: light cuts, a heavy blow and the Spirit Slash into a line of enemies, then

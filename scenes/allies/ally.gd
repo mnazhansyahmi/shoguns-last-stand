@@ -67,7 +67,6 @@ var _attack_cooldown_left: float = 0.0
 var _target: Enemy
 var _scan_timer: float = 0.0
 var _heal_target: Ally
-var _area_hitbox: HitboxComponent
 var _gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity", 980.0)
 
 
@@ -350,7 +349,7 @@ func _process_attack(delta: float) -> void:
 				if data.role == AllyData.Role.HEALER:
 					_cast_heal()
 				elif data.role == AllyData.Role.MAGE:
-					_cast_burst()
+					_launch_fireball()
 				elif data.is_ranged:
 					_fire_arrow()
 				else:
@@ -382,31 +381,22 @@ func _cast_heal() -> void:
 					"+%d" % roundi(restored), InkPalette.JADE)
 
 
-## Bursts every enemy within area_radius of the current target (or of a point ahead if the
-## target is gone). The damage goes through the normal hitbox validation, once per enemy.
-func _cast_burst() -> void:
+## Launches a fireball from the tip of the staff at the current target (or at a point ahead if there is none). It
+## explodes where it lands and burns every enemy within area_radius of that spot (see Fireball).
+func _launch_fireball() -> void:
 	var target: Enemy = get_target()
-	var center_x: float = target.global_position.x if target != null else global_position.x + float(facing) * data.attack_range * 0.6
-	if _area_hitbox == null:
-		_area_hitbox = HitboxComponent.new()
-		_area_hitbox.name = "AreaHitbox"
-		_area_hitbox.faction = Faction.Type.DEFENDERS
-		_area_hitbox.source = self
-		add_child(_area_hitbox)
-	_area_hitbox.global_position = Vector2(center_x, global_position.y)
-	_area_hitbox.activate(data.attack_damage * _attack.damage_multiplier * _war_cry_damage, _attack.knockback, -1.0, _attack.heavy)
-	for node: Node in get_tree().get_nodes_in_group("enemies"):
-		var enemy: Enemy = node as Enemy
-		if enemy == null or not enemy.is_inside_tree() or enemy.is_dead():
-			continue
-		if absf(enemy.global_position.x - center_x) <= data.area_radius + enemy.get_half_width():
-			_area_hitbox.try_hit(enemy.get_hurtbox())
-	_area_hitbox.deactivate()
-	AudioManager.play(&"magic_burst")
-	var burst: SpellBurst = SpellBurst.new()
-	burst.setup(data.area_radius)
-	get_parent().add_child(burst)
-	burst.global_position = Vector2(center_x, global_position.y)
+	var figure: InkFigure = _visual.get_figure()
+	# The staff comes forward as he casts: the ball leaves the tip where it ends up.
+	var tip: Vector2 = figure.weapon_points_for(FigureKinds.pose(data.figure, &"strike"), FigurePainter.ONMYOJI_STAFF_TIP,
+			FigurePainter.ONMYOJI_STAFF_TIP)[0]
+	var aim: Vector2 = Vector2(global_position.x + float(facing) * data.attack_range * 0.6, global_position.y - 50.0)
+	if target != null:
+		aim = target.global_position + Vector2(0.0, -50.0)
+	var ball: Fireball = Fireball.new()
+	ball.setup(self, data.attack_damage * _attack.damage_multiplier * _war_cry_damage, _attack.knockback, data.area_radius, target, aim)
+	get_parent().add_child(ball)
+	ball.global_position = figure.to_global(tip)
+	AudioManager.play(&"dash", 1.6)
 
 
 func _fire_arrow() -> void:
