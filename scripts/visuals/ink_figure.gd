@@ -100,6 +100,15 @@ var _hem_part: FigurePart
 var _hem_key: int = -1
 var _blade_glow_part: FigurePart
 var _slot_xf: Array[Transform2D] = []
+var _has_armour: bool = false
+var _has_skirt: bool = false
+var _has_hakama: bool = false
+var _arm_front_key: Vector2 = Vector2(INF, INF)
+var _arm_back_key: Vector2 = Vector2(INF, INF)
+var _upper_front: Transform2D
+var _fore_front: Transform2D
+var _upper_back: Transform2D
+var _fore_back: Transform2D
 
 
 func _ready() -> void:
@@ -116,6 +125,9 @@ static func additive_material() -> CanvasItemMaterial:
 func set_kind(value: Kind) -> void:
 	kind = value
 	spec = FigureKinds.spec(value)
+	gait.reset()
+	_arm_front_key = Vector2(INF, INF)
+	_arm_back_key = Vector2(INF, INF)
 	secondary = SecondaryMotion.new(spec.loose_armour) if spec.cloth or spec.loose_armour else null
 	pose.copy_from(FigureKinds.pose(value, &"idle"))
 	if is_inside_tree():
@@ -171,7 +183,8 @@ func get_part_count() -> int:
 func _root_for(for_pose: FigurePose) -> Transform2D:
 	var s: float = get_unit_scale()
 	var lift: float = fall * spec.lie_lift
-	return Transform2D(fall * FALL_ANGLE, Vector2(s, s * maxf(squash, 0.05)), 0.0,
+	# Spawn squash belongs to the upper body. Scaling the leg frame would shorten its bones.
+	return Transform2D(fall * FALL_ANGLE, Vector2(s, s), 0.0,
 			Vector2(for_pose.offset_x * s, -lift * s))
 
 
@@ -201,12 +214,19 @@ func refresh() -> void:
 		hip.y = -LegIK.SOLE - sqrt(maxf(0.0, reach * reach - dx * dx))
 		if spec.heavy_gait:
 			hip.y += 0.65 * (1.0 + sin(clock * 2.1))
+	elif gait_enabled:
+		# The support leg carries a high pelvis. Only the passing/swing leg needs a deep bend.
+		var support: Vector2 = front_ankle if gait.planted[0] else back_ankle
+		var support_hip_x: float = hip.x + (2.0 if gait.planted[0] else -2.0)
+		var support_dx: float = support.x - support_hip_x
+		var standing_reach: float = spec.thigh + spec.shin - 0.5 - gait.run_weight
+		hip.y = support.y - sqrt(maxf(0.0, standing_reach * standing_reach - support_dx * support_dx)) - bob
 	hip = LegIK.fit_hip(hip, front_ankle, back_ankle, spec.thigh, spec.shin)
 	front_knee = LegIK.knee(hip + Vector2(2.0, 0.0), front_ankle, spec.thigh, spec.shin)
 	back_knee = LegIK.knee(hip + Vector2(-2.0, 0.0), back_ankle, spec.thigh, spec.shin)
 
 	_lift_fallen_legs()
-	torso_xf = root_xf * Transform2D(pose.lean + (gait.counter_turn if gait_enabled else 0.0), Vector2(1.0, 1.0 + spec.breath_amp * breath), 0.0, hip)
+	torso_xf = root_xf * Transform2D(pose.lean + (gait.counter_turn if gait_enabled else 0.0), Vector2(1.0, (1.0 + spec.breath_amp * breath) * maxf(squash, 0.05)), 0.0, hip)
 	head_xf = torso_xf * Transform2D(pose.head_tilt + breath * 0.02, spec.neck)
 	weapon_local = Transform2D(pose.blade, pose.grip)
 	weapon_xf = torso_xf * weapon_local
@@ -223,8 +243,18 @@ func refresh() -> void:
 		back_hand = back_hand.lerp(Vector2(-12.0, -30.0), pose.release)
 	else:
 		back_hand = pose.back_grip
-	front_elbow = InkBrush.solve_joint(spec.shoulder_front, front_hand, spec.upper_arm, spec.fore_arm, 1.0)
-	back_elbow = InkBrush.solve_joint(spec.shoulder_back, back_hand, spec.upper_arm, spec.fore_arm, 1.0)
+	# Breathing and counter-rotation move the whole torso, not the arm joints within it.
+	# Cache those local solutions until the grip actually changes (sub-pixel tolerance).
+	if front_hand.distance_squared_to(_arm_front_key) > 0.000001:
+		_arm_front_key = front_hand
+		front_elbow = InkBrush.solve_joint(spec.shoulder_front, front_hand, spec.upper_arm, spec.fore_arm, 1.0)
+		_upper_front = _segment_xf(Transform2D.IDENTITY, spec.shoulder_front, front_elbow, spec.upper_arm)
+		_fore_front = _segment_xf(Transform2D.IDENTITY, front_elbow, front_hand, spec.fore_arm)
+	if back_hand.distance_squared_to(_arm_back_key) > 0.000001:
+		_arm_back_key = back_hand
+		back_elbow = InkBrush.solve_joint(spec.shoulder_back, back_hand, spec.upper_arm, spec.fore_arm, 1.0)
+		_upper_back = _segment_xf(Transform2D.IDENTITY, spec.shoulder_back, back_elbow, spec.upper_arm)
+		_fore_back = _segment_xf(Transform2D.IDENTITY, back_elbow, back_hand, spec.fore_arm)
 
 	_step_secondary()
 	if _parts.is_empty():
@@ -360,8 +390,8 @@ func _step_secondary() -> void:
 ## One transform per FigurePainter.Slot, from the solved skeleton.
 func _update_slots() -> void:
 	var s: float = get_unit_scale()
-	_slot_xf[FigurePainter.Slot.SHADOW] = Transform2D(0.0, Vector2(s * (1.0 + fall * 0.9), s), 0.0, Vector2(pose.offset_x * s, 0.0))
-	_slot_xf[FigurePainter.Slot.MARKER] = Transform2D(0.0, Vector2(s, s), 0.0, Vector2.ZERO)
+	if ground_marker.a > 0.0:
+		_slot_xf[FigurePainter.Slot.MARKER] = Transform2D(0.0, Vector2(s, s), 0.0, Vector2.ZERO)
 	_slot_xf[FigurePainter.Slot.LOCAL] = Transform2D.IDENTITY
 	_slot_xf[FigurePainter.Slot.THIGH_F] = _segment_xf(root_xf, hip + Vector2(2.0, 0.0), front_knee, spec.thigh)
 	_slot_xf[FigurePainter.Slot.SHIN_F] = _segment_xf(root_xf, front_knee, front_ankle, spec.shin)
@@ -369,31 +399,35 @@ func _update_slots() -> void:
 	_slot_xf[FigurePainter.Slot.THIGH_B] = _segment_xf(root_xf, hip + Vector2(-2.0, 0.0), back_knee, spec.thigh)
 	_slot_xf[FigurePainter.Slot.SHIN_B] = _segment_xf(root_xf, back_knee, back_ankle, spec.shin)
 	_slot_xf[FigurePainter.Slot.FOOT_B] = root_xf * Transform2D(gait.heel[1] if gait_enabled else 0.0, back_ankle)
-	# Hakama legs span the whole leg, hip to ankle, and swing a little about the hip.
-	var hip_front: Vector2 = hip + Vector2(2.0, 0.0)
-	var hip_back: Vector2 = hip + Vector2(-2.0, 0.0)
-	var swing_front: float = secondary.leg_front.value if secondary != null else 0.0
-	var swing_back: float = secondary.leg_back.value if secondary != null else 0.0
-	_slot_xf[FigurePainter.Slot.HAKAMA_F] = _segment_xf(root_xf, hip_front, hip_front + (front_ankle - hip_front).rotated(swing_front), spec.thigh + spec.shin)
-	_slot_xf[FigurePainter.Slot.HAKAMA_B] = _segment_xf(root_xf, hip_back, hip_back + (back_ankle - hip_back).rotated(swing_back), spec.thigh + spec.shin)
-	_slot_xf[FigurePainter.Slot.UPPER_F] = _segment_xf(torso_xf, spec.shoulder_front, front_elbow, spec.upper_arm)
-	_slot_xf[FigurePainter.Slot.FORE_F] = _segment_xf(torso_xf, front_elbow, front_hand, spec.fore_arm)
+	if _has_hakama:
+		# Hakama legs span the whole leg, hip to ankle, and swing a little about the hip.
+		var hip_front: Vector2 = hip + Vector2(2.0, 0.0)
+		var hip_back: Vector2 = hip + Vector2(-2.0, 0.0)
+		var swing_front: float = secondary.leg_front.value if secondary != null else 0.0
+		var swing_back: float = secondary.leg_back.value if secondary != null else 0.0
+		_slot_xf[FigurePainter.Slot.HAKAMA_F] = _segment_xf(root_xf, hip_front, hip_front + (front_ankle - hip_front).rotated(swing_front), spec.thigh + spec.shin)
+		_slot_xf[FigurePainter.Slot.HAKAMA_B] = _segment_xf(root_xf, hip_back, hip_back + (back_ankle - hip_back).rotated(swing_back), spec.thigh + spec.shin)
+	_slot_xf[FigurePainter.Slot.UPPER_F] = torso_xf * _upper_front
+	_slot_xf[FigurePainter.Slot.FORE_F] = torso_xf * _fore_front
 	_slot_xf[FigurePainter.Slot.HAND_F] = torso_xf * Transform2D(0.0, front_hand)
-	_slot_xf[FigurePainter.Slot.UPPER_B] = _segment_xf(torso_xf, spec.shoulder_back, back_elbow, spec.upper_arm)
-	_slot_xf[FigurePainter.Slot.FORE_B] = _segment_xf(torso_xf, back_elbow, back_hand, spec.fore_arm)
+	_slot_xf[FigurePainter.Slot.UPPER_B] = torso_xf * _upper_back
+	_slot_xf[FigurePainter.Slot.FORE_B] = torso_xf * _fore_back
 	_slot_xf[FigurePainter.Slot.HAND_B] = torso_xf * Transform2D(0.0, back_hand)
 	_slot_xf[FigurePainter.Slot.TORSO] = torso_xf
 	_slot_xf[FigurePainter.Slot.HEAD] = head_xf
 	_slot_xf[FigurePainter.Slot.WEAPON] = weapon_xf
-	# The pauldrons hang from the shoulder and swing with the upper arm (and lag behind it).
-	var front_angle: float = secondary.sode_front.value if secondary != null and secondary.loose_armour else _arm_swing(front_elbow - spec.shoulder_front)
-	var back_angle: float = secondary.sode_back.value if secondary != null and secondary.loose_armour else _arm_swing(back_elbow - spec.shoulder_back)
-	_slot_xf[FigurePainter.Slot.PAULDRON_FRONT] = torso_xf * Transform2D(front_angle, spec.shoulder_front)
-	_slot_xf[FigurePainter.Slot.PAULDRON_BACK] = torso_xf * Transform2D(back_angle, spec.shoulder_back + Vector2(-2.0, -1.0))
-	# The skirt (hakama front panel, tassets, sash, scabbard) swings about the waist.
-	var skirt_swing: float = secondary.skirt.value if secondary != null else 0.0
-	var waist: Vector2 = Vector2(0.0, -3.0)
-	_slot_xf[FigurePainter.Slot.SKIRT] = torso_xf * Transform2D(0.0, waist) * Transform2D(skirt_swing, Vector2.ZERO) * Transform2D(0.0, -waist)
+	if _has_armour:
+		# The pauldrons hang from the shoulder and swing with the upper arm (and lag behind it).
+		var front_angle: float = secondary.sode_front.value if secondary != null and secondary.loose_armour else _arm_swing(front_elbow - spec.shoulder_front)
+		var back_angle: float = secondary.sode_back.value if secondary != null and secondary.loose_armour else _arm_swing(back_elbow - spec.shoulder_back)
+		_slot_xf[FigurePainter.Slot.PAULDRON_FRONT] = torso_xf * Transform2D(front_angle, spec.shoulder_front)
+		_slot_xf[FigurePainter.Slot.PAULDRON_BACK] = torso_xf * Transform2D(back_angle, spec.shoulder_back + Vector2(-2.0, -1.0))
+	if _has_skirt:
+		# The skirt (hakama front panel, tassets, sash, scabbard) swings about the waist.
+		var skirt_swing: float = secondary.skirt.value if secondary != null else 0.0
+		var waist: Vector2 = Vector2(0.0, -3.0)
+		_slot_xf[FigurePainter.Slot.SKIRT] = torso_xf * Transform2D(0.0, waist) * Transform2D(skirt_swing, Vector2.ZERO) * Transform2D(0.0, -waist)
+
 
 
 ## The swing of a shoulder guard for the direction of its upper arm.
@@ -405,7 +439,8 @@ static func _arm_swing(to_elbow: Vector2) -> float:
 ## Stretches it if the joints are further apart than the limb (an unreachable IK target).
 static func _segment_xf(space: Transform2D, a: Vector2, b: Vector2, length: float) -> Transform2D:
 	var offset: Vector2 = b - a
-	return space * Transform2D(offset.angle(), Vector2(maxf(offset.length(), 0.001) / length, 1.0), 0.0, a)
+	var direction: Vector2 = offset.normalized()
+	return space * Transform2D(offset / length, Vector2(-direction.y, direction.x), a)
 
 
 ## The figure node itself draws only the ground shadow, once (it doesn't follow the pose).
@@ -438,6 +473,9 @@ func _build_parts() -> void:
 	_blade_glow_part = null
 	_slot_xf.resize(FigurePainter.Slot.size())
 	var order: Array[StringName] = FigurePainter.layout(kind)
+	_has_armour = order.has(&"pauldron_front")
+	_has_skirt = order.has(&"skirt")
+	_has_hakama = order.has(&"hakama_f")
 	if ground_marker.a > 0.0:
 		order.insert(0, &"marker")
 	var by_name: Dictionary = {}

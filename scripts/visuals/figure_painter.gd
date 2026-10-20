@@ -73,7 +73,9 @@ static func ground_contacts(kind: InkFigure.Kind) -> GroundContacts:
 static func weapon_points(kind: InkFigure.Kind) -> PackedVector2Array:
 	if not _weapon_points.has(kind):
 		var batch: InkBatch = part(kind, &"weapon")
-		_weapon_points[kind] = _original_vertices(batch) if batch != null else PackedVector2Array()
+		# Only hull vertices can be lowest after a rigid rotation. Interior armour/weapon detail
+		# must not turn every figure refresh into hundreds of redundant ground queries.
+		_weapon_points[kind] = Geometry2D.convex_hull(_original_vertices(batch)) if batch != null else PackedVector2Array()
 	return _weapon_points[kind]
 
 

@@ -74,7 +74,7 @@ func step(frame: Transform2D, spec: FigureKinds.Spec, delta: float) -> void:
 			targets[side].y = 0.0
 			heel[side] = 0.0
 	# contact/down/passing/up: two compressions and rises per full left/right cycle.
-	var wave: float = cos(phase * TAU * 2.0)
+	var wave: float = -sin(phase * TAU * 2.0)
 	bob = (0.6 + run_weight * 1.4) * wave if moving else 0.0
 	var support_x: float = targets[0].x if planted[0] else targets[1].x
 	hip_shift = clampf(support_x * 0.12, -1.4, 1.4) if moving else (targets[0].x + targets[1].x) * 0.5

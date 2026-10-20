@@ -47,6 +47,7 @@ var _taps_this_frame: Array[StringName] = []
 
 
 func _initialize() -> void:
+	seed(1337)
 	_run()
 
 

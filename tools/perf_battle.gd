@@ -16,11 +16,13 @@ const DATA_DIR: String = "user://perf"
 const ENEMIES: int = 30
 const WARMUP_FRAMES: int = 120
 const MEASURE_FRAMES: int = 900
+const FRAME_BUDGET_MS: float = 8.0
 
 var _flags: PackedStringArray = PackedStringArray()
 
 
 func _initialize() -> void:
+	seed(1337)
 	_flags = OS.get_cmdline_user_args()
 	DirAccess.make_dir_recursive_absolute(DATA_DIR)
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
@@ -88,6 +90,8 @@ func _run() -> void:
 			spawner.get_alive_count(), summoner.get_ally_count(), sorted.size()])
 	print("frame ms: avg %.2f  p95 %.2f  max %.2f | render cpu avg %.2f  gpu avg %.2f" % [total / count,
 			sorted[int(count * 0.95)], sorted[sorted.size() - 1], render_cpu / count, render_gpu / count])
+	var within_budget: bool = total / count < FRAME_BUDGET_MS
+	print("%s: average frame budget < %.2f ms" % ["PASS" if within_budget else "FAIL", FRAME_BUDGET_MS])
 	field.free()
 	await AudioManager.shutdown_audio(self)
-	quit(0)
+	quit(0 if within_budget else 1)
