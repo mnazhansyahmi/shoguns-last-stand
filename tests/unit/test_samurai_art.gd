@@ -141,3 +141,28 @@ func test_bows_are_slim_painted_wood() -> void:
 	figure.kind = InkFigure.Kind.HATAMOTO
 	add_to_tree(figure)
 	assert_true(figure.has_node("banner") and figure.has_node("hem"), "the sashimono keeps its pole and its painted flag")
+
+
+func test_every_head_stays_on_its_body_in_every_pose() -> void:
+	var states: Array[StringName] = [&"idle", &"run", &"windup", &"heavy_windup", &"strike", &"cast", &"dash", &"hurt", &"dead"]
+	for kind: int in InkFigure.Kind.size():
+		for state: StringName in states:
+			var visual: UnitVisual = UnitVisual.new()
+			add_to_tree(visual)
+			visual.configure(kind as InkFigure.Kind, 100.0)
+			visual.set_process(false)
+			visual.play_state(&"idle")
+			for i: int in 20: visual._process(1.0 / 60.0)
+			visual.play_state(state)
+			for i: int in 20: visual._process(1.0 / 60.0)
+			var figure: InkFigure = visual.get_figure()
+			var head: Node2D = figure.get_node("head")
+			var torso: Node2D = figure.get_node("torso")
+			var painted: bool = kind == InkFigure.Kind.SAMURAI
+			var head_shape: PackedVector2Array = SamuraiSpriteArt.bounds(&"head") if painted else RosterSpriteArt.bounds(kind as InkFigure.Kind, &"head")
+			var torso_shape: PackedVector2Array = SamuraiSpriteArt.bounds(&"torso") if painted else RosterSpriteArt.bounds(kind as InkFigure.Kind, &"torso")
+			var on_torso: PackedVector2Array = (torso.transform.affine_inverse() * head.transform) * head_shape
+			var overlap: float = 0.0
+			for shared: PackedVector2Array in Geometry2D.intersect_polygons(on_torso, torso_shape):
+				overlap += absf(SamuraiSpriteArt._area(shared))
+			assert_true(overlap >= 4.0, "%s %s: the head sits on the body (%.1f units² overlap)" % [InkFigure.Kind.keys()[kind], state, overlap])

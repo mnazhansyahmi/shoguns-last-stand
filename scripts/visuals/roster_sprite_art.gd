@@ -18,17 +18,20 @@ const CELLS: Dictionary = {
 	&"foot_f": 12, &"foot_b": 13,
 	&"pauldron_front": 4, &"pauldron_back": 8,
 }
+## Where each painted head sits on its neck pivot: low enough that its neck tucks into the collar in every pose
+## (a test checks the head and torso shapes overlap).
 const HEAD_RECTS: Dictionary = {
 	InkFigure.Kind.ASHIGARU: Rect2(-14, -21, 28, 23),
-	InkFigure.Kind.YUMI_ARCHER: Rect2(-10, -20, 22, 22),
-	InkFigure.Kind.SHRINE_HEALER: Rect2(-10, -22, 22, 24),
-	InkFigure.Kind.SPEAR_GUARDIAN: Rect2(-13, -31, 29, 33),
-	InkFigure.Kind.ONMYOJI: Rect2(-11, -29, 22, 31),
+	InkFigure.Kind.YUMI_ARCHER: Rect2(-10, -18, 22, 22),
+	InkFigure.Kind.SHRINE_HEALER: Rect2(-10, -20, 22, 24),
+	InkFigure.Kind.SPEAR_GUARDIAN: Rect2(-13, -30, 29, 33),
+	InkFigure.Kind.ONMYOJI: Rect2(-11, -27, 22, 31),
 	InkFigure.Kind.HATAMOTO: Rect2(-16, -34, 32, 36),
-	InkFigure.Kind.HOLLOW_SOLDIER: Rect2(-12, -20, 26, 22),
-	InkFigure.Kind.ONI_BRUTE: Rect2(-18, -27, 39, 29),
+	InkFigure.Kind.HOLLOW_SOLDIER: Rect2(-12, -17, 26, 22),
+	# His cut neck tucks in behind the shoulders (the head is drawn behind the torso, see NECKS).
+	InkFigure.Kind.ONI_BRUTE: Rect2(-21, -21, 39, 29),
 	# The helmet sits down on his collar (its painted cords hang over the cuirass).
-	InkFigure.Kind.FALLEN_DAIMYO: Rect2(-17, -28, 35, 35),
+	InkFigure.Kind.FALLEN_DAIMYO: Rect2(-17, -26, 35, 35),
 }
 const WIDTHS: Dictionary = {
 	InkFigure.Kind.ASHIGARU: 21.0, InkFigure.Kind.YUMI_ARCHER: 21.0,
@@ -50,6 +53,12 @@ const ARMHOLES: Dictionary = {
 	InkFigure.Kind.ONMYOJI: [Vector2(19, 100), Vector2(32, 64)],
 	InkFigure.Kind.HATAMOTO: [Vector2(29, 100), Vector2(42, 72)],
 	InkFigure.Kind.FALLEN_DAIMYO: [Vector2(52, 90), Vector2(54, 78)],
+}
+## Kinds whose painted head ends in a cut neck: their head is drawn behind the torso, and a neck of the torso's own
+## skin (centre, radii, sampled around; torso-cell pixels) rises from the shoulders into the head's jaw, so the head
+## sits on the body instead of floating in front of the chest.
+const NECKS: Dictionary = {
+	InkFigure.Kind.ONI_BRUTE: [Vector2(150, 2), Vector2(38, 30), Vector2(140, 52)],
 }
 ## Inside this fraction of its radius a patch is fully opaque; it fades to nothing at its rim.
 const PATCH_FEATHER: float = 0.72
@@ -193,30 +202,61 @@ static func shoulder_patch(kind: InkFigure.Kind, back: bool) -> Array:
 		return _patches[key]
 	var source_region: Rect2 = region(kind, CELLS[&"torso"])
 	var torso_frame: Transform2D = frame(kind, &"torso")
-	var center: Vector2
-	var radii: Vector2
-	var source: Vector2
 	if back:
 		var hole: Array = ARMHOLES[kind]
-		center = hole[0]
-		radii = hole[1]
-		source = Vector2(source_region.size.x - center.x, center.y)
+		var hole_center: Vector2 = hole[0]
+		_patches[key] = _ellipse_patch(kind, hole_center, hole[1], Vector2(source_region.size.x - hole_center.x, hole_center.y), true)
 	else:
 		var spec: FigureKinds.Spec = FigureKinds.spec(kind)
-		center = torso_frame.affine_inverse() * spec.shoulder_front
+		var center: Vector2 = torso_frame.affine_inverse() * spec.shoulder_front
 		var radius: float = spec.arm_w.x * 1.35 * CAP_RADIUS
-		radii = Vector2(radius / torso_frame.x.length(), radius / torso_frame.y.length())
-		source = center
+		_patches[key] = _ellipse_patch(kind, center, Vector2(radius / torso_frame.x.length(), radius / torso_frame.y.length()), center, false)
+	return _patches[key]
+
+
+## Everything the torso part paints over its layer, as one mesh (one draw): the closed armhole and, for a kind in
+## NECKS, the neck that joins the torso to the head drawn behind it. Empty if there is nothing to add.
+static func torso_patch(kind: InkFigure.Kind) -> Array:
+	var key: String = "%d:torso" % kind
+	if _patches.has(key):
+		return _patches[key]
+	var meshes: Array = []
+	if ARMHOLES.has(kind):
+		meshes.append(shoulder_patch(kind, true))
+	if NECKS.has(kind):
+		var neck: Array = NECKS[kind]
+		meshes.append(_ellipse_patch(kind, neck[0], neck[1], neck[2], false))
+	var merged: Array = []
+	for mesh: Array in meshes:
+		if merged.is_empty():
+			merged = [(mesh[0] as PackedInt32Array).duplicate(), (mesh[1] as PackedVector2Array).duplicate(),
+					(mesh[2] as PackedColorArray).duplicate(), (mesh[3] as PackedVector2Array).duplicate()]
+			continue
+		var base: int = (merged[1] as PackedVector2Array).size()
+		for index: int in (mesh[0] as PackedInt32Array):
+			(merged[0] as PackedInt32Array).append(base + index)
+		(merged[1] as PackedVector2Array).append_array(mesh[1])
+		(merged[2] as PackedColorArray).append_array(mesh[2])
+		(merged[3] as PackedVector2Array).append_array(mesh[3])
+	_patches[key] = merged
+	return merged
+
+
+## A soft-edged ellipse of painted torso as [indices, vertices, colours, uvs], vertices in torso-cell pixels: drawn
+## at `center` with `radii`, sampled around `source` (mirrored left-right when `mirror`). Opaque inside PATCH_FEATHER
+## of its radius, fading to nothing at its rim, so no seam shows on the painting under it.
+static func _ellipse_patch(kind: InkFigure.Kind, center: Vector2, radii: Vector2, source: Vector2, mirror: bool) -> Array:
+	var source_region: Rect2 = region(kind, CELLS[&"torso"])
 	var atlas_size: Vector2 = atlas(kind).get_size()
 	var vertices: PackedVector2Array = PackedVector2Array([center])
-	var uvs: PackedVector2Array = PackedVector2Array([(source_region.position + source) / atlas_size])
+	var uvs: PackedVector2Array = PackedVector2Array([(source_region.position + source.clamp(Vector2.ZERO, source_region.size)) / atlas_size])
 	var colors: PackedColorArray = PackedColorArray([Color.WHITE])
-	var mirror: Vector2 = Vector2(-1.0, 1.0) if back else Vector2.ONE
+	var flip: Vector2 = Vector2(-1.0, 1.0) if mirror else Vector2.ONE
 	for ring: float in [PATCH_FEATHER, 1.0]:
 		for i: int in PATCH_POINTS:
 			var offset: Vector2 = Vector2.from_angle(TAU * float(i) / float(PATCH_POINTS)) * radii * ring
 			vertices.append(center + offset)
-			var sample: Vector2 = (source + offset * mirror).clamp(Vector2.ZERO, source_region.size)
+			var sample: Vector2 = (source + offset * flip).clamp(Vector2.ZERO, source_region.size)
 			uvs.append((source_region.position + sample) / atlas_size)
 			colors.append(Color(1.0, 1.0, 1.0, 1.0 if ring < 1.0 else 0.0))
 	var indices: PackedInt32Array = PackedInt32Array()
@@ -224,8 +264,7 @@ static func shoulder_patch(kind: InkFigure.Kind, back: bool) -> Array:
 		var a: int = 1 + i
 		var b: int = 1 + (i + 1) % PATCH_POINTS
 		indices.append_array(PackedInt32Array([0, a, b, a, a + PATCH_POINTS, b, b, a + PATCH_POINTS, b + PATCH_POINTS]))
-	_patches[key] = [indices, vertices, colors, uvs]
-	return _patches[key]
+	return [indices, vertices, colors, uvs]
 
 
 static func paint_tail(kind: InkFigure.Kind, ci: CanvasItem, points: PackedVector2Array, width: float) -> void:

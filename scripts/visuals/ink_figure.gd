@@ -569,9 +569,9 @@ func _build_parts() -> void:
 			# silhouette or its extra horn behind it.
 			part.visible = false
 		if RosterSpriteArt.NAMES.has(kind):
-			if part_name == &"torso" and RosterSpriteArt.ARMHOLES.has(kind):
-				# Close the painted armhole the back arm would show through.
-				part.art_patch = RosterSpriteArt.shoulder_patch(kind, true)
+			if part_name == &"torso" and not RosterSpriteArt.torso_patch(kind).is_empty():
+				# Close the painted armhole the back arm would show through (and give a cut-off head its neck).
+				part.art_patch = RosterSpriteArt.torso_patch(kind)
 				part.patch_texture = RosterSpriteArt.atlas(kind)
 			elif part_name in [&"upper_f", &"upper_b"]:
 				part.art_trim = RosterSpriteArt.arm_trim(kind, part_name)

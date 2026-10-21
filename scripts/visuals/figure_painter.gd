@@ -172,9 +172,10 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			order.append_array([&"hem", &"torso", &"head", &"weapon"])
 			order.append_array(_FRONT_ARM)
 		InkFigure.Kind.ONI_BRUTE:
+			# His painted head ends in a cut neck: it sits behind the shoulder line, joined by the torso's neck.
 			order.append(&"mane")
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
-			order.append_array([&"hem", &"torso", &"head", &"weapon"])
+			order.append_array([&"head", &"hem", &"torso", &"weapon"])
 			order.append_array(_FRONT_ARM)
 		InkFigure.Kind.SHRINE_HEALER, InkFigure.Kind.ONMYOJI:
 			# Long sleeves hang from the arms as cloth flaps; the healer's ponytail is the mane.
