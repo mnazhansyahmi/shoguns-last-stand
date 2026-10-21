@@ -1,8 +1,9 @@
 class_name GameHud
 extends CanvasLayer
-## Battle HUD. Top-left: samurai/energy/gate bars and ability cooldown bars (fill + text).
-## Top-center: wave and enemies remaining. Top-right: pause button. Keyboard hints at the bottom
-## are hidden while touch controls are shown. Respects the safe area and UI scale.
+## Battle HUD. Top-left, two blocks: the four bars (Samurai, Spirit, Gate, Ultimate, one width) and, in keyboard mode, one
+## row of round skill icons (Dash, Heavy, Slash, Bow, War Cry and the ally stance: a symbol, its key, a cooldown
+## sweep, a glow when ready, a padlock when locked). Top-center: wave and enemies remaining. Top-right: pause button.
+## Keyboard hints at the bottom are hidden while touch controls are shown. Respects the safe area and UI scale.
 
 signal pause_requested
 
@@ -14,9 +15,15 @@ const TOUCH_BOTTOM_SPACE: float = 380.0
 ## the top-left bars (left tab) or the pause button (right tab).
 const INDICATOR_TOP: float = 196.0
 const INDICATOR_GAP: float = 14.0
-## The Input Map action of each skill bar (for the key badge).
-const SKILL_ACTIONS: Dictionary = {"dash": &"dash", "heavy": &"heavy_attack", "slash": &"spirit_slash",
-		"bow": &"bow", "war_cry": &"war_cry"}
+## The skill icons in order: [id, symbol, ring colour, name, Input Map action of the key badge].
+const SKILL_ICONS: Array[Array] = [
+	["dash", UpgradeIcon.Kind.DASH, Color(0.29, 0.435, 0.647, 1.0), "Dash", &"dash"],
+	["heavy", UpgradeIcon.Kind.HEAVY, Color(0.722, 0.196, 0.165, 1.0), "Heavy strike", &"heavy_attack"],
+	["slash", UpgradeIcon.Kind.SPIRIT_SLASH, Color(0.184, 0.525, 0.722, 1.0), "Spirit Slash", &"spirit_slash"],
+	["bow", UpgradeIcon.Kind.BOW, Color(0.42, 0.56, 0.3, 1.0), "Bow", &"bow"],
+	["war_cry", UpgradeIcon.Kind.WAR_CRY, Color(0.78, 0.56, 0.2, 1.0), "War Cry", &"war_cry"],
+	["stance", UpgradeIcon.Kind.STANCE_CHARGE, Color(0.843, 0.216, 0.169, 1.0), "Allies", &"stance"],
+]
 
 @onready var _margin: MarginContainer = $Margin
 @onready var _top_left: VBoxContainer = %TopLeft
@@ -25,8 +32,7 @@ const SKILL_ACTIONS: Dictionary = {"dash": &"dash", "heavy": &"heavy_attack", "s
 @onready var _energy_bar: FillBar = %EnergyBar
 @onready var _gate_bar: FillBar = %GateBar
 @onready var _ultimate_bar: FillBar = %UltimateBar
-@onready var _ability_row: HBoxContainer = %AbilityRow
-@onready var _ability_bars: Dictionary = {"dash": %DashBar, "heavy": %HeavyBar, "slash": %SlashBar}
+@onready var _skill_row: HBoxContainer = %SkillRow
 @onready var _wave_label: Label = %WaveLabel
 @onready var _remaining_label: Label = %RemainingLabel
 @onready var _pause_button: Button = %PauseButton
@@ -41,10 +47,10 @@ const SKILL_ACTIONS: Dictionary = {"dash": &"dash", "heavy": &"heavy_attack", "s
 var _safe_rect: Rect2 = Rect2()
 ## The boss's bar with his name, under the wave text at the top of the screen (hidden without a boss).
 var _boss_bar: FillBar
-## "Allies: CHARGE (F)" under the ability bars.
-var _stance_label: Label
-## Second row of ability bars: the Bow and the War Cry (shown once unlocked).
-var _skill_row: HBoxContainer
+## The round skill icons by id ("dash", "heavy", "slash", "bow", "war_cry", "stance").
+var _skill_icons: Dictionary = {}
+## "CHARGE" or "HOLD".
+var _stance_name: String = "CHARGE"
 var _gate_indicator: EdgeIndicator
 var _enemy_indicator: EdgeIndicator
 var _banner_tween: Tween
@@ -64,32 +70,17 @@ func _ready() -> void:
 	_enemy_indicator.points_left = false
 	add_child(_enemy_indicator)
 	_place_indicators(get_viewport().get_visible_rect())
-	_skill_row = HBoxContainer.new()
-	_skill_row.name = "SkillRow"
-	_skill_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_skill_row.add_theme_constant_override("separation", 10)
-	_top_left.add_child(_skill_row)
-	for entry: Array in [["bow", "Bow", Color(0.42, 0.56, 0.3, 1.0)], ["war_cry", "Cry", Color(0.78, 0.56, 0.2, 1.0)]]:
-		var bar: FillBar = FillBar.new()
-		bar.name = "%sBar" % String(entry[0]).capitalize().replace(" ", "")
-		bar.custom_minimum_size = Vector2(241.0, 34.0)
-		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		bar.caption = entry[1]
-		bar.fill_color = entry[2]
-		bar.font_size = 20
-		_skill_row.add_child(bar)
-		_ability_bars[entry[0]] = bar
-	# Every skill bar shows its key (read from the Input Map); locked skills show a padlock until unlocked.
-	for key: String in SKILL_ACTIONS:
-		(_ability_bars[key] as FillBar).set_key_hint(SkillHints.key_label(SKILL_ACTIONS[key]))
+	# Every icon shows its key (read from the Input Map); locked skills show a padlock until unlocked.
+	for entry: Array in SKILL_ICONS:
+		var icon: SkillIcon = SkillIcon.new()
+		icon.name = "%sIcon" % String(entry[0]).capitalize().replace(" ", "")
+		icon.setup(entry[1], entry[2], entry[3], SkillHints.key_label(entry[4]))
+		icon.locked_pressed.connect(show_message.bind(2.0))
+		_skill_row.add_child(icon)
+		_skill_icons[entry[0]] = icon
 	_ultimate_bar.set_key_hint(SkillHints.key_label(&"ultimate"))
 	set_skills_unlocked(false, false)
-	_stance_label = Label.new()
-	_stance_label.name = "StanceLabel"
-	_stance_label.theme_type_variation = &"HudLabel"
-	_stance_label.add_theme_font_size_override("font_size", 26)
-	_stance_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_top_left.add_child(_stance_label)
+	set_stance(_stance_name)
 	_boss_bar = FillBar.new()
 	_boss_bar.name = "BossBar"
 	_boss_bar.custom_minimum_size = Vector2(780.0, 50.0)
@@ -105,35 +96,39 @@ func _ready() -> void:
 	_wave_box.resized.connect(_update_pivots)
 
 
-## The Bow and War Cry bars are always there; a locked one is greyed out with a padlock and "Clear stage N".
+## The Bow and War Cry icons are always there; a locked one is dimmed with a small padlock. "Clear stage N" is its
+## tooltip (and what tapping it says), never text in the HUD.
 func set_skills_unlocked(bow: bool, war_cry: bool) -> void:
 	for pair: Array in [["bow", bow], ["war_cry", war_cry]]:
-		var bar: FillBar = _ability_bars[pair[0]]
-		bar.visible = true
-		bar.set_locked("" if pair[1] else SkillHints.locked_text_for(StringName(pair[0])))
+		var icon: SkillIcon = _skill_icons[pair[0]]
+		icon.visible = true
+		icon.set_locked("" if pair[1] else SkillHints.locked_text_for(StringName(pair[0])))
 
 
-## True when the skill's bar is shown and usable (not locked).
-func is_skill_bar_visible(key: String) -> bool:
-	var bar: FillBar = _ability_bars[key]
-	return bar.visible and _skill_row.visible and not bar.is_locked()
+## True when the skill's icon is shown and usable (not locked).
+func is_skill_icon_visible(key: String) -> bool:
+	var icon: SkillIcon = _skill_icons[key]
+	return icon.visible and _skill_row.visible and not icon.is_locked()
 
 
 func is_skill_locked(key: String) -> bool:
-	return (_ability_bars[key] as FillBar).is_locked()
+	return (_skill_icons[key] as SkillIcon).is_locked()
 
 
-func get_skill_bar(key: String) -> FillBar:
-	return _ability_bars[key]
+func get_skill_icon(key: String) -> SkillIcon:
+	return _skill_icons[key]
 
 
-## The ally stance ("CHARGE" or "HOLD"), shown top left with its key.
+## The ally stance ("CHARGE" or "HOLD"): a sword for CHARGE, a shield for HOLD, in the icon row (its tooltip says which).
 func set_stance(stance_name: String) -> void:
-	_stance_label.text = "Allies: %s%s" % [stance_name, "" if _touch_mode else "  [F]"]
+	_stance_name = stance_name
+	var icon: SkillIcon = _skill_icons["stance"]
+	icon.set_kind(UpgradeIcon.Kind.STANCE_CHARGE if stance_name == "CHARGE" else UpgradeIcon.Kind.STANCE_HOLD)
+	icon.set_skill_name("Allies: %s" % stance_name)
 
 
-func get_stance_text() -> String:
-	return _stance_label.text
+func get_stance_name() -> String:
+	return _stance_name
 
 
 ## Shows the boss bar with the boss's name.
@@ -175,18 +170,18 @@ func set_energy(current: float, maximum: float) -> void:
 func set_ultimate(ratio: float, is_ready: bool) -> void:
 	var text: String = "%d%%" % floori(ratio * 100.0)
 	if is_ready:
-		text = "READY" if _touch_mode else "READY - press I"
+		text = "READY"
 	_ultimate_bar.set_ratio_text(ratio, text)
 	_ultimate_bar.set_pulsing(is_ready)
 
 
 ## cooldowns: {"dash": Vector2(seconds_left, total), "heavy": ..., "slash": ...}
 func set_ability_cooldowns(cooldowns: Dictionary) -> void:
-	for key: String in _ability_bars:
-		var info: Vector2 = cooldowns.get(key, Vector2.ZERO)
-		var bar: FillBar = _ability_bars[key]
-		var readiness: float = 1.0 - info.x / maxf(info.y, 0.001) if info.x > 0.0 else 1.0
-		bar.set_ratio_text(readiness, format_cooldown(info.x))
+	for key: String in cooldowns:
+		var icon: SkillIcon = _skill_icons.get(key)
+		if icon != null:
+			var info: Vector2 = cooldowns[key]
+			icon.set_cooldown(info.x, info.y)
 
 
 func set_wave_text(text: String) -> void:
@@ -227,10 +222,11 @@ func apply_layout(safe_rect: Rect2, viewport_size: Vector2, ui_scale: float) -> 
 
 
 ## Off-screen markers: the gate (left edge) and incoming enemies (right edge).
-## gate_ratio = gate health 0..1; at_gate = enemies off screen to the left (at the gate).
+## gate_ratio = gate health 0..1; at_gate = enemies off screen to the left (at the gate); gate_alert = the gate was
+## damaged in the last few seconds or enemies are at it. The gate tab shows only then: the Gate bar already has its health.
 func set_edge_indicators(gate_hidden: bool, gate_ratio: float, at_gate: int, gate_alert: bool,
 		incoming: int, oni_incoming: bool) -> void:
-	if gate_hidden:
+	if gate_hidden and gate_alert:
 		_gate_indicator.show_info("Gate %d%%" % roundi(gate_ratio * 100.0),
 				("%d at the gate" % at_gate) if at_gate > 0 else "", gate_ratio, gate_alert)
 	else:
@@ -317,13 +313,9 @@ func _refresh_bottom() -> void:
 	_summon_label.visible = not _touch_mode
 	_hint_label.visible = not _touch_mode
 	_debug_hint_label.visible = _debug_hint_allowed and not _touch_mode
-	# Touch buttons show their own cooldowns and the Allies button shows the stance, so the timer rows and the stance
-	# line are for the keyboard only.
-	_ability_row.visible = not _touch_mode
-	if _skill_row != null:
-		_skill_row.visible = not _touch_mode
-	if _stance_label != null:
-		_stance_label.visible = not _touch_mode
+	# Touch buttons show their own cooldowns and the Allies button shows the stance, so the icon row is for the
+	# keyboard only.
+	_skill_row.visible = not _touch_mode
 	if _safe_rect.size != Vector2.ZERO:
 		_place_indicators(_safe_rect)
 	_touch_spacer.custom_minimum_size.y = TOUCH_BOTTOM_SPACE * _ui_scale if _touch_mode else 0.0

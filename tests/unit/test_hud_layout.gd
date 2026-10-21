@@ -53,20 +53,16 @@ func _hud() -> GameHud:
 	return hud
 
 
-func test_touch_mode_hides_the_timer_rows_and_the_stance_line_but_keyboard_mode_keeps_them() -> void:
+func test_touch_mode_hides_the_skill_icon_row_but_keyboard_mode_keeps_it() -> void:
 	var hud: GameHud = _hud()
-	var abilities: Control = hud.get_node("%AbilityRow") as Control
 	var skills: Control = hud.get_node("Margin/TopLeft/SkillRow") as Control
-	var stance: Control = hud.get_node("Margin/TopLeft/StanceLabel") as Control
 	hud.set_touch_mode(false)
-	assert_true(abilities.is_visible_in_tree() and skills.is_visible_in_tree() and stance.is_visible_in_tree(), "the keyboard HUD shows the timer rows and the stance")
+	assert_true(skills.is_visible_in_tree(), "the keyboard HUD shows the skill icons, the stance among them")
 	hud.set_touch_mode(true)
-	assert_true(not abilities.is_visible_in_tree(), "touch mode hides Dash / Heavy / Slash timers (the buttons show them)")
-	assert_true(not skills.is_visible_in_tree(), "and the Bow and Cry timers")
-	assert_true(not stance.is_visible_in_tree(), "and the 'Allies: CHARGE' line (the Allies button shows the stance)")
+	assert_true(not skills.is_visible_in_tree(), "touch mode hides them (the buttons show the cooldowns, and the Allies button the stance)")
 	assert_true((hud.get_node("%UltimateBar") as Control).is_visible_in_tree(), "the Ultimate meter stays")
 	hud.set_touch_mode(false)
-	assert_true(abilities.is_visible_in_tree() and skills.is_visible_in_tree() and stance.is_visible_in_tree(), "and back in keyboard mode they return")
+	assert_true(skills.is_visible_in_tree(), "and back in keyboard mode it returns")
 	var controls: TouchControls = add_to_tree(TOUCH_SCENE.instantiate()) as TouchControls
 	controls.set_stance_state("CHARGE", true)
 	var button: TouchActionButton = controls.get("_buttons")["stance"] as TouchActionButton

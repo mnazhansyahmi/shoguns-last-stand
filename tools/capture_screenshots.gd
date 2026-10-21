@@ -27,6 +27,8 @@ var _skills: bool = false
 var _fight: bool = false
 ## --fireball: also film the Onmyoji's fireball (windup, flight, explosion) in the staged battle.
 var _fireball: bool = false
+## --cooldowns: also capture the HUD just after every skill was used (the icons' cooldown sweeps and seconds).
+var _cooldowns: bool = false
 ## --black: the kind sheet (--only=kind:<name>) in pure black, to check the silhouette.
 var _black: bool = false
 ## --stage=N: play the staged battle on that Region 1 stage (its own sky theme).
@@ -58,6 +60,8 @@ func _initialize() -> void:
 			_black = true
 		elif arg == "--fireball":
 			_fireball = true
+		elif arg == "--cooldowns":
+			_cooldowns = true
 		elif arg.begins_with("--stage="):
 			_stage_number = arg.trim_prefix("--stage=").to_int()
 	DirAccess.make_dir_recursive_absolute(_out_dir)
@@ -200,6 +204,14 @@ func _capture_battle() -> void:
 	await _frames(14)
 	Input.action_release("attack")
 	await _capture("battle")
+	if _cooldowns:
+		for action: String in ["dash", "heavy_attack", "spirit_slash", "bow", "war_cry"]:
+			Input.action_press(action)
+			await _frames(2)
+			Input.action_release(action)
+			await _frames(5)
+		await _capture("battle_cooldowns")
+		await _frames(120)
 	if _skills:
 		Input.action_press("bow")
 		await _frames(2)

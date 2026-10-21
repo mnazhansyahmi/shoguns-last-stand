@@ -13,8 +13,6 @@ extends Control
 
 ## The keyboard key of what the bar stands for, on a small badge at its left ("" = none).
 var key_hint: String = ""
-## A locked skill: the bar is greyed out with a padlock and this text ("Clear stage 2") instead of its value.
-var locked_text: String = ""
 var ratio: float = 1.0
 var value_text: String = ""
 ## Pulses its fill and border (something the bar stands for is ready).
@@ -30,17 +28,6 @@ func set_key_hint(text: String) -> void:
 		return
 	key_hint = text
 	queue_redraw()
-
-
-func set_locked(text: String) -> void:
-	if text == locked_text:
-		return
-	locked_text = text
-	queue_redraw()
-
-
-func is_locked() -> bool:
-	return not locked_text.is_empty()
 
 
 func set_pulsing(enabled: bool) -> void:
@@ -79,8 +66,6 @@ func _draw() -> void:
 		for i: int in range(1, segments):
 			var x: float = size.x * float(i) / float(segments)
 			draw_line(Vector2(x, 0.0), Vector2(x, size.y), Color(InkPalette.INK, 0.5), 2.0)
-	if is_locked():
-		draw_rect(rect, Color(InkPalette.UI_CHARCOAL, 0.55))
 	draw_rect(rect, border_color, false, 3.0)
 
 	var font: Font = get_theme_default_font()
@@ -96,12 +81,8 @@ func _draw() -> void:
 		var key_size: int = maxi(int(font_size * 0.85), 12)
 		draw_string(font, Vector2(4.0, 4.0 + badge * 0.5 + key_size * 0.35), key_hint, HORIZONTAL_ALIGNMENT_CENTER, badge, key_size, InkPalette.PARCHMENT)
 		left = badge + 12.0
-	var value: String = locked_text if is_locked() else value_text
-	if is_locked():
-		LockIcon.draw(self, Vector2(left + size.y * 0.2, size.y * 0.5 - 1.0), size.y * 0.55, Color(InkPalette.PARCHMENT, 0.9))
-		left += size.y * 0.5
 	_draw_text(font, caption, Vector2(left, baseline), size.x - left - padding, HORIZONTAL_ALIGNMENT_LEFT)
-	_draw_text(font, value, Vector2(left, baseline), size.x - left - padding, HORIZONTAL_ALIGNMENT_RIGHT)
+	_draw_text(font, value_text, Vector2(left, baseline), size.x - left - padding, HORIZONTAL_ALIGNMENT_RIGHT)
 
 
 func _draw_text(font: Font, text: String, origin: Vector2, width: float, alignment: HorizontalAlignment) -> void:

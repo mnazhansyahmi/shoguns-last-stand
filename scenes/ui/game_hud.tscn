@@ -24,84 +24,60 @@ layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 mouse_filter = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 16
 
-[node name="PlayerBar" type="Control" parent="Margin/TopLeft"]
+[node name="Bars" type="VBoxContainer" parent="Margin/TopLeft"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="PlayerBar" type="Control" parent="Margin/TopLeft/Bars"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(460, 48)
+custom_minimum_size = Vector2(460, 40)
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Samurai"
 fill_color = Color(0.843, 0.216, 0.169, 1)
-font_size = 28
+font_size = 26
 
-[node name="EnergyBar" type="Control" parent="Margin/TopLeft"]
+[node name="EnergyBar" type="Control" parent="Margin/TopLeft/Bars"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(460, 42)
+custom_minimum_size = Vector2(460, 34)
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Spirit"
 fill_color = Color(0.184, 0.525, 0.722, 1)
+font_size = 22
 segments = 5
 
-[node name="GateBar" type="Control" parent="Margin/TopLeft"]
+[node name="GateBar" type="Control" parent="Margin/TopLeft/Bars"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(460, 36)
+custom_minimum_size = Vector2(460, 34)
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Gate"
 fill_color = Color(0.31, 0.561, 0.388, 1)
-font_size = 24
+font_size = 22
 segments = 10
 
-[node name="UltimateBar" type="Control" parent="Margin/TopLeft"]
+[node name="UltimateBar" type="Control" parent="Margin/TopLeft/Bars"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(460, 38)
+custom_minimum_size = Vector2(460, 34)
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_bar")
 caption = "Ultimate"
 fill_color = Color(0.788, 0.635, 0.29, 1)
-font_size = 24
+font_size = 22
 
-[node name="AbilityRow" type="HBoxContainer" parent="Margin/TopLeft"]
+[node name="SkillRow" type="HBoxContainer" parent="Margin/TopLeft"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
-
-[node name="DashBar" type="Control" parent="Margin/TopLeft/AbilityRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 34)
-layout_mode = 2
-mouse_filter = 2
-script = ExtResource("2_bar")
-caption = "Dash"
-fill_color = Color(0.29, 0.435, 0.647, 1)
-font_size = 18
-
-[node name="HeavyBar" type="Control" parent="Margin/TopLeft/AbilityRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 34)
-layout_mode = 2
-mouse_filter = 2
-script = ExtResource("2_bar")
-caption = "Heavy"
-fill_color = Color(0.722, 0.196, 0.165, 1)
-font_size = 18
-
-[node name="SlashBar" type="Control" parent="Margin/TopLeft/AbilityRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 34)
-layout_mode = 2
-mouse_filter = 2
-script = ExtResource("2_bar")
-caption = "Slash"
-fill_color = Color(0.184, 0.525, 0.722, 1)
-font_size = 18
+theme_override_constants/separation = 12
 
 [node name="WaveBox" type="VBoxContainer" parent="Margin"]
 unique_name_in_owner = true

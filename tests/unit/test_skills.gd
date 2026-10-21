@@ -170,8 +170,8 @@ func test_the_bow_unlocks_after_stage_1_and_the_war_cry_after_stage_2() -> void:
 		assert_eq(player.bow_unlocked, case[1], "bow with %s cleared" % str(case[0]))
 		assert_eq(player.war_cry_unlocked, case[2], "war cry with %s cleared" % str(case[0]))
 		var hud: GameHud = field.get_node("Hud") as GameHud
-		assert_eq(hud.is_skill_bar_visible("bow"), case[1], "its bar follows the unlock")
-		assert_eq(hud.is_skill_bar_visible("war_cry"), case[2], "both of them")
+		assert_eq(hud.is_skill_icon_visible("bow"), case[1], "its icon follows the unlock")
+		assert_eq(hud.is_skill_icon_visible("war_cry"), case[2], "both of them")
 		field.free()
 
 
@@ -289,9 +289,9 @@ func test_a_rallied_ally_attacks_faster() -> void:
 func test_the_new_skills_have_hud_bars_and_touch_buttons_that_press_their_keys() -> void:
 	var hud: GameHud = add_to_tree(HUD_SCENE.instantiate()) as GameHud
 	hud.set_skills_unlocked(true, false)
-	assert_true(hud.is_skill_bar_visible("bow") and not hud.is_skill_bar_visible("war_cry"), "only the unlocked skill has a bar")
+	assert_true(hud.is_skill_icon_visible("bow") and not hud.is_skill_icon_visible("war_cry"), "only the unlocked skill is usable")
 	hud.set_skills_unlocked(true, true)
-	assert_true(hud.is_skill_bar_visible("war_cry"), "both once unlocked")
+	assert_true(hud.is_skill_icon_visible("war_cry"), "both once unlocked")
 	var controls: TouchControls = add_to_tree(TOUCH_SCENE.instantiate()) as TouchControls
 	var viewport_size: Vector2 = controls.get_viewport().get_visible_rect().size
 	controls.apply_layout(viewport_size, Rect2(Vector2.ZERO, viewport_size), 1.0, false)

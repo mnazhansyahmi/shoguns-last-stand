@@ -37,16 +37,16 @@ func test_every_touch_button_shows_its_key() -> void:
 		assert_eq(_button(controls, widget).key_hint, TOUCH_KEYS[widget], "the %s button shows %s" % [widget, TOUCH_KEYS[widget]])
 
 
-func test_the_hud_skill_bars_show_their_keys_and_the_hint_line_lists_them() -> void:
+func test_the_hud_skill_icons_show_their_keys_and_the_hint_line_lists_them() -> void:
 	var hud: GameHud = add_to_tree(HUD_SCENE.instantiate()) as GameHud
-	for pair: Array in [["dash", "L"], ["heavy", "K"], ["slash", "U"], ["bow", "E"], ["war_cry", "Q"]]:
-		assert_eq(hud.get_skill_bar(pair[0]).key_hint, pair[1], "the %s bar shows %s" % pair)
+	for pair: Array in [["dash", "L"], ["heavy", "K"], ["slash", "U"], ["bow", "E"], ["war_cry", "Q"], ["stance", "F"]]:
+		assert_eq(hud.get_skill_icon(pair[0]).key_hint, pair[1], "the %s icon shows %s" % pair)
 	assert_eq((hud.get_node("%UltimateBar") as FillBar).key_hint, "I", "the Ultimate bar shows I")
 	var hint: String = (hud.get_node("%HintLabel") as Label).text
 	for part: String in ["J attack", "K heavy", "L dash", "U spirit slash", "I ultimate", "Q war cry", "E bow", "F allies", "1-6 summon"]:
 		assert_true(hint.contains(part), "the key line says '%s'" % part)
 	hud.set_stance("CHARGE")
-	assert_true(hud.get_stance_text().contains("[F]"), "the stance label shows its key")
+	assert_eq(hud.get_skill_icon("stance").key_hint, "F", "the stance icon shows its key")
 
 
 func test_a_locked_skill_shows_a_padlock_and_the_stage_that_unlocks_it() -> void:
@@ -56,9 +56,9 @@ func test_a_locked_skill_shows_a_padlock_and_the_stage_that_unlocks_it() -> void
 	assert_eq(SkillHints.locked_text_for(&"war_cry"), "Clear stage 2", "the War Cry with stage 2")
 	var hud: GameHud = add_to_tree(HUD_SCENE.instantiate()) as GameHud
 	hud.set_skills_unlocked(false, false)
-	assert_eq(hud.get_skill_bar("bow").locked_text, "Clear stage 1", "the HUD's Bow bar says how to unlock it")
-	assert_eq(hud.get_skill_bar("war_cry").locked_text, "Clear stage 2", "and the War Cry's")
-	assert_true(hud.get_skill_bar("bow").visible and hud.is_skill_locked("bow"), "locked skills still have their bar")
+	assert_eq(hud.get_skill_icon("bow").locked_text, "Clear stage 1", "the HUD's Bow icon says (as a tooltip) how to unlock it")
+	assert_eq(hud.get_skill_icon("war_cry").locked_text, "Clear stage 2", "and the War Cry's")
+	assert_true(hud.get_skill_icon("bow").visible and hud.is_skill_locked("bow"), "locked skills still have their icon")
 	hud.set_skills_unlocked(true, false)
 	assert_true(not hud.is_skill_locked("bow") and hud.is_skill_locked("war_cry"), "unlocking the Bow frees only the Bow")
 	var controls: TouchControls = _controls()
@@ -71,16 +71,11 @@ func test_a_locked_skill_shows_a_padlock_and_the_stage_that_unlocks_it() -> void
 func test_the_hint_text_fits_inside_its_bar_or_button() -> void:
 	var hud: GameHud = add_to_tree(HUD_SCENE.instantiate()) as GameHud
 	hud.set_skills_unlocked(false, false)
-	for key: String in ["dash", "heavy", "slash", "bow", "war_cry"]:
-		var bar: FillBar = hud.get_skill_bar(key)
-		var font: Font = bar.get_theme_default_font()
-		var badge: float = bar.custom_minimum_size.y - 8.0 + 12.0
-		var value: String = bar.locked_text if bar.is_locked() else "ready"
-		var lock: float = bar.custom_minimum_size.y * 0.5 if bar.is_locked() else 0.0
-		var text: float = font.get_string_size(bar.caption, HORIZONTAL_ALIGNMENT_LEFT, -1, bar.font_size).x \
-				+ font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, bar.font_size).x
-		var needed: float = badge + lock + text + 7.0 + 10.0
-		assert_true(needed <= bar.custom_minimum_size.x, "the %s bar's text fits (%.0f of %.0f)" % [key, needed, bar.custom_minimum_size.x])
+	for key: String in ["dash", "heavy", "slash", "bow", "war_cry", "stance"]:
+		var icon: SkillIcon = hud.get_skill_icon(key)
+		var font: Font = icon.get_theme_default_font()
+		assert_true(font.get_string_size(icon.key_hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x <= SkillIcon.BADGE_SIZE - 4.0, "the %s icon's key fits its badge" % key)
+		assert_true(font.get_string_size("99", HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x <= SkillIcon.DIAMETER - 12.0, "two digits of seconds fit inside the %s icon" % key)
 	var controls: TouchControls = _controls()
 	controls.set_skills_unlocked(false, false)
 	for widget: String in ["bow", "war_cry"]:

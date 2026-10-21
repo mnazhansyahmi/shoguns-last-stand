@@ -14,7 +14,7 @@ const DEBUG_ONI_BRUTE: EnemyData = preload("res://data/enemies/oni_brute.tres")
 const PLAYER_RESPAWN_DELAY: float = 5.0
 const SUMMON_ACTIONS: Array[StringName] = [&"summon_1", &"summon_2", &"summon_3", &"summon_4", &"summon_5", &"summon_6"]
 ## The gate indicator pulses this long after the gate is hit while it is off screen.
-const GATE_ALERT_MSEC: int = 1500
+const GATE_ALERT_MSEC: int = 3000
 
 ## Overridable so automated runs never touch the player's real save/settings.
 @export var save_path: String = SaveManager.DEFAULT_PATH

@@ -176,14 +176,17 @@ func test_the_f_key_is_bound_to_the_stance_action() -> void:
 
 func test_the_hud_shows_the_current_stance() -> void:
 	var hud: GameHud = add_to_tree(HUD_SCENE.instantiate()) as GameHud
+	var icon: SkillIcon = hud.get_skill_icon("stance")
 	hud.set_stance("CHARGE")
-	assert_true(hud.get_stance_text().contains("CHARGE"), "it says CHARGE")
-	assert_true(hud.get_stance_text().contains("[F]"), "with its key on a keyboard")
+	assert_eq(hud.get_stance_name(), "CHARGE", "it is CHARGE")
+	assert_eq(icon.kind, UpgradeIcon.Kind.STANCE_CHARGE, "drawn as a sword")
+	assert_true(icon.tooltip_text.contains("CHARGE"), "and its tooltip says CHARGE")
+	assert_eq(icon.key_hint, "F", "with its key on the badge")
 	hud.set_stance("HOLD")
-	assert_true(hud.get_stance_text().contains("HOLD"), "and HOLD")
+	assert_eq(icon.kind, UpgradeIcon.Kind.STANCE_HOLD, "HOLD is a shield")
+	assert_true(icon.tooltip_text.contains("HOLD"), "and says HOLD")
 	hud.set_touch_mode(true)
-	hud.set_stance("HOLD")
-	assert_true(not hud.get_stance_text().contains("[F]"), "no key hint on a phone")
+	assert_true(not icon.is_visible_in_tree(), "the phone has the Allies button instead")
 
 
 func test_the_stance_button_fits_on_phone_screens_without_covering_other_controls() -> void:
