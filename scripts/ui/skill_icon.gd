@@ -1,20 +1,27 @@
 class_name SkillIcon
 extends Control
-## One round skill icon of the keyboard HUD: the skill's cached InkFigure picture in a dark disc with a
-## ring, a small key badge at its lower right, and its state:
+## One round skill icon of the keyboard HUD: a bold, simple light symbol of the skill (glyph(): dash arrows, a heavy
+## cut, a crescent, a bow, a war cry, a sword or a shield) with an ink outline, in a dark disc with a ring, a small key
+## badge at its lower right, and its state:
 ##   - cooling down: a dark radial sweep over the icon, shrinking as the time runs out, with the seconds left on it;
 ##   - ready: a soft glow behind it, and no text;
 ##   - locked: dimmed, with a small padlock only. How to unlock it is the tooltip (hover) and a message when tapped.
-## The ally stance uses the same icon: set_kind() swaps charging allies (CHARGE) for the guardian (HOLD).
+## The ally stance uses the same icon: set_kind() swaps the sword (CHARGE) for the shield (HOLD).
 
 ## The player tapped a locked icon: `text` ("Clear stage 2") says what unlocks it.
 signal locked_pressed(text: String)
 
-const DIAMETER: float = 66.0
-const BADGE_SIZE: float = 24.0
+const DIAMETER: float = 86.0
+const BADGE_SIZE: float = 26.0
 const SWEEP_STEPS: int = 28
+## The symbol reaches this fraction of the disc's radius from its centre.
+const GLYPH_RADIUS: float = 0.62
+## Light symbol on the dark frame, with an ink outline this much wider than each stroke.
+const GLYPH_COLOR: Color = InkPalette.PARCHMENT
+const GLYPH_OUTLINE: float = 6.0
 
-var _figure_art: Texture2D
+## The symbol of the current kind: [strokes, fills] in units of the glyph radius (see glyph()).
+var _glyph: Array = []
 
 
 func _ready() -> void:
@@ -22,9 +29,102 @@ func _ready() -> void:
 
 
 func _refresh_art() -> void:
-	if is_inside_tree():
-		_figure_art = FigureSkillArt.texture(self, kind)
+	_glyph = glyph(kind)
 	queue_redraw()
+
+
+## The bold symbol of a skill as [strokes, fills], points in units of the glyph radius around the centre: a stroke is
+## [points, width] (width in radius units), a fill a polygon. Simple shapes that read at a glance, not pictures.
+static func glyph(of_kind: UpgradeIcon.Kind) -> Array:
+	var strokes: Array = []
+	var fills: Array = []
+	match of_kind:
+		UpgradeIcon.Kind.DASH:
+			# Two chevrons with speed lines behind them.
+			for x: float in [-0.15, 0.45]:
+				strokes.append([PackedVector2Array([Vector2(x - 0.4, -0.7), Vector2(x + 0.3, 0.0), Vector2(x - 0.4, 0.7)]), 0.3])
+			for y: float in [-0.45, 0.0, 0.45]:
+				strokes.append([PackedVector2Array([Vector2(-1.05, y), Vector2(-0.7, y)]), 0.16])
+		UpgradeIcon.Kind.HEAVY:
+			# A broad blade cutting down to the right, its guard, and the impact where it lands.
+			strokes.append([PackedVector2Array([Vector2(-0.55, -0.55), Vector2(0.55, 0.55)]), 0.34])
+			strokes.append([PackedVector2Array([Vector2(-0.95, -0.95), Vector2(-0.62, -0.62)]), 0.2])
+			strokes.append([PackedVector2Array([Vector2(-0.82, -0.38), Vector2(-0.38, -0.82)]), 0.18])
+			for angle: float in [-0.15, 0.78, 1.7]:
+				var out: Vector2 = Vector2.from_angle(angle)
+				strokes.append([PackedVector2Array([Vector2(0.62, 0.62) + out * 0.28, Vector2(0.62, 0.62) + out * 0.6]), 0.14])
+		UpgradeIcon.Kind.SPIRIT_SLASH:
+			# A crescent: the outer arc and a thinner inner arc meeting at two points.
+			var crescent: PackedVector2Array = PackedVector2Array()
+			for i: int in 17:
+				crescent.append(Vector2.from_angle(lerpf(-1.25, 1.25, float(i) / 16.0)) + Vector2(-0.25, 0.0))
+			for i: int in 17:
+				var t: float = 1.0 - float(i) / 16.0
+				crescent.append(Vector2.from_angle(lerpf(-1.05, 1.05, t)) * Vector2(0.42, 0.82) + Vector2(-0.25, 0.0))
+			fills.append(crescent)
+		UpgradeIcon.Kind.BOW:
+			# The bow's curve, its string, and a nocked arrow.
+			var limb: PackedVector2Array = PackedVector2Array()
+			for i: int in 13:
+				limb.append(Vector2(-0.2, 0.0) + Vector2.from_angle(lerpf(-1.15, 1.15, float(i) / 12.0)))
+			strokes.append([limb, 0.24])
+			strokes.append([PackedVector2Array([limb[0], Vector2(-0.45, 0.0), limb[12]]), 0.08])
+			strokes.append([PackedVector2Array([Vector2(-0.45, 0.0), Vector2(0.95, 0.0)]), 0.12])
+			fills.append(PackedVector2Array([Vector2(0.85, -0.22), Vector2(1.15, 0.0), Vector2(0.85, 0.22)]))
+		UpgradeIcon.Kind.WAR_CRY:
+			# A shout: a source and three widening sound arcs.
+			fills.append(_circle(Vector2(-0.7, 0.0), 0.26))
+			for i: int in 3:
+				var arc: PackedVector2Array = PackedVector2Array()
+				for k: int in 9:
+					arc.append(Vector2(-0.7, 0.0) + Vector2.from_angle(lerpf(-0.8, 0.8, float(k) / 8.0)) * (0.65 + 0.42 * float(i)))
+				strokes.append([arc, 0.2])
+		UpgradeIcon.Kind.STANCE_CHARGE:
+			# A sword pointing forward and up: advance.
+			strokes.append([PackedVector2Array([Vector2(-0.55, 0.55), Vector2(0.95, -0.95)]), 0.24])
+			strokes.append([PackedVector2Array([Vector2(-0.95, 0.95), Vector2(-0.6, 0.6)]), 0.22])
+			strokes.append([PackedVector2Array([Vector2(-0.82, 0.34), Vector2(-0.34, 0.82)]), 0.18])
+		UpgradeIcon.Kind.STANCE_HOLD:
+			# A shield: stand and defend.
+			fills.append(PackedVector2Array([Vector2(-0.8, -0.85), Vector2(0.8, -0.85), Vector2(0.8, 0.1), Vector2(0.0, 1.0),
+					Vector2(-0.8, 0.1)]))
+		_:
+			fills.append(_circle(Vector2.ZERO, 0.5))
+	return [strokes, fills]
+
+
+static func _circle(center: Vector2, radius: float) -> PackedVector2Array:
+	var points: PackedVector2Array = PackedVector2Array()
+	for i: int in 16:
+		points.append(center + Vector2.from_angle(TAU * float(i) / 16.0) * radius)
+	return points
+
+
+## Draws `symbol` (glyph()) centred on `center`, `radius` units from it: an ink outline under every shape, then the
+## light shapes themselves.
+static func draw_glyph(ci: CanvasItem, symbol: Array, center: Vector2, radius: float, color: Color) -> void:
+	for pass_index: int in 2:
+		var outline: bool = pass_index == 0
+		var paint: Color = Color(InkPalette.INK, 0.9 * color.a) if outline else color
+		for stroke: Array in symbol[0]:
+			var points: PackedVector2Array = PackedVector2Array()
+			for point: Vector2 in (stroke[0] as PackedVector2Array):
+				points.append(center + point * radius)
+			var width: float = float(stroke[1]) * radius + (GLYPH_OUTLINE if outline else 0.0)
+			ci.draw_polyline(points, paint, width, true)
+			# Round ends, so thick strokes do not stop in hard corners.
+			for end: Vector2 in [points[0], points[points.size() - 1]]:
+				ci.draw_circle(end, width * 0.5, paint)
+		for shape: PackedVector2Array in symbol[1]:
+			var points: PackedVector2Array = PackedVector2Array()
+			for point: Vector2 in shape:
+				points.append(center + point * radius)
+			if outline:
+				var ring: PackedVector2Array = points.duplicate()
+				ring.append(points[0])
+				ci.draw_polyline(ring, paint, GLYPH_OUTLINE, true)
+			else:
+				ci.draw_colored_polygon(points, paint)
 
 
 var kind: UpgradeIcon.Kind = UpgradeIcon.Kind.DASH
@@ -133,8 +233,7 @@ func _draw() -> void:
 	if is_ready():
 		InkBrush.glow(self, center, radius * 1.9, Color(InkPalette.GOLD_BRIGHT, 0.7))
 	draw_circle(center, radius, Color(InkPalette.UI_CHARCOAL, 0.94))
-	if _figure_art != null:
-		FigureSkillArt.draw_round(self, _figure_art, center, radius - 1.0)
+	draw_glyph(self, _glyph, center, radius * GLYPH_RADIUS, Color(GLYPH_COLOR, 0.45) if locked else GLYPH_COLOR)
 	if locked:
 		draw_circle(center, radius, Color(InkPalette.UI_CHARCOAL, 0.66))
 		LockIcon.draw(self, center + Vector2(0.0, -2.0), radius * 0.95, Color(InkPalette.PARCHMENT, 0.92))
@@ -146,7 +245,7 @@ func _draw() -> void:
 	var font: Font = get_theme_default_font()
 	var seconds: String = cooldown_text()
 	if not seconds.is_empty():
-		var font_size: int = 22
+		var font_size: int = 26
 		var baseline: float = center.y + float(font_size) * 0.35
 		draw_string_outline(font, Vector2(0.0, baseline), seconds, HORIZONTAL_ALIGNMENT_CENTER, size.x, font_size, 6, Color(InkPalette.INK, 0.95))
 		draw_string(font, Vector2(0.0, baseline), seconds, HORIZONTAL_ALIGNMENT_CENTER, size.x, font_size, InkPalette.PARCHMENT)
@@ -169,6 +268,6 @@ func _draw_badge(font: Font) -> void:
 	var badge: Rect2 = Rect2(Vector2(size.x - BADGE_SIZE + 2.0, size.y - BADGE_SIZE + 2.0), Vector2(BADGE_SIZE, BADGE_SIZE))
 	draw_rect(badge, Color(InkPalette.INK, 0.94))
 	draw_rect(badge, Color(InkPalette.GOLD_BRIGHT, 0.95), false, 2.0)
-	var letter_size: int = 17
+	var letter_size: int = 19
 	draw_string(font, Vector2(badge.position.x, badge.position.y + BADGE_SIZE * 0.5 + float(letter_size) * 0.35), key_hint,
 			HORIZONTAL_ALIGNMENT_CENTER, BADGE_SIZE, letter_size, InkPalette.PARCHMENT)

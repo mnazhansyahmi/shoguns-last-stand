@@ -201,3 +201,21 @@ func test_button_plate_and_badge_text_shaping_is_cached_and_bounded() -> void:
 	for i: int in 100:
 		button._text_line(font, str(i), 18)
 	assert_true(button.get("_text_lines").size() <= 64, "changing cooldown values cannot grow the cache forever")
+
+
+func test_skill_icons_are_bold_light_symbols_a_third_bigger() -> void:
+	assert_true(SkillIcon.DIAMETER >= 66.0 * 1.29, "the icons are about 30%% bigger than the old 66 px (%.0f)" % SkillIcon.DIAMETER)
+	var seen: Dictionary = {}
+	for kind: UpgradeIcon.Kind in [UpgradeIcon.Kind.DASH, UpgradeIcon.Kind.HEAVY, UpgradeIcon.Kind.SPIRIT_SLASH, UpgradeIcon.Kind.BOW,
+			UpgradeIcon.Kind.WAR_CRY, UpgradeIcon.Kind.STANCE_CHARGE, UpgradeIcon.Kind.STANCE_HOLD]:
+		var symbol: Array = SkillIcon.glyph(kind)
+		assert_true(not (symbol[0] as Array).is_empty() or not (symbol[1] as Array).is_empty(), "%s has a symbol" % kind)
+		var key: String = var_to_str(symbol)
+		assert_true(not seen.has(key), "%s has its own symbol" % kind)
+		seen[key] = true
+		for stroke: Array in symbol[0]:
+			assert_true(float(stroke[1]) * SkillIcon.DIAMETER * 0.5 * SkillIcon.GLYPH_RADIUS >= 2.0, "%s: no hairline strokes" % kind)
+	assert_true(SkillIcon.GLYPH_COLOR.get_luminance() > 0.7, "the symbols are light on the dark frame")
+	var hud: GameHud = _hud()
+	for id: String in ICON_IDS:
+		assert_true(not hud.get_skill_icon(id).key_hint.is_empty(), "%s keeps its key badge" % id)

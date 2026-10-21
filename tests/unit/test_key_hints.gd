@@ -74,8 +74,8 @@ func test_the_hint_text_fits_inside_its_bar_or_button() -> void:
 	for key: String in ["dash", "heavy", "slash", "bow", "war_cry", "stance"]:
 		var icon: SkillIcon = hud.get_skill_icon(key)
 		var font: Font = icon.get_theme_default_font()
-		assert_true(font.get_string_size(icon.key_hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x <= SkillIcon.BADGE_SIZE - 4.0, "the %s icon's key fits its badge" % key)
-		assert_true(font.get_string_size("99", HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x <= SkillIcon.DIAMETER - 12.0, "two digits of seconds fit inside the %s icon" % key)
+		assert_true(font.get_string_size(icon.key_hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 19).x <= SkillIcon.BADGE_SIZE - 4.0, "the %s icon's key fits its badge" % key)
+		assert_true(font.get_string_size("99", HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x <= SkillIcon.DIAMETER - 12.0, "two digits of seconds fit inside the %s icon" % key)
 	var controls: TouchControls = _controls()
 	controls.set_skills_unlocked(false, false)
 	for widget: String in ["bow", "war_cry"]:
