@@ -64,6 +64,7 @@ func _ready() -> void:
 		push_error("Enemy '%s': EnemyData '%s' has no attack, using defaults." % [name, data.display_name])
 		_attack = AttackProfile.new()
 	_apply_data()
+	MotionSmoother.attach(self, [_visual, _health_bar] as Array[Node2D])
 	_health.health_changed.connect(_on_health_changed)
 	_health.died.connect(_on_died)
 	_hurtbox.hit_received.connect(_on_hit_received)

@@ -66,7 +66,9 @@ func get_desired_x() -> float:
 	var x: float = (bounds_left + bounds_right) * 0.5
 	if is_instance_valid(target):
 		var facing: Variant = target.get("facing")
-		x = target.global_position.x + look_ahead * (float(facing) if facing is int or facing is float else 0.0)
+		# Follow where the target is drawn (between physics ticks), or the view steps under it.
+		var at: Vector2 = target.call(&"get_display_position") if target.has_method(&"get_display_position") else target.global_position
+		x = at.x + look_ahead * (float(facing) if facing is int or facing is float else 0.0)
 	var half: float = get_view_size().x * 0.5
 	var low: float = bounds_left + half
 	var high: float = bounds_right - half

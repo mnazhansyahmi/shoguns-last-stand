@@ -66,6 +66,7 @@ var _bow_cooldown: CooldownComponent
 var _war_cry_cooldown: CooldownComponent
 var _bow_fired: bool = false
 var _war_cry_released: bool = false
+var _smoother: MotionSmoother
 
 
 func _ready() -> void:
@@ -84,6 +85,7 @@ func _ready() -> void:
 	_war_cry_cooldown = CooldownComponent.new()
 	_war_cry_cooldown.name = "WarCryCooldown"
 	add_child(_war_cry_cooldown)
+	_smoother = MotionSmoother.attach(self, [_visual] as Array[Node2D])
 
 	_health.health_changed.connect(_on_health_changed)
 	_health.died.connect(_on_died)
@@ -142,6 +144,11 @@ func apply_stats(new_stats: PlayerStats) -> void:
 	_war_cry_cooldown.duration = stats.war_cry_cooldown
 	_health.max_health = stats.max_health
 	_health.reset()
+
+
+## Where the samurai is drawn this frame: between physics ticks (the camera follows this).
+func get_display_position() -> Vector2:
+	return _smoother.get_display_position() if _smoother != null else global_position
 
 
 func respawn(at: Vector2) -> void:

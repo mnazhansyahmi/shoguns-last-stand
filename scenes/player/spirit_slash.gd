@@ -31,6 +31,7 @@ func setup(direction: float, damage: float, speed: float, max_range: float, knoc
 func _ready() -> void:
 	global_position = spawn_position
 	scale.x = _direction
+	MotionSmoother.attach(self, [$Visual as Node2D] as Array[Node2D])
 	if is_instance_valid(_source):
 		_hitbox.source = _source
 	_hitbox.knockback_direction_x = _direction

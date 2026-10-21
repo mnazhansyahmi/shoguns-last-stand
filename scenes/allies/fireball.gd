@@ -20,6 +20,7 @@ var _age: float = 0.0
 var _trail: PackedVector2Array = PackedVector2Array()
 var _exploded: bool = false
 var _phase: float = 0.0
+var _smoother: MotionSmoother
 
 
 ## Call before adding to the tree. `target` may be null: the ball then flies to `aim_point`.
@@ -36,6 +37,7 @@ func _ready() -> void:
 	z_index = 4
 	_phase = randf() * TAU
 	_trail.append(global_position)
+	_smoother = MotionSmoother.attach(self, [], true)
 
 
 func _physics_process(delta: float) -> void:
@@ -111,6 +113,8 @@ func _record_trail() -> void:
 
 
 func _draw() -> void:
+	if _smoother != null:
+		draw_set_transform(_smoother.get_draw_offset())
 	var direction: Vector2 = Vector2.RIGHT
 	if _trail.size() >= 2:
 		var back: Vector2 = _trail[0] - global_position

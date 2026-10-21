@@ -17,6 +17,7 @@ var _source: Node
 var _travelled: float = 0.0
 var _age: float = 0.0
 var _hitbox: HitboxComponent
+var _smoother: MotionSmoother
 
 
 ## Call before adding to the tree. `start_position` is on the ground.
@@ -33,6 +34,7 @@ func setup(direction: float, damage: float, speed: float, max_range: float, knoc
 func _ready() -> void:
 	z_index = 2
 	scale.x = _direction
+	_smoother = MotionSmoother.attach(self, [], true)
 	_hitbox = HitboxComponent.new()
 	_hitbox.name = "Hitbox"
 	_hitbox.faction = Faction.Type.ENEMIES
@@ -66,6 +68,8 @@ func get_strength() -> float:
 
 
 func _draw() -> void:
+	if _smoother != null:
+		draw_set_transform(_smoother.get_draw_offset())
 	var strength: float = get_strength()
 	var pulse: float = 0.5 + 0.5 * sin(_age * 22.0)
 	var batch: InkBatch = InkBatch.new()

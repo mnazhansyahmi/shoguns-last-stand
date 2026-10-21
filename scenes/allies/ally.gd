@@ -92,6 +92,7 @@ func _ready() -> void:
 	var head_top: float = _visual.configure(data.figure, data.body_size.y)
 	_health_bar.position = Vector2(lane_x, head_top - 22.0)
 	_health_bar.bar_size = Vector2(clampf(data.body_size.x * 1.4, 56.0, 120.0), 8.0)
+	MotionSmoother.attach(self, [_visual, _health_bar] as Array[Node2D])
 
 	_health.health_changed.connect(_health_bar.set_values)
 	_health.died.connect(_on_died)

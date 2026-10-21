@@ -211,6 +211,7 @@ All art is drawn by code; there are no image files. `docs/ART_BIBLE.md` is the s
   - Ally bars are unchanged.
   - Damage numbers are 30 px (a quarter smaller than the 40 px before) with a solid 9 px ink outline. One attack is one reported hit per victim (`HitboxComponent` remembers who it hit); numbers on the same victim merge.
 - `InkBatch` collects shapes into one RenderingServer triangle array (one draw call) and skips a shape that can't be triangulated, instead of logging an error (which would fail the tests). `InkBrush` is the one-off version for dynamic art (effects, cloth).
+- `tools/frame_pacing.gd` runs the samurai across an empty field with vsync on and samples where his figure is drawn just before every frame: the refresh rate, frames he did not move, unevenness of the drawn speed, and his step on screen. On a 165 Hz monitor, before `MotionSmoother` he stood still in 64% of frames and jittered 2.5 px (sd) on screen; after, 0% and 0.04 px.
 - `tools/capture_screenshots.gd` renders a figure sheet (every kind in every state), the title screen, stage select and a staged battle. It needs a real renderer, so run it without `--headless`.
 
 ## Tests
