@@ -1,7 +1,7 @@
 extends Control
 ## Title screen artwork over the Bamboo Outskirts backdrop: a dark wash behind the menu column,
 ## an ink rock outcrop, the original painted samurai against the moon, and drifting bamboo
-## leaves. The portrait is static; the surrounding atmosphere moves. Ignores input.
+## leaves. Hair and free robe edges breathe in the wind; soles stay pinned. Ignores input.
 
 ## The backdrop's moon (BambooOutskirtsPainter) and its layer depth, to line the samurai up with it.
 const MOON_POSITION: Vector2 = Vector2(1480.0, 230.0)
@@ -12,20 +12,15 @@ const SAMURAI_HEIGHT: float = 540.0
 const LEDGE_DROP: float = 450.0
 const LEAF_COUNT: int = 14
 
-var _portrait: Sprite2D
+var _portrait: PortraitMotion
 var _clock: float = 0.0
 var _leaf_seeds: PackedVector4Array = PackedVector4Array()
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_portrait = Sprite2D.new()
+	_portrait = PortraitMotion.new()
 	_portrait.name = "Samurai"
-	_portrait.texture = SamuraiSpriteArt.PORTRAIT
-	_portrait.region_enabled = true
-	_portrait.region_rect = SamuraiSpriteArt.PORTRAIT_REGION
-	_portrait.region_filter_clip_enabled = true
-	_portrait.offset = Vector2(0.0, -SamuraiSpriteArt.PORTRAIT_REGION.size.y * 0.5)
 	add_child(_portrait)
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = 7
@@ -37,6 +32,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_clock += delta
+	_portrait.reduced_motion = GameSettings.reduced_decorative_motion
+	_portrait.set_time(_clock)
 	queue_redraw()
 
 

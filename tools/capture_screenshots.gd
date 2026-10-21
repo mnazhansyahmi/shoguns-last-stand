@@ -75,6 +75,19 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if _only == "settings":
+		var menu: Node = MAIN_MENU.instantiate()
+		menu.set("save_path", DATA_DIR + "/save.json")
+		menu.set("settings_path", DATA_DIR + "/settings.cfg")
+		root.add_child(menu)
+		await _frames(30)
+		(menu.get_node("%SettingsPanel") as SettingsPanel).open(GameSettings.new())
+		await _frames(20)
+		await _capture("settings_motion")
+		menu.free()
+		await AudioManager.shutdown_audio(self)
+		quit(0)
+		return
 	if _only == "healing":
 		await _capture_healing()
 		quit(0)

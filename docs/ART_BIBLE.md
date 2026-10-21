@@ -320,8 +320,9 @@ Effects never deal damage, never block input, and free themselves.
   from `InkPalette`. Touch buttons are charcoal discs with a gold rim and the action's colour as a ring.
 - **Title screen:** the Bamboo Outskirts backdrop with a dark wash behind the menu column, an ink rock
   outcrop, and the original painted samurai against the moon, with bamboo leaves drifting
-  past. The title portrait is static, larger and upright in a quiet low guard, without the stowed yumi;
-  combat figures retain their equipment. Start/Continue uses one crimson ink impression; other title
+  past. The title portrait is larger and upright in a quiet low guard, without the stowed yumi;
+  its cached UV mesh has separate breathing, hair and robe weights, with soles pinned to rock.
+  Combat figures retain their equipment. Start/Continue uses one crimson ink impression; other title
   actions are open parchment rows with restrained gold focus markers and full-size touch targets.
   The menu screens reuse the backdrop behind a charcoal veil.
 

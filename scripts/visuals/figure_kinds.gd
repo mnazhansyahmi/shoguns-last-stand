@@ -108,6 +108,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.has_back_bow = true
 		InkFigure.Kind.ASHIGARU:
 			s.accent = InkPalette.ASHIGARU_GOLD
+			s.cloth = true
 			# Nervous foot soldier: shifts his weight, glances about, the spear never quite still.
 			s.breath_hz = 0.38
 			s.breath_lean = 0.018
@@ -230,6 +231,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.slam_radius = 170.0
 		InkFigure.Kind.SHRINE_HEALER:
 			s.accent = InkPalette.HEALER_JADE
+			s.cloth = true
 			# Gentle: sways like grass, the head tilts softly, the wand drifts slowly.
 			s.breath_hz = 0.26
 			s.breath_amp = 0.014
@@ -261,6 +263,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.sleeve_width = Vector2(10.0, 5.0)
 		InkFigure.Kind.SPEAR_GUARDIAN:
 			s.accent = InkPalette.GUARDIAN_AZURE
+			s.cloth = true
 			# Stoic: planted, hardly moves; a slow shift of the shield.
 			s.breath_hz = 0.3
 			s.idle_blade = Vector2(0.015, 1.2)
@@ -293,6 +296,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.death_accent = InkPalette.GUARDIAN_AZURE
 		InkFigure.Kind.ONMYOJI:
 			s.accent = InkPalette.ONMYOJI_MAGENTA
+			s.cloth = true
 			# Serene: the talisman drifts by itself, the hand wanders, the body barely sways.
 			s.breath_hz = 0.24
 			s.idle_blade = Vector2(0.075, 1.4)
@@ -323,6 +327,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.sleeve_width = Vector2(11.0, 5.0)
 		InkFigure.Kind.HATAMOTO:
 			s.accent = InkPalette.HATAMOTO_ORANGE
+			s.cloth = true
 			# Proud: upright, a steady naginata, a slow sweep of the eyes.
 			s.breath_hz = 0.28
 			s.idle_blade = Vector2(0.03, 1.3)

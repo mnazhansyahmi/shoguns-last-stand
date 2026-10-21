@@ -33,11 +33,22 @@ var _settings: GameSettings = GameSettings.new()
 var _syncing: bool = false
 var _controls_page: CenterContainer
 var _controls_button: Button
+var _motion_toggle: Button
 
 
 func _ready() -> void:
 	visible = false
 	_build_controls_page()
+	_motion_toggle = Button.new()
+	_motion_toggle.name = "MotionToggle"
+	_motion_toggle.toggle_mode = true
+	_motion_toggle.theme_type_variation = &"ToggleButton"
+	_motion_toggle.custom_minimum_size = Vector2(260.0, 124.0)
+	_motion_toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_motion_toggle.add_theme_font_size_override("font_size", 30)
+	_motion_toggle.tooltip_text = "Reduce decorative hair and cloth motion. Combat poses stay responsive."
+	_shake_toggle.get_parent().add_child(_motion_toggle)
+	_motion_toggle.toggled.connect(func(enabled: bool) -> void: _apply(func() -> void: _settings.reduced_motion = enabled))
 	_ui_scale_slider.min_value = GameSettings.MIN_UI_SCALE
 	_ui_scale_slider.max_value = GameSettings.MAX_UI_SCALE
 	var group: ButtonGroup = ButtonGroup.new()
@@ -71,6 +82,7 @@ func open(settings: GameSettings) -> void:
 	_ui_scale_slider.value = _settings.ui_scale
 	_vibration_toggle.button_pressed = _settings.vibration
 	_shake_toggle.button_pressed = _settings.screen_shake
+	_motion_toggle.button_pressed = _settings.reduced_motion
 	_blood_toggle.button_pressed = _settings.blood
 	_left_handed_toggle.button_pressed = _settings.left_handed
 	_touch_buttons[int(_settings.touch_mode)].button_pressed = true
@@ -141,6 +153,7 @@ func _refresh_value_labels() -> void:
 	_ui_scale_value.text = "%d%%" % roundi(_settings.ui_scale * 100.0)
 	_vibration_toggle.text = "Vibration: %s" % _on_off(_settings.vibration)
 	_shake_toggle.text = "Shake: %s" % _on_off(_settings.screen_shake)
+	_motion_toggle.text = "Motion: %s" % ("Reduced" if _settings.reduced_motion else "Full")
 	_blood_toggle.text = "Blood: %s" % _on_off(_settings.blood)
 	_left_handed_toggle.text = "Left-handed: %s" % _on_off(_settings.left_handed)
 	for i: int in _touch_buttons.size():

@@ -17,8 +17,17 @@ sandals and restrained red waist cloth. Combat speed, damage, skill timing,
 progression and the other character kinds remain governed by the existing game.
 
 The user-approved refined menu hierarchy and sunset ink landscape are retained.
-The menu hero is a static original painted portrait; the battle hero uses painted
+The menu hero reuses original painted artwork; the battle hero uses painted
 parts on the existing animated skeleton and planted-foot IK.
+
+## Approved motion refinement — 2026-10-21
+
+The user requested breathing, independently moving hair and robes in the menu,
+visible secondary motion during gameplay, a shorter samurai neck, and appropriate
+motion for all six allies. The menu artwork now uses a pinned deformable mesh;
+gameplay uses anchored hair and cloth chains. Recorded motion evidence and the
+scope are in `docs/animation_review/`. Reduced decorative motion is configurable
+without removing combat poses. This approval supersedes the static menu choice.
 
 Burning Village, more stages, new enemy counters and additional allies belong to
 a later phase. Stop after this character refinement for user review.

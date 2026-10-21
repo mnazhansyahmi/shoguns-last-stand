@@ -13,6 +13,9 @@ var music_volume: float = 0.8
 var sfx_volume: float = 0.8
 var vibration: bool = true
 var screen_shake: bool = true
+var reduced_motion: bool = false
+## Scene-applied preference, read by figures created later (no scene references).
+static var reduced_decorative_motion: bool = false
 ## Ink-style blood on hits and kills, and the stains it leaves on the ground.
 var blood: bool = true
 var ui_scale: float = 1.0
@@ -62,6 +65,7 @@ func should_show_touch_controls(touchscreen_available: bool) -> bool:
 ## Sets the Music/SFX bus volumes (from default_bus_layout.tres). Audio state is global, so
 ## applying once per scene start keeps it correct without an autoload.
 func apply_audio() -> void:
+	reduced_decorative_motion = reduced_motion
 	_apply_bus(MUSIC_BUS, music_volume)
 	_apply_bus(SFX_BUS, sfx_volume)
 
@@ -72,6 +76,7 @@ func duplicate_settings() -> GameSettings:
 	copy.sfx_volume = sfx_volume
 	copy.vibration = vibration
 	copy.screen_shake = screen_shake
+	copy.reduced_motion = reduced_motion
 	copy.blood = blood
 	copy.ui_scale = ui_scale
 	copy.left_handed = left_handed

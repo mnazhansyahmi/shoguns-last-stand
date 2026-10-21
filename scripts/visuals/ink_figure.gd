@@ -84,6 +84,7 @@ var back_elbow: Vector2 = Vector2.ZERO
 var secondary: SecondaryMotion
 
 var _secondary_clock: float = 0.0
+var _cloth_redraw_frame: int = -1
 var _parts: Array[FigurePart] = []
 var _part_slots: PackedInt32Array = PackedInt32Array()
 var _dynamic_parts: Array[FigurePart] = []
@@ -262,14 +263,33 @@ func refresh() -> void:
 	if _parts.is_empty():
 		return
 	_update_slots()
+	var to_figure: Transform2D = global_transform.affine_inverse() if not _dynamic_parts.is_empty() else Transform2D.IDENTITY
 	for i: int in _parts.size():
 		_parts[i].transform = _slot_xf[_part_slots[i]]
-		if kind == Kind.SAMURAI and _parts[i].part_name == &"mane":
-			var tie: Vector2 = Vector2(-3.0, -21.0)
-			var sway: float = sin(clock * 5.0) * (0.025 + trail * 0.05)
-			_parts[i].transform *= Transform2D(0.0, tie) * Transform2D(sway, Vector2.ZERO) * Transform2D(0.0, -tie)
-	for part: FigurePart in _dynamic_parts:
-		part.queue_redraw()
+		# Repaint may be 30 Hz, but the root stays attached to the moving bone
+		# every frame. Cached local ribbon vertices follow this pinned origin.
+		if secondary != null:
+			var chain: ClothChain
+			match _parts[i].part_name:
+				&"tails":
+					if not secondary.scarf.is_empty(): chain = secondary.scarf[0]
+				&"sleeve_f": chain = secondary.sleeve_front
+				&"sleeve_b": chain = secondary.sleeve_back
+			if chain != null and not chain.points.is_empty():
+				_parts[i].position = to_figure * chain.points[0]
+		if secondary != null and kind == Kind.SHRINE_HEALER and _parts[i].part_name == &"mane":
+			var tie: Vector2 = Vector2(-6.0, -10.0)
+			_parts[i].transform *= Transform2D(0.0, tie) * Transform2D(secondary.ornament.value * 1.5, Vector2.ZERO) * Transform2D(0.0, -tie)
+		if secondary != null and kind == Kind.HATAMOTO and _parts[i].part_name in [&"banner", &"hem"]:
+			var pole: Vector2 = Vector2(-11.0, -12.0)
+			_parts[i].transform *= Transform2D(0.0, pole) * Transform2D(secondary.ornament.value * 0.3, Vector2.ZERO) * Transform2D(0.0, -pole)
+	# Ally ornaments need less repaint work than body poses. Physics and anchors
+	# still advance at the full rate; the player's hair remains full-rate too.
+	var cloth_frame: int = int(clock * 30.0)
+	if kind == Kind.SAMURAI or cloth_frame != _cloth_redraw_frame:
+		for part: FigurePart in _dynamic_parts:
+			part.queue_redraw()
+		_cloth_redraw_frame = cloth_frame
 	if _bow_part != null:
 		var step: int = FigurePainter.bow_step(pose.bow_draw)
 		if step != _bow_step:
@@ -392,7 +412,12 @@ func _rest_weapon_on_ground() -> void:
 func _step_secondary() -> void:
 	var elapsed: float = clock - _secondary_clock
 	_secondary_clock = clock
-	if secondary == null or elapsed <= 0.0 or not is_inside_tree():
+	if secondary == null or not is_inside_tree():
+		return
+	if elapsed <= 0.0:
+		# Frozen icon/portrait bakers also need a seeded hair/cloth shape on
+		# their very first frame; they never advance the animation clock.
+		if not secondary.is_initialized(): secondary.step(self, 1.0 / 60.0)
 		return
 	if elapsed > 0.3:
 		secondary = SecondaryMotion.new(spec.loose_armour)
@@ -473,6 +498,7 @@ func _build_parts() -> void:
 	_parts.clear()
 	_part_slots.resize(0)
 	_dynamic_parts.clear()
+	_cloth_redraw_frame = -1
 	_fall_glows.clear()
 	_glow_flicker.resize(0)
 	_glow_rage_min.resize(0)
@@ -499,7 +525,7 @@ func _build_parts() -> void:
 		part.part_name = part_name
 		if part_name == &"marker":
 			part.batch = _marker_batch()
-		elif FigurePainter.DYNAMIC_PARTS.has(part_name):
+		elif FigurePainter.DYNAMIC_PARTS.has(part_name) or (kind == Kind.SAMURAI and part_name == &"mane"):
 			part.dynamic = true
 			_dynamic_parts.append(part)
 		elif part_name == &"bow":
@@ -521,8 +547,9 @@ func _build_parts() -> void:
 		if part_name == &"bow" and spec.has_back_bow:
 			part.visible = false
 		if kind == Kind.SAMURAI and SamuraiSpriteArt.has_part(part_name):
-			part.art = SamuraiSpriteArt.texture(part_name)
-			part.art_frame = SamuraiSpriteArt.frame(part_name)
+			if not part.dynamic:
+				part.art = SamuraiSpriteArt.texture(part_name)
+				part.art_frame = SamuraiSpriteArt.frame(part_name)
 			# Painted layers carry their own ink edges; the procedural UV-flag rim shader
 			# cannot be applied to a normal image texture.
 			part.material = Atmosphere.painted_rim_material()

@@ -1,0 +1,4 @@
+{
+  "prompt": "Origin: local Godot 4.7.2 real-renderer capture of Shoguns Last Stand on 2026-10-21. menu.webp. tools/record_motion.gd captures 60 Hz simulation at 15 fps; tools/encode_motion.py encodes untouched renderer frames. Settings still uses tools/capture_screenshots.gd. Original game art retained; isolated test save/settings.",
+  "createdAt": "2026-10-21T08:23:08.478Z"
+}

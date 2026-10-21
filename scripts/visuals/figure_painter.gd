@@ -155,7 +155,7 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			order.append_array([&"sleeve_f", &"weapon", &"bow", &"blade_glow"])
 		InkFigure.Kind.ASHIGARU:
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
-			order.append_array([&"hem", &"torso", &"head", &"weapon"])
+			order.append_array([&"hem", &"torso", &"head", &"tails", &"weapon"])
 			order.append_array(_FRONT_ARM)
 		InkFigure.Kind.YUMI_ARCHER:
 			order.append_array([&"hem", &"tails", &"quiver"])
@@ -177,19 +177,19 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 				order.append(&"mane")
 			order.append_array(_BACK_LIMBS + _BACK_ARM)
 			order.append_array([&"sleeve_b"] + _FRONT_LEG)
-			order.append_array([&"hem", &"torso", &"head", &"weapon"])
+			order.append_array([&"hem", &"torso", &"head", &"tails", &"weapon"])
 			order.append_array(_FRONT_ARM)
 			order.append(&"sleeve_f")
 		InkFigure.Kind.SPEAR_GUARDIAN:
 			order.append_array(_BACK_LIMBS + [&"pauldron_back"] + _BACK_ARM + _FRONT_LEG)
-			order.append_array([&"hem", &"torso", &"head", &"shield"])
+			order.append_array([&"hem", &"torso", &"head", &"tails", &"shield"])
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"pauldron_front", &"weapon"])
 		InkFigure.Kind.HATAMOTO:
 			# The banner is on his back, behind everything; he wears the samurai's hakama and skirt.
 			order.append_array([&"hem", &"banner", &"thigh_b", &"shin_b", &"foot_b", &"pauldron_back"])
 			order.append_array(_BACK_ARM)
-			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head"])
+			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head", &"tails"])
 			order.append_array(_FRONT_ARM)
 			order.append_array([&"pauldron_front", &"weapon"])
 		InkFigure.Kind.FALLEN_DAIMYO:
@@ -337,14 +337,18 @@ static func bow_step(draw_amount: float) -> int:
 ## slot space.
 static func paint_dynamic(fig: InkFigure, part_name: StringName, ci: CanvasItem) -> void:
 	match part_name:
+		&"mane":
+			if fig.secondary != null and fig.secondary.hair != null:
+				var local_hair: PackedVector2Array = ci.global_transform.affine_inverse() * fig.secondary.hair.points
+				SamuraiSpriteArt.paint_cloth(ci, SamuraiSpriteArt.smooth_ribbon(local_hair), 18.0, true, SamuraiSpriteArt.SOURCES[&"mane"])
 		&"tails":
 			if fig.kind == InkFigure.Kind.SAMURAI:
 				if fig.secondary != null:
 					for chain: ClothChain in fig.secondary.scarf:
-						SamuraiSpriteArt.paint_cloth(ci, fig.global_transform.affine_inverse() * chain.points,
+						SamuraiSpriteArt.paint_cloth(ci, ci.global_transform.affine_inverse() * chain.points,
 								7.0 * fig.get_unit_scale(), true)
 			else:
-				_paint_cloth_tails(fig, ci, InkPalette.ARCHER_TEAL, 4.0, 3.4)
+				_paint_cloth_tails(fig, ci, fig.spec.accent, 3.2, 3.4)
 		&"sleeve_f":
 			if fig.secondary != null and fig.secondary.sleeve_front != null:
 				_paint_sleeve(fig, ci, fig.secondary.sleeve_front, tone(fig.kind, InkPalette.INK))
@@ -386,7 +390,7 @@ static func _paint_cloth_tails(fig: InkFigure, ci: CanvasItem, color: Color, wid
 	if fig.secondary == null:
 		return
 	var s: float = fig.get_unit_scale()
-	var to_local: Transform2D = fig.global_transform.affine_inverse()
+	var to_local: Transform2D = ci.global_transform.affine_inverse()
 	var batch: InkBatch = InkBatch.new()
 	for tail: int in 2:
 		var world: PackedVector2Array
@@ -402,10 +406,10 @@ static func _paint_cloth_tails(fig: InkFigure, ci: CanvasItem, color: Color, wid
 static func _paint_sleeve(fig: InkFigure, ci: CanvasItem, chain: ClothChain, color: Color) -> void:
 	var s: float = fig.get_unit_scale()
 	if fig.kind == InkFigure.Kind.SAMURAI:
-		SamuraiSpriteArt.paint_cloth(ci, fig.global_transform.affine_inverse() * chain.points, 8.0 * s, false)
+		SamuraiSpriteArt.paint_cloth(ci, ci.global_transform.affine_inverse() * chain.points, 8.0 * s, false)
 		return
 	var batch: InkBatch = InkBatch.new()
-	batch.stroke(fig.global_transform.affine_inverse() * chain.points, fig.spec.sleeve_width.x * s, fig.spec.sleeve_width.y * s, color)
+	batch.stroke(ci.global_transform.affine_inverse() * chain.points, fig.spec.sleeve_width.x * s, fig.spec.sleeve_width.y * s, color)
 	batch.draw(ci)
 
 

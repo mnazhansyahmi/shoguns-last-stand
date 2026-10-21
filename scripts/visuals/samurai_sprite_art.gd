@@ -7,7 +7,7 @@ const ATLAS: Texture2D = preload("res://assets/art/samurai/slim_parts.png")
 const PORTRAIT: Texture2D = preload("res://assets/art/samurai/slim_menu.png")
 const PORTRAIT_REGION: Rect2 = Rect2(2, 18, 1020, 1495)
 const SOURCES: Dictionary = {
-	&"head": Rect2(130, 116, 196, 235), &"mane": Rect2(941, 98, 305, 238),
+	&"head": Rect2(130, 116, 196, 205), &"mane": Rect2(941, 98, 305, 238),
 	&"torso": Rect2(330, 68, 297, 291), &"skirt": Rect2(639, 70, 299, 298),
 	&"upper_f": Rect2(42, 412, 261, 225), &"fore_f": Rect2(337, 442, 277, 166),
 	&"thigh_f": Rect2(640, 391, 303, 248), &"shin_f": Rect2(955, 440, 260, 150),
@@ -17,8 +17,8 @@ const SOURCES: Dictionary = {
 	&"weapon": Rect2(936, 1047, 309, 62),
 }
 const RECTS: Dictionary = {
-	&"head": Rect2(-8.0, -18.5, 20.0, 24.0),
-	&"mane": Rect2(-35.0, -24.0, 31.0, 19.0),
+	&"head": Rect2(-8.0, -15.5, 20.0, 21.0),
+	&"mane": Rect2(-35.0, -21.0, 31.0, 19.0),
 	&"torso": Rect2(-10.5, -36.0, 22.0, 39.0),
 	&"skirt": Rect2(-13.5, -4.5, 27.0, 29.0),
 	&"foot_f": Rect2(-3.5, -7.0, 12.5, 9.5),
@@ -40,18 +40,32 @@ const JOINTS: Dictionary = {
 
 static var _textures: Dictionary = {}
 static var _frames: Dictionary = {}
+static var _ribbon_indices: Dictionary = {}
 
 ## Authored cloth within the same atlas: no solid geometric substitute over the paint.
 const SASH_REGION: Rect2 = Rect2(634, 1000, 296, 190)
 const SLEEVE_REGION: Rect2 = Rect2(110, 515, 180, 115)
 
 
-static func paint_cloth(ci: CanvasItem, points: PackedVector2Array, width: float, sash: bool) -> void:
+static func smooth_ribbon(points: PackedVector2Array) -> PackedVector2Array:
+	var smooth: PackedVector2Array = PackedVector2Array()
+	for i: int in points.size() - 1:
+		for step: int in 3:
+			smooth.append(points[i].cubic_interpolate(points[i + 1], points[maxi(0, i - 1)],
+					points[mini(points.size() - 1, i + 2)], float(step) / 3.0))
+	smooth.append(points[-1])
+	return smooth
+
+
+static func paint_cloth(ci: CanvasItem, points: PackedVector2Array, width: float, sash: bool,
+		source_region: Rect2 = Rect2()) -> void:
 	if points.size() < 2:
 		return
 	var vertices: PackedVector2Array = PackedVector2Array()
 	var uvs: PackedVector2Array = PackedVector2Array()
 	var region: Rect2 = SASH_REGION if sash else SLEEVE_REGION
+	if source_region.has_area():
+		region = source_region
 	var atlas_size: Vector2 = ATLAS.get_size()
 	for side: int in 2:
 		for step: int in points.size():
@@ -64,11 +78,14 @@ static func paint_cloth(ci: CanvasItem, points: PackedVector2Array, width: float
 			uvs.append((region.position + uv * region.size) / atlas_size)
 	# A cloth chain can curl across itself. Explicit strip triangles remain valid
 	# where polygon ear-clipping cannot triangulate a self-crossing outline.
-	var indices: PackedInt32Array = PackedInt32Array()
 	var count: int = points.size()
-	for i: int in count - 1:
-		var opposite: int = count * 2 - 1 - i
-		indices.append_array(PackedInt32Array([i, i + 1, opposite, i + 1, opposite - 1, opposite]))
+	if not _ribbon_indices.has(count):
+		var triangles: PackedInt32Array = PackedInt32Array()
+		for i: int in count - 1:
+			var opposite: int = count * 2 - 1 - i
+			triangles.append_array(PackedInt32Array([i, i + 1, opposite, i + 1, opposite - 1, opposite]))
+		_ribbon_indices[count] = triangles
+	var indices: PackedInt32Array = _ribbon_indices[count]
 	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices,
 			PackedColorArray([Color.WHITE]), uvs, PackedInt32Array(), PackedFloat32Array(), ATLAS.get_rid())
 

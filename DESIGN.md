@@ -150,11 +150,19 @@ Native controls use small radii: buttons 4 px, panels 6 px, cards 8 px. The titl
 
 ### Painted samurai
 
-`SamuraiSpriteArt` shares cached `AtlasTexture` regions and transforms from `slim_parts.png`. Painted sleeve and sash atlas strips follow the cloth chains; their alpha edges and texture remain visible. Head/torso overlap keeps the neck connected. Hair and cloth retain secondary motion on the existing gameplay skeleton. The static `slim_menu.png` portrait is separate, larger, upright and without the stowed yumi. Gameplay and cached figure icons retain their skill equipment and Bow/War Cry transitions.
+`SamuraiSpriteArt` shares cached `AtlasTexture` regions and transforms from `slim_parts.png`. Painted sleeve and sash atlas strips follow the cloth chains; their alpha edges and texture remain visible. The shorter head crop and head/torso overlap keep the neck compact and connected. A head-anchored world-space ponytail chain retains momentum through turns and stops. Gameplay and cached figure icons retain their skill equipment and Bow/War Cry transitions.
+
+The separate `slim_menu.png` portrait remains larger, upright and without the stowed yumi. `PortraitMotion` draws it through a shared immutable UV mesh with independent chest, hair and robe weights; shader time drives breathing and wind, with sole weights pinned to zero. Per-frame work updates shader uniforms rather than rebuilding geometry. Preserve the approved identity in `docs/slim_samurai/approved_concept.png`.
+
+### Character secondary motion and preference
+
+`SecondaryMotion` keeps loose parts anchored in world space and resets chains after teleports. All six allies retain distinct cloth responses: brisk ashigaru tails, light archer ribbons, soft healer cloth and hair, restrained guardian cords, flowing onmyoji ribbons and a weighted Hatamoto banner. Body poses, feet and chain simulation advance at the full visual update rate; only cosmetic cloth repaint outside the samurai is capped at 30 Hz. Samurai hair and cloth repaint remain at the full visual update rate (60 Hz in the recorded sequences).
+
+`SettingsPanel` exposes Motion: Full / Reduced, persisted by `SettingsStore` and applied through `GameSettings`. Reduced mode uses 15% decorative wind/breathing amplitude in the portrait and relevant secondary-motion drivers, and resets hair/tail chains to their rest shapes rather than retaining inertial whip. Combat poses and planted-foot animation remain active.
 
 **The Painted Continuity Rule.** Keep joints connected and all exposed samurai cloth painted; no solid geometric filler over the approved texture.
 
-Evidence sampled: final menu and wide captures, samurai detail and run strip, War Cry battle and figure icon sheet under `builds/slim_samurai/final/`; source theme, title art, palette and atlas mappings. A sampled strip establishes pose appearance, not human judgement of animation smoothness. No Godot build or benchmark was run for this documentation pass.
+Motion evidence is recorded in `docs/animation_review/menu.webp`, `samurai.webp`, `allies.webp` and `battle.webp`, with source frames under `builds/animation_phase/`. The motion rules above were checked against `portrait_motion.gd`, its shader, `secondary_motion.gd`, `ink_figure.gd`, atlas mappings and settings sources. Earlier still evidence remains under `builds/slim_samurai/final/`. Clips and sampled frames support visual review; they do not establish device performance. No Godot build or benchmark was run for this documentation pass.
 
 ## Do's and Don'ts
 

@@ -385,7 +385,7 @@ func test_title_samurai_stands_against_the_moon() -> void:
 	menu.set("settings_path", "user://test_saves/title_settings.cfg")
 	add_to_tree(menu)
 	var art: Control = menu.get_node("TitleArt")
-	var samurai: Sprite2D = art.get_node("Samurai") as Sprite2D
+	var samurai: PortraitMotion = art.get_node("Samurai") as PortraitMotion
 	var moon: Vector2 = art.call(&"get_moon_position")
 	var portrait: Rect2 = art.call(&"get_portrait_rect")
 	assert_true(absf(samurai.position.x - moon.x) < 40.0, "samurai stands under the moon")

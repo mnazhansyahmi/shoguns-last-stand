@@ -56,6 +56,21 @@
         "name": "title-entrance",
         "value": "0.07 s stagger; 0.3 s alpha fade; 70 px slide over 0.38 s, TRANS_CUBIC EASE_OUT",
         "purpose": "Existing six title navigation entries."
+      },
+      {
+        "name": "painted-portrait",
+        "value": "Shared immutable UV mesh; separate chest, hair and robe weights; zero displacement at soles; motion_time and motion_amount shader uniforms",
+        "purpose": "PortraitMotion breathes and moves free edges of the approved slim_menu.png without lifting the feet or rebuilding geometry."
+      },
+      {
+        "name": "character-secondary-motion",
+        "value": "World-space anchored hair/tail chains; per-kind cloth response; full-rate poses, feet and simulation; 30 Hz cosmetic cloth repaint outside samurai; full-rate samurai repaint (60 Hz in recorded sequences)",
+        "purpose": "SecondaryMotion and InkFigure retain follow-through and distinct motion for all six allies; teleport resets prevent whipping. SamuraiSpriteArt uses a shorter head crop with connected neck overlap."
+      },
+      {
+        "name": "reduced-decorative-motion",
+        "value": "Motion: Full / Reduced; 0.15 decorative amplitude in portrait and relevant secondary drivers; hair/tail chains reset to rest shapes",
+        "purpose": "SettingsPanel preference saved by SettingsStore and applied through GameSettings; combat poses and planted-foot animation remain active."
       }
     ]
   },
