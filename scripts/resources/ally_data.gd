@@ -57,6 +57,11 @@ enum Role { FIGHTER, HEALER, MAGE }
 @export var figure: InkFigure.Kind = InkFigure.Kind.ASHIGARU
 
 
+## Archers' arrows and the mage's fire reach flying enemies; blades and spears do not.
+func can_hit_air() -> bool:
+	return is_ranged or role == Role.MAGE
+
+
 ## Ranged-style allies (archers, healers, mages) may stand behind others and keep their distance.
 func is_ranged_like() -> bool:
 	return is_ranged or role != Role.FIGHTER

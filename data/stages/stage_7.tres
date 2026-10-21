@@ -21,5 +21,5 @@ clear_xp_bonus = 190
 defeat_reward_ratio = 0.5
 replay_gold_multiplier = 0.5
 atmosphere = ExtResource("atmo")
-description = "Rice fields under falling ash. Arrows come out of the smoke: keep your allies covered."
+description = "Rice fields under falling ash. Spectral Archers shoot out of the smoke at your allies: cut them down first."
 tagline = "Arrows from the smoke"

@@ -21,5 +21,5 @@ clear_xp_bonus = 210
 defeat_reward_ratio = 0.5
 replay_gold_multiplier = 0.5
 atmosphere = ExtResource("atmo")
-description = "The market street is ablaze. Shields lock in front of the soldiers: break them with heavy blows or strike from behind."
+description = "The market street is ablaze. Shield Bearers lock their shields in front: break them with heavy blows or strike from behind."
 tagline = "Shields in the market"

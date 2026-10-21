@@ -39,6 +39,8 @@ var _telegraphs: Array[AttackTelegraph] = []
 var _minions: Array[Enemy] = []
 var _leap_x: float = 0.0
 var _summon_xs: PackedFloat32Array = PackedFloat32Array()
+## Where the pillars of an ERUPTION will burst (chosen at the wind-up, under the warnings).
+var _pillar_xs: PackedFloat32Array = PackedFloat32Array()
 
 
 func _ready() -> void:
@@ -271,6 +273,11 @@ func _start_windup(length_factor: float) -> void:
 			_summon_xs = _summon_positions(_current)
 			for x: float in _summon_xs:
 				_telegraph(AttackTelegraph.Shape.ELLIPSE, Vector2(x, global_position.y - 2.0), Vector2(110.0, 40.0))
+		BossAttackData.Kind.ERUPTION:
+			_visual.play_state(&"cast")
+			_pillar_xs = _pillar_positions(_current)
+			for x: float in _pillar_xs:
+				_telegraph(AttackTelegraph.Shape.ELLIPSE, Vector2(x, global_position.y - 2.0), Vector2(_current.pillar_size.x * 1.2, 46.0))
 
 
 func _process_attack(delta: float) -> void:
@@ -326,6 +333,12 @@ func _fire() -> void:
 			_visual.flash_hit()
 			minions_requested.emit(_current.summon_enemy, _summon_xs)
 			_spawn_ring(300.0)
+			_begin_active()
+		BossAttackData.Kind.ERUPTION:
+			_spawn_pillars()
+			_visual.play_state(&"strike")
+			_impact_feedback(7.0)
+			AudioManager.play(&"explosion", 0.8)
 			_begin_active()
 
 
@@ -391,7 +404,26 @@ func _spawn_wave() -> void:
 	var damage: float = data.attack_damage * _current.damage_multiplier * get_phase_data().damage_multiplier
 	wave.setup(facing, damage, _current.projectile_speed * _speed_factor(), _current.projectile_range, _current.knockback, self,
 			global_position + Vector2(facing * 90.0, 0.0))
+	wave.fire = _current.fire
 	get_parent().add_child(wave)
+
+
+## The pillars of fire, centred on the target (or ahead of him without one), spread pillar_spacing apart.
+func _pillar_positions(attack: BossAttackData) -> PackedFloat32Array:
+	var centre: float = _target_x(_target) if _has_valid_target() else global_position.x + facing * 300.0
+	var xs: PackedFloat32Array = PackedFloat32Array()
+	for i: int in attack.pillar_count:
+		xs.append(centre + (float(i) - float(attack.pillar_count - 1) * 0.5) * attack.pillar_spacing)
+	return xs
+
+
+func _spawn_pillars() -> void:
+	var damage: float = data.attack_damage * _current.damage_multiplier * get_phase_data().damage_multiplier
+	for x: float in _pillar_xs:
+		var pillar: FirePillar = FirePillar.new()
+		pillar.setup(damage, _current.knockback, _current.pillar_size, maxf(_current.active_time / _speed_factor(), 0.15), self)
+		get_parent().add_child(pillar)
+		pillar.global_position = Vector2(x, global_position.y)
 
 
 ## Where summoned soldiers will rise: both sides of him, close to the ground warning rings.

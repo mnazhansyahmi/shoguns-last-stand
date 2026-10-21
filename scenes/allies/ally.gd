@@ -516,9 +516,10 @@ func _has_valid_target() -> bool:
 	return true
 
 
-## For live candidates from the scene tree (never a stored reference).
+## For live candidates from the scene tree (never a stored reference). A flying enemy counts only for allies whose
+## attacks reach the air (archers, the Onmyoji): melee allies leave it to them.
 func _is_valid_enemy(enemy: Enemy) -> bool:
-	return enemy != null and enemy.is_inside_tree() and not enemy.is_dead()
+	return enemy != null and enemy.is_inside_tree() and not enemy.is_dead() and (not enemy.is_flying() or data.can_hit_air())
 
 
 # --- Signal handlers --------------------------------------------------------

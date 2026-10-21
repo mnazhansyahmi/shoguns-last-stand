@@ -4,8 +4,12 @@ extends Area2D
 ## Each activation (one attack instance) hits a given target at most once.
 
 signal hit_landed(hurtbox: HurtboxComponent)
+## A hurtbox stopped this hit (a Shield Bearer's shield): it counts as this activation's hit on that target.
+signal hit_blocked(hurtbox: HurtboxComponent)
 
 @export var faction: Faction.Type = Faction.Type.DEFENDERS
+## Reaches flying enemies (arrows and the Onmyoji's fire; see EnemyData.flying).
+@export var reaches_air: bool = false
 ## Node credited as the damage source. Defaults to the parent.
 @export var source: Node
 
@@ -29,6 +33,12 @@ func _ready() -> void:
 	monitoring = true
 	monitorable = false
 	collision_layer = 0
+	collision_mask = Faction.hostile_hurtbox_mask(faction)
+
+
+## Changes sides after _ready() (an arrow shot by an enemy): the targets it can hit follow.
+func set_faction(value: Faction.Type) -> void:
+	faction = value
 	collision_mask = Faction.hostile_hurtbox_mask(faction)
 
 
@@ -75,6 +85,9 @@ func try_hit(hurtbox: HurtboxComponent) -> bool:
 	if _hit_targets.has(key):
 		return false
 	if not hurtbox.receive_hit(self):
+		if hurtbox.last_hit_blocked:
+			_hit_targets[key] = true
+			hit_blocked.emit(hurtbox)
 		return false
 	_hit_targets[key] = true
 	hit_landed.emit(hurtbox)

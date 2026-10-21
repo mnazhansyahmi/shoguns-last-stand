@@ -12,9 +12,15 @@ import os
 ENEMIES = {
     "H": "res://data/enemies/hollow_soldier.tres",
     "O": "res://data/enemies/oni_brute.tres",
+    "A": "res://data/enemies/spectral_archer.tres",
+    "S": "res://data/enemies/shield_bearer.tres",
+    "F": "res://data/enemies/flying_spirit.tres",
+    "G": "res://data/enemies/burning_general.tres",
 }
 
 # Each wave: list of entries (enemy key, count, start_delay, spawn_interval).
+# Stage 6 is the march into the village (the familiar foes, more of them); 7 brings the Spectral Archers, 8 the Shield
+# Bearers, 9 the Flying Spirits; 10 mixes them all and ends with the Burning General.
 STAGES = [
     {
         "number": 6, "name": "Ember Road", "bonus_gold": 1000, "bonus_xp": 170, "break": 6.0, "theme": "village_dusk",
@@ -30,26 +36,26 @@ STAGES = [
     },
     {
         "number": 7, "name": "Ashen Fields", "bonus_gold": 1120, "bonus_xp": 190, "break": 6.0, "theme": "ashen_fields",
-        "description": "Rice fields under falling ash. Arrows come out of the smoke: keep your allies covered.",
+        "description": "Rice fields under falling ash. Spectral Archers shoot out of the smoke at your allies: cut them down first.",
         "tagline": "Arrows from the smoke",
         "waves": [
-            [("H", 20, 0.0, 0.4)],
-            [("H", 18, 0.0, 0.35), ("O", 3, 1.0, 2.5)],
-            [("H", 20, 0.0, 0.35), ("O", 3, 0.5, 2.5)],
-            [("H", 20, 0.0, 0.35), ("O", 4, 0.5, 2.0)],
-            [("H", 22, 0.0, 0.33), ("O", 4, 0.5, 2.0)],
+            [("H", 16, 0.0, 0.4), ("A", 2, 4.0, 2.0)],
+            [("H", 16, 0.0, 0.35), ("O", 2, 1.0, 2.5), ("A", 3, 3.0, 2.0)],
+            [("H", 18, 0.0, 0.35), ("O", 3, 0.5, 2.5), ("A", 3, 2.0, 2.0)],
+            [("H", 18, 0.0, 0.35), ("O", 3, 0.5, 2.0), ("A", 4, 2.0, 1.8)],
+            [("H", 20, 0.0, 0.33), ("O", 4, 0.5, 2.0), ("A", 4, 2.0, 1.6)],
         ],
     },
     {
         "number": 8, "name": "Burning Market", "bonus_gold": 1240, "bonus_xp": 210, "break": 6.5, "theme": "burning_market",
-        "description": "The market street is ablaze. Shields lock in front of the soldiers: break them with heavy blows or strike from behind.",
+        "description": "The market street is ablaze. Shield Bearers lock their shields in front: break them with heavy blows or strike from behind.",
         "tagline": "Shields in the market",
         "waves": [
-            [("H", 20, 0.0, 0.35)],
-            [("H", 18, 0.0, 0.35), ("O", 3, 1.0, 2.5)],
-            [("H", 22, 0.0, 0.33), ("O", 4, 0.5, 2.0)],
-            [("H", 20, 0.0, 0.33), ("O", 4, 0.5, 2.0)],
-            [("H", 24, 0.0, 0.33), ("O", 5, 0.5, 2.0)],
+            [("H", 14, 0.0, 0.4), ("S", 3, 2.0, 2.0)],
+            [("H", 14, 0.0, 0.35), ("S", 3, 1.0, 2.0), ("O", 2, 3.0, 2.5), ("A", 2, 4.0, 2.0)],
+            [("H", 16, 0.0, 0.35), ("S", 4, 1.0, 2.0), ("O", 3, 2.0, 2.5), ("A", 3, 3.0, 2.0)],
+            [("H", 16, 0.0, 0.33), ("S", 4, 0.5, 1.8), ("O", 3, 2.0, 2.0), ("A", 3, 3.0, 2.0)],
+            [("H", 18, 0.0, 0.33), ("S", 5, 0.5, 1.8), ("O", 4, 2.0, 2.0), ("A", 4, 3.0, 1.8)],
         ],
     },
     {
@@ -57,23 +63,24 @@ STAGES = [
         "description": "The village shrine burns and its spirits fly free. Only the Bow, archers and the Onmyoji can reach them.",
         "tagline": "Spirits in the smoke",
         "waves": [
-            [("H", 22, 0.0, 0.35)],
-            [("H", 20, 0.0, 0.33), ("O", 3, 1.0, 2.5)],
-            [("H", 22, 0.0, 0.33), ("O", 4, 0.5, 2.0)],
-            [("H", 22, 0.0, 0.3), ("O", 5, 0.5, 2.0)],
-            [("H", 24, 0.0, 0.3), ("O", 5, 0.5, 2.0)],
+            [("H", 14, 0.0, 0.4), ("F", 3, 3.0, 2.0)],
+            [("H", 14, 0.0, 0.35), ("S", 3, 1.0, 2.0), ("F", 3, 3.0, 2.0), ("O", 2, 4.0, 2.5)],
+            [("H", 16, 0.0, 0.35), ("F", 4, 2.0, 1.8), ("A", 3, 3.0, 2.0), ("O", 3, 3.0, 2.5)],
+            [("H", 16, 0.0, 0.33), ("S", 4, 1.0, 1.8), ("F", 4, 2.0, 1.8), ("O", 3, 3.0, 2.0)],
+            [("H", 18, 0.0, 0.33), ("S", 4, 1.0, 1.8), ("F", 5, 2.0, 1.6), ("A", 3, 3.0, 2.0), ("O", 4, 3.0, 2.0)],
         ],
     },
     {
         "number": 10, "name": "The Burning Keep", "bonus_gold": 2000, "bonus_xp": 320, "break": 7.0, "theme": "burning_keep",
-        "description": "The headman's keep at the heart of the fire. Hold the gate against the whole host.",
-        "tagline": "The heart of the fire",
+        "description": "The headman's keep at the heart of the fire. Hold the gate against the whole host, then face The Burning General.",
+        "tagline": "The Burning General",
         "waves": [
-            [("H", 22, 0.0, 0.33)],
-            [("H", 20, 0.0, 0.3), ("O", 4, 1.0, 2.0)],
-            [("H", 24, 0.0, 0.3), ("O", 4, 0.5, 2.0)],
-            [("H", 22, 0.0, 0.3), ("O", 5, 0.5, 2.0)],
-            [("O", 7, 0.0, 2.0), ("H", 16, 2.0, 0.4)],
+            [("H", 16, 0.0, 0.35), ("A", 3, 2.0, 2.0), ("S", 3, 3.0, 2.0)],
+            [("H", 16, 0.0, 0.33), ("F", 4, 2.0, 1.8), ("S", 3, 2.0, 2.0), ("O", 3, 3.0, 2.0)],
+            [("H", 18, 0.0, 0.33), ("A", 4, 2.0, 1.8), ("F", 4, 2.0, 1.8), ("O", 3, 3.0, 2.0)],
+            [("H", 18, 0.0, 0.3), ("S", 5, 1.0, 1.8), ("F", 4, 2.0, 1.8), ("A", 3, 3.0, 2.0), ("O", 4, 3.0, 2.0)],
+            # Boss wave: the General with soldiers and shields pouring in behind him.
+            [("G", 1, 0.0, 0.0), ("H", 12, 2.0, 0.5), ("S", 4, 4.0, 2.5)],
         ],
     },
 ]
