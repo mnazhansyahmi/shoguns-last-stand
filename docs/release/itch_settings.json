@@ -1,0 +1,18 @@
+{
+  "title": "Shogun's Last Stand",
+  "suggested_slug": "shoguns-last-stand",
+  "short_description": "Fight the undead, summon allies and defend the village gate across five campaign stages.",
+  "classification": "Games",
+  "kind": "Downloadable",
+  "development_status": "In development",
+  "pricing": "Free, no payments",
+  "platform": "Windows",
+  "version": "0.1.0",
+  "suggested_tags": ["2D", "Action", "Singleplayer", "Samurai", "Tower Defense", "Godot"],
+  "feedback": "Enable comments for playtest feedback",
+  "initial_visibility": "Draft until owner reviews the page and download",
+  "ai_disclosure": "Development used AI-assisted coding and AI-generated character/foreground artwork.",
+  "description_file": "itch_page.md",
+  "cover_file": "media/cover.png",
+  "screenshot_files": ["media/battle.png", "media/menu.png", "media/stages.png", "media/upgrades.png"]
+}
