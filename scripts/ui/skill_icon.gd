@@ -1,19 +1,17 @@
 class_name SkillIcon
 extends Control
-## One round skill icon of the keyboard HUD: the skill's drawn symbol (UpgradeIcon.draw_symbol) in a dark disc with a
+## One round skill icon of the keyboard HUD: the skill's cached InkFigure picture in a dark disc with a
 ## ring, a small key badge at its lower right, and its state:
 ##   - cooling down: a dark radial sweep over the icon, shrinking as the time runs out, with the seconds left on it;
 ##   - ready: a soft glow behind it, and no text;
 ##   - locked: dimmed, with a small padlock only. How to unlock it is the tooltip (hover) and a message when tapped.
-## The ally stance uses the same icon: set_kind() swaps the sword (CHARGE) for the shield (HOLD).
+## The ally stance uses the same icon: set_kind() swaps charging allies (CHARGE) for the guardian (HOLD).
 
 ## The player tapped a locked icon: `text` ("Clear stage 2") says what unlocks it.
 signal locked_pressed(text: String)
 
 const DIAMETER: float = 66.0
 const BADGE_SIZE: float = 24.0
-## The symbol's radius as a fraction of the diameter (the symbols reach about 1.5 times it).
-const SYMBOL_RADIUS: float = 0.27
 const SWEEP_STEPS: int = 28
 
 var _figure_art: Texture2D

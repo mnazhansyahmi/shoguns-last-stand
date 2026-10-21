@@ -191,3 +191,13 @@ func test_tutorial_controls_only_show_on_uncleared_stage_one_and_debug_text_is_g
 			hud.set_touch_mode(true)
 			assert_true(not (hud.get_node("%HintLabel") as Control).visible, "touch never shows keyboard help")
 	assert_true(not (hud.get_node("%DebugHintLabel") as Control).visible, "no debug text in battle")
+
+
+func test_button_plate_and_badge_text_shaping_is_cached_and_bounded() -> void:
+	var button: TouchActionButton = add_to_tree(TouchActionButton.new()) as TouchActionButton
+	var font: Font = button.get_theme_default_font()
+	var line: TextLine = button._text_line(font, "30 SE", 18)
+	assert_eq(button._text_line(font, "30 SE", 18), line, "cooldown redraws reuse shaped plate text")
+	for i: int in 100:
+		button._text_line(font, str(i), 18)
+	assert_true(button.get("_text_lines").size() <= 64, "changing cooldown values cannot grow the cache forever")

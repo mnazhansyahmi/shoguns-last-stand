@@ -50,6 +50,8 @@ var _last_gate_health: float = -1.0
 ## The stage was already cleared before this battle (replay rewards, no Next Stage button).
 var _was_cleared_before: bool = false
 var _selected_summon_slot: int = 0
+var _summon_names: Array[String] = []
+var _summon_accents: Array[Color] = []
 
 
 func _ready() -> void:
@@ -58,6 +60,9 @@ func _ready() -> void:
 	_apply_upgrades()
 	_touch.set_summon_count(_summoner.get_slot_count())
 	_hud.configure_summons(_summoner.ally_slots)
+	for data: AllyData in _summoner.ally_slots:
+		_summon_names.append(short_name(data))
+		_summon_accents.append(FigureKinds.spec(data.figure).accent)
 	_settings_store = SettingsStore.new(settings_path)
 	_settings = _settings_store.load_settings()
 	if SceneRoutes.battle_stage != null:
@@ -346,8 +351,8 @@ func _update_cooldown_displays() -> void:
 			continue
 		var left: float = _summoner.get_cooldown_left(slot)
 		if _touch.is_active():
-			_touch.set_summon_state(slot, short_name(data), roundi(data.cost), left / maxf(data.summon_cooldown, 0.001), left,
-				_energy.can_afford(data.cost), FigureKinds.spec(data.figure).accent, data.figure)
+			_touch.set_summon_state(slot, _summon_names[slot], roundi(data.cost), left / maxf(data.summon_cooldown, 0.001), left,
+				_energy.can_afford(data.cost), _summon_accents[slot], data.figure)
 		else:
 			_hud.set_summon_state(slot, roundi(data.cost), left, data.summon_cooldown, _energy.can_afford(data.cost))
 
@@ -355,23 +360,6 @@ func _update_cooldown_displays() -> void:
 ## "Shrine Healer" -> "Healer": the last word, short enough for a button.
 static func short_name(data: AllyData) -> String:
 	return data.display_name.get_slice(" ", data.display_name.get_slice_count(" ") - 1)
-
-
-func _build_summon_text() -> String:
-	var parts: PackedStringArray = []
-	for slot: int in _summoner.get_slot_count():
-		var data: AllyData = _summoner.get_slot_data(slot)
-		if data == null:
-			continue
-		var status: String = ""
-		var cooldown: float = _summoner.get_cooldown_left(slot)
-		if cooldown > 0.0:
-			status = " %s" % GameHud.format_cooldown(cooldown)
-		elif not _energy.can_afford(data.cost):
-			status = " low"
-		parts.append("[%d] %s %d%s" % [slot + 1, short_name(data), roundi(data.cost), status])
-	parts.append("Allies %d/%d" % [_summoner.get_ally_count(), _summoner.max_allies])
-	return "   ".join(parts)
 
 
 func _update_wave_text() -> void:

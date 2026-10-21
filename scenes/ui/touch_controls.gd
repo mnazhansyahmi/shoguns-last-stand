@@ -185,10 +185,13 @@ func set_summon_state(slot: int, name: String, cost: int, ratio: float, seconds:
 		button.base_color = accent
 		button.queue_redraw()
 	button.set_portrait(kind)
-	button.tooltip_text = name
-	button.set_captions(name, "%d SE" % cost)
+	if button.summon_cost != cost or button.caption != name:
+		button.summon_cost = cost
+		button.tooltip_text = name
+		button.set_captions(name, "%d SE" % cost)
+		button.unavailable_text = "need %d" % cost
 	button.set_cooldown(ratio, seconds)
-	button.set_available(affordable, "need %d" % cost)
+	button.set_available(affordable, button.unavailable_text)
 
 
 func _notification(what: int) -> void:

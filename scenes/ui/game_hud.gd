@@ -234,9 +234,12 @@ func set_summon_state(slot: int, cost: int, left: float, total: float, affordabl
 	if slot < 0 or slot >= _summon_buttons.size():
 		return
 	var button: TouchActionButton = _summon_buttons[slot]
-	button.set_captions(button.tooltip_text, "%d SE" % cost)
+	if button.summon_cost != cost:
+		button.summon_cost = cost
+		button.set_captions(button.tooltip_text, "%d SE" % cost)
+		button.unavailable_text = "need %d" % cost
 	button.set_cooldown(left / maxf(total, 0.001), left)
-	button.set_available(affordable, "need %d" % cost)
+	button.set_available(affordable, button.unavailable_text)
 
 
 func get_summon_button(slot: int) -> TouchActionButton:

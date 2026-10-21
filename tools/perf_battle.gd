@@ -10,6 +10,7 @@ extends SceneTree
 ## --no-effects, --no-hud. --trace prints the node and unit counts every 250 frames (to spot growth or a stuck fight).
 ## --frames=N measures N frames instead of MEASURE_FRAMES (a longer run averages out the
 ## machine's own noise).
+## --touch also measures the touch UI, with the same combat, timing and frame budget.
 ## Uses its own save/settings under user://perf, never the player's.
 
 const BATTLEFIELD: PackedScene = preload("res://scenes/battlefield/battlefield.tscn")
@@ -38,6 +39,10 @@ func _run() -> void:
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
+	if _flags.has("--touch"):
+		var settings: GameSettings = field.get("_settings") as GameSettings
+		settings.touch_mode = GameSettings.TouchMode.ALWAYS
+		field.call("_apply_settings")
 	(field.get_node("World/WaveDirector") as WaveDirector).stop()
 	var spawner: EnemySpawner = field.get_node("World/EnemySpawner")
 	var energy: SpiritEnergy = field.get_node("World/SpiritEnergy")

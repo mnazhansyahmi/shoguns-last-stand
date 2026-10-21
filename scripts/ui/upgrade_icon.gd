@@ -2,8 +2,8 @@ class_name UpgradeIcon
 extends Control
 ## A small skill icon drawn by code on a dusk panel, the picture of an upgrade that has no character to show: the
 ## dash, the Spirit Slash, the Bow, the War Cry, the Ultimate, Spirit Capacity, Command and Spirit Regeneration.
-## The symbols are also drawn by the battle HUD's round skill icons (draw_symbol), at any size; the Heavy strike and the
-## two ally stances (a sword for CHARGE, a shield for HOLD) exist for them.
+## Active skills share cached InkFigure pictures with the battle HUD and touch buttons.
+## Economy upgrades and Ultimate retain their drawn emblems.
 
 enum Kind { DASH, SPIRIT_SLASH, BOW, WAR_CRY, ULTIMATE, SPIRIT_CAPACITY, COMMAND, REGEN, HEAVY, STANCE_CHARGE, STANCE_HOLD, ATTACK }
 
