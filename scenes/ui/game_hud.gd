@@ -1,7 +1,8 @@
 class_name GameHud
 extends CanvasLayer
-## Battle HUD. Top-left, two blocks: the four bars (Samurai, Spirit, Gate, Ultimate, one width) and, in keyboard mode, one
-## row of round skill icons (Dash, Heavy, Slash, Bow, War Cry and the ally stance: a symbol, its key, a cooldown
+## Battle HUD. Top-left, two blocks: the vitals (the samurai's round portrait medallion with the Ultimate meter as a ring
+## round it, his health as a katana blade coming out of it, Spirit Energy as a flowing ink bar with a spirit orb, and the
+## gate's health as a small gate icon with a short bar) and, in keyboard mode, one row of round skill icons (Dash, Heavy, Slash, Bow, War Cry and the ally stance: a symbol, its key, a cooldown
 ## sweep, a glow when ready, a padlock when locked). Top-center: wave and enemies remaining. Top-right: pause button.
 ## Keyboard hints at the bottom are hidden while touch controls are shown. Respects the safe area and UI scale.
 
@@ -12,7 +13,7 @@ const SCREEN_MARGIN: Vector2 = Vector2(32.0, 24.0)
 ## Room kept free above the touch summon buttons and the Allies button for messages.
 const TOUCH_BOTTOM_SPACE: float = 380.0
 ## Edge indicator tabs start at least this far below the top of the safe area, and always below
-## the top-left bars (left tab) or the pause button (right tab).
+## the top-left vitals (left tab) or the pause button (right tab).
 const INDICATOR_TOP: float = 196.0
 const INDICATOR_GAP: float = 14.0
 ## The skill icons in order: [id, symbol, ring colour, name, Input Map action of the key badge].
@@ -28,10 +29,10 @@ const SKILL_ICONS: Array[Array] = [
 @onready var _margin: MarginContainer = $Margin
 @onready var _top_left: VBoxContainer = %TopLeft
 @onready var _wave_box: VBoxContainer = %WaveBox
-@onready var _player_bar: FillBar = %PlayerBar
-@onready var _energy_bar: FillBar = %EnergyBar
-@onready var _gate_bar: FillBar = %GateBar
-@onready var _ultimate_bar: FillBar = %UltimateBar
+@onready var _health_blade: HudHealthBlade = %HealthBlade
+@onready var _spirit_bar: HudSpiritBar = %SpiritBar
+@onready var _gate_bar: HudGateBar = %GateBar
+@onready var _ultimate_ring: HudUltimateRing = %UltimateRing
 @onready var _skill_row: HBoxContainer = %SkillRow
 @onready var _wave_label: Label = %WaveLabel
 @onready var _remaining_label: Label = %RemainingLabel
@@ -78,7 +79,7 @@ func _ready() -> void:
 		icon.locked_pressed.connect(show_message.bind(2.0))
 		_skill_row.add_child(icon)
 		_skill_icons[entry[0]] = icon
-	_ultimate_bar.set_key_hint(SkillHints.key_label(&"ultimate"))
+	_ultimate_ring.set_key_hint(SkillHints.key_label(&"ultimate"))
 	set_skills_unlocked(false, false)
 	set_stance(_stance_name)
 	_boss_bar = FillBar.new()
@@ -155,7 +156,8 @@ func get_boss_bar() -> FillBar:
 
 
 func set_player_health(current: float, maximum: float) -> void:
-	_player_bar.set_value(current, maximum)
+	_health_blade.set_value(current, maximum)
+	_ultimate_ring.danger = _health_blade.is_low()
 
 
 func set_gate_health(current: float, maximum: float) -> void:
@@ -163,16 +165,16 @@ func set_gate_health(current: float, maximum: float) -> void:
 
 
 func set_energy(current: float, maximum: float) -> void:
-	_energy_bar.set_ratio_text(current / maxf(maximum, 0.001), "%d / %d" % [floori(current), roundi(maximum)])
+	_spirit_bar.set_ratio_text(current / maxf(maximum, 0.001), "%d / %d" % [floori(current), roundi(maximum)])
 
 
-## The Ultimate meter: fills as he fights, pulses when it can be used.
+## The Ultimate ring round the portrait: fills as he fights, glows and pulses when it can be used.
 func set_ultimate(ratio: float, is_ready: bool) -> void:
 	var text: String = "%d%%" % floori(ratio * 100.0)
 	if is_ready:
 		text = "READY"
-	_ultimate_bar.set_ratio_text(ratio, text)
-	_ultimate_bar.set_pulsing(is_ready)
+	_ultimate_ring.set_ratio_text(ratio, text)
+	_ultimate_ring.set_pulsing(is_ready)
 
 
 ## cooldowns: {"dash": Vector2(seconds_left, total), "heavy": ..., "slash": ...}
@@ -245,7 +247,7 @@ func get_enemy_indicator() -> EdgeIndicator:
 	return _enemy_indicator
 
 
-## Screen y of the bottom edge of a top HUD block (the bars at the top left, the pause button): its top margin plus its
+## Screen y of the bottom edge of a top HUD block (the vitals at the top left, the pause button): its top margin plus its
 ## real content height times the UI scale. Computed, not read from the node, because a container is only laid out
 ## a frame after its content changes (and a scaled control's own rect ignores its scale).
 func block_bottom(control: Control) -> float:
@@ -253,7 +255,7 @@ func block_bottom(control: Control) -> float:
 	return _safe_rect.position.y + SCREEN_MARGIN.y + height * _ui_scale
 
 
-## Tabs sit at the screen edges just below the top HUD (health bars, pause button), above
+## Tabs sit at the screen edges just below the top HUD (the vitals, pause button), above
 ## the fighters' heads and well clear of the touch controls.
 func _place_indicators(safe_rect: Rect2) -> void:
 	_safe_rect = safe_rect
@@ -269,7 +271,7 @@ func _place_indicators(safe_rect: Rect2) -> void:
 		indicator.position = Vector2(x, maxf(top, below_hud))
 
 
-## Screen rectangles the HUD covers (bars, wave text, pause button, hints and the edge tabs), for
+## Screen rectangles the HUD covers (vitals, wave text, pause button, hints and the edge tabs), for
 ## keeping the falling leaves out of them.
 func get_keep_out_rects() -> Array[Rect2]:
 	var rects: Array[Rect2] = []

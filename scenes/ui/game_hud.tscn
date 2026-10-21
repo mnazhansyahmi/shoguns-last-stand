@@ -1,7 +1,10 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/game_hud.gd" id="1_hud"]
-[ext_resource type="Script" path="res://scripts/ui/fill_bar.gd" id="2_bar"]
+[ext_resource type="Script" path="res://scripts/ui/hud_health_blade.gd" id="3_blade"]
+[ext_resource type="Script" path="res://scripts/ui/hud_spirit_bar.gd" id="4_spirit"]
+[ext_resource type="Script" path="res://scripts/ui/hud_gate_bar.gd" id="5_gate"]
+[ext_resource type="Script" path="res://scripts/ui/hud_ultimate_ring.gd" id="6_ring"]
 
 [node name="GameHud" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -26,52 +29,50 @@ size_flags_vertical = 0
 mouse_filter = 2
 theme_override_constants/separation = 16
 
-[node name="Bars" type="VBoxContainer" parent="Margin/TopLeft"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 6
-
-[node name="PlayerBar" type="Control" parent="Margin/TopLeft/Bars"]
+[node name="Vitals" type="Control" parent="Margin/TopLeft"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(460, 40)
+custom_minimum_size = Vector2(650, 184)
 layout_mode = 2
+size_flags_horizontal = 0
 mouse_filter = 2
-script = ExtResource("2_bar")
-caption = "Samurai"
-fill_color = Color(0.843, 0.216, 0.169, 1)
-font_size = 26
 
-[node name="EnergyBar" type="Control" parent="Margin/TopLeft/Bars"]
+[node name="HealthBlade" type="Control" parent="Margin/TopLeft/Vitals"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(460, 34)
-layout_mode = 2
+layout_mode = 0
+offset_left = 160.0
+offset_top = 14.0
+offset_right = 650.0
+offset_bottom = 70.0
 mouse_filter = 2
-script = ExtResource("2_bar")
-caption = "Spirit"
-fill_color = Color(0.184, 0.525, 0.722, 1)
-font_size = 22
-segments = 5
+script = ExtResource("3_blade")
 
-[node name="GateBar" type="Control" parent="Margin/TopLeft/Bars"]
+[node name="SpiritBar" type="Control" parent="Margin/TopLeft/Vitals"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(460, 34)
-layout_mode = 2
+layout_mode = 0
+offset_left = 186.0
+offset_top = 80.0
+offset_right = 600.0
+offset_bottom = 120.0
 mouse_filter = 2
-script = ExtResource("2_bar")
-caption = "Gate"
-fill_color = Color(0.31, 0.561, 0.388, 1)
-font_size = 22
-segments = 10
+script = ExtResource("4_spirit")
 
-[node name="UltimateBar" type="Control" parent="Margin/TopLeft/Bars"]
+[node name="GateBar" type="Control" parent="Margin/TopLeft/Vitals"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(460, 34)
-layout_mode = 2
+layout_mode = 0
+offset_left = 186.0
+offset_top = 128.0
+offset_right = 446.0
+offset_bottom = 164.0
 mouse_filter = 2
-script = ExtResource("2_bar")
-caption = "Ultimate"
-fill_color = Color(0.788, 0.635, 0.29, 1)
-font_size = 22
+script = ExtResource("5_gate")
+
+[node name="UltimateRing" type="Control" parent="Margin/TopLeft/Vitals"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 184.0
+offset_bottom = 184.0
+mouse_filter = 2
+script = ExtResource("6_ring")
 
 [node name="SkillRow" type="HBoxContainer" parent="Margin/TopLeft"]
 unique_name_in_owner = true

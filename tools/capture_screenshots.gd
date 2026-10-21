@@ -106,6 +106,10 @@ func _run() -> void:
 		await _capture_stage_select()
 		quit(0)
 		return
+	if _only == "hud":
+		await _capture_hud()
+		quit(0)
+		return
 	if _only == "mainmenu":
 		await _capture_main_menu()
 		quit(0)
@@ -250,6 +254,47 @@ func _capture_battle() -> void:
 	if _only != "battle":
 		await _capture_ultimate(field, spawner)
 	field.free()
+
+
+## The battle HUD's vitals (`--only=hud`, with --size/--touch for a phone): at full health, just after a hit (the ghost
+## trail of lost health), at low health (the red pulse), and with the Ultimate ready (the glowing ring). Each is saved
+## whole and as a 2x close-up of the top-left corner.
+func _capture_hud() -> void:
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
+	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
+	SceneRoutes.battle_stage = StageProgression.default_region().stages[clampi(_stage_number, 1, 5) - 1]
+	var field: Node = BATTLEFIELD.instantiate()
+	field.set("save_path", DATA_DIR + "/save.json")
+	field.set("settings_path", DATA_DIR + "/settings.cfg")
+	root.add_child(field)
+	(field.get_node("World/WaveDirector") as WaveDirector).stop()
+	var energy: SpiritEnergy = field.get_node("World/SpiritEnergy")
+	var health: HealthComponent = field.get_node("World/Player/HealthComponent")
+	var meter: UltimateMeter = field.get_node("World/UltimateMeter")
+	energy.set_energy(energy.max_energy * 0.62)
+	(field.get_node("World/VillageGate/HealthComponent") as HealthComponent).take_damage(260.0)
+	meter.add_charge(meter.max_charge * 0.42)
+	await _frames(60)
+	await _capture_hud_shot("hud_full")
+	health.take_damage(health.max_health * 0.3)
+	await _frames(9)
+	await _capture_hud_shot("hud_hit")
+	health.take_damage(health.current_health - health.max_health * 0.18)
+	await _frames(70)
+	await _capture_hud_shot("hud_low")
+	meter.add_charge(meter.max_charge)
+	await _frames(40)
+	await _capture_hud_shot("hud_ultimate_ready")
+	field.free()
+
+
+func _capture_hud_shot(shot_name: String) -> void:
+	await _capture(shot_name)
+	var image: Image = root.get_texture().get_image()
+	var corner: Image = image.get_region(Rect2i(0, 0, mini(image.get_width(), 820), mini(image.get_height(), 380)))
+	corner.resize(corner.get_width() * 2, corner.get_height() * 2, Image.INTERPOLATE_LANCZOS)
+	corner.save_png(_out_dir.path_join(_tag + shot_name + "_zoom.png"))
 
 
 ## The Onmyoji casting at a group: filmed every few frames from the windup to the explosion.

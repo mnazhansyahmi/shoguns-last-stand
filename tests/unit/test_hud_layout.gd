@@ -60,7 +60,7 @@ func test_touch_mode_hides_the_skill_icon_row_but_keyboard_mode_keeps_it() -> vo
 	assert_true(skills.is_visible_in_tree(), "the keyboard HUD shows the skill icons, the stance among them")
 	hud.set_touch_mode(true)
 	assert_true(not skills.is_visible_in_tree(), "touch mode hides them (the buttons show the cooldowns, and the Allies button the stance)")
-	assert_true((hud.get_node("%UltimateBar") as Control).is_visible_in_tree(), "the Ultimate meter stays")
+	assert_true((hud.get_node("%UltimateRing") as Control).is_visible_in_tree(), "the Ultimate meter stays")
 	hud.set_touch_mode(false)
 	assert_true(skills.is_visible_in_tree(), "and back in keyboard mode it returns")
 	var controls: TouchControls = add_to_tree(TOUCH_SCENE.instantiate()) as TouchControls
@@ -88,7 +88,7 @@ func test_the_edge_tabs_never_overlap_the_hud() -> void:
 					var left_block: Rect2 = Rect2(Vector2(safe.position.x + GameHud.SCREEN_MARGIN.x, safe.position.y + GameHud.SCREEN_MARGIN.y),
 							Vector2(maxf(top_left.size.x, top_left.get_combined_minimum_size().x), maxf(top_left.size.y, top_left.get_combined_minimum_size().y)) * scale)
 					var gate_rect: Rect2 = Rect2(gate.position, EdgeIndicator.TAB_SIZE * scale)
-					assert_true(not gate_rect.intersects(left_block), "the gate tab clears the bars at the top left (%s): tab %s, bars %s" % [where, str(gate_rect), str(left_block)])
+					assert_true(not gate_rect.intersects(left_block), "the gate tab clears the vitals at the top left (%s): tab %s, bars %s" % [where, str(gate_rect), str(left_block)])
 					var enemy: EdgeIndicator = hud.get_enemy_indicator()
 					var pause: Control = hud.get_node("%PauseButton") as Control
 					var pause_bottom: float = safe.position.y + GameHud.SCREEN_MARGIN.y + maxf(pause.size.y, pause.get_combined_minimum_size().y) * scale

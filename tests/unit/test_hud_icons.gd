@@ -1,5 +1,6 @@
 extends "res://tests/test_case.gd"
-## The cleaned-up keyboard HUD: two blocks (four bars of one width, one row of round skill icons), the icon's cooldown
+## The cleaned-up keyboard HUD: two blocks (the vitals: Ultimate ring medallion, health blade, spirit and gate bars; one
+## row of round skill icons), the icon's cooldown
 ## sweep, glow, key badge and padlock, the stance as an icon, and the gate tab that shows only while the gate is attacked.
 
 const HUD_SCENE: PackedScene = preload("res://scenes/ui/game_hud.tscn")
@@ -17,20 +18,19 @@ func test_the_top_left_is_two_blocks_the_bars_and_one_row_of_icons() -> void:
 	var names: Array[String] = []
 	for child: Node in top_left.get_children():
 		names.append(String(child.name))
-	assert_eq(names, ["Bars", "SkillRow"] as Array[String], "two blocks and nothing else")
-	var bars: Array[Control] = []
-	for path: String in ["%PlayerBar", "%EnergyBar", "%GateBar", "%UltimateBar"]:
-		bars.append(hud.get_node(path) as Control)
-	assert_eq((hud.get_node("Margin/TopLeft/Bars") as Control).get_child_count(), 4, "the bars block holds Samurai, Spirit, Gate and Ultimate")
-	for bar: Control in bars:
-		assert_almost_eq(bar.custom_minimum_size.x, bars[0].custom_minimum_size.x, "all four bars are the same width")
-		assert_true(bar.custom_minimum_size.y <= 40.0, "and slightly thinner than before (%s)" % bar.name)
+	assert_eq(names, ["Vitals", "SkillRow"] as Array[String], "two blocks and nothing else")
+	var vitals: Control = hud.get_node("%Vitals")
+	assert_eq(vitals.get_child_count(), 4, "the vitals hold the health blade, spirit bar, gate bar and Ultimate ring")
+	for path: String in ["%HealthBlade", "%SpiritBar", "%GateBar", "%UltimateRing"]:
+		var gauge: Control = hud.get_node(path) as Control
+		assert_true(gauge is HudGauge, "%s is a drawn HUD gauge" % path)
+		assert_true(Rect2(Vector2.ZERO, vitals.custom_minimum_size).encloses(Rect2(gauge.position, gauge.size)), "%s sits inside the vitals block" % path)
 	var row: Control = hud.get_node("%SkillRow")
 	assert_eq(row.get_child_count(), 6, "one row of six icons")
 	var width: float = 0.0
 	for child: Node in row.get_children():
 		width += (child as Control).custom_minimum_size.x
-	assert_true(width + 5.0 * 12.0 <= bars[0].custom_minimum_size.x + 4.0, "the row is no wider than the bars (%.0f)" % width)
+	assert_true(width + 5.0 * 12.0 <= vitals.custom_minimum_size.x, "the row is no wider than the vitals (%.0f)" % width)
 
 
 func test_the_icons_are_round_skill_icons_in_order_with_their_keys() -> void:
@@ -116,7 +116,7 @@ func test_the_icon_row_is_for_the_keyboard_and_touch_mode_keeps_its_rules() -> v
 	var row: Control = hud.get_node("%SkillRow")
 	hud.set_touch_mode(true)
 	assert_true(not row.is_visible_in_tree(), "touch mode hides the icon row (the touch buttons show the cooldowns and the stance)")
-	assert_true((hud.get_node("%UltimateBar") as Control).is_visible_in_tree(), "the four bars stay")
+	assert_true((hud.get_node("%UltimateRing") as Control).is_visible_in_tree(), "the vitals stay")
 	hud.set_touch_mode(false)
 	assert_true(row.is_visible_in_tree(), "keyboard mode shows it again")
 	assert_true(TouchLayout.smallest_touch_target(1.0) >= TouchLayout.MIN_TOUCH_TARGET, "every touch button is still at least 44 pt")

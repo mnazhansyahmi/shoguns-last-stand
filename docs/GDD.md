@@ -24,7 +24,7 @@ Moves: a 3-hit combo, a heavy attack, a dash, the Spirit Slash special, and the 
 
 ## Ultimate (key I, touch button beside the other skills)
 
-An area attack charged through combat. The meter (`UltimateMeter`, 100 points, empty at the start of every battle) fills from damage: 0.1 per point the samurai deals, 0.03 per point his allies deal, 0.25 per point he takes. When full the HUD bar and the touch button glow and pulse. Using it: the samurai raises his blade (0.35 s, invulnerable for the whole move), then an ink-brush stroke sweeps across the screen, the game freezes for 0.15 s (a short dramatic pause) while every enemy in view takes 9x his attack damage as a heavy hit (180 at base: it kills a Hollow Soldier, and takes 20% off an Oni Brute). It can be used from any state except dead (a panic button) and empties the meter.
+An area attack charged through combat. The meter (`UltimateMeter`, 100 points, empty at the start of every battle) fills from damage: 0.1 per point the samurai deals, 0.03 per point his allies deal, 0.25 per point he takes. When full the HUD ring round the samurai's portrait and the touch button glow and pulse. Using it: the samurai raises his blade (0.35 s, invulnerable for the whole move), then an ink-brush stroke sweeps across the screen, the game freezes for 0.15 s (a short dramatic pause) while every enemy in view takes 9x his attack damage as a heavy hit (180 at base: it kills a Hollow Soldier, and takes 20% off an Oni Brute). It can be used from any state except dead (a panic button) and empties the meter.
 
 ## Enemies
 

@@ -265,8 +265,8 @@ func test_sweep_runs_in_real_time_during_the_freeze_then_frees_itself() -> void:
 
 func test_hud_bar_shows_charge_and_pulses_when_ready() -> void:
 	var hud: GameHud = add_to_tree(HUD_SCENE.instantiate()) as GameHud
-	var bar: FillBar = hud.find_child("UltimateBar", true, false) as FillBar
-	assert_true(bar != null, "the HUD has an Ultimate bar")
+	var bar: HudGauge = hud.find_child("UltimateRing", true, false) as HudGauge
+	assert_true(bar != null, "the HUD has an Ultimate ring")
 	hud.set_ultimate(0.42, false)
 	assert_eq(bar.value_text, "42%", "it shows the percentage")
 	assert_true(not bar.pulsing, "and is calm while charging")
@@ -348,5 +348,5 @@ func test_battle_hits_charge_the_meter_but_the_ultimate_does_not() -> void:
 	assert_almost_eq(meter.current, before, "a hit on an ally does not")
 	meter.add_charge(meter.max_charge)
 	field.call("_update_cooldown_displays")
-	var bar: FillBar = field.get_node("Hud").find_child("UltimateBar", true, false) as FillBar
-	assert_true(bar.pulsing, "the HUD bar pulses once the meter is full")
+	var bar: HudGauge = field.get_node("Hud").find_child("UltimateRing", true, false) as HudGauge
+	assert_true(bar.pulsing, "the HUD ring pulses once the meter is full")

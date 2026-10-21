@@ -41,7 +41,7 @@ func test_the_hud_skill_icons_show_their_keys_and_the_hint_line_lists_them() -> 
 	var hud: GameHud = add_to_tree(HUD_SCENE.instantiate()) as GameHud
 	for pair: Array in [["dash", "L"], ["heavy", "K"], ["slash", "U"], ["bow", "E"], ["war_cry", "Q"], ["stance", "F"]]:
 		assert_eq(hud.get_skill_icon(pair[0]).key_hint, pair[1], "the %s icon shows %s" % pair)
-	assert_eq((hud.get_node("%UltimateBar") as FillBar).key_hint, "I", "the Ultimate bar shows I")
+	assert_eq((hud.get_node("%UltimateRing") as HudGauge).key_hint, "I", "the Ultimate ring shows I")
 	var hint: String = (hud.get_node("%HintLabel") as Label).text
 	for part: String in ["J attack", "K heavy", "L dash", "U spirit slash", "I ultimate", "Q war cry", "E bow", "F allies", "1-6 summon"]:
 		assert_true(hint.contains(part), "the key line says '%s'" % part)
