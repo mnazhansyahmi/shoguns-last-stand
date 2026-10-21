@@ -102,6 +102,10 @@ func _run() -> void:
 		credits.free()
 		quit(0)
 		return
+	if _only == "mainmenu":
+		await _capture_main_menu()
+		quit(0)
+		return
 	if _only == "boss":
 		await _capture_boss()
 		quit(0)
@@ -781,6 +785,32 @@ func _capture_upgrades() -> void:
 			await _frames(8)
 			await _capture("upgrades_tab2_locked")
 	menu.free()
+
+
+## The main menu on a fresh save (mid-entrance, then at rest) and on a save with two stages cleared, with a button
+## focused (the crimson underline and the scale-up).
+func _capture_main_menu() -> void:
+	for state: String in ["fresh", "mid"]:
+		var progress: PlayerProgress = PlayerProgress.new()
+		progress.gold = 0 if state == "fresh" else 640
+		progress.xp = 0 if state == "fresh" else 420
+		if state == "mid":
+			progress.stages_cleared = ["stage_1", "stage_2"] as Array[String]
+			progress.last_stage_id = "stage_2"
+		SaveManager.new(DATA_DIR + "/menu_save.json").save_progress(progress)
+		var menu: Node = MAIN_MENU.instantiate()
+		menu.set("save_path", DATA_DIR + "/menu_save.json")
+		menu.set("settings_path", DATA_DIR + "/menu_settings.cfg")
+		root.add_child(menu)
+		if state == "fresh":
+			await _frames(9)
+			await _capture("mainmenu_intro")
+		await _frames(50)
+		if state == "mid":
+			(menu.find_child("UpgradesButton", true, false) as Button).grab_focus()
+			await _frames(25)
+		await _capture("mainmenu_" + state)
+		menu.free()
 
 
 ## One character kind alone in every state (`--only=kind:hatamoto`): idle, run, windup, strike (all three combo steps

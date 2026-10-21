@@ -8,7 +8,7 @@ extends RefCounted
 ## File format (version 1):
 ## { "version": 1, "saved_at_unix": int, "data": {
 ##     "gold": int, "xp": int, "level": int, "upgrades": { id: int },
-##     "stages_cleared": [String], "stats": { "battles", "victories", "defeats", "enemies_defeated": int } } }
+##     "stages_cleared": [String], "last_stage": String (optional), "stats": { "battles", "victories", "defeats", "enemies_defeated": int } } }
 
 enum LoadSource { NEW_GAME, MAIN, BACKUP, RECOVERED_FRESH }
 
@@ -170,6 +170,10 @@ func _progress_from_document(document: Variant) -> PlayerProgress:
 			return _invalid("bad stage id")
 		if not progress.stages_cleared.has(stage_id):
 			progress.stages_cleared.append(stage_id)
+
+	var last_stage: Variant = data.get("last_stage", "")
+	if typeof(last_stage) == TYPE_STRING:
+		progress.last_stage_id = last_stage
 
 	var stats: Variant = data.get("stats", {})
 	if typeof(stats) != TYPE_DICTIONARY:

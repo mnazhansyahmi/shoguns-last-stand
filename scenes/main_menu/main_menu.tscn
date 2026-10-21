@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/backdrops/bamboo_outskirts.tscn" id="3_backdrop"]
 [ext_resource type="Script" path="res://scenes/main_menu/title_art.gd" id="4_art"]
 [ext_resource type="Script" path="res://scripts/ui/brush_stroke.gd" id="5_stroke"]
+[ext_resource type="Script" path="res://scripts/ui/ink_menu_button.gd" id="6_button"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -47,43 +48,37 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 140
-theme_override_constants/margin_top = 70
+theme_override_constants/margin_top = 40
 theme_override_constants/margin_right = 140
-theme_override_constants/margin_bottom = 50
+theme_override_constants/margin_bottom = 30
 
 [node name="VBox" type="VBoxContainer" parent="Menu"]
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 4
 mouse_filter = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 6
 
 [node name="Title" type="Label" parent="Menu/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-theme_override_font_sizes/font_size = 104
+theme_override_font_sizes/font_size = 84
 text = "Shogun's Last Stand"
 
 [node name="AccentBar" type="Control" parent="Menu/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(620, 26)
+custom_minimum_size = Vector2(560, 20)
 layout_mode = 2
 size_flags_horizontal = 0
 mouse_filter = 2
 script = ExtResource("5_stroke")
 
-[node name="Subtitle" type="Label" parent="Menu/VBox"]
-layout_mode = 2
-theme_type_variation = &"DimLabel"
-theme_override_font_sizes/font_size = 36
-text = "Defend the village gate."
-
 [node name="ProgressLabel" type="Label" parent="Menu/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"GoldLabel"
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 30
 text = "Gold 0   -   Level 1"
 
 [node name="WarningLabel" type="Label" parent="Menu/VBox"]
@@ -96,50 +91,123 @@ theme_override_font_sizes/font_size = 26
 autowrap_mode = 3
 
 [node name="Spacer" type="Control" parent="Menu/VBox"]
-custom_minimum_size = Vector2(0, 10)
+custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="StartButton" type="Button" parent="Menu/VBox"]
+[node name="ContinueSlot" type="Control" parent="Menu/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(520, 124)
+custom_minimum_size = Vector2(520, 132)
 layout_mode = 2
 size_flags_horizontal = 0
-theme_type_variation = &"PrimaryButton"
-theme_override_font_sizes/font_size = 52
-text = "Start"
+mouse_filter = 2
 
-[node name="UpgradesButton" type="Button" parent="Menu/VBox"]
+[node name="ContinueButton" type="Button" parent="Menu/VBox/ContinueSlot"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(520, 124)
+custom_minimum_size = Vector2(520, 132)
+layout_mode = 0
+offset_right = 520.0
+offset_bottom = 132.0
+theme_type_variation = &"BrushButtonSub"
+theme_override_font_sizes/font_size = 54
+alignment = 0
+text = "Continue"
+script = ExtResource("6_button")
+
+[node name="StagesSlot" type="Control" parent="Menu/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 122)
 layout_mode = 2
 size_flags_horizontal = 0
-theme_override_font_sizes/font_size = 48
+mouse_filter = 2
+
+[node name="StagesButton" type="Button" parent="Menu/VBox/StagesSlot"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 122)
+layout_mode = 0
+offset_right = 520.0
+offset_bottom = 122.0
+theme_type_variation = &"BrushButton"
+theme_override_font_sizes/font_size = 46
+alignment = 0
+text = "Stages"
+script = ExtResource("6_button")
+
+[node name="UpgradesSlot" type="Control" parent="Menu/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 122)
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+
+[node name="UpgradesButton" type="Button" parent="Menu/VBox/UpgradesSlot"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 122)
+layout_mode = 0
+offset_right = 520.0
+offset_bottom = 122.0
+theme_type_variation = &"BrushButton"
+theme_override_font_sizes/font_size = 46
+alignment = 0
 text = "Upgrades"
+script = ExtResource("6_button")
 
-[node name="SettingsButton" type="Button" parent="Menu/VBox"]
+[node name="SettingsSlot" type="Control" parent="Menu/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(520, 124)
+custom_minimum_size = Vector2(520, 122)
 layout_mode = 2
 size_flags_horizontal = 0
-theme_override_font_sizes/font_size = 48
+mouse_filter = 2
+
+[node name="SettingsButton" type="Button" parent="Menu/VBox/SettingsSlot"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 122)
+layout_mode = 0
+offset_right = 520.0
+offset_bottom = 122.0
+theme_type_variation = &"BrushButton"
+theme_override_font_sizes/font_size = 46
+alignment = 0
 text = "Settings"
+script = ExtResource("6_button")
 
-[node name="CreditsButton" type="Button" parent="Menu/VBox"]
+[node name="CreditsSlot" type="Control" parent="Menu/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(520, 124)
+custom_minimum_size = Vector2(520, 122)
 layout_mode = 2
 size_flags_horizontal = 0
-theme_override_font_sizes/font_size = 44
+mouse_filter = 2
+
+[node name="CreditsButton" type="Button" parent="Menu/VBox/CreditsSlot"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 122)
+layout_mode = 0
+offset_right = 520.0
+offset_bottom = 122.0
+theme_type_variation = &"BrushButton"
+theme_override_font_sizes/font_size = 46
+alignment = 0
 text = "Credits"
+script = ExtResource("6_button")
 
-[node name="QuitButton" type="Button" parent="Menu/VBox"]
+[node name="QuitSlot" type="Control" parent="Menu/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(520, 124)
+custom_minimum_size = Vector2(520, 122)
 layout_mode = 2
 size_flags_horizontal = 0
-theme_override_font_sizes/font_size = 48
+mouse_filter = 2
+
+[node name="QuitButton" type="Button" parent="Menu/VBox/QuitSlot"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 122)
+layout_mode = 0
+offset_right = 520.0
+offset_bottom = 122.0
+theme_type_variation = &"BrushButton"
+theme_override_font_sizes/font_size = 46
+alignment = 0
 text = "Quit"
+script = ExtResource("6_button")
 
 [node name="SettingsPanel" parent="." instance=ExtResource("2_settings")]
 unique_name_in_owner = true

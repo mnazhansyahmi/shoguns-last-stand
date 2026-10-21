@@ -12,7 +12,8 @@ const SERIF_FONTS: PackedStringArray = ["Yu Mincho", "Hiragino Mincho ProN", "No
 const LABEL_VARIATIONS: Array[StringName] = [&"TitleLabel", &"HeaderLabel", &"GoldLabel", &"DimLabel",
 		&"WarningLabel", &"SuccessLabel", &"SpiritLabel", &"HudLabel", &"HudDimLabel", &"HudTitleLabel",
 		&"HudBannerLabel", &"HudMessageLabel"]
-const BUTTON_VARIATIONS: Array[StringName] = [&"ToggleButton", &"PrimaryButton", &"DangerButton", &"CostButton", &"CostButtonShort"]
+const BUTTON_VARIATIONS: Array[StringName] = [&"ToggleButton", &"PrimaryButton", &"DangerButton", &"CostButton", &"CostButtonShort",
+		&"BrushButton", &"BrushButtonSub"]
 ## The upgrade shop's cards: an upgrade you can see, and one for an ally not yet unlocked.
 const PANEL_VARIATIONS: Array[StringName] = [&"CardPanel", &"CardPanelLocked"]
 
@@ -23,7 +24,7 @@ static func build() -> Theme:
 	serif.font_names = SERIF_FONTS
 	serif.font_weight = 600
 	_labels(theme, serif)
-	_buttons(theme)
+	_buttons(theme, serif)
 	_panels(theme)
 	_sliders(theme)
 	_scrollbars(theme)
@@ -72,7 +73,7 @@ static func _label(theme: Theme, variation: StringName, color: Color, outline: i
 		theme.set_font(&"font", variation, font)
 
 
-static func _buttons(theme: Theme) -> void:
+static func _buttons(theme: Theme, serif: Font) -> void:
 	var normal: StyleBoxFlat = box(InkPalette.UI_BUTTON, Color(InkPalette.GOLD, 0.45), 2)
 	var hover: StyleBoxFlat = box(InkPalette.UI_BUTTON_HOVER, InkPalette.GOLD_BRIGHT, 3)
 	var pressed: StyleBoxFlat = box(InkPalette.UI_BUTTON_PRESSED, InkPalette.GOLD, 3)
@@ -131,6 +132,30 @@ static func _buttons(theme: Theme) -> void:
 	theme.set_color(&"font_color", &"CostButtonShort", InkPalette.EMBER_TEXT)
 	theme.set_color(&"font_focus_color", &"CostButtonShort", InkPalette.EMBER_TEXT)
 	theme.set_color(&"font_hover_color", &"CostButtonShort", InkPalette.EMBER_TEXT)
+	_menu_buttons(theme, serif)
+
+
+## The main menu's buttons (InkMenuButton): no box at all, because the button draws its own brush stroke; gold serif text
+## set well in from the left (the margins say where InkMenuButton draws it). BrushButtonSub leaves room under the label
+## for the small line (Continue's stage).
+static func _menu_buttons(theme: Theme, serif: Font) -> void:
+	for variation: StringName in [&"BrushButton", &"BrushButtonSub"]:
+		theme.set_type_variation(variation, &"Button")
+		var bare: StyleBoxEmpty = StyleBoxEmpty.new()
+		bare.content_margin_left = 64.0
+		bare.content_margin_right = 40.0
+		bare.content_margin_top = 12.0
+		bare.content_margin_bottom = 12.0 if variation == &"BrushButton" else 46.0
+		for state: StringName in [&"normal", &"hover", &"pressed", &"hover_pressed", &"disabled", &"focus"]:
+			theme.set_stylebox(state, variation, bare)
+		theme.set_font(&"font", variation, serif)
+		# The button's own text is drawn before (so under) the brush stroke: it is made invisible here and the button draws
+		# the gold label itself on top of the stroke (InkMenuButton._draw_label).
+		var clear: Color = Color(0.0, 0.0, 0.0, 0.0)
+		for color_name: StringName in [&"font_color", &"font_hover_color", &"font_focus_color", &"font_pressed_color",
+				&"font_hover_pressed_color", &"font_disabled_color", &"font_outline_color"]:
+			theme.set_color(color_name, variation, clear)
+		theme.set_constant(&"outline_size", variation, 0)
 
 
 static func _panels(theme: Theme) -> void:

@@ -254,6 +254,16 @@ volume_db = -9.0
 pitch_variation = 0.05
 min_interval = 0.05
 
+[sub_resource type="Resource" id="Entry_menu_hover"]
+script = ExtResource("2_entry")
+id = &"menu_hover"
+override_paths = PackedStringArray("res://assets/audio/sfx_gore/Katana swings2.mp3")
+stream = ExtResource("s0_sword_swing")
+volume_db = -15.0
+pitch_variation = 0.06
+min_interval = 0.08
+max_length = 0.5
+
 [resource]
 script = ExtResource("1_library")
-entries = Array[ExtResource("2_entry")]([SubResource("Entry_sword_swing"), SubResource("Entry_hit"), SubResource("Entry_heavy_hit"), SubResource("Entry_dash"), SubResource("Entry_spirit_slash"), SubResource("Entry_summon"), SubResource("Entry_enemy_death"), SubResource("Entry_gate_hit"), SubResource("Entry_victory"), SubResource("Entry_defeat"), SubResource("Entry_button_click"), SubResource("Entry_ultimate"), SubResource("Entry_ultimate_ready"), SubResource("Entry_heal"), SubResource("Entry_magic_burst"), SubResource("Entry_war_cry"), SubResource("Entry_flesh_hit"), SubResource("Entry_flesh_heavy"), SubResource("Entry_spirit_flesh"), SubResource("Entry_roar"), SubResource("Entry_slam"), SubResource("Entry_stone_hit"), SubResource("Entry_explosion"), SubResource("Entry_gate_destroyed"), SubResource("Entry_boss_summon"), SubResource("Entry_spirit_whoosh")])
+entries = Array[ExtResource("2_entry")]([SubResource("Entry_sword_swing"), SubResource("Entry_hit"), SubResource("Entry_heavy_hit"), SubResource("Entry_dash"), SubResource("Entry_spirit_slash"), SubResource("Entry_summon"), SubResource("Entry_enemy_death"), SubResource("Entry_gate_hit"), SubResource("Entry_victory"), SubResource("Entry_defeat"), SubResource("Entry_button_click"), SubResource("Entry_ultimate"), SubResource("Entry_ultimate_ready"), SubResource("Entry_heal"), SubResource("Entry_magic_burst"), SubResource("Entry_war_cry"), SubResource("Entry_flesh_hit"), SubResource("Entry_flesh_heavy"), SubResource("Entry_spirit_flesh"), SubResource("Entry_roar"), SubResource("Entry_slam"), SubResource("Entry_stone_hit"), SubResource("Entry_explosion"), SubResource("Entry_gate_destroyed"), SubResource("Entry_boss_summon"), SubResource("Entry_spirit_whoosh"), SubResource("Entry_menu_hover")])

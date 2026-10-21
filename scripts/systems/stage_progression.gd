@@ -28,6 +28,32 @@ static func unlocked_count(progress: PlayerProgress, region: RegionData) -> int:
 	return count
 
 
+## The stage the main menu's Continue starts: the first one not cleared yet; once every stage is cleared, the one played
+## last (the last stage of the region if that is not known).
+static func continue_stage(progress: PlayerProgress, region: RegionData) -> StageData:
+	if region == null or region.stages.is_empty():
+		return null
+	for stage: StageData in region.stages:
+		if stage != null and (progress == null or not progress.is_stage_cleared(stage.stage_id)):
+			return stage
+	if progress != null:
+		for stage: StageData in region.stages:
+			if stage != null and stage.stage_id == progress.last_stage_id:
+				return stage
+	return region.stages[region.stages.size() - 1]
+
+
+## A save that has never played a battle (Continue says "Start").
+static func is_fresh(progress: PlayerProgress) -> bool:
+	return progress == null or (progress.stages_cleared.is_empty() and progress.last_stage_id.is_empty() and progress.battles_played == 0)
+
+
+## "Stage 3 - Misty Grove".
+static func stage_line(region: RegionData, stage: StageData) -> String:
+	var index: int = region.index_of(stage) if region != null else -1
+	return "Stage %d - %s" % [index + 1, stage.display_name] if index >= 0 and stage != null else ""
+
+
 ## The stage after `stage` in its region, or null for the last stage / unknown stages.
 static func next_stage(region: RegionData, stage: StageData) -> StageData:
 	var index: int = region.index_of(stage) if region != null else -1
