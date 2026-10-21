@@ -94,8 +94,8 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			# Two hands on a long hilt: the back hand 9 units behind the front one.
 			s.back_hand_on_weapon = Vector2(-9.0, 0.0)
 			# Lean presentation widths; bone lengths and motion stay unchanged.
-			s.thigh_w = Vector2(7.0, 5.8)
-			s.shin_w = Vector2(5.3, 3.8)
+			s.thigh_w = Vector2(9.0, 7.2)
+			s.shin_w = Vector2(6.9, 4.8)
 			s.arm_w = Vector2(5.0, 4.0)
 			s.fore_w = Vector2(3.7, 3.0)
 			s.sleeve_width = Vector2(5.8, 1.2)
@@ -209,8 +209,9 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.stance = Vector2(9.0, -9.0)
 			s.stride_len = 11.0
 			s.lift = 6.0
-			s.shoulder_front = Vector2(10.0, -43.0)
-			s.shoulder_back = Vector2(-10.0, -44.0)
+			# Painted shoulder sockets sit on the outer deltoids of his broad chest.
+			s.shoulder_front = Vector2(16.0, -38.0)
+			s.shoulder_back = Vector2(-16.0, -38.0)
 			s.upper_arm = 19.0
 			s.fore_arm = 19.0
 			s.arm_w = Vector2(12.0, 10.0)

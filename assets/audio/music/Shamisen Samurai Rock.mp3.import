@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bxyqo7om6wpmw"
+path="res://.godot/imported/Shamisen Samurai Rock.mp3-7d22a74cd6355342122e2d53c5bfcfce.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/music/Shamisen Samurai Rock.mp3"
+dest_files=["res://.godot/imported/Shamisen Samurai Rock.mp3-7d22a74cd6355342122e2d53c5bfcfce.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

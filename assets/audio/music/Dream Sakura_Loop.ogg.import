@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://drvykxqyxaewh"
+path="res://.godot/imported/Dream Sakura_Loop.ogg-999a99c20be3f34b230a819ac57d4789.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/audio/music/Dream Sakura_Loop.ogg"
+dest_files=["res://.godot/imported/Dream Sakura_Loop.ogg-999a99c20be3f34b230a819ac57d4789.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -268,7 +268,7 @@ func test_procedural_and_painted_figures_share_their_respective_rim_materials() 
 	var torso_b: FigurePart = second.get_node("torso") as FigurePart
 	assert_true(torso_a.material == Atmosphere.painted_rim_material(), "painted body layers share the alpha-aware material")
 	assert_true(first.get_node("head").get("material") == torso_a.material, "head and torso share the painted material")
-	assert_true(torso_b.material == Atmosphere.rim_material(), "procedural figures retain their shared rim material")
+	assert_true(torso_b.material == Atmosphere.painted_rim_material(), "the enemy uses the same painted-light model")
 	var offset: Vector2 = Atmosphere.rim_material().get_shader_parameter("rim_offset")
 	assert_true(offset.x > 0.0 and offset.y < 0.0, "the light comes from the upper right, where the sun is")
 	assert_true(offset.length() >= 1.0 and offset.length() <= 1.8, "and the rim is a thin soft sliver (%.1f world px)" % offset.length())

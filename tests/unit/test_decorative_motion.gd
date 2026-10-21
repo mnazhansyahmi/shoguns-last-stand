@@ -24,21 +24,25 @@ func _visual(kind: InkFigure.Kind) -> UnitVisual:
 	return visual
 
 
-func test_menu_hair_and_robe_have_independent_weights_but_soles_are_pinned() -> void:
-	for x: float in [0.1, 0.4, 0.6, 0.9]:
-		var sole: Color = PortraitMotion.motion_weights(Vector2(x, 0.96))
-		assert_true(sole.r == 0.0 and sole.g == 0.0 and sole.b == 0.0, "sole region is not displaced")
-	var hair: Color = PortraitMotion.motion_weights(Vector2(0.9, 0.18))
-	var robe: Color = PortraitMotion.motion_weights(Vector2(0.9, 0.65))
-	assert_true(hair.g > 0.8 and hair.b == 0.0, "hair can flutter independently")
-	assert_true(robe.b > 0.8 and robe.g == 0.0, "robe edge has its own motion")
+func test_menu_uses_articulated_limbs_and_keeps_both_soles_pinned() -> void:
 	var portrait: PortraitMotion = PortraitMotion.new()
 	add_to_tree(portrait)
-	portrait.set_time(1.75)
-	assert_almost_eq((portrait.material as ShaderMaterial).get_shader_parameter("motion_time"), 1.75, "time reaches the drawn mesh")
+	var foot_f: Vector2 = portrait.front_ankle
+	var foot_b: Vector2 = portrait.back_ankle
+	var first_hand: Vector2 = portrait.front_hand
+	var motion: float = 0.0
+	for step: int in 180:
+		portrait.set_time(float(step) / 60.0)
+		motion = maxf(motion, first_hand.distance_to(portrait.front_hand))
+		assert_true(portrait.front_ankle.distance_to(foot_f) < 0.01, "front sole stays planted")
+		assert_true(portrait.back_ankle.distance_to(foot_b) < 0.01, "back sole stays planted")
+	assert_true(motion > 0.1, "the articulated resting hand follows breathing")
+	assert_true(portrait.get_node("fore_f") != portrait.get_node("torso"), "hand and body are independent painted parts")
+	assert_true(is_nan(portrait.spec.back_hand_on_weapon.x), "the relaxed hand is released from the sword")
+	assert_true(portrait.secondary.hair != null, "title hair has the same live chain as gameplay")
 	portrait.reduced_motion = true
 	portrait.set_time(2.0)
-	assert_almost_eq((portrait.material as ShaderMaterial).get_shader_parameter("motion_amount"), 0.15, "reduced variant reaches the renderer")
+	assert_true(absf(portrait.breath) <= 0.15, "reduced motion damps the resting pose")
 
 
 func test_every_ally_has_live_anchored_cloth_that_moves_at_idle() -> void:

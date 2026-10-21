@@ -391,6 +391,10 @@ static func _paint_cloth_tails(fig: InkFigure, ci: CanvasItem, color: Color, wid
 		return
 	var s: float = fig.get_unit_scale()
 	var to_local: Transform2D = ci.global_transform.affine_inverse()
+	if RosterSpriteArt.NAMES.has(fig.kind):
+		for chain: ClothChain in fig.secondary.scarf:
+			RosterSpriteArt.paint_tail(fig.kind, ci, to_local * chain.points, width * s * 1.4)
+		return
 	var batch: InkBatch = InkBatch.new()
 	for tail: int in 2:
 		var world: PackedVector2Array
@@ -407,6 +411,10 @@ static func _paint_sleeve(fig: InkFigure, ci: CanvasItem, chain: ClothChain, col
 	var s: float = fig.get_unit_scale()
 	if fig.kind == InkFigure.Kind.SAMURAI:
 		SamuraiSpriteArt.paint_cloth(ci, ci.global_transform.affine_inverse() * chain.points, 8.0 * s, false)
+		return
+	if RosterSpriteArt.NAMES.has(fig.kind):
+		SamuraiSpriteArt.paint_cloth(ci, SamuraiSpriteArt.smooth_ribbon(ci.global_transform.affine_inverse() * chain.points),
+				fig.spec.sleeve_width.x * s, false, RosterSpriteArt.region(fig.kind, 4), RosterSpriteArt.atlas(fig.kind))
 		return
 	var batch: InkBatch = InkBatch.new()
 	batch.stroke(ci.global_transform.affine_inverse() * chain.points, fig.spec.sleeve_width.x * s, fig.spec.sleeve_width.y * s, color)
@@ -451,6 +459,8 @@ static func _build(kind: InkFigure.Kind) -> Dictionary:
 			DaimyoFigurePainter.build(parts)
 		_:
 			AllyFigurePainter.build(kind, parts)
+	if RosterSpriteArt.NAMES.has(kind):
+		RosterSpriteArt.build_body(kind, parts)
 	# Every body part gets the sun's rim light (drawn once per part with the shared rim material).
 	for part_name: StringName in parts:
 		if part_name != &"shadow" and part_name != &"blade_glow":

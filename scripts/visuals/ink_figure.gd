@@ -115,6 +115,7 @@ var _fore_back: Transform2D
 
 
 func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	_build_parts()
 	refresh()
 
@@ -554,6 +555,22 @@ func _build_parts() -> void:
 			# cannot be applied to a normal image texture.
 			part.material = Atmosphere.painted_rim_material()
 		elif kind == Kind.SAMURAI and part.dynamic:
+			part.material = Atmosphere.painted_rim_material()
+		elif RosterSpriteArt.has_part(kind, part_name):
+			part.art = RosterSpriteArt.texture(kind, part_name)
+			part.art_frame = RosterSpriteArt.frame(kind, part_name)
+			part.material = Atmosphere.painted_rim_material()
+		elif RosterSpriteArt.NAMES.has(kind) and part.dynamic:
+			part.material = Atmosphere.painted_rim_material()
+		if RosterSpriteArt.NAMES.has(kind) and part_name == &"mane":
+			# The new head includes its painted hair; don't retain the former flat
+			# silhouette or its extra horn behind it.
+			part.visible = false
+		if PaintedEquipment.cell(kind, part_name) >= 0:
+			part.art = PaintedEquipment.texture(kind, part_name)
+			part.art_frame = PaintedEquipment.frame(kind, part_name)
+			part.material = Atmosphere.painted_rim_material()
+		elif part_name in [&"bow", &"yumi_back"]:
 			part.material = Atmosphere.painted_rim_material()
 		add_child(part)
 		_parts.append(part)

@@ -40,14 +40,14 @@ func _run() -> void:
 		menu.set("save_path", "user://motion_review/save.json")
 		menu.set("settings_path", "user://motion_review/settings.cfg")
 		root.add_child(menu)
-	elif _mode == "battle":
+	elif _mode.begins_with("battle"):
 		_build_battle()
 	else:
 		_build_stage()
 	# Let imports, material compilation and menu entrances finish before recording.
 	for i: int in 75:
 		await process_frame
-	var frames: int = 600 if _mode in ["samurai", "battle"] else 360
+	var frames: int = 600 if _mode == "samurai" or _mode.begins_with("battle") else 360
 	for frame: int in frames:
 		_update_sequence(float(frame) / 60.0)
 		await process_frame
@@ -73,8 +73,10 @@ func _build_stage() -> void:
 	_caption = _label("", Vector2(24, 20), 28)
 	var kinds: Array[InkFigure.Kind] = KINDS.duplicate()
 	if _mode == "samurai": kinds = [InkFigure.Kind.SAMURAI] as Array[InkFigure.Kind]
+	if _mode == "enemies": kinds = [InkFigure.Kind.HOLLOW_SOLDIER, InkFigure.Kind.ONI_BRUTE, InkFigure.Kind.FALLEN_DAIMYO] as Array[InkFigure.Kind]
 	for i: int in kinds.size():
 		var origin: Vector2 = Vector2(600, 635) if _mode == "samurai" else Vector2(200 + (i % 3) * 425, 320 + (i / 3) * 345)
+		if _mode == "enemies": origin.y = 630.0
 		var ground: Line2D = Line2D.new()
 		ground.points = PackedVector2Array([origin + Vector2(-130, 0), origin + Vector2(175, 0)])
 		ground.width = 2.0
@@ -83,7 +85,7 @@ func _build_stage() -> void:
 		var visual: UnitVisual = UnitVisual.new()
 		visual.position = origin
 		root.add_child(visual)
-		visual.configure(kinds[i], 360.0 if _mode == "samurai" else 195.0)
+		visual.configure(kinds[i], 360.0 if _mode == "samurai" else (260.0 if _mode == "enemies" else 195.0))
 		visual.play_state(&"idle")
 		_visuals.append(visual)
 		_label(InkFigure.Kind.keys()[kinds[i]].capitalize(), origin + Vector2(-120, 18), 20)
@@ -91,7 +93,7 @@ func _build_stage() -> void:
 
 func _update_sequence(time: float) -> void:
 	if _mode == "menu": return
-	if _mode == "battle":
+	if _mode.begins_with("battle"):
 		_update_battle(time)
 		return
 	var state: StringName = &"idle"
@@ -134,7 +136,7 @@ func _build_battle() -> void:
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new("user://motion_review/save.json").save_progress(progress)
 	var settings: GameSettings = GameSettings.new()
-	settings.touch_mode = GameSettings.TouchMode.OFF
+	settings.touch_mode = GameSettings.TouchMode.ALWAYS if _mode == "battle_touch" else GameSettings.TouchMode.OFF
 	SettingsStore.new("user://motion_review/settings.cfg").save_settings(settings)
 	SceneRoutes.battle_stage = StageProgression.default_region().stages[0]
 	_battle = load("res://scenes/battlefield/battlefield.tscn").instantiate()

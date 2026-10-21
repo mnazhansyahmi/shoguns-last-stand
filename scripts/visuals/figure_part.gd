@@ -17,7 +17,11 @@ var glow_colors: PackedColorArray = PackedColorArray()
 
 
 func _draw() -> void:
-	if art != null:
+	if part_name == &"bow":
+		PaintedEquipment.draw_bow(self, figure)
+	elif part_name == &"yumi_back" and batch != null:
+		PaintedEquipment.draw_stowed_bow(self, batch)
+	elif art != null:
 		draw_set_transform_matrix(art_frame)
 		draw_texture(art, Vector2.ZERO)
 		draw_set_transform_matrix(Transform2D.IDENTITY)

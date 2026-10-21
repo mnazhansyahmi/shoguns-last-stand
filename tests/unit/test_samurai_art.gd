@@ -21,13 +21,13 @@ func test_painted_parts_are_cached_and_atlas_regions_stay_in_the_source() -> voi
 		assert_true(SamuraiSpriteArt.texture(part_name).filter_clip, "%s cannot sample its neighbour" % part_name)
 
 
-func test_only_the_samurai_uses_the_new_skin_and_keeps_his_bow() -> void:
+func test_painted_characters_keep_their_distinct_equipment() -> void:
 	for kind: InkFigure.Kind in [InkFigure.Kind.SAMURAI, InkFigure.Kind.HATAMOTO]:
 		var figure: InkFigure = InkFigure.new()
 		figure.kind = kind
 		add_to_tree(figure)
 		var torso: FigurePart = figure.get_node("torso") as FigurePart
-		assert_true((torso.art != null) == (kind == InkFigure.Kind.SAMURAI), "the skin is scoped to its approved hero")
+		assert_true(torso.art != null, "the approved painted theme covers the hero and his retainer")
 		if kind == InkFigure.Kind.SAMURAI:
 			assert_true(not figure.has_node("pauldron_front") and figure.has_node("mane"), "hair and light clothing replace shoulder armour")
 			assert_true(figure.spec.has_back_bow and figure.has_node("bow"), "Bow retains its rig and equipment")
@@ -47,3 +47,37 @@ func test_original_art_has_transparent_backgrounds_and_solid_character_pixels() 
 				if image.get_pixel(x, y).a > 0.95:
 					opaque = true
 		assert_true(opaque, "the character's ink has a solid core")
+
+
+func test_every_ally_and_enemy_has_its_own_cached_painted_body() -> void:
+	var seen: Dictionary = {}
+	for kind: InkFigure.Kind in RosterSpriteArt.NAMES:
+		var figure: InkFigure = InkFigure.new()
+		figure.kind = kind
+		add_to_tree(figure)
+		for name: StringName in [&"head", &"torso", &"thigh_f", &"shin_f", &"foot_f", &"upper_f", &"fore_f"]:
+			var part: FigurePart = figure.get_node(NodePath(name)) as FigurePart
+			assert_true(part.art != null, "%s %s uses painted art" % [kind, name])
+			assert_true(part.art == RosterSpriteArt.texture(kind, name), "instances share each registered layer")
+			assert_true(not RosterSpriteArt.bounds(kind, name).is_empty(), "opaque silhouette is available for ground checks")
+		assert_true(not seen.has(RosterSpriteArt.atlas(kind)), "each costume has distinct art")
+		seen[RosterSpriteArt.atlas(kind)] = true
+
+
+func test_roster_limb_joint_registration_preserves_every_bone_length() -> void:
+	for kind: InkFigure.Kind in RosterSpriteArt.NAMES:
+		var spec: FigureKinds.Spec = FigureKinds.spec(kind)
+		for name: StringName in [&"thigh_f", &"shin_f", &"upper_f", &"fore_f", &"thigh_b", &"shin_b"]:
+			var source: Rect2 = RosterSpriteArt.region(kind, RosterSpriteArt.CELLS[name])
+			var transform: Transform2D = RosterSpriteArt.frame(kind, name)
+			var start: Vector2 = transform * (source.size * Vector2(0.12, 0.5))
+			var end: Vector2 = transform * (source.size * Vector2(0.88, 0.5))
+			if kind == InkFigure.Kind.ONI_BRUTE and String(name).begins_with("upper"):
+				start = transform * (source.size * Vector2(0.15, 0.32))
+				end = transform * (source.size * Vector2(0.88, 0.70))
+			var length: float = spec.thigh if String(name).begins_with("thigh") else spec.shin
+			if String(name).begins_with("upper"): length = spec.upper_arm
+			if String(name).begins_with("fore"): length = spec.fore_arm
+			assert_true(start.length() < 0.001, "painted limb starts at the solved joint")
+			assert_almost_eq(end.x, length, "painted limb ends at the solved joint", 0.001)
+			assert_almost_eq(end.y, 0.0, "registration does not introduce a diagonal offset", 0.001)

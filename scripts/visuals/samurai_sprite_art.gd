@@ -4,10 +4,9 @@ extends RefCounted
 ## anchors are authored once; all instances share AtlasTextures and rigid draw transforms.
 
 const ATLAS: Texture2D = preload("res://assets/art/samurai/slim_parts.png")
-const PORTRAIT: Texture2D = preload("res://assets/art/samurai/slim_menu.png")
-const PORTRAIT_REGION: Rect2 = Rect2(2, 18, 1020, 1495)
+const HEAD: Texture2D = preload("res://assets/art/roster/samurai_head.png")
 const SOURCES: Dictionary = {
-	&"head": Rect2(130, 116, 196, 205), &"mane": Rect2(941, 98, 305, 238),
+	&"head": Rect2(239, 158, 952, 979), &"mane": Rect2(941, 98, 305, 238),
 	&"torso": Rect2(330, 68, 297, 291), &"skirt": Rect2(639, 70, 299, 298),
 	&"upper_f": Rect2(42, 412, 261, 225), &"fore_f": Rect2(337, 442, 277, 166),
 	&"thigh_f": Rect2(640, 391, 303, 248), &"shin_f": Rect2(955, 440, 260, 150),
@@ -17,7 +16,7 @@ const SOURCES: Dictionary = {
 	&"weapon": Rect2(936, 1047, 309, 62),
 }
 const RECTS: Dictionary = {
-	&"head": Rect2(-8.0, -15.5, 20.0, 21.0),
+	&"head": Rect2(-8.0, -17.5, 20.0, 21.0),
 	&"mane": Rect2(-35.0, -21.0, 31.0, 19.0),
 	&"torso": Rect2(-10.5, -36.0, 22.0, 39.0),
 	&"skirt": Rect2(-13.5, -4.5, 27.0, 29.0),
@@ -30,21 +29,24 @@ const RECTS: Dictionary = {
 const JOINTS: Dictionary = {
 	&"upper_f": [Vector2(22, 42), Vector2(230, 87), 13.0, 0.060],
 	&"fore_f": [Vector2(26, 54), Vector2(242, 110), 13.0, 0.042],
-	&"thigh_f": [Vector2(39, 60), Vector2(264, 170), 23.0, 0.075],
-	&"shin_f": [Vector2(29, 65), Vector2(230, 93), 23.0, 0.058],
+	&"thigh_f": [Vector2(39, 60), Vector2(264, 170), 23.0, 0.100],
+	&"shin_f": [Vector2(29, 65), Vector2(230, 93), 23.0, 0.075],
 	&"upper_b": [Vector2(35, 55), Vector2(245, 93), 13.0, 0.056],
 	&"fore_b": [Vector2(28, 53), Vector2(240, 100), 13.0, 0.042],
-	&"thigh_b": [Vector2(35, 91), Vector2(266, 151), 23.0, 0.072],
-	&"shin_b": [Vector2(32, 95), Vector2(225, 60), 23.0, 0.056],
+	&"thigh_b": [Vector2(35, 91), Vector2(266, 151), 23.0, 0.096],
+	&"shin_b": [Vector2(32, 95), Vector2(225, 60), 23.0, 0.073],
 }
 
 static var _textures: Dictionary = {}
 static var _frames: Dictionary = {}
 static var _ribbon_indices: Dictionary = {}
+static var _bounds: Dictionary = {}
+static var _source_image: Image
+static var _head_image: Image
 
 ## Authored cloth within the same atlas: no solid geometric substitute over the paint.
 const SASH_REGION: Rect2 = Rect2(634, 1000, 296, 190)
-const SLEEVE_REGION: Rect2 = Rect2(110, 515, 180, 115)
+const SLEEVE_REGION: Rect2 = Rect2(42, 412, 261, 225)
 
 
 static func smooth_ribbon(points: PackedVector2Array) -> PackedVector2Array:
@@ -58,7 +60,7 @@ static func smooth_ribbon(points: PackedVector2Array) -> PackedVector2Array:
 
 
 static func paint_cloth(ci: CanvasItem, points: PackedVector2Array, width: float, sash: bool,
-		source_region: Rect2 = Rect2()) -> void:
+		source_region: Rect2 = Rect2(), atlas: Texture2D = ATLAS) -> void:
 	if points.size() < 2:
 		return
 	var vertices: PackedVector2Array = PackedVector2Array()
@@ -66,7 +68,7 @@ static func paint_cloth(ci: CanvasItem, points: PackedVector2Array, width: float
 	var region: Rect2 = SASH_REGION if sash else SLEEVE_REGION
 	if source_region.has_area():
 		region = source_region
-	var atlas_size: Vector2 = ATLAS.get_size()
+	var atlas_size: Vector2 = atlas.get_size()
 	for side: int in 2:
 		for step: int in points.size():
 			var i: int = step if side == 0 else points.size() - 1 - step
@@ -87,7 +89,7 @@ static func paint_cloth(ci: CanvasItem, points: PackedVector2Array, width: float
 		_ribbon_indices[count] = triangles
 	var indices: PackedInt32Array = _ribbon_indices[count]
 	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices,
-			PackedColorArray([Color.WHITE]), uvs, PackedInt32Array(), PackedFloat32Array(), ATLAS.get_rid())
+			PackedColorArray([Color.WHITE]), uvs, PackedInt32Array(), PackedFloat32Array(), atlas.get_rid())
 
 
 static func has_part(part_name: StringName) -> bool:
@@ -97,7 +99,7 @@ static func has_part(part_name: StringName) -> bool:
 static func texture(part_name: StringName) -> AtlasTexture:
 	if not _textures.has(part_name):
 		var art: AtlasTexture = AtlasTexture.new()
-		art.atlas = ATLAS
+		art.atlas = HEAD if part_name == &"head" else ATLAS
 		art.region = SOURCES[part_name]
 		art.filter_clip = true
 		_textures[part_name] = art
@@ -122,14 +124,34 @@ static func frame(part_name: StringName) -> Transform2D:
 ## Draw-space bounds for ground checks and silhouette sampling. Textures are presentation
 ## layers, not collision shapes; metadata keeps those tests independent of a GPU.
 static func bounds(part_name: StringName) -> PackedVector2Array:
-	var source: Rect2 = SOURCES[part_name]
-	return frame(part_name) * PackedVector2Array([Vector2.ZERO, Vector2(source.size.x, 0.0),
-			source.size, Vector2(0.0, source.size.y)])
+	if not _bounds.has(part_name):
+		if _source_image == null: _source_image = ATLAS.get_image()
+		if _head_image == null: _head_image = HEAD.get_image()
+		_bounds[part_name] = alpha_bounds(_head_image if part_name == &"head" else _source_image, SOURCES[part_name], frame(part_name))
+	return _bounds[part_name]
+
+
+## Actual painted contour, excluding transparent padding and the empty wedge
+## above a sandal's toes. A convex box/hull would falsely join two planted legs.
+static func alpha_bounds(image: Image, source: Rect2, transform: Transform2D) -> PackedVector2Array:
+	var cropped: Image = image.get_region(Rect2i(source))
+	var mask: BitMap = BitMap.new()
+	mask.create_from_image_alpha(cropped, 0.1)
+	var contours: Array[PackedVector2Array] = mask.opaque_to_polygons(Rect2i(Vector2i.ZERO, cropped.get_size()), 1.0)
+	var outline: PackedVector2Array = PackedVector2Array()
+	var most: float = 0.0
+	for polygon: PackedVector2Array in contours:
+		var area: float = 0.0
+		for i: int in polygon.size(): area += polygon[i].cross(polygon[(i + 1) % polygon.size()])
+		if absf(area) > most:
+			most = absf(area)
+			outline = polygon
+	return transform * outline
 
 
 static func build_body(parts: Dictionary) -> void:
 	for part_name: StringName in SOURCES:
 		# Bounds are conservative; independent feet end at the same sole as the solver.
 		var batch: InkBatch = InkBatch.new()
-		batch.fill_convex(bounds(part_name), InkPalette.INK)
+		batch.fill(bounds(part_name), InkPalette.INK)
 		parts[part_name] = batch

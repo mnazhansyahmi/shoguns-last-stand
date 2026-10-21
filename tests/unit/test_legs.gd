@@ -87,8 +87,8 @@ func test_the_hatamoto_keeps_the_guardians_plain_legs_and_the_samurai_is_leaner(
 		assert_true(absf(plain.thigh_w.x - guardian.thigh_w.x) < 1.0 and absf(plain.shin_w.x - guardian.shin_w.x) < 1.5, "%s legs are as slim as the Spear Guardian's" % InkFigure.Kind.keys()[kind])
 		assert_true(FigurePainter.layout(kind).has(&"foot_f"), "the foot stays flat independently of the shin")
 	var lean: FigureKinds.Spec = FigureKinds.spec(InkFigure.Kind.SAMURAI)
-	assert_true(lean.thigh_w.x < FigureKinds.spec(InkFigure.Kind.HATAMOTO).thigh_w.x * 0.8,
-			"the approved lightly dressed samurai has a slimmer leg silhouette")
+	assert_true(lean.thigh_w.x >= 9.0 and lean.thigh_w.x < FigureKinds.spec(InkFigure.Kind.HATAMOTO).thigh_w.x,
+			"the light samurai has real trouser volume while remaining slimmer than armoured allies")
 	assert_true(FigurePainter.layout(InkFigure.Kind.SAMURAI).has(&"foot_f"), "the samurai keeps independent soles")
 	var order: Array[StringName] = FigurePainter.layout(InkFigure.Kind.HATAMOTO)
 	for name: StringName in [&"thigh_f", &"shin_f", &"thigh_b", &"shin_b"]:
