@@ -31,10 +31,13 @@ const TOUCH_MODE_NAMES: PackedStringArray = ["Auto", "Always", "Off"]
 
 var _settings: GameSettings = GameSettings.new()
 var _syncing: bool = false
+var _controls_page: CenterContainer
+var _controls_button: Button
 
 
 func _ready() -> void:
 	visible = false
+	_build_controls_page()
 	_ui_scale_slider.min_value = GameSettings.MIN_UI_SCALE
 	_ui_scale_slider.max_value = GameSettings.MAX_UI_SCALE
 	var group: ButtonGroup = ButtonGroup.new()
@@ -60,6 +63,7 @@ func _ready() -> void:
 
 
 func open(settings: GameSettings) -> void:
+	show_controls(false)
 	_settings = settings if settings != null else GameSettings.new()
 	_syncing = true
 	_music_slider.value = _settings.music_volume
@@ -80,6 +84,7 @@ func close() -> void:
 	if not visible:
 		return
 	_reset_dialog.hide()
+	show_controls(false)
 	visible = false
 	closed.emit(_settings)
 
@@ -154,3 +159,43 @@ func _on_reset_confirmed() -> void:
 		progress_reset.emit()
 	else:
 		_reset_button.text = "Reset failed (%d)" % error
+
+
+func _build_controls_page() -> void:
+	_controls_button = Button.new()
+	_controls_button.name = "ControlsButton"
+	_controls_button.text = "Controls"
+	_controls_button.custom_minimum_size = Vector2(300.0, 124.0)
+	_controls_button.add_theme_font_size_override("font_size", 34)
+	_back_button.get_parent().add_child(_controls_button)
+	_back_button.get_parent().move_child(_controls_button, _back_button.get_index())
+	_controls_button.pressed.connect(show_controls.bind(true))
+	_controls_page = CenterContainer.new()
+	_controls_page.name = "ControlsPage"
+	_controls_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_controls_page)
+	var panel: PanelContainer = PanelContainer.new()
+	_controls_page.add_child(panel)
+	var margin: MarginContainer = MarginContainer.new()
+	for edge: String in ["left", "top", "right", "bottom"]:
+		margin.add_theme_constant_override("margin_" + edge, 28)
+	panel.add_child(margin)
+	var guide: ControlsGuide = ControlsGuide.new()
+	margin.add_child(guide)
+	guide.back_requested.connect(show_controls.bind(false))
+	_controls_page.hide()
+
+
+func show_controls(enabled: bool = true) -> void:
+	$Center.visible = not enabled
+	_controls_page.visible = enabled
+	if visible:
+		if enabled:
+			var guide: ControlsGuide = _controls_page.get_child(0).get_child(0).get_child(0) as ControlsGuide
+			(guide.get_child(guide.get_child_count() - 1) as Button).grab_focus()
+		else:
+			_controls_button.grab_focus()
+
+
+func is_controls_open() -> bool:
+	return visible and _controls_page.visible

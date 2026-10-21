@@ -59,7 +59,7 @@ var _enemy_indicator: EdgeIndicator
 var _banner_tween: Tween
 var _message_tween: Tween
 var _touch_mode: bool = false
-var _debug_hint_allowed: bool = false
+var _tutorial_hint_allowed: bool = false
 var _ui_scale: float = 1.0
 
 
@@ -243,14 +243,16 @@ func get_summon_button(slot: int) -> TouchActionButton:
 	return _summon_buttons[slot]
 
 
-func set_debug_hint_visible(visible_flag: bool) -> void:
-	_debug_hint_allowed = visible_flag
+func set_tutorial_hint(stage_id: String, cleared_before: bool) -> void:
+	_tutorial_hint_allowed = stage_id == "stage_1" and not cleared_before
 	_refresh_bottom()
 
 
 ## Touch controls show cooldowns and summons themselves, so keyboard-only parts are hidden.
 func set_touch_mode(enabled: bool) -> void:
 	_touch_mode = enabled
+	if enabled:
+		release_summons()
 	_refresh_bottom()
 
 
@@ -359,8 +361,8 @@ static func format_cooldown(seconds: float) -> String:
 func _refresh_bottom() -> void:
 	_summon_label.visible = not _touch_mode
 	_summon_bar.get_parent().visible = not _touch_mode
-	_hint_label.visible = not _touch_mode
-	_debug_hint_label.visible = _debug_hint_allowed and not _touch_mode
+	_hint_label.visible = _tutorial_hint_allowed and not _touch_mode
+	_debug_hint_label.visible = false
 	# Touch buttons show their own cooldowns and the Allies button shows the stance, so the icon row is for the
 	# keyboard only.
 	_skill_row.visible = not _touch_mode
@@ -389,3 +391,8 @@ func _show_fading(label: Label, text: String, duration: float, previous: Tween) 
 	tween.tween_property(label, "modulate:a", 0.0, BANNER_FADE_TIME)
 	tween.tween_callback(label.hide)
 	return tween
+
+
+func release_summons() -> void:
+	for button: TouchActionButton in _summon_buttons:
+		button.release()

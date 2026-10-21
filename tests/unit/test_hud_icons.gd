@@ -179,3 +179,15 @@ func test_keyboard_summons_use_clickable_cached_portraits_and_keep_costs() -> vo
 	assert_true(button.is_held() and Input.is_action_pressed("summon_1"), "mouse uses the same action as keyboard and touch")
 	button.release()
 	assert_true(not Input.is_action_pressed("summon_1"), "release never leaves the action held")
+
+
+func test_tutorial_controls_only_show_on_uncleared_stage_one_and_debug_text_is_gone() -> void:
+	var hud: GameHud = _hud()
+	for stage_id: String in ["stage_1", "stage_2", "stage_5"]:
+		for cleared: bool in [false, true]:
+			hud.set_tutorial_hint(stage_id, cleared)
+			hud.set_touch_mode(false)
+			assert_eq((hud.get_node("%HintLabel") as Control).visible, stage_id == "stage_1" and not cleared, "only the first tutorial battle shows the controls line")
+			hud.set_touch_mode(true)
+			assert_true(not (hud.get_node("%HintLabel") as Control).visible, "touch never shows keyboard help")
+	assert_true(not (hud.get_node("%DebugHintLabel") as Control).visible, "no debug text in battle")

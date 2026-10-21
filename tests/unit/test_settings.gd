@@ -113,3 +113,21 @@ func test_audio_settings_drive_buses() -> void:
 	assert_almost_eq(AudioServer.get_bus_volume_db(music), linear_to_db(0.5), "music bus volume", 0.01)
 	assert_true(AudioServer.is_bus_mute(sfx), "zero SFX volume mutes the bus")
 	GameSettings.new().apply_audio()
+
+
+func test_settings_controls_page_opens_returns_and_has_real_gamepad_bindings() -> void:
+	var panel: SettingsPanel = add_to_tree(load("res://scenes/ui/settings_panel.tscn").instantiate()) as SettingsPanel
+	panel.save_path = "user://test_saves/controls_unused.json"
+	panel.open(GameSettings.new())
+	panel.show_controls()
+	assert_true(panel.is_controls_open(), "Controls is a distinct Settings page")
+	assert_true(not (panel.get_node("Center") as Control).visible, "Settings widgets do not overlap help")
+	panel.show_controls(false)
+	assert_true(not panel.is_controls_open() and panel.is_open(), "Back returns to Settings")
+	for action: StringName in [&"attack", &"heavy_attack", &"dash", &"spirit_slash", &"war_cry", &"ultimate", &"stance", &"bow", &"pause", &"select_summon_prev", &"select_summon_next", &"summon_selected"]:
+		var has_pad: bool = false
+		for event: InputEvent in InputMap.action_get_events(action):
+			has_pad = has_pad or event is InputEventJoypadButton or event is InputEventJoypadMotion
+		assert_true(has_pad, "%s has the gamepad binding documented in Controls" % action)
+	panel.close()
+	assert_true(not panel.is_open() and not panel.is_controls_open(), "closing dismisses both pages")

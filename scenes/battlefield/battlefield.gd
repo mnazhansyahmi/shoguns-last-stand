@@ -49,6 +49,7 @@ var _gate_alert_until_msec: int = 0
 var _last_gate_health: float = -1.0
 ## The stage was already cleared before this battle (replay rewards, no Next Stage button).
 var _was_cleared_before: bool = false
+var _selected_summon_slot: int = 0
 
 
 func _ready() -> void:
@@ -111,7 +112,7 @@ func _ready() -> void:
 	_hud.set_gate_health(gate_health.current_health, gate_health.max_health)
 	_hud.set_energy(_energy.current, _energy.max_energy)
 	_hud.set_remaining(0)
-	_hud.set_debug_hint_visible(OS.is_debug_build())
+	_hud.set_tutorial_hint(_wave_director.stage.stage_id if _wave_director.stage != null else "", _was_cleared_before)
 	_hud.hide_status()
 	_apply_settings()
 	for warning: String in [_save_manager.last_warning, _settings_store.last_warning]:
@@ -130,6 +131,7 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("pause"):
 		_on_pause_pressed()
 	if not get_tree().paused and not _is_game_over:
+		_read_gamepad_summons()
 		for slot: int in SUMMON_ACTIONS.size():
 			if Input.is_action_just_pressed(SUMMON_ACTIONS[slot]):
 				_summoner.request_summon(slot)
@@ -199,6 +201,7 @@ func _on_pause_pressed() -> void:
 func _pause() -> void:
 	get_tree().paused = true
 	_touch.release_all()
+	_hud.release_summons()
 	_pause_menu.open(_settings)
 
 
@@ -522,6 +525,7 @@ func _on_enemy_defeated(enemy: Enemy) -> void:
 
 
 func _on_stage_cleared() -> void:
+	_hud.set_tutorial_hint("", true)
 	_end_battle(true)
 
 
@@ -539,6 +543,7 @@ func _end_battle(victory: bool) -> void:
 	_feedback.end_hit_stop()
 	AudioManager.play(&"victory" if victory else &"defeat")
 	_touch.set_active(false)
+	_hud.release_summons()
 	_pause_menu.close()
 	_hud.hide_status()
 	var stage: StageData = _wave_director.stage
@@ -563,3 +568,19 @@ func _end_battle(victory: bool) -> void:
 func _on_progress_reset() -> void:
 	_is_game_over = true
 	SceneRoutes.go_to.call_deferred(get_tree(), SceneRoutes.MAIN_MENU)
+
+
+func _read_gamepad_summons() -> void:
+	var count: int = _summoner.get_slot_count()
+	if count <= 0:
+		return
+	var direction: int = int(Input.is_action_just_pressed("select_summon_next")) - int(Input.is_action_just_pressed("select_summon_prev"))
+	if direction != 0:
+		_selected_summon_slot = posmod(_selected_summon_slot + direction, count)
+		for slot: int in count:
+			var button: TouchActionButton = _hud.get_summon_button(slot)
+			button.selected = slot == _selected_summon_slot
+			button.queue_redraw()
+		_hud.show_message("Summon: %s · R3" % _summoner.get_slot_data(_selected_summon_slot).display_name)
+	if Input.is_action_just_pressed("summon_selected"):
+		_summoner.request_summon(_selected_summon_slot)

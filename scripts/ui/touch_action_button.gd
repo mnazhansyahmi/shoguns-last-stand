@@ -27,6 +27,7 @@ var locked_text: String = ""
 var icon_kind: int = -1
 var portrait_kind: int = -1
 var mouse_enabled: bool = false
+var selected: bool = false
 var _art: Texture2D
 var _portrait_points: PackedVector2Array = PackedVector2Array()
 var _portrait_uvs: PackedVector2Array = PackedVector2Array()
@@ -230,7 +231,7 @@ func _draw() -> void:
 	if not available and portrait_kind < 0:
 		var reach: float = radius * 0.62
 		draw_line(center + Vector2(-reach, reach), center + Vector2(reach, -reach), Color(InkPalette.PARCHMENT, 0.6), 6.0, true)
-	draw_arc(center, radius, 0.0, TAU, 64, InkPalette.GOLD_BRIGHT if held else Color(InkPalette.GOLD, 0.9), 4.0 if held else 3.0, true)
+	draw_arc(center, radius, 0.0, TAU, 64, InkPalette.GOLD_BRIGHT if held or selected else Color(InkPalette.GOLD, 0.9), 5.0 if held or selected else 3.0, true)
 	if charge_ratio > 0.0:
 		# The meter: a bright arc from 12 o'clock clockwise on the rim.
 		draw_arc(center, radius - 9.0, -PI * 0.5, -PI * 0.5 + TAU * charge_ratio, maxi(8, ceili(64.0 * charge_ratio)),

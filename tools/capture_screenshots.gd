@@ -75,6 +75,10 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if _only == "controls":
+		await _capture_controls()
+		quit(0)
+		return
 	if _only == "icons":
 		await _capture_icons()
 		quit(0)
@@ -1075,3 +1079,17 @@ func _capture_icons() -> void:
 	await _frames(12)
 	await _capture("figure_icons")
 	sheet.free()
+
+
+func _capture_controls() -> void:
+	var menu: Node = MAIN_MENU.instantiate()
+	menu.set("save_path", DATA_DIR + "/controls_save.json")
+	menu.set("settings_path", DATA_DIR + "/controls_settings.cfg")
+	root.add_child(menu)
+	var panel: SettingsPanel = menu.find_child("SettingsPanel", true, false) as SettingsPanel
+	panel.open(GameSettings.new())
+	panel.show_controls()
+	await _frames(20)
+	await _capture("settings_controls")
+	menu.free()
+	await AudioManager.shutdown_audio(self)
