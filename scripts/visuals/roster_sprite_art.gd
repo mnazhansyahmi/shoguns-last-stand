@@ -27,7 +27,8 @@ const HEAD_RECTS: Dictionary = {
 	InkFigure.Kind.HATAMOTO: Rect2(-16, -34, 32, 36),
 	InkFigure.Kind.HOLLOW_SOLDIER: Rect2(-12, -20, 26, 22),
 	InkFigure.Kind.ONI_BRUTE: Rect2(-18, -27, 39, 29),
-	InkFigure.Kind.FALLEN_DAIMYO: Rect2(-17, -33, 35, 35),
+	# The helmet sits down on his collar (its painted cords hang over the cuirass).
+	InkFigure.Kind.FALLEN_DAIMYO: Rect2(-17, -28, 35, 35),
 }
 const WIDTHS: Dictionary = {
 	InkFigure.Kind.ASHIGARU: 21.0, InkFigure.Kind.YUMI_ARCHER: 21.0,
@@ -36,7 +37,30 @@ const WIDTHS: Dictionary = {
 	InkFigure.Kind.HOLLOW_SOLDIER: 21.0, InkFigure.Kind.ONI_BRUTE: 41.0,
 	InkFigure.Kind.FALLEN_DAIMYO: 36.0,
 }
+## The painted torsos are three-quarter views with an open armhole on their left (back) side, and every upper arm is a
+## sleeve tube with an open shoulder end: assembled as is they read as paper-doll sockets. Each armhole (centre and
+## radii in torso-cell pixels) is closed with the torso's own closed right shoulder, mirrored; the front arm's open end
+## is covered by a cap of the torso's shoulder drawn over it ("shoulder_f"). See shoulder_patch().
+const ARMHOLES: Dictionary = {
+	InkFigure.Kind.ASHIGARU: [Vector2(19, 96), Vector2(34, 64)],
+	InkFigure.Kind.YUMI_ARCHER: [Vector2(23, 115), Vector2(38, 64)],
+	InkFigure.Kind.ONI_BRUTE: [Vector2(22, 66), Vector2(36, 48)],
+	InkFigure.Kind.SHRINE_HEALER: [Vector2(19, 96), Vector2(30, 62)],
+	InkFigure.Kind.SPEAR_GUARDIAN: [Vector2(26, 106), Vector2(40, 68)],
+	InkFigure.Kind.ONMYOJI: [Vector2(19, 100), Vector2(32, 64)],
+	InkFigure.Kind.HATAMOTO: [Vector2(29, 100), Vector2(42, 72)],
+	InkFigure.Kind.FALLEN_DAIMYO: [Vector2(52, 90), Vector2(54, 78)],
+}
+## Inside this fraction of its radius a patch is fully opaque; it fades to nothing at its rim.
+const PATCH_FEATHER: float = 0.72
+const PATCH_POINTS: int = 20
+## The front shoulder cap's radius, as a fraction of the painted upper arm's width.
+const CAP_RADIUS: float = 0.62
+## An upper arm's painted layer starts this fraction of its length past the shoulder joint.
+const ARM_TRIM: float = 0.03
+
 static var _atlases: Dictionary = {}
+static var _patches: Dictionary = {}
 static var _images: Dictionary = {}
 static var _regions: Dictionary = {}
 static var _textures: Dictionary = {}
@@ -139,6 +163,69 @@ static func build_body(kind: InkFigure.Kind, parts: Dictionary) -> void:
 		var batch: InkBatch = InkBatch.new()
 		batch.fill(bounds(kind, part_name), InkPalette.INK)
 		parts[part_name] = batch
+	if not ARMHOLES.has(kind):
+		return
+	# The front shoulder cap's own outline (torso space), like every other part's.
+	var cap: InkBatch = InkBatch.new()
+	var cap_patch: Array = shoulder_patch(kind, false)
+	var cap_outline: PackedVector2Array = PackedVector2Array()
+	var vertices: PackedVector2Array = cap_patch[1]
+	for i: int in range(1 + PATCH_POINTS, 1 + PATCH_POINTS * 2):
+		cap_outline.append(frame(kind, &"torso") * vertices[i])
+	cap.fill_convex(cap_outline, InkPalette.INK)
+	parts[&"shoulder_f"] = cap
+
+
+## How many pixels to cut off an upper arm's proximal end so its open sleeve end never shows: up to just past its
+## shoulder joint (the cut is under the shoulder cap or the torso).
+static func arm_trim(kind: InkFigure.Kind, part_name: StringName) -> float:
+	var joint: float = 0.15 if kind == InkFigure.Kind.ONI_BRUTE else 0.12
+	return region(kind, CELLS[part_name]).size.x * (joint + ARM_TRIM)
+
+
+## A soft-edged ellipse of painted torso as [indices, vertices, colours, uvs], vertices in torso-cell pixels (draw it
+## under the torso's frame with atlas()). `back` = the patch closing the armhole on the torso's left, sampled from
+## its closed right shoulder mirrored; otherwise the cap over the front arm's open shoulder end, sampled in place
+## from the torso's own front shoulder. Built once per kind.
+static func shoulder_patch(kind: InkFigure.Kind, back: bool) -> Array:
+	var key: String = "%d:%s" % [kind, back]
+	if _patches.has(key):
+		return _patches[key]
+	var source_region: Rect2 = region(kind, CELLS[&"torso"])
+	var torso_frame: Transform2D = frame(kind, &"torso")
+	var center: Vector2
+	var radii: Vector2
+	var source: Vector2
+	if back:
+		var hole: Array = ARMHOLES[kind]
+		center = hole[0]
+		radii = hole[1]
+		source = Vector2(source_region.size.x - center.x, center.y)
+	else:
+		var spec: FigureKinds.Spec = FigureKinds.spec(kind)
+		center = torso_frame.affine_inverse() * spec.shoulder_front
+		var radius: float = spec.arm_w.x * 1.35 * CAP_RADIUS
+		radii = Vector2(radius / torso_frame.x.length(), radius / torso_frame.y.length())
+		source = center
+	var atlas_size: Vector2 = atlas(kind).get_size()
+	var vertices: PackedVector2Array = PackedVector2Array([center])
+	var uvs: PackedVector2Array = PackedVector2Array([(source_region.position + source) / atlas_size])
+	var colors: PackedColorArray = PackedColorArray([Color.WHITE])
+	var mirror: Vector2 = Vector2(-1.0, 1.0) if back else Vector2.ONE
+	for ring: float in [PATCH_FEATHER, 1.0]:
+		for i: int in PATCH_POINTS:
+			var offset: Vector2 = Vector2.from_angle(TAU * float(i) / float(PATCH_POINTS)) * radii * ring
+			vertices.append(center + offset)
+			var sample: Vector2 = (source + offset * mirror).clamp(Vector2.ZERO, source_region.size)
+			uvs.append((source_region.position + sample) / atlas_size)
+			colors.append(Color(1.0, 1.0, 1.0, 1.0 if ring < 1.0 else 0.0))
+	var indices: PackedInt32Array = PackedInt32Array()
+	for i: int in PATCH_POINTS:
+		var a: int = 1 + i
+		var b: int = 1 + (i + 1) % PATCH_POINTS
+		indices.append_array(PackedInt32Array([0, a, b, a, a + PATCH_POINTS, b, b, a + PATCH_POINTS, b + PATCH_POINTS]))
+	_patches[key] = [indices, vertices, colors, uvs]
+	return _patches[key]
 
 
 static func paint_tail(kind: InkFigure.Kind, ci: CanvasItem, points: PackedVector2Array, width: float) -> void:

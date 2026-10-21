@@ -5,13 +5,15 @@ extends RefCounted
 
 const ATLAS: Texture2D = preload("res://assets/art/samurai/slim_parts.png")
 const HEAD: Texture2D = preload("res://assets/art/roster/samurai_head.png")
+## Each region holds its whole painted part (tools check none is cut). The skirt's torn front tip reaches into the
+## hair's column, so the skirt is drawn through its own outline (outline_mesh()) and the hair stops above the tip.
 const SOURCES: Dictionary = {
-	&"head": Rect2(239, 158, 952, 979), &"mane": Rect2(941, 98, 305, 238),
-	&"torso": Rect2(330, 68, 297, 291), &"skirt": Rect2(639, 70, 299, 298),
+	&"head": Rect2(239, 158, 952, 979), &"mane": Rect2(940, 98, 306, 232),
+	&"torso": Rect2(330, 68, 297, 291), &"skirt": Rect2(639, 70, 323, 298),
 	&"upper_f": Rect2(42, 412, 261, 225), &"fore_f": Rect2(337, 442, 277, 166),
-	&"thigh_f": Rect2(640, 391, 303, 248), &"shin_f": Rect2(955, 440, 260, 150),
-	&"upper_b": Rect2(32, 687, 281, 250), &"fore_b": Rect2(336, 743, 280, 154),
-	&"thigh_b": Rect2(639, 680, 300, 251), &"shin_b": Rect2(980, 737, 240, 170),
+	&"thigh_f": Rect2(640, 391, 303, 257), &"shin_f": Rect2(955, 440, 260, 150),
+	&"upper_b": Rect2(32, 687, 288, 250), &"fore_b": Rect2(336, 743, 280, 154),
+	&"thigh_b": Rect2(639, 676, 300, 255), &"shin_b": Rect2(980, 737, 240, 170),
 	&"foot_f": Rect2(68, 971, 232, 192), &"foot_b": Rect2(352, 972, 241, 190),
 	&"weapon": Rect2(936, 1047, 309, 62),
 }
@@ -19,7 +21,7 @@ const RECTS: Dictionary = {
 	&"head": Rect2(-8.0, -17.5, 20.0, 21.0),
 	&"mane": Rect2(-35.0, -21.0, 31.0, 19.0),
 	&"torso": Rect2(-10.5, -36.0, 22.0, 39.0),
-	&"skirt": Rect2(-13.5, -4.5, 27.0, 29.0),
+	&"skirt": Rect2(-13.5, -4.5, 29.2, 29.0),
 	&"foot_f": Rect2(-3.5, -7.0, 12.5, 9.5),
 	&"foot_b": Rect2(-3.5, -7.0, 12.5, 9.5),
 	&"weapon": Rect2(-25.0, -5.0, 100.0, 8.5),
@@ -33,9 +35,15 @@ const JOINTS: Dictionary = {
 	&"shin_f": [Vector2(29, 65), Vector2(230, 93), 23.0, 0.075],
 	&"upper_b": [Vector2(35, 55), Vector2(245, 93), 13.0, 0.056],
 	&"fore_b": [Vector2(28, 53), Vector2(240, 100), 13.0, 0.042],
-	&"thigh_b": [Vector2(35, 91), Vector2(266, 151), 23.0, 0.096],
+	&"thigh_b": [Vector2(35, 95), Vector2(266, 155), 23.0, 0.096],
 	&"shin_b": [Vector2(32, 95), Vector2(225, 60), 23.0, 0.073],
 }
+
+## The ponytail keeps at least this fraction of its length between root and tip, bends by at most this fraction of
+## that span, and is drawn along this many points (hair_spine()).
+const HAIR_MIN_SPAN: float = 0.7
+const HAIR_MAX_BEND: float = 0.3
+const HAIR_SPINE_POINTS: int = 8
 
 static var _textures: Dictionary = {}
 static var _frames: Dictionary = {}
@@ -49,6 +57,27 @@ const SASH_REGION: Rect2 = Rect2(634, 1000, 296, 190)
 const SLEEVE_REGION: Rect2 = Rect2(42, 412, 261, 225)
 
 
+## The ponytail's spine from its hair chain: one gentle curve from the root toward where the chain's tip points, never
+## shorter than HAIR_MIN_SPAN of the chain's length. A chain bunched up by a sudden stop or a cut would otherwise fold
+## the painted tuft over itself into a dark blot.
+static func hair_spine(points: PackedVector2Array) -> PackedVector2Array:
+	var length: float = 0.0
+	for i: int in range(1, points.size()):
+		length += points[i].distance_to(points[i - 1])
+	var root: Vector2 = points[0]
+	var reach: Vector2 = points[-1] - root
+	var span: float = maxf(reach.length(), length * HAIR_MIN_SPAN)
+	var direction: Vector2 = reach.normalized() if reach.length() > 0.01 else Vector2.LEFT
+	reach = direction * span
+	var middle: Vector2 = root + reach * 0.5
+	var control: Vector2 = middle + (points[points.size() / 2] - middle).limit_length(span * HAIR_MAX_BEND)
+	var spine: PackedVector2Array = PackedVector2Array()
+	for i: int in HAIR_SPINE_POINTS:
+		var u: float = float(i) / float(HAIR_SPINE_POINTS - 1)
+		spine.append(root.lerp(control, u).lerp(control.lerp(root + reach, u), u))
+	return spine
+
+
 static func smooth_ribbon(points: PackedVector2Array) -> PackedVector2Array:
 	var smooth: PackedVector2Array = PackedVector2Array()
 	for i: int in points.size() - 1:
@@ -59,8 +88,9 @@ static func smooth_ribbon(points: PackedVector2Array) -> PackedVector2Array:
 	return smooth
 
 
+## `end_width` >= 0 tapers the strip from `width` at the first point to it at the last (a bow limb, an arrow).
 static func paint_cloth(ci: CanvasItem, points: PackedVector2Array, width: float, sash: bool,
-		source_region: Rect2 = Rect2(), atlas: Texture2D = ATLAS) -> void:
+		source_region: Rect2 = Rect2(), atlas: Texture2D = ATLAS, end_width: float = -1.0) -> void:
 	if points.size() < 2:
 		return
 	var vertices: PackedVector2Array = PackedVector2Array()
@@ -75,7 +105,8 @@ static func paint_cloth(ci: CanvasItem, points: PackedVector2Array, width: float
 			var t: float = float(i) / float(points.size() - 1)
 			var tangent: Vector2 = points[mini(i + 1, points.size() - 1)] - points[maxi(0, i - 1)]
 			var normal: Vector2 = tangent.normalized().orthogonal()
-			vertices.append(points[i] + normal * width * (0.5 if side == 0 else -0.5))
+			var across: float = width if end_width < 0.0 else lerpf(width, end_width, t)
+			vertices.append(points[i] + normal * across * (0.5 if side == 0 else -0.5))
 			var uv: Vector2 = Vector2(1.0 - t, float(side)) if sash else Vector2(float(side), t)
 			uvs.append((region.position + uv * region.size) / atlas_size)
 	# A cloth chain can curl across itself. Explicit strip triangles remain valid
@@ -90,6 +121,47 @@ static func paint_cloth(ci: CanvasItem, points: PackedVector2Array, width: float
 	var indices: PackedInt32Array = _ribbon_indices[count]
 	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices,
 			PackedColorArray([Color.WHITE]), uvs, PackedInt32Array(), PackedFloat32Array(), atlas.get_rid())
+
+
+## The layer drawn through its own painted outline (the largest alpha shape in its region, grown a little to keep its
+## soft edge) as [indices, vertices, colours, uvs] in layer pixels, so a neighbour's pixels inside the rectangle are
+## left out. Empty if the outline cannot be triangulated (then the plain layer is drawn).
+static func outline_mesh(part_name: StringName) -> Array:
+	var key: String = "%s:mesh" % part_name
+	if _bounds.has(key):
+		return _bounds[key]
+	if _source_image == null: _source_image = ATLAS.get_image()
+	var source: Rect2 = SOURCES[part_name]
+	var mask: BitMap = BitMap.new()
+	mask.create_from_image_alpha(_source_image.get_region(Rect2i(source)), 0.05)
+	var outline: PackedVector2Array = PackedVector2Array()
+	var most: float = 0.0
+	for polygon: PackedVector2Array in mask.opaque_to_polygons(Rect2i(Vector2i.ZERO, Vector2i(source.size)), 1.0):
+		var area: float = absf(_area(polygon))
+		if area > most:
+			most = area
+			outline = polygon
+	var grown: Array[PackedVector2Array] = Geometry2D.offset_polygon(outline, 2.0)
+	if not grown.is_empty():
+		outline = grown[0]
+	var indices: PackedInt32Array = Geometry2D.triangulate_polygon(outline)
+	var mesh: Array = []
+	if not indices.is_empty():
+		var uvs: PackedVector2Array = PackedVector2Array()
+		var colors: PackedColorArray = PackedColorArray()
+		for point: Vector2 in outline:
+			uvs.append((source.position + point.clamp(Vector2.ZERO, source.size)) / ATLAS.get_size())
+			colors.append(Color.WHITE)
+		mesh = [indices, outline, colors, uvs]
+	_bounds[key] = mesh
+	return mesh
+
+
+static func _area(polygon: PackedVector2Array) -> float:
+	var area: float = 0.0
+	for i: int in polygon.size():
+		area += polygon[i].cross(polygon[(i + 1) % polygon.size()])
+	return area * 0.5
 
 
 static func has_part(part_name: StringName) -> bool:

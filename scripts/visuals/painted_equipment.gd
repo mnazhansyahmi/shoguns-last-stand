@@ -55,8 +55,8 @@ static func frame(kind: InkFigure.Kind, name: StringName) -> Transform2D:
 
 
 static func draw_bow(ci: CanvasItem, figure: InkFigure) -> void:
-	# Only the wood surface changes: existing strings, nock, arrow and draw
-	# animation keep their exact positions and gameplay release timing.
+	# Only the surfaces change: string, nock, arrow and draw animation keep their exact positions and gameplay
+	# release timing. The ink limbs underneath are a little wider, so they read as the wood's ink outline.
 	FigurePainter.bow(figure.pose.bow_draw, figure.kind).draw(ci)
 	var step: int = FigurePainter.bow_step(figure.pose.bow_draw)
 	var drawn: float = float(step) / float(FigurePainter.BOW_STEPS)
@@ -65,7 +65,15 @@ static func draw_bow(ci: CanvasItem, figure: InkFigure) -> void:
 		for i: int in 9:
 			var t: float = float(i) / 8.0
 			points.append(Vector2(FigurePainter._bow_bend(t, drawn), t * (-FigurePainter.BOW_UPPER if side == 0 else FigurePainter.BOW_LOWER)))
-		_draw_wood(ci, points, 5.0)
+		_draw_wood(ci, points, FigurePainter.BOW_LIMB_WIDTH.x - 0.8, FigurePainter.BOW_LIMB_WIDTH.y - 0.6)
+	if figure.kind == InkFigure.Kind.SAMURAI:
+		# The yumi's grip wrap, in the painted red of his sash.
+		SamuraiSpriteArt.paint_cloth(ci, PackedVector2Array([Vector2(0.4, -6.0), Vector2(0.4, 0.0), Vector2(0.4, 6.0)]),
+				4.2, true)
+	if drawn > 0.4:
+		# The nocked arrow's shaft (its head and fletching stay ink and colour).
+		var nock: float = FigurePainter.bow_nock_x(drawn)
+		_draw_wood(ci, PackedVector2Array([Vector2(nock + 2.0, 0.0), Vector2(nock + 22.0, 0.0), Vector2(nock + 42.0, 0.0)]), 1.5, 1.3)
 
 
 static func draw_stowed_bow(ci: CanvasItem, batch: InkBatch) -> void:
@@ -73,11 +81,20 @@ static func draw_stowed_bow(ci: CanvasItem, batch: InkBatch) -> void:
 	var points: PackedVector2Array = PackedVector2Array()
 	for i: int in 15:
 		points.append(FigurePainter._quadratic(Vector2(-10, -2), Vector2(-25.5, -32), Vector2(-20, -64), float(i) / 14.0))
-	_draw_wood(ci, points, 2.0)
+	_draw_wood(ci, points, 1.8, 1.0)
+	var wrap: PackedVector2Array = PackedVector2Array()
+	for u: float in [0.28, 0.35, 0.42]:
+		wrap.append(FigurePainter._quadratic(Vector2(-10, -2), Vector2(-25.5, -32), Vector2(-20, -64), u))
+	SamuraiSpriteArt.paint_cloth(ci, wrap, 3.0, true)
 
 
-static func _draw_wood(ci: CanvasItem, points: PackedVector2Array, width: float) -> void:
+## The Hatamoto's sashimono pole in painted wood (the flag itself, with its crest, is the painted "hem").
+static func draw_banner_pole(ci: CanvasItem) -> void:
+	_draw_wood(ci, PackedVector2Array([Vector2(-7.0, -6.0), Vector2(-9.5, -53.0), Vector2(-12.0, -100.0)]), 2.6, 2.2)
+
+
+static func _draw_wood(ci: CanvasItem, points: PackedVector2Array, width: float, end_width: float = -1.0) -> void:
 	if not _wood.has_area():
 		# A shaft's real painted wood, away from its metal head and cord.
 		_wood = EquipmentAtlasRegions.WOOD
-	SamuraiSpriteArt.paint_cloth(ci, points, width, true, _wood, atlas())
+	SamuraiSpriteArt.paint_cloth(ci, points, width, true, _wood, atlas(), end_width)

@@ -12,6 +12,8 @@ const KATANA_LENGTH: float = 70.0
 const ONMYOJI_STAFF_TIP: float = 58.0
 const BOW_UPPER: float = 64.0
 const BOW_LOWER: float = 34.0
+## A bow limb's ink width at the grip and at the tip (painted wood is drawn just inside it, see PaintedEquipment).
+const BOW_LIMB_WIDTH: Vector2 = Vector2(3.8, 2.4)
 ## The bow's shape is cached at this many draw positions.
 const BOW_STEPS: int = 12
 ## The Hollow Soldier's hem flutter is cached at this many phases (and three wind levels).
@@ -127,6 +129,7 @@ const SLOTS: Dictionary = {
 	&"weapon": Slot.WEAPON, &"bow": Slot.WEAPON, &"blade_glow": Slot.WEAPON,
 	&"pauldron_front": Slot.PAULDRON_FRONT, &"saya": Slot.TORSO,
 	&"hakama_f": Slot.HAKAMA_F, &"hakama_b": Slot.HAKAMA_B, &"yumi_back": Slot.TORSO,
+	&"shoulder_f": Slot.TORSO,
 }
 ## Parts whose shape changes every frame (redrawn through paint_dynamic).
 const DYNAMIC_PARTS: Array[StringName] = [&"tails", &"sleeve_f", &"sleeve_b"]
@@ -150,9 +153,11 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			# front of him, so the back arm is drawn over the torso, under the front arm.
 			order.append_array([&"yumi_back", &"mane", &"hem", &"sleeve_b", &"thigh_b", &"shin_b", &"foot_b"])
 			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head", &"tails"])
+			# The hilt lies under the front hand, which closes over it.
 			order.append_array(_BACK_ARM)
+			order.append(&"weapon")
 			order.append_array(_FRONT_ARM)
-			order.append_array([&"sleeve_f", &"weapon", &"bow", &"blade_glow"])
+			order.append_array([&"sleeve_f", &"bow", &"blade_glow"])
 		InkFigure.Kind.ASHIGARU:
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
 			order.append_array([&"hem", &"torso", &"head", &"tails", &"weapon"])
@@ -197,6 +202,9 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			order.append_array([&"hem", &"pauldron_back"] + _BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
 			order.append_array([&"torso", &"head", &"weapon"])
 			order.append_array(_FRONT_ARM + [&"pauldron_front"])
+	if RosterSpriteArt.ARMHOLES.has(kind):
+		# The painted front arm's open sleeve end is covered by a cap of the torso's own shoulder, under the forearm.
+		order.insert(order.find(&"upper_f") + 1, &"shoulder_f")
 	return order
 
 
@@ -340,7 +348,7 @@ static func paint_dynamic(fig: InkFigure, part_name: StringName, ci: CanvasItem)
 		&"mane":
 			if fig.secondary != null and fig.secondary.hair != null:
 				var local_hair: PackedVector2Array = ci.global_transform.affine_inverse() * fig.secondary.hair.points
-				SamuraiSpriteArt.paint_cloth(ci, SamuraiSpriteArt.smooth_ribbon(local_hair), 18.0, true, SamuraiSpriteArt.SOURCES[&"mane"])
+				SamuraiSpriteArt.paint_cloth(ci, SamuraiSpriteArt.hair_spine(local_hair), 18.0, true, SamuraiSpriteArt.SOURCES[&"mane"])
 		&"tails":
 			if fig.kind == InkFigure.Kind.SAMURAI:
 				if fig.secondary != null:
@@ -775,14 +783,14 @@ static func _bow(draw_amount: float, samurai: bool = false) -> InkBatch:
 		upper.append(Vector2(_bow_bend(t, drawn), -t * BOW_UPPER))
 		lower.append(Vector2(_bow_bend(t, drawn), t * BOW_LOWER))
 	var nock: Vector2 = Vector2(bow_nock_x(drawn), 0.0)
-	# String first so the limbs cover its ends.
-	batch.stroke(PackedVector2Array([upper[8], nock, lower[8]]), 1.4, 1.4, ink)
-	batch.stroke(upper, 5.0, 3.2, ink)
-	batch.stroke(lower, 5.0, 3.2, ink)
+	# String first so the limbs cover its ends: a slim hemp cord, not an ink line.
+	batch.stroke(PackedVector2Array([upper[8], nock, lower[8]]), 1.1, 1.1, InkPalette.PARCHMENT_DIM.darkened(0.25))
+	batch.stroke(upper, BOW_LIMB_WIDTH.x, BOW_LIMB_WIDTH.y, ink)
+	batch.stroke(lower, BOW_LIMB_WIDTH.x, BOW_LIMB_WIDTH.y, ink)
 	var fletching: Color = InkPalette.SAMURAI_RED if samurai else InkPalette.ARCHER_TEAL
 	if samurai:
 		# The wrapped grip, a third of the way up from the lower tip (where the front hand holds it).
-		batch.limb(Vector2(0.4, -6.0), Vector2(0.4, 6.0), 5.8, 5.8, InkPalette.SAMURAI_RED)
+		batch.limb(Vector2(0.4, -6.0), Vector2(0.4, 6.0), 4.6, 4.6, InkPalette.SAMURAI_RED)
 	if drawn > 0.25:
 		var alpha: float = clampf((drawn - 0.25) * 2.5, 0.0, 1.0)
 		var head: float = nock.x + 44.0

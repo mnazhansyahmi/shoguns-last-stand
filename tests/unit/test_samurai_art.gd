@@ -81,3 +81,63 @@ func test_roster_limb_joint_registration_preserves_every_bone_length() -> void:
 			assert_true(start.length() < 0.001, "painted limb starts at the solved joint")
 			assert_almost_eq(end.x, length, "painted limb ends at the solved joint", 0.001)
 			assert_almost_eq(end.y, 0.0, "registration does not introduce a diagonal offset", 0.001)
+
+
+func test_painted_shoulders_have_no_open_sockets() -> void:
+	for kind: InkFigure.Kind in RosterSpriteArt.NAMES:
+		var figure: InkFigure = InkFigure.new()
+		figure.kind = kind
+		add_to_tree(figure)
+		var torso_region: Rect2 = RosterSpriteArt.region(kind, RosterSpriteArt.CELLS[&"torso"])
+		var atlas_size: Vector2 = RosterSpriteArt.atlas(kind).get_size()
+		var torso: FigurePart = figure.get_node("torso") as FigurePart
+		# The Hollow Soldier's torso is a torn rag with no armhole to close (and he is most of every battle).
+		assert_eq(not torso.art_patch.is_empty(), RosterSpriteArt.ARMHOLES.has(kind), "%s: an open armhole is closed" % kind)
+		if RosterSpriteArt.ARMHOLES.has(kind):
+			for uv: Vector2 in (torso.art_patch[3] as PackedVector2Array):
+				assert_true(Rect2(torso_region.position / atlas_size, torso_region.size / atlas_size).grow(0.0001).has_point(uv),
+						"%s: the patch only samples the torso's own paint" % kind)
+			var order: Array[StringName] = FigurePainter.layout(kind)
+			assert_true(order.find(&"upper_f") < order.find(&"shoulder_f") and order.find(&"shoulder_f") < order.find(&"fore_f"),
+					"%s: the shoulder cap covers the upper arm's root but not the forearm" % kind)
+			assert_true(not (figure.get_node("shoulder_f") as FigurePart).art_patch.is_empty(), "%s: the cap is painted torso" % kind)
+		for arm: StringName in [&"upper_f", &"upper_b"]:
+			var trim: float = (figure.get_node(NodePath(arm)) as FigurePart).art_trim
+			var width: float = RosterSpriteArt.region(kind, RosterSpriteArt.CELLS[arm]).size.x
+			assert_true(trim > width * 0.12 and trim < width * 0.25, "%s %s is drawn from its shoulder joint, without its open sleeve end" % [kind, arm])
+		for pauldron: String in ["pauldron_front", "pauldron_back"]:
+			if figure.has_node(pauldron):
+				assert_true(not (figure.get_node(pauldron) as CanvasItem).visible, "%s: no second sleeve tube on the shoulder" % kind)
+
+
+func test_the_samurai_holds_the_hilt_and_has_no_flat_coat_tail() -> void:
+	var order: Array[StringName] = FigurePainter.layout(InkFigure.Kind.SAMURAI)
+	assert_true(order.find(&"weapon") < order.find(&"fore_f"), "the front hand closes over the hilt")
+	var figure: InkFigure = InkFigure.new()
+	add_to_tree(figure)
+	assert_true(not (figure.get_node("hem") as CanvasItem).visible, "his painted skirt has its own torn hem")
+	assert_true(not (figure.get_node("skirt") as FigurePart).art_mesh.is_empty(), "the skirt is drawn through its own outline")
+
+
+func test_the_ponytail_never_folds_into_a_blot() -> void:
+	# A chain bunched up by a sudden stop: it doubles back on itself.
+	var bunched: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(-6, 2), Vector2(-9, 7), Vector2(-5, 9),
+			Vector2(-1, 6), Vector2(-3, 2)])
+	var length: float = 0.0
+	for i: int in range(1, bunched.size()):
+		length += bunched[i].distance_to(bunched[i - 1])
+	var spine: PackedVector2Array = SamuraiSpriteArt.hair_spine(bunched)
+	var axis: Vector2 = (spine[-1] - spine[0]).normalized()
+	assert_true(spine[0].distance_to(spine[-1]) >= length * SamuraiSpriteArt.HAIR_MIN_SPAN - 0.001, "it keeps its length")
+	for i: int in range(1, spine.size()):
+		assert_true((spine[i] - spine[i - 1]).dot(axis) > 0.0, "it never turns back on itself (point %d)" % i)
+	assert_eq(spine[0], bunched[0], "it still grows from the hair tie")
+
+
+func test_bows_are_slim_painted_wood() -> void:
+	assert_true(FigurePainter.BOW_LIMB_WIDTH.x <= 4.0 and FigurePainter.BOW_LIMB_WIDTH.y < FigurePainter.BOW_LIMB_WIDTH.x,
+			"a yumi limb is slim and tapers to its tip")
+	var figure: InkFigure = InkFigure.new()
+	figure.kind = InkFigure.Kind.HATAMOTO
+	add_to_tree(figure)
+	assert_true(figure.has_node("banner") and figure.has_node("hem"), "the sashimono keeps its pole and its painted flag")

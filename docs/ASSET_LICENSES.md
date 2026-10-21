@@ -5,9 +5,28 @@ This file is a record for the project. It is NOT shown in the game and NOT inclu
 
 What the game shows on its Credits screen is `docs/CREDITS.md`, and that holds only the credits a licence REQUIRES
 (plus the creator line). Rule: record every third-party asset here; add it to `docs/CREDITS.md` only if its licence
-requires attribution. Most art is drawn by code. The user-approved samurai portrait and layered
-atlas are original generated artwork, not third-party stock; their exact production prompts are
-embedded in the PNGs and recorded in `assets/art/samurai/provenance.json`.
+requires attribution. Most art is drawn by code. The painted character art is original AI-generated artwork made
+for this project, not third-party stock; see "AI-generated artwork" below.
+
+## AI-generated artwork
+
+- What: original painted character art generated for this game with an AI image generator. It is not third-party
+  stock and carries no attribution licence, so it is NOT on the Credits screen (`docs/CREDITS.md`).
+- Tool: the built-in `image_gen` image generator, as `assets/art/samurai/provenance.json` and
+  `assets/art/roster/provenance.json` record (generated in the Codex session that made commit 37999aa).
+- Date: 2026-10-21 (all files).
+- Prompts: recorded in the two `provenance.json` files. The PNGs themselves carry no embedded text.
+- Files and where they are used:
+  - `assets/art/samurai/slim_menu.png`: the approved slim-swordsman cutout (the concept the samurai is built from).
+  - `assets/art/samurai/slim_parts.png`: the samurai's body-part atlas, on his skeleton in battle and on the title
+    screen (`SamuraiSpriteArt`).
+  - `assets/art/roster/samurai_head.png`: the samurai's head (`SamuraiSpriteArt`). No prompt was recorded for it.
+  - `assets/art/roster/ashigaru.png`, `yumi_archer.png`, `shrine_healer.png`, `spear_guardian.png`, `onmyoji.png`,
+    `hatamoto.png`, `hollow_soldier.png`, `oni_brute.png`, `fallen_daimyo.png`: one body-part atlas per ally and
+    enemy (`RosterSpriteArt`; regions from `tools/register_roster_art.py`), made with `slim_parts.png` as the style
+    reference.
+  - `assets/art/roster/equipment.png`: the painted weapons, shield, sashimono flag and quiver (`PaintedEquipment`).
+    No prompt was recorded for it.
 
 ## Music: Free Japanese Fantasy Music Pack by Momiziba
 

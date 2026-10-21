@@ -551,6 +551,8 @@ func _build_parts() -> void:
 			if not part.dynamic:
 				part.art = SamuraiSpriteArt.texture(part_name)
 				part.art_frame = SamuraiSpriteArt.frame(part_name)
+				if part_name == &"skirt":
+					part.art_mesh = SamuraiSpriteArt.outline_mesh(part_name)
 			# Painted layers carry their own ink edges; the procedural UV-flag rim shader
 			# cannot be applied to a normal image texture.
 			part.material = Atmosphere.painted_rim_material()
@@ -565,6 +567,25 @@ func _build_parts() -> void:
 		if RosterSpriteArt.NAMES.has(kind) and part_name == &"mane":
 			# The new head includes its painted hair; don't retain the former flat
 			# silhouette or its extra horn behind it.
+			part.visible = false
+		if RosterSpriteArt.NAMES.has(kind):
+			if part_name == &"torso" and RosterSpriteArt.ARMHOLES.has(kind):
+				# Close the painted armhole the back arm would show through.
+				part.art_patch = RosterSpriteArt.shoulder_patch(kind, true)
+				part.patch_texture = RosterSpriteArt.atlas(kind)
+			elif part_name in [&"upper_f", &"upper_b"]:
+				part.art_trim = RosterSpriteArt.arm_trim(kind, part_name)
+			elif part_name == &"shoulder_f":
+				part.art_patch = RosterSpriteArt.shoulder_patch(kind, false)
+				part.patch_texture = RosterSpriteArt.atlas(kind)
+				part.art_frame = RosterSpriteArt.frame(kind, &"torso")
+				part.material = Atmosphere.painted_rim_material()
+			elif part_name in [&"pauldron_front", &"pauldron_back"]:
+				# These were the upper arm's sleeve tube drawn a second time on the shoulder, open end and all; the
+				# painted upper arms carry their own shoulder plates and the shoulder patches close the joint.
+				part.visible = false
+		elif kind == Kind.SAMURAI and part_name == &"hem":
+			# A flat ink coat-tail behind his painted skirt, which has its own torn hem.
 			part.visible = false
 		if PaintedEquipment.cell(kind, part_name) >= 0:
 			part.art = PaintedEquipment.texture(kind, part_name)
