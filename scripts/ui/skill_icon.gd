@@ -16,6 +16,19 @@ const BADGE_SIZE: float = 24.0
 const SYMBOL_RADIUS: float = 0.27
 const SWEEP_STEPS: int = 28
 
+var _figure_art: Texture2D
+
+
+func _ready() -> void:
+	_refresh_art()
+
+
+func _refresh_art() -> void:
+	if is_inside_tree():
+		_figure_art = FigureSkillArt.texture(self, kind)
+	queue_redraw()
+
+
 var kind: UpgradeIcon.Kind = UpgradeIcon.Kind.DASH
 ## The ring colour while the skill is cooling down or idle.
 var accent: Color = InkPalette.GOLD
@@ -36,6 +49,7 @@ func _init() -> void:
 
 func setup(p_kind: UpgradeIcon.Kind, p_accent: Color, p_name: String, p_key: String) -> void:
 	kind = p_kind
+	_refresh_art()
 	accent = p_accent
 	skill_name = p_name
 	key_hint = p_key
@@ -47,6 +61,7 @@ func set_kind(p_kind: UpgradeIcon.Kind) -> void:
 	if p_kind == kind:
 		return
 	kind = p_kind
+	_refresh_art()
 	queue_redraw()
 
 
@@ -120,7 +135,8 @@ func _draw() -> void:
 	if is_ready():
 		InkBrush.glow(self, center, radius * 1.9, Color(InkPalette.GOLD_BRIGHT, 0.7))
 	draw_circle(center, radius, Color(InkPalette.UI_CHARCOAL, 0.94))
-	UpgradeIcon.draw_symbol(self, kind, center, minf(size.x, size.y) * SYMBOL_RADIUS)
+	if _figure_art != null:
+		FigureSkillArt.draw_round(self, _figure_art, center, radius - 1.0)
 	if locked:
 		draw_circle(center, radius, Color(InkPalette.UI_CHARCOAL, 0.66))
 		LockIcon.draw(self, center + Vector2(0.0, -2.0), radius * 0.95, Color(InkPalette.PARCHMENT, 0.92))

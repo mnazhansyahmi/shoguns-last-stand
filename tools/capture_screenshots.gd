@@ -75,6 +75,10 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if _only == "icons":
+		await _capture_icons()
+		quit(0)
+		return
 	if _only == "sheets":
 		await _capture_figure_sheet("figures", Color.WHITE)
 		await _capture_figure_sheet("silhouettes", Color.BLACK)
@@ -1056,3 +1060,18 @@ func _capture(shot_name: String) -> void:
 	var path: String = _out_dir.path_join(_tag + shot_name + ".png")
 	var error: Error = image.save_png(path)
 	print("%s -> %s (%s)" % [shot_name, ProjectSettings.globalize_path(path), error_string(error)])
+
+
+func _capture_icons() -> void:
+	var sheet: Node2D = _blank_sheet()
+	var kinds: Array[int] = [UpgradeIcon.Kind.DASH, UpgradeIcon.Kind.HEAVY, UpgradeIcon.Kind.SPIRIT_SLASH,
+		UpgradeIcon.Kind.BOW, UpgradeIcon.Kind.WAR_CRY, UpgradeIcon.Kind.STANCE_CHARGE, UpgradeIcon.Kind.STANCE_HOLD, UpgradeIcon.Kind.ATTACK]
+	for i: int in kinds.size():
+		var icon: UpgradeIcon = UpgradeIcon.new()
+		icon.setup(kinds[i] as UpgradeIcon.Kind, 240.0)
+		icon.position = Vector2(90.0 + float(i % 4) * 460.0, 100.0 + float(i / 4) * 480.0)
+		sheet.add_child(icon)
+		_label(sheet, UpgradeIcon.Kind.keys()[kinds[i]], icon.position + Vector2(120.0, 290.0))
+	await _frames(12)
+	await _capture("figure_icons")
+	sheet.free()

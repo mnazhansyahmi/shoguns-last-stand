@@ -108,7 +108,7 @@ func test_every_symbol_draws_at_any_size_without_an_error() -> void:
 	var hud: GameHud = _hud()
 	for id: String in ICON_IDS:
 		hud.get_skill_icon(id).queue_redraw()
-	assert_eq(UpgradeIcon.Kind.size(), 11, "eleven symbols: the eight upgrade ones plus the heavy strike and two stances")
+	assert_eq(UpgradeIcon.Kind.size(), 12, "eleven symbols: the eight upgrade ones plus the heavy strike and two stances")
 
 
 func test_the_icon_row_is_for_the_keyboard_and_touch_mode_keeps_its_rules() -> void:
@@ -135,3 +135,22 @@ func test_the_gate_tab_shows_only_while_the_gate_is_attacked_or_was_just_damaged
 	hud.set_edge_indicators(false, 0.5, 0, true, 0, false)
 	assert_true(not hud.get_gate_indicator().visible, "a gate on screen never has a tab")
 	assert_eq(BATTLEFIELD_SCRIPT.GATE_ALERT_MSEC, 3000, "the alert lasts three seconds after the last hit")
+
+
+func test_figure_art_is_shared_and_poses_are_frozen_game_figures() -> void:
+	var hud: GameHud = _hud()
+	var first: Texture2D = FigureSkillArt.texture(hud, UpgradeIcon.Kind.DASH)
+	assert_eq(first, FigureSkillArt.texture(hud, UpgradeIcon.Kind.DASH), "reusing an icon never creates another render target")
+	assert_true(first != FigureSkillArt.texture(hud, UpgradeIcon.Kind.BOW), "each skill has its own picture")
+	for entry: Array in [[UpgradeIcon.Kind.DASH, 3], [UpgradeIcon.Kind.STANCE_CHARGE, 2], [UpgradeIcon.Kind.BOW, 1]]:
+		var stage: FigureSkillArt.Stage = FigureSkillArt.Stage.new()
+		stage.icon_kind = entry[0]
+		add_to_tree(stage)
+		assert_eq(stage.get_child_count(), entry[1], "dash has two afterimages; charge has two allies")
+		for child: Node in stage.get_children():
+			var figure: InkFigure = child as InkFigure
+			assert_true(figure != null and not figure.is_processing(), "actual InkFigure, frozen without an animation loop")
+			if entry[0] == UpgradeIcon.Kind.DASH and figure == stage.get_child(0):
+				assert_almost_eq(figure.modulate.a, 0.18, "refresh preserves the faded afterimage")
+			if entry[0] == UpgradeIcon.Kind.BOW:
+				assert_true(figure.pose.bow_out > 0.5 and figure.pose.bow_draw > 0.8, "the samurai draws his actual yumi")

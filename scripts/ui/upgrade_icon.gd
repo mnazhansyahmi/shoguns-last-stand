@@ -5,16 +5,30 @@ extends Control
 ## The symbols are also drawn by the battle HUD's round skill icons (draw_symbol), at any size; the Heavy strike and the
 ## two ally stances (a sword for CHARGE, a shield for HOLD) exist for them.
 
-enum Kind { DASH, SPIRIT_SLASH, BOW, WAR_CRY, ULTIMATE, SPIRIT_CAPACITY, COMMAND, REGEN, HEAVY, STANCE_CHARGE, STANCE_HOLD }
+enum Kind { DASH, SPIRIT_SLASH, BOW, WAR_CRY, ULTIMATE, SPIRIT_CAPACITY, COMMAND, REGEN, HEAVY, STANCE_CHARGE, STANCE_HOLD, ATTACK }
 
 ## The symbol radius of the 144 px upgrade panel: pixel widths below are authored for it and scale with `radius`.
 const REFERENCE_RADIUS: float = 49.0
 
 var kind: Kind = Kind.DASH
+var _figure_art: Texture2D
+
+
+func _ready() -> void:
+	_refresh_art()
+
+
+func _refresh_art() -> void:
+	if is_inside_tree() and FigureSkillArt.supports(kind):
+		_figure_art = FigureSkillArt.texture(self, kind)
+	else:
+		_figure_art = null
+	queue_redraw()
 
 
 func setup(p_kind: Kind, size_px: float) -> void:
 	kind = p_kind
+	_refresh_art()
 	custom_minimum_size = Vector2(size_px, size_px)
 	size = Vector2(size_px, size_px)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -23,7 +37,12 @@ func setup(p_kind: Kind, size_px: float) -> void:
 
 func _draw() -> void:
 	FigurePortrait.draw_backdrop(self, size)
-	draw_symbol(self, kind, size * 0.5, minf(size.x, size.y) * 0.34)
+	if _figure_art != null:
+		draw_circle(size * 0.5, size.x * 0.46, InkPalette.UI_CHARCOAL)
+		FigureSkillArt.draw_round(self, _figure_art, size * 0.5, size.x * 0.46)
+		draw_arc(size * 0.5, size.x * 0.46, 0.0, TAU, 48, InkPalette.GOLD, 2.0, true)
+	else:
+		draw_symbol(self, kind, size * 0.5, minf(size.x, size.y) * 0.34)
 
 
 ## Draws the symbol of `kind` centred on `c` into any CanvasItem (inside its _draw). The symbol reaches about
