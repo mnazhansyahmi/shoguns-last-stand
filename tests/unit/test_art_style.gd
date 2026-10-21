@@ -393,6 +393,8 @@ func test_title_samurai_stands_against_the_moon() -> void:
 			"the moon stays behind the portrait's head")
 	assert_true(PortraitMotion.ART != null and samurai.get_child_count() == 0,
 			"the menu uses one full-body painted illustration without limb nodes")
+	assert_true(samurai.scale.x > 0.0 and is_equal_approx(samurai.scale.x, samurai.scale.y),
+			"the painting keeps its anatomical right-hand sword without reflection or distortion")
 	var fog: CanvasItem = menu.get_node("Backdrop/FrontFog")
 	assert_true(not fog.visible, "front fog is off behind the menu so it never covers buttons")
 
@@ -539,9 +541,11 @@ func test_overlapping_enemy_bars_stack_upward() -> void:
 	var a: WorldHealthBar = first.get_node("HealthBar")
 	var b: WorldHealthBar = second.get_node("HealthBar")
 	var c: WorldHealthBar = far.get_node("HealthBar")
-	assert_true(a.get_stagger_level() != b.get_stagger_level(), "overlapping bars take different levels")
-	# Each unit has its own size, so its bar rests at its own height: what counts is the level.
-	assert_eq(absf(float(a.get_stagger_level() - b.get_stagger_level())), 1.0, "stacked one level apart")
+	# Randomized enemy stature gives each bar a different baseline. Judge visible
+	# separation: a one-level offset can still collide with a taller neighbour.
+	var first_rect: Rect2 = Rect2(a.global_position - a.bar_size * 0.5, a.bar_size).grow(2.0)
+	var second_rect: Rect2 = Rect2(b.global_position - b.bar_size * 0.5, b.bar_size).grow(2.0)
+	assert_true(not first_rect.intersects(second_rect), "nearby enemy bars remain visibly separate")
 	assert_eq(c.get_stagger_level(), 0, "a bar with no neighbours stays on its unit")
 
 

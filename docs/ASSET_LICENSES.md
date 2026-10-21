@@ -172,3 +172,17 @@ Fine crisp ink/watercolour contours, sculpted skin planes and cloth folds matchi
 
 > Edit the attached full-body samurai illustration. Preserve his face, identity, costume, stance, sword angle, hair and cloth arrangement and the whole full-body composition. Correct ONLY his sword-holding RIGHT HAND: compact natural CLOSED fist around the middle of the dark hilt, with four short fingers curled across the FRONT of the cylindrical handle and thumb opposing them. Show a clear knuckle ridge and curled fingertips, not long straight fingers laid along the handle. The wrist connects naturally to the wrapped forearm. Leave visible handle on BOTH sides of the fist, with guard separated from the hand. Keep the sword low and avoid any hilt crossing chest. The free left hand stays relaxed. Also remove any ambient haze, shadow or coloured fog behind the character: genuine transparent background and clean soft painted alpha edges only. No white outline. Preserve complete figure and sword inside the canvas.
 
+
+## Painted HUD bust — 2026-10-21
+
+- File: `assets/art/samurai/hud_bust.png`
+- Tool: OpenAI built-in image_gen; date: 2026-10-21.
+- Original generated artwork, using the project samurai head and new title painting as identity/style references; no third-party stock or additional attribution requirement.
+- Exact prompt:
+
+> A purpose-painted HEAD AND SHOULDERS HUD BUST of the SAME young lean samurai in the two attached references. Exact same face, dark eyes, black hair tied in a ponytail, no helmet, short natural neck, charcoal black kimono with ivory crossed collar, small restrained red tie. THREE-QUARTER view facing slightly RIGHT toward the health bar, calm focused expression. Face centered and large, strong readable eyes and brow, clean jaw silhouette, soft dimensional skin planes. Head occupies about 60 percent of the picture height, shoulders fill the bottom, ponytail curves compactly behind the LEFT side inside the square. This image must read clearly when circularly cropped and displayed at 120 px: broad composed ink values, crisp intentional contour, less tiny hair noise than a large painting, no blur. Match detailed painted ink/watercolour materials and identity of the full-body illustration. Fit the full head and hair tie inside a central circle, shoulders may be cropped at bottom by the frame. Genuine transparent background; no painted circle, frame, moon, words, symbols, halo, drop shadow or backing paper. One square portrait asset only.
+
+
+## Existing roster PNG provenance metadata — 2026-10-22
+
+ssets/art/roster/samurai_head.png and quipment.png are existing project assets retained from main at 848ed4. Their original exact generation prompts are absent from the current provenance record. This pass embeds that origin statement without claiming a new generation; decoded RGBA SHA-256 hashes were verified identical before and after the metadata write. Existing use and licensing are unchanged.

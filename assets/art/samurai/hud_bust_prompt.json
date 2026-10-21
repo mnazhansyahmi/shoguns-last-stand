@@ -1,0 +1,10 @@
+{
+  "tool": "Built-in image_gen",
+  "date": "2026-10-21",
+  "file": "assets/art/samurai/hud_bust.png",
+  "references": [
+    "assets/art/roster/samurai_head.png",
+    "assets/art/samurai/title_key_art.png"
+  ],
+  "prompt": "A purpose-painted HEAD AND SHOULDERS HUD BUST of the SAME young lean samurai in the two attached references. Exact same face, dark eyes, black hair tied in a ponytail, no helmet, short natural neck, charcoal black kimono with ivory crossed collar, small restrained red tie. THREE-QUARTER view facing slightly RIGHT toward the health bar, calm focused expression. Face centered and large, strong readable eyes and brow, clean jaw silhouette, soft dimensional skin planes. Head occupies about 60 percent of the picture height, shoulders fill the bottom, ponytail curves compactly behind the LEFT side inside the square. This image must read clearly when circularly cropped and displayed at 120 px: broad composed ink values, crisp intentional contour, less tiny hair noise than a large painting, no blur. Match detailed painted ink/watercolour materials and identity of the full-body illustration. Fit the full head and hair tie inside a central circle, shoulders may be cropped at bottom by the frame. Genuine transparent background; no painted circle, frame, moon, words, symbols, halo, drop shadow or backing paper. One square portrait asset only."
+}

@@ -1,0 +1,4 @@
+{
+  "prompt": "Origin: 90 consecutive native Godot renderer frames captured from this project with tools/record_motion.gd, menu mode, fixed-fps 60, output 15 fps for six seconds. Encoded without repainting by tools/encode_motion.py on 2026-10-22 Asia/Kuala_Lumpur. Title art source and image-generation prompts are recorded in docs/ASSET_LICENSES.md.",
+  "createdAt": "2026-10-21T16:01:46.138Z"
+}

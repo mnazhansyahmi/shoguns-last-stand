@@ -10,14 +10,15 @@ func _hud() -> GameHud:
 	return add_to_tree(HUD_SCENE.instantiate()) as GameHud
 
 
-func test_the_medallion_portrait_is_the_samurai_figure_itself() -> void:
+func test_the_medallion_uses_the_purpose_painted_bust_without_a_rig_viewport() -> void:
 	var ring: HudUltimateRing = _hud().get_node("%UltimateRing") as HudUltimateRing
-	var viewport: SubViewport = ring.get_portrait_viewport()
-	assert_true(viewport != null and viewport.get_parent() == ring, "the portrait is rendered into the medallion's own viewport")
-	assert_true(viewport.transparent_bg, "on a clear background (the medallion paints the dusk and the moon)")
-	var figure: InkFigure = ring.get_portrait_figure()
-	assert_true(figure != null and figure.get_parent() == viewport, "by a real InkFigure")
-	assert_eq(figure.kind, InkFigure.Kind.SAMURAI, "of the samurai")
+	var art: Texture2D = ring.get_portrait_texture()
+	assert_true(art != null and art.resource_path.ends_with("hud_bust.png"), "the round frame uses the dedicated bust")
+	assert_true(art.get_width() >= 1024 and art.get_height() >= 1024, "the small portrait has enough source detail")
+	for child: Node in ring.get_children():
+		assert_true(not child is SubViewport and not child is InkFigure, "no live character is baked for the portrait")
+	var image: Image = art.get_image()
+	assert_true(image.get_pixel(0, 0).a < 0.01, "the existing medallion backdrop remains visible outside the bust")
 
 
 func test_a_hit_leaves_a_ghost_of_the_lost_health_that_drains_away() -> void:

@@ -78,7 +78,7 @@ components:
 
 The incumbent world is a pale layered sunset landscape with dark fighters, warm celestial light and parchment UI. The approved slim swordsman adds weathered painted cloth and lean anatomy inside that world. He is lightly robed, bareheaded and fast in character, with a long ponytail, grey sash, restrained red waist tails, ankle wraps and sandals.
 
-This records the shipped refinement, not a new world selection. The approved concept and scope are in `docs/slim_samurai/direction.md` and `PRODUCT.md`; no FORM roll or historical seed was run. The original transparent samurai paintings are an explicit exception to the procedural art used for the world and other figures. This is visual work only; combat statistics and timing are unchanged.
+This records the shipped refinement, not a new world selection. The approved concept and current scope are in `docs/slim_samurai/approved_concept.png`, `docs/samurai_consistency/direction.md` and `PRODUCT.md`; no FORM roll or historical seed was run. Original transparent samurai paintings coexist with the established landscape and roster systems. This is visual work only; combat statistics and timing are unchanged.
 
 **Key Characteristics:**
 
@@ -150,19 +150,23 @@ Native controls use small radii: buttons 4 px, panels 6 px, cards 8 px. The titl
 
 ### Painted samurai
 
-`SamuraiSpriteArt` shares cached `AtlasTexture` regions and transforms from `slim_parts.png`. Painted sleeve and sash atlas strips follow the cloth chains; their alpha edges and texture remain visible. The shorter head crop and head/torso overlap keep the neck compact and connected. A head-anchored world-space ponytail chain retains momentum through turns and stops. Gameplay and cached figure icons retain their skill equipment and Bow/War Cry transitions.
+`SamuraiSpriteArt` shares cached `AtlasTexture` regions and rigid transforms across high-resolution `body_trunk.png`, `body_arms.png`, `body_legs.png`, `body_details.png` and `body_flow.png` sheets. The separate `assets/art/roster/samurai_head.png` retains the identity reference; the legacy atlas supplies the blade. `InkFigure` applies linear mipmapped anisotropic sampling to the samurai as a whole, and both head and body imports generate mipmaps. This keeps the face and cloth sampling coherent at battle scale. Painted sleeve and sash strips follow anchored cloth chains; the head overlap keeps the neck compact and connected. Fixed bone lengths, planted-foot IK, gripping hands, skill equipment and Bow/War Cry transitions retain the existing gameplay contract.
 
-The separate `slim_menu.png` portrait remains larger, upright and without the stowed yumi. `PortraitMotion` draws it through a shared immutable UV mesh with independent chest, hair and robe weights; shader time drives breathing and wind, with sole weights pinned to zero. Per-frame work updates shader uniforms rather than rebuilding geometry. Preserve the approved identity in `docs/slim_samurai/approved_concept.png`.
+The title uses one coherent full-body `title_key_art.png` painting, without the stowed yumi. `PortraitMotion` is a `Node2D` drawing a shared static UV mesh; its three weight channels affect only free hair, sash and hem. Shader uniforms advance subtle wind and a blade glint. Face, hands, torso, legs and soles stay pinned: there is no limb rig or whole-body breathing. `title_art.gd` uses a positive uniform scale without mirroring, preserving the painting's native right-hand katana grip and relaxed other hand. Preserve the approved slim, bareheaded identity and contact with the rock.
+
+### Ultimate portrait medallion
+
+`HudUltimateRing` draws the dedicated `hud_bust.png` three-quarter head-and-shoulders painting through a circular UV polygon with linear mipmapped sampling. The shared texture is reused directly; there is no live character rig or `SubViewport`. The existing clockwise gold charge ring, bright READY halo, READY/percentage plate, key badge and low-health red rim remain the state language. The bust changes portrait art, not the HUD layout or Ultimate behavior.
 
 ### Character secondary motion and preference
 
 `SecondaryMotion` keeps loose parts anchored in world space and resets chains after teleports. All six allies retain distinct cloth responses: brisk ashigaru tails, light archer ribbons, soft healer cloth and hair, restrained guardian cords, flowing onmyoji ribbons and a weighted Hatamoto banner. Body poses, feet and chain simulation advance at the full visual update rate; only cosmetic cloth repaint outside the samurai is capped at 30 Hz. Samurai hair and cloth repaint remain at the full visual update rate (60 Hz in the recorded sequences).
 
-`SettingsPanel` exposes Motion: Full / Reduced, persisted by `SettingsStore` and applied through `GameSettings`. Reduced mode uses 15% decorative wind/breathing amplitude in the portrait and relevant secondary-motion drivers, and resets hair/tail chains to their rest shapes rather than retaining inertial whip. Combat poses and planted-foot animation remain active.
+`SettingsPanel` exposes Motion: Full / Reduced, persisted by `SettingsStore` and applied through `GameSettings`. Reduced mode uses 15% decorative wind/glint amplitude in the title portrait and 15% amplitude in relevant secondary-motion drivers, and resets hair/tail chains to their rest shapes rather than retaining inertial whip. Combat poses and planted-foot animation remain active.
 
 **The Painted Continuity Rule.** Keep joints connected and all exposed samurai cloth painted; no solid geometric filler over the approved texture.
 
-Motion evidence is recorded in `docs/animation_review/menu.webp`, `samurai.webp`, `allies.webp` and `battle.webp`, with source frames under `builds/animation_phase/`. The motion rules above were checked against `portrait_motion.gd`, its shader, `secondary_motion.gd`, `ink_figure.gd`, atlas mappings and settings sources. Earlier still evidence remains under `builds/slim_samurai/final/`. Clips and sampled frames support visual review; they do not establish device performance. No Godot build or benchmark was run for this documentation pass.
+Current scope evidence is in `docs/samurai_consistency/`: `main_menu.png`, `hud_close_up.png`, `hud_full.png`, `samurai_detail.png`, `samurai_motion_sheet.png`, `samurai_walk_strip.png`, `crowded_battle.png` and `title_motion.webp`. Final source captures checked for this record are `builds/samurai_consistency/final_menu/mainmenu_fresh.png`, `builds/samurai_consistency/final_hud/hud_ultimate_ready_zoom.png`, `builds/samurai_consistency/final_samurai/samurai_sheet.png` and `builds/samurai_consistency/final_crowd/crowd_a.png`. The title and HUD descriptions were reconciled with their current drawing code and title shader; battle sampling was checked in `ink_figure.gd`, atlas mappings and texture imports. Earlier ally motion evidence under `docs/animation_review/` remains relevant to the unchanged roster motion system. Clips and sampled frames support visual review; they do not establish animation smoothness or device performance. No Godot build or benchmark was run for this documentation pass.
 
 ## Do's and Don'ts
 
@@ -170,7 +174,7 @@ Motion evidence is recorded in `docs/animation_review/menu.webp`, `samurai.webp`
 
 - **Do** preserve the existing sunset landscape, menu hierarchy and native control behavior.
 - **Do** keep the samurai slim, lightly robed and grounded, with painted cloth and connected joints.
-- **Do** reuse the shared theme and cached alpha atlas; keep appearance independent of gameplay statistics.
+- **Do** reuse the shared theme and cached painted textures; keep appearance independent of gameplay statistics.
 
 ### Don't:
 

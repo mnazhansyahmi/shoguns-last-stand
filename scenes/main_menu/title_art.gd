@@ -49,12 +49,12 @@ func get_ledge_position() -> Vector2:
 func _place_figure() -> void:
 	if _portrait != null:
 		_portrait.position = get_ledge_position() + Vector2(0.0, -8.0)
-		_portrait.scale = Vector2(-1.0, 1.0) * SAMURAI_HEIGHT / PortraitMotion.ART_HEIGHT
+		_portrait.scale = Vector2.ONE * SAMURAI_HEIGHT / PortraitMotion.ART_HEIGHT
 
 
 func get_portrait_rect() -> Rect2:
 	var unit: float = SAMURAI_HEIGHT / PortraitMotion.ART_HEIGHT
-	var top_left: Vector2 = Vector2(-(PortraitMotion.ART.get_width() - PortraitMotion.FOOT_ANCHOR.x), -PortraitMotion.FOOT_ANCHOR.y) * unit
+	var top_left: Vector2 = -PortraitMotion.FOOT_ANCHOR * unit
 	return Rect2(_portrait.position + top_left, PortraitMotion.ART.get_size() * unit)
 
 
@@ -76,13 +76,13 @@ func _draw_outcrop() -> void:
 	var base_y: float = maxf(size.y, ledge.y + 200.0) + 10.0
 	var rock: PackedVector2Array = PackedVector2Array([
 		Vector2(ledge.x - 290.0, base_y), Vector2(ledge.x - 210.0, ledge.y + 240.0), Vector2(ledge.x - 180.0, ledge.y + 155.0),
-		Vector2(ledge.x - 110.0, ledge.y + 55.0), Vector2(ledge.x - 95.0, ledge.y + 10.0), Vector2(ledge.x - 60.0, ledge.y - 14.0),
-		Vector2(ledge.x + 70.0, ledge.y - 8.0), Vector2(ledge.x + 110.0, ledge.y + 18.0), Vector2(ledge.x + 165.0, ledge.y + 85.0),
+		Vector2(ledge.x - 110.0, ledge.y + 55.0), Vector2(ledge.x - 95.0, ledge.y + 10.0), Vector2(ledge.x - 70.0, ledge.y - 8.0),
+		Vector2(ledge.x + 60.0, ledge.y - 14.0), Vector2(ledge.x + 110.0, ledge.y + 18.0), Vector2(ledge.x + 165.0, ledge.y + 85.0),
 		Vector2(ledge.x + 235.0, ledge.y + 130.0), Vector2(ledge.x + 290.0, ledge.y + 220.0), Vector2(size.x + 40.0, ledge.y + 270.0),
 		Vector2(size.x + 40.0, base_y)])
 	InkBrush.fill(self, rock, InkPalette.INK)
-	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-95.0, 10.0), ledge + Vector2(-60.0, -14.0),
-			ledge + Vector2(70.0, -8.0), ledge + Vector2(110.0, 18.0)]), 2.0, 0.6, Color(InkPalette.GROUND_TOP, 0.6))
+	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-95.0, 10.0), ledge + Vector2(-70.0, -8.0),
+			ledge + Vector2(60.0, -14.0), ledge + Vector2(110.0, 18.0)]), 2.0, 0.6, Color(InkPalette.GROUND_TOP, 0.6))
 	# A few dry-brush cracks in the stone.
 	var crack: Color = InkPalette.INK_DETAIL
 	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-90.0, 30.0), ledge + Vector2(-70.0, 90.0), ledge + Vector2(-110.0, 160.0)]), 4.0, 1.5, crack)

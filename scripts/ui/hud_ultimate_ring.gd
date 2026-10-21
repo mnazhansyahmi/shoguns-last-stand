@@ -1,13 +1,12 @@
 class_name HudUltimateRing
 extends HudGauge
-## The samurai's round portrait medallion with the Ultimate meter as a ring around it. The portrait is the real in-game
-## figure (an InkFigure rendered once into a SubViewport, head and shoulders against the moon on a crimson dusk) cut to a
-## circle. The ring fills gold clockwise from the top as the meter charges; when it is READY the ring turns bright gold,
+## The samurai's round portrait medallion uses a dedicated painted head-and-shoulders
+## bust, composed for a small circular frame. No live rig or portrait viewport is needed. The ring fills gold clockwise from the top as the meter charges; when it is READY the ring turns bright gold,
 ## a gold halo glows and pulses round the medallion and a READY plate sits on its foot (otherwise the plate shows the
 ## charge, "42%"). The key badge ("I") sits on the ring. `danger` (low health) makes the inner rim pulse red with the
 ## health blade. The halo and the red rim are layers faded with modulate, so pulsing never redraws the medallion.
 
-const PORTRAIT_PX: int = 192
+const PAINTED_BUST: Texture2D = preload("res://assets/art/samurai/hud_bust.png")
 ## Radii as fractions of half the control's width: the portrait, the ring's centre line, the outer trim.
 const PORTRAIT_R: float = 0.78
 const RING_R: float = 0.885
@@ -26,8 +25,6 @@ var danger: bool = false:
 			_danger_layer.visible = value
 		_refresh_processing()
 
-var _viewport: SubViewport
-var _figure: InkFigure
 var _glow_layer: Layer
 var _danger_layer: Layer
 ## Built once per size: the medallion under the portrait (shadow, ink disc, the dusk and moon), the portrait circle,
@@ -39,7 +36,7 @@ var _portrait_uvs: PackedVector2Array = PackedVector2Array()
 
 
 func _ready() -> void:
-	_build_portrait()
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	_glow_layer = add_layer("Glow", _paint_glow)
 	_glow_layer.visible = false
 	_danger_layer = add_layer("Danger", _paint_danger)
@@ -49,13 +46,9 @@ func _ready() -> void:
 	_build_shape()
 
 
-## The SubViewport the portrait is rendered into (its figure is the samurai's own InkFigure).
-func get_portrait_viewport() -> SubViewport:
-	return _viewport
-
-
-func get_portrait_figure() -> InkFigure:
-	return _figure
+## Shared purpose-painted art; changing the charge never rebakes a character.
+func get_portrait_texture() -> Texture2D:
+	return PAINTED_BUST
 
 
 func _is_animating() -> bool:
@@ -72,22 +65,6 @@ func _step(_delta: float) -> void:
 		_glow_layer.modulate.a = 0.35 + 0.65 * _pulse(1.1)
 	if danger:
 		_danger_layer.modulate.a = 0.3 + 0.7 * _pulse(1.6)
-
-
-## The samurai in his idle pose, large enough that his head and shoulders fill the circle, facing right toward the blade.
-func _build_portrait() -> void:
-	_viewport = SubViewport.new()
-	_viewport.name = "Portrait"
-	_viewport.size = Vector2i(PORTRAIT_PX, PORTRAIT_PX)
-	_viewport.transparent_bg = true
-	_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
-	_figure = InkFigure.new()
-	_figure.kind = InkFigure.Kind.SAMURAI
-	_figure.height = float(PORTRAIT_PX) * 1.45
-	_figure.position = Vector2(float(PORTRAIT_PX) * 0.44, float(PORTRAIT_PX) * 1.66)
-	_viewport.add_child(_figure)
-	add_child(_viewport)
-	_figure.refresh()
 
 
 func _center() -> Vector2:
@@ -124,8 +101,7 @@ func _draw() -> void:
 	var half: float = size.x * 0.5
 	var center: Vector2 = _center()
 	_back.draw(self)
-	if _viewport != null:
-		draw_colored_polygon(_portrait_points, Color.WHITE, _portrait_uvs, _viewport.get_texture())
+	draw_colored_polygon(_portrait_points, Color.WHITE, _portrait_uvs, PAINTED_BUST)
 	_track.draw(self)
 	# The charge: gold clockwise from the top.
 	if ratio > 0.0:
