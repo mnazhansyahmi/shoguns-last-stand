@@ -235,12 +235,13 @@ func refresh() -> void:
 		if spec.heavy_gait:
 			hip.y += 0.65 * (1.0 + sin(clock * 2.1))
 	elif gait_enabled:
-		# The support leg carries a high pelvis. Only the passing/swing leg needs a deep bend.
-		var support: Vector2 = front_ankle if gait.planted[0] else back_ankle
-		var support_hip_x: float = hip.x + (2.0 if gait.planted[0] else -2.0)
-		var support_dx: float = support.x - support_hip_x
-		var standing_reach: float = spec.thigh + spec.shin - 0.5 - gait.run_weight
-		hip.y = support.y - sqrt(maxf(0.0, standing_reach * standing_reach - support_dx * support_dx)) - bob
+		# A continuous envelope from BOTH legs avoids a pelvis pop whenever the
+		# selected support foot changes (especially during the flight interval).
+		var front_dx: float = front_ankle.x - hip.x - 2.0
+		var back_dx: float = back_ankle.x - hip.x + 2.0
+		var standing_reach: float = spec.thigh + spec.shin - 0.3 - gait.run_weight * 0.6
+		var widest: float = maxf(front_dx * front_dx, back_dx * back_dx)
+		hip.y = -LegIK.SOLE - sqrt(maxf(0.0, standing_reach * standing_reach - widest)) - bob * 0.45
 	hip = LegIK.fit_hip(hip, front_ankle, back_ankle, spec.thigh, spec.shin)
 	front_knee = LegIK.knee(hip + Vector2(2.0, 0.0), front_ankle, spec.thigh, spec.shin)
 	back_knee = LegIK.knee(hip + Vector2(-2.0, 0.0), back_ankle, spec.thigh, spec.shin)

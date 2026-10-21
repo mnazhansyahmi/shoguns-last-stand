@@ -15,10 +15,10 @@ const SOURCES: Dictionary = SamuraiBodyLayout.SOURCES
 const RECTS: Dictionary = {
 	&"head": Rect2(-8.0, -17.5, 20.0, 21.0),
 	&"mane": Rect2(-35.0, -21.0, 31.0, 19.0),
-	&"torso": Rect2(-10.5, -36.0, 22.0, 39.0),
-	&"skirt": Rect2(-13.5, -4.5, 29.2, 29.0),
-	&"foot_f": Rect2(-3.5, -7.0, 12.5, 9.5),
-	&"foot_b": Rect2(-3.5, -7.0, 12.5, 9.5),
+	&"torso": Rect2(-12.5, -36.0, 26.0, 39.0),
+	&"skirt": Rect2(-16.0, -4.5, 34.0, 29.0),
+	&"foot_f": Rect2(-3.5, -7.0, 14.0, 9.5),
+	&"foot_b": Rect2(-3.5, -7.0, 14.0, 9.5),
 	&"weapon": Rect2(-25.0, -5.0, 100.0, 8.5),
 }
 ## Pixel-space proximal/distal joints in each cropped layer, target bone length and

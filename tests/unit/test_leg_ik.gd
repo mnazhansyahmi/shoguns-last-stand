@@ -168,3 +168,31 @@ func test_all_authored_combo_and_heavy_keys_keep_fixed_legs() -> void:
 					worst = maxf(worst, _length_error(fig))
 		assert_true(worst < 0.02, "%s all key poses keep fixed bones (%.4f)" % [InkFigure.Kind.keys()[kind], worst])
 		visual.free()
+
+
+func test_samurai_full_speed_cadence_and_pelvis_are_continuous() -> void:
+	var visual: UnitVisual = _visual(InkFigure.Kind.SAMURAI)
+	visual.play_state(&"run")
+	var fig: InkFigure = visual.get_figure()
+	var cycles: float = 0.0
+	var previous_phase: float = 0.0
+	var previous_hip: Vector2 = Vector2.ZERO
+	var worst_step: float = 0.0
+	for frame: int in 600:
+		visual.position.x += 210.0 * STEP
+		visual._process(STEP)
+		visual.call(&"_apply")
+		if frame > 60:
+			cycles += fposmod(fig.gait.phase - previous_phase, 1.0)
+			worst_step = maxf(worst_step, absf(fig.hip.y - previous_hip.y))
+		previous_phase = fig.gait.phase
+		previous_hip = fig.hip
+	var frequency: float = cycles / (539.0 * STEP)
+	assert_true(frequency > 1.4 and frequency < 2.2,
+			"full-speed stride is purposeful rather than a rapid shuffle (%.2f cycles/s)" % frequency)
+	assert_true(worst_step < 4.0, "support changes never snap the pelvis (%.2f units/frame)" % worst_step)
+	visual.play_state(&"idle")
+	for frame: int in 120:
+		visual._process(STEP)
+	assert_true(fig.gait.is_settled() and fig.upright, "a stopped swing finishes before the upright idle pose")
+	visual.free()

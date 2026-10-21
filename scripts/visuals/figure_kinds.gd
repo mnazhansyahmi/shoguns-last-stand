@@ -98,8 +98,8 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.shin_w = Vector2(6.9, 4.8)
 			s.arm_w = Vector2(5.0, 4.0)
 			s.fore_w = Vector2(3.7, 3.0)
-			s.sleeve_width = Vector2(5.8, 1.2)
-			s.foot = 9.0
+			s.sleeve_width = Vector2(7.2, 1.5)
+			s.foot = 10.5
 			s.head_top = 104.0
 			s.shadow_width = 26.0
 			s.springy = true

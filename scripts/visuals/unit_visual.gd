@@ -344,7 +344,7 @@ func _update_motion(delta: float) -> void:
 		fig.gait.reset()
 		fig.bob = 0.0
 	fig.gait_enabled = locomotion
-	fig.upright = not running and locomotion
+	fig.upright = not running and locomotion and fig.gait.is_settled()
 	fig.breath = sin(_time * TAU * fig.spec.breath_hz + _breath_phase)
 	_tick_event(delta)
 

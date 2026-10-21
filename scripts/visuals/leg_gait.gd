@@ -19,6 +19,7 @@ var _basis: Vector2 = Vector2.RIGHT
 var _ready: bool = false
 var _last_rate: float = 1.0
 var _direction: float = 1.0
+var _extent: float = 0.0
 ## The frame of the last step, and whether that step left both feet planted with nothing moving: the same frame
 ## again would give exactly the same stance, so it is skipped.
 var _last_frame: Transform2D = Transform2D.IDENTITY
@@ -28,6 +29,11 @@ var _at_rest: bool = false
 func reset() -> void:
 	_ready = false
 	_at_rest = false
+	_extent = 0.0
+
+
+func is_settled() -> bool:
+	return _at_rest
 
 
 func step(frame: Transform2D, spec: FigureKinds.Spec, delta: float) -> void:
@@ -52,7 +58,14 @@ func step(frame: Transform2D, spec: FigureKinds.Spec, delta: float) -> void:
 	# Heavy figures keep long support times; the Hollow drags one leg and never flies.
 	run_weight = smoothstep(spec.run_speed * 0.7, spec.run_speed * 1.2, speed) if not spec.heavy_gait and not spec.limp else 0.0
 	var duty: float = lerpf(0.64, 0.43, run_weight)
-	var extent: float = spec.stride_len * lerpf(0.65, 1.2, clampf(speed / spec.run_speed, 0.0, 1.0))
+	# Longer steps at speed avoid the old rapid shuffle. The reach cap is still
+	# inside the two-bone envelope; heavy and limping figures keep their character.
+	var length_factor: float = lerpf(0.65, 1.75, clampf(speed / spec.run_speed, 0.0, 1.0))
+	if spec.heavy_gait or spec.limp:
+		length_factor = lerpf(0.65, 1.2, clampf(speed / spec.run_speed, 0.0, 1.0))
+	var desired_extent: float = minf(spec.stride_len * length_factor, (spec.thigh + spec.shin) * 0.5)
+	_extent = desired_extent if _extent <= 0.0 else lerpf(_extent, desired_extent, 1.0 - exp(-12.0 * delta))
+	var extent: float = _extent
 	var cycle_distance: float = 2.0 * extent / duty
 	if moving:
 		_last_rate = speed / cycle_distance
@@ -74,8 +87,11 @@ func step(frame: Transform2D, spec: FigureKinds.Spec, delta: float) -> void:
 			var landing: Vector2 = frame * Vector2(_direction * reach + (2.0 if side == 0 else -2.0), 0.0)
 			var world: Vector2 = _starts[side].lerp(landing, smoothstep(0.0, 1.0, swing))
 			targets[side] = inverse * world
-			targets[side].y = -sin(PI * swing) * spec.lift * (0.35 if spec.limp and side == 1 else 1.0) * (1.0 + run_weight * 0.5)
-			heel[side] = -0.22 * smoothstep(0.5, 0.95, swing)
+			# Zero vertical velocity at takeoff and touchdown instead of a sharp
+			# triangular-looking lift. Heel rolls gently flat before full contact.
+			var arc: float = sin(PI * swing)
+			targets[side].y = -arc * arc * spec.lift * (0.35 if spec.limp and side == 1 else 1.0) * (1.0 + run_weight * 0.5)
+			heel[side] = -0.18 * smoothstep(0.35, 0.7, swing) * (1.0 - smoothstep(0.85, 1.0, swing))
 			_anchors[side] = frame * Vector2(targets[side].x, 0.0)
 		else:
 			planted[side] = true
@@ -85,8 +101,10 @@ func step(frame: Transform2D, spec: FigureKinds.Spec, delta: float) -> void:
 	# contact/down/passing/up: two compressions and rises per full left/right cycle.
 	var wave: float = -sin(phase * TAU * 2.0)
 	bob = (0.6 + run_weight * 1.4) * wave if moving else 0.0
-	var support_x: float = targets[0].x if planted[0] else targets[1].x
-	hip_shift = clampf(support_x * 0.12, -1.4, 1.4) if moving else (targets[0].x + targets[1].x) * 0.5
+	var stance_center: float = (targets[0].x + targets[1].x) * 0.5
+	# The former hard switch between feet also snapped the pelvis horizontally.
+	# Both trajectories contribute continuously through double support and flight.
+	hip_shift = clampf(stance_center * 0.12, -1.4, 1.4) if moving else stance_center
 	counter_turn = sin(phase * TAU) * (0.018 if spec.heavy_gait else 0.035) if moving else 0.0
 	_last_frame = frame
 	_at_rest = not moving and planted[0] and planted[1]
