@@ -380,6 +380,7 @@ func _process_attack(delta: float) -> void:
 				else:
 					_hitbox_shape.position = Vector2(_attack.hitbox_offset.x * facing, _attack.hitbox_offset.y)
 					_hitbox.knockback_direction_x = facing
+					_hitbox.breaks_shields = data.breaks_shields
 					_hitbox.activate(data.attack_damage * _attack.damage_multiplier * _war_cry_damage, _attack.knockback, _attack.active_time, _attack.heavy)
 					AudioManager.play(&"sword_swing", 1.1)
 				_visual.play_state(&"strike")

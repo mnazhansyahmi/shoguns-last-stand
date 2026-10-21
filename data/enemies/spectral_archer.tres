@@ -39,4 +39,4 @@ body_size = Vector2(46, 110)
 figure = 3
 tint = Color(0.72, 0.92, 1.18, 1)
 prop = 1
-counter_hint = "Shoots your allies from afar: close in with the samurai or the Bow"
+counter_hint = "Shoots your allies from afar. Close in with the samurai, or answer with the Bow and Yumi Archers"

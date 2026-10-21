@@ -123,6 +123,61 @@ func test_region_2_burns() -> void:
 		assert_eq(stage.atmosphere.ember_share, 0.0, "%s has no embers" % stage.stage_id)
 
 
+# --- Foe info -------------------------------------------------------------------
+
+func _stage(number: int) -> StageData:
+	return StageProgression.all_stages()[number - 1]
+
+
+func test_the_stage_details_count_every_foe_and_explain_the_new_ones() -> void:
+	var stats: String = StageSelect.stats_text(_stage(8))
+	for word: String in ["5 waves", "soldiers", "Oni Brutes", "Spectral Archers", "Shield Bearers"]:
+		assert_true(stats.contains(word), "stage 8 lists %s: %s" % [word, stats])
+	assert_true(StageSelect.foes_text(_stage(8)).begins_with("New - Shield Bearer: "), "and says how to beat the new foe")
+	assert_true(not StageSelect.foes_text(_stage(8)).contains("Spectral Archer"), "not the archers met in stage 7")
+	assert_true(StageSelect.foes_text(_stage(7)).contains("Spectral Archer"), "stage 7 introduces the archers")
+	assert_true(StageSelect.foes_text(_stage(9)).contains("Flying Spirit") and StageSelect.foes_text(_stage(9)).contains("Bow"), "stage 9 the spirits")
+	assert_true(StageSelect.foes_text(_stage(10)).contains("The Burning General"), "stage 10 the General")
+	assert_true(StageSelect.stats_text(_stage(10)).contains("Boss: The Burning General"), "named as the boss")
+	assert_eq(StageSelect.foes_text(_stage(6)), "", "stage 6 has no new foes")
+	assert_eq(StageSelect.foes_text(_stage(2)), "", "nor has Region 1")
+	assert_true(StageSelect.stats_text(_stage(2)).contains("soldiers") and StageSelect.stats_text(_stage(2)).contains("1 Oni Brute"), "Region 1 reads as before")
+
+
+func test_the_side_panel_shows_the_new_foes() -> void:
+	var cleared: Array[String] = REGION_1_IDS.duplicate()
+	cleared.append("stage_6")
+	var select: StageSelect = _select(cleared)
+	assert_eq(select.get_selected_index(), 1, "stage 7 is next")
+	var foes: Label = select.get_node("%DetailFoes") as Label
+	assert_true(foes.visible and foes.text.contains("Spectral Archer"), "the panel explains the Spectral Archer: %s" % foes.text)
+	assert_true(foes.autowrap_mode != TextServer.AUTOWRAP_OFF, "wrapped to the panel")
+	select.get_stage_card(0)._on_focus_entered()
+	assert_true(not foes.visible, "and hides it for a stage with no new foes")
+
+
+func test_the_pre_battle_info_names_the_foes_and_how_to_beat_them() -> void:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SAVE_DIR))
+	SceneRoutes.battle_stage = _stage(9)
+	var field: Node = load("res://scenes/battlefield/battlefield.tscn").instantiate()
+	field.set("save_path", SAVE_DIR + "battle_save.json")
+	field.set("settings_path", SAVE_DIR + "battle_settings.cfg")
+	add_to_tree(field)
+	var text: String = (field.get_node("Hud") as GameHud).get_briefing_text()
+	assert_true(text.begins_with("Foes: Hollow Soldier"), "it lists the foes: %s" % text)
+	assert_true(text.contains("Flying Spirit: ") and text.contains("Shield Bearer: ") and text.contains("Spectral Archer: "), "with how to beat each new one")
+	field.free()
+	SceneRoutes.battle_stage = _stage(1)
+	var plain: Node = load("res://scenes/battlefield/battlefield.tscn").instantiate()
+	plain.set("save_path", SAVE_DIR + "battle_save.json")
+	plain.set("settings_path", SAVE_DIR + "battle_settings.cfg")
+	add_to_tree(plain)
+	assert_eq((plain.get_node("Hud") as GameHud).get_briefing_text(), "", "a stage of familiar foes needs no briefing")
+	plain.free()
+	SceneRoutes.battle_stage = null
+	tree_root.get_tree().paused = false
+
+
 func test_embers_rise_and_glow_layer_flickers() -> void:
 	Atmosphere.set_theme(_village().stages[4].atmosphere)
 	var leaves: AtmosphereLeaves = AtmosphereLeaves.new()

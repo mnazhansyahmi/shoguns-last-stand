@@ -119,6 +119,9 @@ func _ready() -> void:
 	_hud.set_remaining(0)
 	_hud.set_tutorial_hint(_wave_director.stage.stage_id if _wave_director.stage != null else "", _was_cleared_before)
 	_hud.hide_status()
+	# The pre-battle info: the foes coming and how to beat the ones that need a plan, until wave 1 starts.
+	if _wave_director.stage != null:
+		_hud.show_briefing(StageBriefing.battle_text(_wave_director.stage), maxf(_wave_director.stage.first_wave_delay, 3.0))
 	_apply_settings()
 	for warning: String in [_save_manager.last_warning, _settings_store.last_warning]:
 		if not warning.is_empty():

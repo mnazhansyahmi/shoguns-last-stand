@@ -415,7 +415,7 @@ func _filter_hit(hitbox: HitboxComponent) -> HurtboxComponent.Filter:
 		return HurtboxComponent.Filter.IGNORE
 	if not _shield_up:
 		return HurtboxComponent.Filter.ACCEPT
-	if hitbox.heavy:
+	if hitbox.heavy or hitbox.breaks_shields:
 		_break_shield()
 		return HurtboxComponent.Filter.ACCEPT
 	var push: float = hitbox.get_knockback_direction_x(global_position.x)

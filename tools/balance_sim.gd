@@ -9,6 +9,7 @@ extends SceneTree
 ##   upgrades=samurai_damage:2,ashigaru_health:1   upgrade levels for the run
 ##   roster=ashigaru,yumi_archer              only these allies are summoned (default: every
 ##                                            ally unlocked at that stage)
+##   tag=name                                 own save/settings files, so several sims can run at once
 ##   unlock=progressive|none|all              progressive (default): stage N starts with the
 ##                                            stages before it cleared, so allies unlock as in the
 ##                                            real game; none: nothing cleared; all: everything
@@ -25,7 +26,9 @@ const BATTLEFIELD: PackedScene = preload("res://scenes/battlefield/battlefield.t
 const MAX_GAME_SECONDS: float = 900.0
 const ENGAGE_LIMIT_X: float = 1450.0
 const HOME_X: float = 450.0
-const TAP_ACTIONS: Array[StringName] = [&"attack", &"heavy_attack", &"spirit_slash"]
+const TAP_ACTIONS: Array[StringName] = [&"attack", &"heavy_attack", &"spirit_slash", &"bow"]
+## The bot looses the Bow at a Flying Spirit this close.
+const BOW_REACH: float = 650.0
 const CATALOG: UpgradeCatalog = preload("res://data/upgrades/upgrade_catalog.tres")
 
 
@@ -37,6 +40,9 @@ class Clock extends Node:
 		seconds += delta
 
 
+## The sim's own save and settings (tag=name gives a run its own pair, so several sims can run at once).
+var _save_path: String = SAVE_PATH
+var _settings_path: String = SETTINGS_PATH
 ## Allies the scripted summoner may use (ids); empty = every unlocked one.
 var _roster_filter: PackedStringArray = PackedStringArray()
 var _unlock_mode: String = "progressive"
@@ -75,6 +81,9 @@ func _run() -> void:
 			_stance_name = arg.substr(7)
 		elif arg.begins_with("unlock="):
 			_unlock_mode = arg.substr(7)
+		elif arg.begins_with("tag="):
+			_save_path = "user://balance_sim/save_%s.json" % arg.substr(4)
+			_settings_path = "user://balance_sim/settings_%s.cfg" % arg.substr(4)
 		elif arg == "curve" or arg == "zero":
 			special = arg
 	if special == "curve":
@@ -119,16 +128,16 @@ func _fresh_progress(stage: StageData) -> PlayerProgress:
 ## Plays one battle to the end starting from `progress` (written to the sim save first).
 ## Returns outcome metrics; "progress" holds the save after the battle (rewards, clears).
 func run_battle(stage: StageData, mode: String, progress: PlayerProgress) -> Dictionary:
-	SaveManager.new(SAVE_PATH).save_progress(progress)
+	SaveManager.new(_save_path).save_progress(progress)
 	var settings: GameSettings = GameSettings.new()
 	settings.touch_mode = GameSettings.TouchMode.OFF
 	settings.screen_shake = false
-	SettingsStore.new(SETTINGS_PATH).save_settings(settings)
+	SettingsStore.new(_settings_path).save_settings(settings)
 
 	SceneRoutes.battle_stage = stage
 	var field: Node = BATTLEFIELD.instantiate()
-	field.set("save_path", SAVE_PATH)
-	field.set("settings_path", SETTINGS_PATH)
+	field.set("save_path", _save_path)
+	field.set("settings_path", _settings_path)
 	(field.get_node("World/WaveDirector") as WaveDirector).stage = stage
 	var clock: Clock = Clock.new()
 	field.get_node("World").add_child(clock)
@@ -169,7 +178,7 @@ func run_battle(stage: StageData, mode: String, progress: PlayerProgress) -> Dic
 		"allies_summoned": stats["allies_summoned"],
 		"allies_lost": stats["allies_lost"],
 	}
-	var after: PlayerProgress = SaveManager.new(SAVE_PATH).load_progress()
+	var after: PlayerProgress = SaveManager.new(_save_path).load_progress()
 	outcome["gold"] = after.gold - progress.gold
 	outcome["progress"] = after
 	field.free()
@@ -241,23 +250,40 @@ func _slot_of(summoner: SummonManager, id: String) -> int:
 	return -1
 
 
-## Walk to the nearest enemy, combo it, heavy attack Oni Brutes, Spirit Slash groups.
+## Walk to the nearest enemy, combo it, heavy attack Oni Brutes and raised shields, Spirit Slash groups; shoot Flying
+## Spirits with the Bow (blades pass under them), walking within bow range when only spirits are left.
 func _bot_step(player: Player) -> void:
 	if player.is_dead():
 		return
 	var target: Enemy = null
 	var best: float = INF
+	var flyer: Enemy = null
+	var flyer_best: float = INF
 	var nearby: int = 0
 	for node: Node in get_nodes_in_group("enemies"):
 		var enemy: Enemy = node as Enemy
 		if enemy == null or enemy.is_dead() or enemy.global_position.x > ENGAGE_LIMIT_X:
 			continue
 		var distance: float = absf(enemy.global_position.x - player.global_position.x)
+		if enemy.is_flying():
+			if distance < flyer_best:
+				flyer_best = distance
+				flyer = enemy
+			continue
 		if distance < 650.0:
 			nearby += 1
 		if distance < best:
 			best = distance
 			target = enemy
+	var bow_ready: bool = (player.get_ability_cooldowns()["bow"] as Vector2).x <= 0.0
+	if flyer != null and (target == null or (bow_ready and flyer_best < BOW_REACH)):
+		var to_flyer: float = flyer.global_position.x - player.global_position.x
+		var flyer_facing_ok: bool = (to_flyer > 0.0) == (player.facing > 0)
+		_hold(&"move_right", to_flyer > 0.0 and (not flyer_facing_ok or absf(to_flyer) > BOW_REACH * 0.7))
+		_hold(&"move_left", to_flyer < 0.0 and (not flyer_facing_ok or absf(to_flyer) > BOW_REACH * 0.7))
+		if flyer_facing_ok and bow_ready and absf(to_flyer) < BOW_REACH:
+			_tap(&"bow")
+		return
 	var dx: float = (target.global_position.x if target != null else HOME_X) - player.global_position.x
 	var toward: StringName = &"move_right" if dx > 0.0 else &"move_left"
 	var away: StringName = &"move_left" if dx > 0.0 else &"move_right"
@@ -268,7 +294,7 @@ func _bot_step(player: Player) -> void:
 	var facing_ok: bool = (dx > 0.0) == (player.facing > 0)
 	_hold(toward, absf(dx) > 60.0 or not facing_ok)
 	var cooldowns: Dictionary = player.get_ability_cooldowns()
-	var is_oni: bool = target.data.figure == InkFigure.Kind.ONI_BRUTE
+	var is_oni: bool = target.data.figure == InkFigure.Kind.ONI_BRUTE or target.is_shield_up()
 	if best < 110.0 and facing_ok:
 		if (cooldowns["heavy"] as Vector2).x <= 0.0 and (is_oni or randf() < 0.02):
 			_tap(&"heavy_attack")
@@ -385,7 +411,7 @@ func _print_summary(stage: StageData, mode: String, upgrades: Dictionary, result
 
 
 func _cleanup_files() -> void:
-	for path: String in [SAVE_PATH, SAVE_PATH + ".bak", SAVE_PATH + ".tmp", SETTINGS_PATH, SETTINGS_PATH + ".tmp"]:
+	for path: String in [_save_path, _save_path + ".bak", _save_path + ".tmp", _settings_path, _settings_path + ".tmp"]:
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://balance_sim"))
