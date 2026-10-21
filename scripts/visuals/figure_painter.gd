@@ -129,8 +129,11 @@ const SLOTS: Dictionary = {
 	&"weapon": Slot.WEAPON, &"bow": Slot.WEAPON, &"blade_glow": Slot.WEAPON,
 	&"pauldron_front": Slot.PAULDRON_FRONT, &"saya": Slot.TORSO,
 	&"hakama_f": Slot.HAKAMA_F, &"hakama_b": Slot.HAKAMA_B, &"yumi_back": Slot.TORSO,
-	&"shoulder_f": Slot.TORSO,
+	&"shoulder_f": Slot.TORSO, &"grip_b": Slot.FORE_B,
 }
+## A two-handed grip's back hand is drawn a second time over the weapon ("grip_b"): the back forearm's painted layer
+## from this fraction of its length on (the fist), so its fingers wrap the hilt while the arm keeps its depth.
+const GRIP_HAND_FROM: float = 0.7
 ## Parts whose shape changes every frame (redrawn through paint_dynamic).
 const DYNAMIC_PARTS: Array[StringName] = [&"tails", &"sleeve_f", &"sleeve_b"]
 
@@ -153,11 +156,11 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			# front of him, so the back arm is drawn over the torso, under the front arm.
 			order.append_array([&"yumi_back", &"mane", &"hem", &"sleeve_b", &"thigh_b", &"shin_b", &"foot_b"])
 			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head", &"tails"])
-			# The hilt lies under the front hand, which closes over it.
+			# The hilt (and the yumi in the Bow skill) lies under both hands, which close over it.
 			order.append_array(_BACK_ARM)
-			order.append(&"weapon")
+			order.append_array([&"weapon", &"bow"])
 			order.append_array(_FRONT_ARM)
-			order.append_array([&"sleeve_f", &"bow", &"blade_glow"])
+			order.append_array([&"sleeve_f", &"blade_glow"])
 		InkFigure.Kind.ASHIGARU:
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
 			order.append_array([&"hem", &"torso", &"head", &"tails", &"weapon"])
@@ -188,21 +191,25 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			order.append(&"sleeve_f")
 		InkFigure.Kind.SPEAR_GUARDIAN:
 			order.append_array(_BACK_LIMBS + [&"pauldron_back"] + _BACK_ARM + _FRONT_LEG)
-			order.append_array([&"hem", &"torso", &"head", &"tails", &"shield"])
+			order.append_array([&"hem", &"torso", &"head", &"tails", &"shield", &"weapon"])
 			order.append_array(_FRONT_ARM)
-			order.append_array([&"pauldron_front", &"weapon"])
+			order.append(&"pauldron_front")
 		InkFigure.Kind.HATAMOTO:
 			# The banner is on his back, behind everything; he wears the samurai's hakama and skirt.
 			order.append_array([&"hem", &"banner", &"thigh_b", &"shin_b", &"foot_b", &"pauldron_back"])
 			order.append_array(_BACK_ARM)
-			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head", &"tails"])
+			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head", &"tails", &"weapon"])
 			order.append_array(_FRONT_ARM)
-			order.append_array([&"pauldron_front", &"weapon"])
+			order.append(&"pauldron_front")
 		InkFigure.Kind.FALLEN_DAIMYO:
 			# The torn cloak ("hem") hangs behind everything; he holds the odachi in both hands.
 			order.append_array([&"hem", &"pauldron_back"] + _BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
 			order.append_array([&"torso", &"head", &"weapon"])
 			order.append_array(_FRONT_ARM + [&"pauldron_front"])
+	if not is_nan(FigureKinds.spec(kind).back_hand_on_weapon.x):
+		# Hands close over what they hold: the front arm is drawn after the weapon, and a two-handed grip's back hand
+		# is drawn again over it (see GRIP_HAND_FROM).
+		order.insert(order.find(&"weapon") + (2 if order.has(&"bow") and order.find(&"bow") == order.find(&"weapon") + 1 else 1), &"grip_b")
 	if RosterSpriteArt.ARMHOLES.has(kind):
 		# The painted front arm's open sleeve end is covered by a cap of the torso's own shoulder, under the forearm.
 		order.insert(order.find(&"upper_f") + 1, &"shoulder_f")
@@ -470,6 +477,14 @@ static func _build(kind: InkFigure.Kind) -> Dictionary:
 			AllyFigurePainter.build(kind, parts)
 	if RosterSpriteArt.NAMES.has(kind):
 		RosterSpriteArt.build_body(kind, parts)
+	if parts.has(&"fore_b") and layout(kind).has(&"grip_b"):
+		var fore: InkBatch = parts[&"fore_b"]
+		var grip: InkBatch = InkBatch.new()
+		grip.vertices = fore.vertices.duplicate()
+		grip.colors = fore.colors.duplicate()
+		grip.indices = fore.indices.duplicate()
+		grip.uvs = fore.uvs.duplicate()
+		parts[&"grip_b"] = grip
 	# Every body part gets the sun's rim light (drawn once per part with the shared rim material).
 	for part_name: StringName in parts:
 		if part_name != &"shadow" and part_name != &"blade_glow":

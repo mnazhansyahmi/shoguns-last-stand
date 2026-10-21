@@ -166,3 +166,26 @@ func test_every_head_stays_on_its_body_in_every_pose() -> void:
 			for shared: PackedVector2Array in Geometry2D.intersect_polygons(on_torso, torso_shape):
 				overlap += absf(SamuraiSpriteArt._area(shared))
 			assert_true(overlap >= 4.0, "%s %s: the head sits on the body (%.1f units² overlap)" % [InkFigure.Kind.keys()[kind], state, overlap])
+
+
+func test_gripping_hands_draw_over_their_weapons() -> void:
+	var states: Array[StringName] = [&"idle", &"run", &"windup", &"strike", &"cast", &"hurt"]
+	for kind: int in InkFigure.Kind.size():
+		for state: StringName in states:
+			var visual: UnitVisual = UnitVisual.new()
+			add_to_tree(visual)
+			visual.configure(kind as InkFigure.Kind, 100.0)
+			visual.set_process(false)
+			visual.play_state(state)
+			for i: int in 12: visual._process(1.0 / 60.0)
+			var figure: InkFigure = visual.get_figure()
+			var name: String = "%s %s" % [InkFigure.Kind.keys()[kind], state]
+			var front: int = figure.get_node("fore_f").get_index()
+			for held: String in ["weapon", "bow"]:
+				if figure.has_node(held):
+					assert_true(front > figure.get_node(held).get_index(), "%s: the front hand's fingers are over the %s" % [name, held])
+			if not is_nan(figure.spec.back_hand_on_weapon.x):
+				assert_true(figure.has_node("grip_b"), "%s: a two-handed grip draws its back hand over the hilt" % name)
+				var grip: FigurePart = figure.get_node("grip_b") as FigurePart
+				assert_true(grip.get_index() > figure.get_node("weapon").get_index(), "%s: the back hand wraps the hilt" % name)
+				assert_true(grip.art != null and grip.art_trim > 0.0, "%s: only the painted fist is drawn again" % name)

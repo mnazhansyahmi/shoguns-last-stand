@@ -587,6 +587,14 @@ func _build_parts() -> void:
 		elif kind == Kind.SAMURAI and part_name == &"hem":
 			# A flat ink coat-tail behind his painted skirt, which has its own torn hem.
 			part.visible = false
+		if part_name == &"grip_b" and by_name.has(&"fore_b"):
+			# The back hand's fingers over the hilt it grips: the fist end of the back forearm's layer, drawn again.
+			var fore: FigurePart = by_name[&"fore_b"]
+			if fore.art is AtlasTexture:
+				part.art = fore.art
+				part.art_frame = fore.art_frame
+				part.art_trim = (fore.art as AtlasTexture).region.size.x * FigurePainter.GRIP_HAND_FROM
+				part.material = fore.material
 		if PaintedEquipment.cell(kind, part_name) >= 0:
 			part.art = PaintedEquipment.texture(kind, part_name)
 			part.art_frame = PaintedEquipment.frame(kind, part_name)
