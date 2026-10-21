@@ -79,6 +79,7 @@ func show_result(reward: BattleReward, progress: PlayerProgress, levels_gained: 
 
 	_next_button.visible = not next_stage_name.is_empty()
 	_next_button.text = "Next: %s" % next_stage_name if not next_stage_name.is_empty() else "Next Stage"
+	_next_button.custom_minimum_size.x = maxf(430.0, (_next_button as InkMenuButton).minimum_label_width())
 	(_retry_button as InkMenuButton).primary = not reward.victory
 	(_upgrades_button as InkMenuButton).primary = reward.victory and next_stage_name.is_empty()
 	_retry_button.queue_redraw()

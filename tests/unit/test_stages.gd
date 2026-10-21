@@ -142,6 +142,7 @@ func test_first_clear_offers_next_stage_and_replay_does_not() -> void:
 	var field: Node = _battlefield(stage)
 	assert_true(field.get_stage() == stage, "battlefield plays the selected stage")
 	field.call("_end_battle", true)
+	assert_true(not (field.get_node("Hud") as CanvasLayer).visible, "battle controls clear away behind the result overlay")
 	var result: ResultScreen = field.get_node("ResultScreen")
 	var next_button: Button = result.get_node("%NextButton")
 	assert_true(next_button.visible, "Next Stage shown after a first clear")

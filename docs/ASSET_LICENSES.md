@@ -185,4 +185,13 @@ Fine crisp ink/watercolour contours, sculpted skin planes and cloth folds matchi
 
 ## Existing roster PNG provenance metadata — 2026-10-22
 
-ssets/art/roster/samurai_head.png and quipment.png are existing project assets retained from main at 848ed4. Their original exact generation prompts are absent from the current provenance record. This pass embeds that origin statement without claiming a new generation; decoded RGBA SHA-256 hashes were verified identical before and after the metadata write. Existing use and licensing are unchanged.
+`assets/art/roster/samurai_head.png` and `equipment.png` are existing project assets retained from `main` at `f848ed4`. Their original exact generation prompts are absent from the current provenance record. The previous pass embedded that origin statement without claiming a new generation; decoded RGBA SHA-256 hashes were verified identical before and after the metadata write. Existing use and licensing are unchanged.
+
+## Painted title rock — 2026-10-22
+
+- File: `assets/art/samurai/title_rock.png`; menu foreground under the samurai.
+- Tool: OpenAI built-in image_gen. Date: 2026-10-22, Asia/Kuala_Lumpur.
+- Original generated artwork, using the project title samurai only as a painting-material/palette reference. No third-party stock or additional attribution requirement. Original alpha preserved; game code supplies placement, lighting tint and contact shadows.
+- Exact prompt (also embedded in the PNG and stored in `title_rock_prompt.json`):
+
+> Create one production game environment asset: a dark PAINTED ROCK OUTCROP isolated on genuine transparent alpha. The attached samurai image is MATERIAL AND PALETTE REFERENCE ONLY; do not include the samurai, any people, swords or clothing. This rock will sit beneath the feet of that painted character in a sunset bamboo forest. Fine ink and watercolour brush texture, dimensional angular slate planes, deep plum charcoal shadows, muted dusty rose and warm ochre light from the UPPER LEFT, subtle warm edge light on top, sparse dry moss. Match the illustrated material without photorealism. A broad rock shelf at the TOP, flat walkable crest from x=32% to x=70% at y=12%, with its right end only slightly higher than the left; enough clear space for two planted sandals. The stone descends steeply to the lower LEFT and lower RIGHT, widening toward the bottom. Three-quarter front view; broad front face visible below the flat standing shelf. Darker as it descends, fine irregular cracks and broad shadow planes, no white highlight outline, no grass hiding the standing surface. Rock fills canvas to BOTTOM and RIGHT edges for screen bleed, left edge is an irregular real rock contour with transparent background. Wide 3:2 canvas composition, all top ledge inside frame with transparent margin above it. No ground scenery, sky, moon, buildings, background haze, text or frame. Do not paint a second ledge, peak or tower on the standing shelf.

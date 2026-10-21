@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-21T16:00:53Z",
+  "generatedAt": "2026-10-21T16:48:17Z",
   "title": "Design System: Shogun's Last Stand",
   "extensions": {
     "colorMeta": {
@@ -37,6 +37,14 @@
       "caption": {
         "displayName": "Caption",
         "purpose": "Godot default font, saved progress and stage caption."
+      },
+      "reward-total": {
+        "displayName": "Earned Total",
+        "purpose": "Default Godot font for the three earned-result columns."
+      },
+      "reward-label": {
+        "displayName": "Earned Label",
+        "purpose": "Default Godot font for enemy, gold and XP column headings."
       }
     },
     "shadows": [
@@ -59,8 +67,8 @@
       },
       {
         "name": "painted-portrait",
-        "value": "Single coherent title_key_art.png painting on shared static UV mesh; independent free hair, sash and hem weights; pinned face, hands, body and soles; motion_time and motion_amount uniforms; blade glint; no breathing or limb rig",
-        "purpose": "PortraitMotion preserves one full-body painting and its right-hand katana grip; title_art uses an unmirrored positive uniform scale."
+        "value": "Single title_key_art.png painting on shared static UV mesh; pinned anatomy and soles; masked hair/sash/hem wind frequencies 1.25/1.0/0.8 and x amplitudes 12/16/8 art pixels; blade glint; no breathing or limb rig",
+        "purpose": "Unmirrored right-hand katana portrait; dusk ambient grading, warm rim and cool bounce integrate the same painting with the scene."
       },
       {
         "name": "character-secondary-motion",
@@ -71,6 +79,16 @@
         "name": "reduced-decorative-motion",
         "value": "Motion: Full / Reduced; 0.15 title free-edge wind and blade-glint amplitude and relevant secondary-driver amplitude; hair/tail chains reset to rest shapes",
         "purpose": "SettingsPanel preference saved by SettingsStore and applied through GameSettings; combat poses and planted-foot animation remain active."
+      },
+      {
+        "name": "grounded-stride",
+        "value": "Distance-driven phase; light stride multiplier 0.65 to 1.75, heavy/limp 0.65 to 1.2; extent cap 0.5*(thigh+shin); smoothstep swing travel; sin(PI*swing)^2 lift; gentle heel roll; both-foot hip shift and pelvis envelope; upright idle after gait.is_settled()",
+        "purpose": "LegGait, InkFigure and UnitVisual preserve planted anchors and fixed-length IK while avoiding short shuffling and hard support-foot snaps."
+      },
+      {
+        "name": "result-reveal",
+        "value": "0.8 s; crest TRANS_CUBIC EASE_OUT; XP TRANS_EXPO EASE_OUT; reduced motion immediately uses final values",
+        "purpose": "One restrained burst and XP reveal; reward values and native actions remain available."
       }
     ],
     "art": [
@@ -83,8 +101,23 @@
         "name": "ultimate-painted-bust",
         "value": "hud_bust.png shared Texture2D; circular UV polygon; linear mipmapped sampling; no SubViewport or live rig",
         "purpose": "Purpose-painted three-quarter bust inside the existing Ultimate ring, charge/READY plate, key badge and danger-rim state language."
+      },
+      {
+        "name": "compact-skill-figures",
+        "value": "FigureSkillArt one-shot 256 px ImageTexture cache; temporary Baker SubViewport freed after capture; SkillIcon circular picture with key, cooldown, ready and lock layers",
+        "purpose": "Restores compact keyboard skill pictures; upgrade and touch figure art retain their presentation."
+      },
+      {
+        "name": "painted-title-rock",
+        "value": "title_rock.png; scale 0.7; dusk tint Color(0.65,0.62,0.72); three flattened contact-shadow circles beneath each fixed sole",
+        "purpose": "Weathered foreground and sole contact anchor the existing portrait in the dusk scene."
       }
-    ]
+    ],
+    "nativeLayout": {
+      "result": "Centered 1440 design-pixel content; reward gap 60; XP track 920 by 18; action gap 20; Next minimum width 430, expanded from measured label width",
+      "brushButton": "56 design-pixel trailing reserve for geometric focus chevron; native Button input and focus",
+      "runtime": "Godot canvas_items landscape layout; no DOM/CSS detector; captures do not establish performance budgets"
+    }
   },
   "components": [
     {
@@ -123,11 +156,19 @@
       "description": "Preview of CardPanelLocked; no invented hover state.",
       "html": "<div class=\"ds-locked\">Locked</div>",
       "css": ".ds-locked{background:rgba(18,16,24,.85);color:#eadfc4;border:2px solid rgba(122,114,102,.5);border-radius:8px;padding:14px}"
+    },
+    {
+      "name": "Result Brush Action",
+      "kind": "button",
+      "refersTo": "result-action",
+      "description": "Color and shape preview of InkMenuButton primary result action; native metrics, focus and dynamic width remain owned by Godot.",
+      "html": "<button class=\"ds-result\">Next: Bamboo Path<svg viewBox=\"0 0 12 20\" aria-hidden=\"true\"><path d=\"M2 2 10 10 2 18\"/></svg></button>",
+      "css": ".ds-result{position:relative;min-width:430px;height:124px;padding:10px 56px 10px 40px;background:rgba(138,38,32,.96);color:#efe6cf;border:0;font:600 30px Georgia,serif;text-align:left;clip-path:polygon(8px 14px,calc(100% - 12px) 10px,calc(100% - 3px) 26px,calc(100% - 11px) calc(100% - 14px),5px calc(100% - 10px),0 calc(100% - 28px));transition:background .18s}.ds-result svg{position:absolute;right:30px;top:calc(50% - 8px);width:10px;height:16px;fill:none;stroke:#e8c46a;stroke-width:2;opacity:0}.ds-result:hover,.ds-result:focus-visible{background:rgba(184,50,42,.96);outline:0}.ds-result:hover svg,.ds-result:focus-visible svg{opacity:1}.ds-result:active{background:rgba(101,28,23,.96)}.ds-result:disabled{background:#2a272e;color:#7a7266}"
     }
   ],
   "narrative": {
     "northStar": "Japanese ink silhouette at dusk",
-    "overview": "The incumbent world is a pale layered sunset landscape with dark fighters, warm celestial light and parchment UI. The approved slim swordsman adds weathered painted cloth and lean anatomy inside that world. He is lightly robed, bareheaded and fast in character, with a long ponytail, grey sash, restrained red waist tails, ankle wraps and sandals.\n\nThis records the shipped refinement, not a new world selection. The approved concept and current scope are in `docs/slim_samurai/approved_concept.png`, `docs/samurai_consistency/direction.md` and `PRODUCT.md`; no FORM roll or historical seed was run. Original transparent samurai paintings coexist with the established landscape and roster systems. This is visual work only; combat statistics and timing are unchanged.",
+    "overview": "The incumbent world is a pale layered sunset landscape with dark fighters, warm celestial light and parchment UI. The approved slim swordsman adds weathered painted cloth and lean anatomy inside that world. He is lightly robed, bareheaded and fast in character, with a long ponytail, grey sash, restrained red waist tails, ankle wraps and sandals.\n\nThis records the shipped refinement, not a new world selection. The approved concept and current scope are in `docs/slim_samurai/approved_concept.png`, `docs/game_feel/direction.md` and `PRODUCT.md`; no FORM roll or historical seed was run. Original transparent samurai paintings coexist with the established landscape and roster systems. The game-feel pass retains this world while refining stride continuity, painted body volume, cached skill pictures, battle results and title lighting. Combat statistics and skill timing are unchanged.",
     "keyCharacteristics": [
       "Dark readable fighters against a light action band.",
       "Painted samurai cloth with connected joints and transparent negative space.",
@@ -138,6 +179,11 @@
         "name": "The Light Action Band Rule",
         "body": "Keep fighters dark against pale mist and ground-edge washes; keep near bamboo away from the central combat band.",
         "section": "colors"
+      },
+      {
+        "name": "The Grounded Stride Rule",
+        "body": "Settle the swing before upright idle, and fit the pelvis continuously to both legs; add body volume across the painted bone axes without changing bone lengths.",
+        "section": "components"
       },
       {
         "name": "The Painted Continuity Rule",
@@ -151,7 +197,7 @@
       "Do reuse the shared theme and cached painted textures; keep appearance independent of gameplay statistics."
     ],
     "donts": [
-      "Don't extend the approved samurai raster exception to unrelated world art without a new decision.",
+      "Don't extend the approved samurai and title-rock raster exceptions to unrelated world art without a new decision.",
       "Don't replace painted samurai cloth with flat filler or omit equipment required by a gameplay skill.",
       "Don't treat static captures as proof of animation smoothness or performance."
     ]

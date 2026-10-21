@@ -33,6 +33,10 @@ typography:
     fontWeight: 600
   caption:
     fontSize: "26px"
+  reward-total:
+    fontSize: "76px"
+  reward-label:
+    fontSize: "25px"
 rounded:
   button: "4px"
   panel: "6px"
@@ -68,6 +72,11 @@ components:
   card:
     rounded: "{rounded.card}"
     padding: "{spacing.card-inset}"
+  skill-icon:
+    width: "66px"
+    height: "66px"
+  result-action:
+    height: "124px"
 ---
 
 # Design System: Shogun's Last Stand
@@ -78,7 +87,7 @@ components:
 
 The incumbent world is a pale layered sunset landscape with dark fighters, warm celestial light and parchment UI. The approved slim swordsman adds weathered painted cloth and lean anatomy inside that world. He is lightly robed, bareheaded and fast in character, with a long ponytail, grey sash, restrained red waist tails, ankle wraps and sandals.
 
-This records the shipped refinement, not a new world selection. The approved concept and current scope are in `docs/slim_samurai/approved_concept.png`, `docs/samurai_consistency/direction.md` and `PRODUCT.md`; no FORM roll or historical seed was run. Original transparent samurai paintings coexist with the established landscape and roster systems. This is visual work only; combat statistics and timing are unchanged.
+This records the shipped refinement, not a new world selection. The approved concept and current scope are in `docs/slim_samurai/approved_concept.png`, `docs/game_feel/direction.md` and `PRODUCT.md`; no FORM roll or historical seed was run. Original transparent samurai paintings coexist with the established landscape and roster systems. The game-feel pass retains this world while refining stride continuity, painted body volume, cached skill pictures, battle results and title lighting. Combat statistics and skill timing are unchanged.
 
 **Key Characteristics:**
 
@@ -119,6 +128,7 @@ The native `SystemFont` title stack is recorded under display; first installed f
 - **Menu primary:** Start/Continue (52 px).
 - **Menu row:** secondary title actions (42 px).
 - **Caption:** saved progress and stage subcaption (26 px).
+- **Reward total / label:** the three parallel earned-result columns use the default font at the frontmatter sizes. Their parchment, gold and spirit theme roles distinguish defeated enemies, gold and XP.
 
 No custom line height or tracking scale is established. Battlefield label variations carry ink outlines; reuse those theme variations instead of inventing scene colors.
 
@@ -128,13 +138,17 @@ The design viewport is 1920 by 1080 with `canvas_items` stretch and expanded asp
 
 The title portrait is 540 design pixels high and grounded on its outcrop with both sandals touching rock. Its placement follows the moon/ledge anchor. Gameplay feet remain anchored to the existing fixed-length rig and planted-foot IK; visual transforms do not change collision or reach.
 
+Results center a 1440 design-pixel content column over the visible battlefield, with three earned-total columns separated by 60 px, a 920 by 18 px XP track and one native action row with 20 px separation. Result actions use the frontmatter height. The Next action has a 430 px minimum width and expands from measured label width. All brush-button labels reserve 56 px at the trailing edge so focus chevrons remain clear. These are Godot layout measurements, not browser breakpoints; desktop and wide-phone captures exercise the same landscape layout.
+
 ## Elevation & Depth
 
 World depth comes from pale distant washes, darker near silhouettes, parallax, rim lighting and low fog. Native panels have a soft `StyleBoxFlat` shadow (size 16, black at 50% alpha) and a 2 px gold border. This soft UI shadow is retained; the title action itself is a brush impression. Effects such as spirit glows are native world devices, not a general card treatment.
 
+The title's painted rock shares weathered ink detail with the portrait. Dusk grading compresses bright cloth, warm rim light follows the scene and cool bounce darkens the soles. Small layered contact shadows sit directly under both fixed sandals. Results use open ink/crimson washes and a dimmed battlefield rather than a large bordered panel.
+
 ## Shapes
 
-Procedural silhouettes use filled, brush-tapered shapes and scarce interior detail. The approved samurai instead uses transparent painted layers with weathered folds and torn edges. Preserve lean torso, narrow gathered hakama, independent wrapped legs and sandals, long ponytail and low-held katana. No helmet or bulky shoulder armor on this samurai.
+Procedural silhouettes use filled, brush-tapered shapes and scarce interior detail. The approved samurai instead uses transparent painted layers with weathered folds and torn edges. Preserve the slim identity, gathered hakama, independent wrapped legs and sandals, long ponytail and low-held katana. Fuller torso, thigh and calf presentation comes from widening painted layers across their bone axes; head scale and bone lengths stay fixed. No helmet or bulky shoulder armor on this samurai.
 
 Native controls use small radii: buttons 4 px, panels 6 px, cards 8 px. The title primary action has an irregular polygon edge; secondary title rows remain open. Gold focus diamond and chevron are drawn geometry, not text glyph icons.
 
@@ -142,7 +156,7 @@ Native controls use small radii: buttons 4 px, panels 6 px, cards 8 px. The titl
 
 ### Title navigation
 
-`InkMenuButton` paints one crimson primary impression and open parchment rows. Hover/focus warms row text to gold, reveals geometric markers and subtly tints the row. Active feedback settles over 0.18 s. Pressing uses paper text; disabled labels use the disabled tone. Saved-stage captions sit beneath the primary label. Menu entries fade and slide in sequentially; retain full native focus/input behavior.
+`InkMenuButton` paints one crimson primary impression and open parchment rows. Hover/focus warms row text to gold, reveals geometric markers and subtly tints the row. Active feedback settles over 0.18 s. Pressing uses paper text; disabled labels use the disabled tone. Saved-stage captions sit beneath the primary label. Menu entries fade and slide in sequentially; retain full native focus/input behavior. Its shared label measurement and trailing reserve also govern result actions.
 
 ### Native buttons and panels
 
@@ -153,6 +167,24 @@ Native controls use small radii: buttons 4 px, panels 6 px, cards 8 px. The titl
 `SamuraiSpriteArt` shares cached `AtlasTexture` regions and rigid transforms across high-resolution `body_trunk.png`, `body_arms.png`, `body_legs.png`, `body_details.png` and `body_flow.png` sheets. The separate `assets/art/roster/samurai_head.png` retains the identity reference; the legacy atlas supplies the blade. `InkFigure` applies linear mipmapped anisotropic sampling to the samurai as a whole, and both head and body imports generate mipmaps. This keeps the face and cloth sampling coherent at battle scale. Painted sleeve and sash strips follow anchored cloth chains; the head overlap keeps the neck compact and connected. Fixed bone lengths, planted-foot IK, gripping hands, skill equipment and Bow/War Cry transitions retain the existing gameplay contract.
 
 The title uses one coherent full-body `title_key_art.png` painting, without the stowed yumi. `PortraitMotion` is a `Node2D` drawing a shared static UV mesh; its three weight channels affect only free hair, sash and hem. Shader uniforms advance subtle wind and a blade glint. Face, hands, torso, legs and soles stay pinned: there is no limb rig or whole-body breathing. `title_art.gd` uses a positive uniform scale without mirroring, preserving the painting's native right-hand katana grip and relaxed other hand. Preserve the approved slim, bareheaded identity and contact with the rock.
+
+Free-edge wind is stronger in the game-feel pass while remaining confined to those masks. The portrait shader supplies dusk ambient grading, warm rim light and cool ground bounce. `title_rock.png` is the painted foreground beneath the fixed soles; its contact shadows follow the ledge placement, never the free-edge wind.
+
+### Grounded locomotion
+
+`LegGait` advances by distance travelled, with speed-matched step extent. Light figures interpolate the stride multiplier from 0.65 to 1.75; heavy and limping figures retain 0.65 to 1.2. Reach is capped at half the summed thigh/shin lengths. Swing travel uses smoothstep and vertical lift uses a squared sine arc, with gentle heel roll before touchdown. Both foot trajectories contribute continuously to horizontal hip shift; `InkFigure` derives the pelvis envelope from both legs instead of switching a selected support foot. `UnitVisual` waits for gait settlement before returning to upright idle. Preserve planted anchors, fixed-length IK, forward knees and existing combat states.
+
+**The Grounded Stride Rule.** Settle the swing before upright idle, and fit the pelvis continuously to both legs; add body volume across the painted bone axes without changing bone lengths.
+
+### Compact figure skill pictures
+
+`SkillIcon` uses cached `FigureSkillArt` pictures in compact round frames at the frontmatter size. The cache bakes the game's figures once into 256 px textures, then frees the render targets; the HUD does not keep live figure rigs. Preserve the lower-right key badge, cooldown sweep and seconds, ready glow, and locked dim/lock overlays. Stance swaps charge/hold figure art. Existing upgrade and touch-control figure art retain their own established presentation. The restored skill pictures supersede the intervening glyph presentation.
+
+### Battle results
+
+`ResultCelebration` draws a crossed-katana crest and open brush washes over the battlefield. The three large earned totals lead; enemy/bonus breakdowns, replay gold reduction, cumulative progress, level-up, new ally and save status stay readable below them. The XP track uses the shared native theme. `InkMenuButton` supplies Next, Retry, Upgrades and Main Menu actions, with the primary action and focus chosen from the result state. Combat HUD is cleared at actual battle end before this overlay is shown. Save failure keeps the explicit reward-loss warning; defeat retains its warning-color heading and retry emphasis.
+
+Full motion presents one short crest burst and an XP fill reveal over 0.8 s. Reduced decorative motion sets both immediately to their resting values; it does not defer reward truth or input.
 
 ### Ultimate portrait medallion
 
@@ -166,7 +198,7 @@ The title uses one coherent full-body `title_key_art.png` painting, without the 
 
 **The Painted Continuity Rule.** Keep joints connected and all exposed samurai cloth painted; no solid geometric filler over the approved texture.
 
-Current scope evidence is in `docs/samurai_consistency/`: `main_menu.png`, `hud_close_up.png`, `hud_full.png`, `samurai_detail.png`, `samurai_motion_sheet.png`, `samurai_walk_strip.png`, `crowded_battle.png` and `title_motion.webp`. Final source captures checked for this record are `builds/samurai_consistency/final_menu/mainmenu_fresh.png`, `builds/samurai_consistency/final_hud/hud_ultimate_ready_zoom.png`, `builds/samurai_consistency/final_samurai/samurai_sheet.png` and `builds/samurai_consistency/final_crowd/crowd_a.png`. The title and HUD descriptions were reconciled with their current drawing code and title shader; battle sampling was checked in `ink_figure.gd`, atlas mappings and texture imports. Earlier ally motion evidence under `docs/animation_review/` remains relevant to the unchanged roster motion system. Clips and sampled frames support visual review; they do not establish animation smoothness or device performance. No Godot build or benchmark was run for this documentation pass.
+Current scope evidence is in `docs/game_feel/`: `main_menu.png`, `hud.png`, `samurai_detail.png`, `gait_strip.png`, `samurai_motion_sheet.png`, `victory.png`, `victory_first_clear.png`, `defeat_save_error.png`, `phone_results.png` and `crowded_battle.png`, with actual renderer-frame sequences in `before.webp`, `after.webp`, `gameplay.webp` and `menu.webp`. This record samples the menu, HUD, first-clear and wide-phone results captures against their native drawing/layout code, and checks gait, pelvis, idle settlement, painted sampling and title shader sources. Earlier roster evidence remains relevant to unchanged ally motion. Captures support visual review; they do not certify continuous smoothness or device performance. No Godot build or benchmark was run for this documentation pass; performance budgets are not established here. Native Godot has no DOM/CSS detector.
 
 ## Do's and Don'ts
 
@@ -178,7 +210,7 @@ Current scope evidence is in `docs/samurai_consistency/`: `main_menu.png`, `hud_
 
 ### Don't:
 
-- **Don't** extend the approved samurai raster exception to unrelated world art without a new decision.
+- **Don't** extend the approved samurai and title-rock raster exceptions to unrelated world art without a new decision.
 - **Don't** replace painted samurai cloth with flat filler or omit equipment required by a gameplay skill.
 - **Don't** treat static captures as proof of animation smoothness or performance.
 

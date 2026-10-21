@@ -230,6 +230,10 @@ func test_battle_results_preserve_rewards_replay_warning_and_reduced_motion() ->
 	assert_almost_eq((result.get_node("%XpTrack") as ProgressBar).value, 55.0, "XP bar shows progress within level 18")
 	assert_almost_eq((result.get_node("%Celebration") as ResultCelebration).reveal, 1.0, "reduced motion skips the burst")
 	assert_true((result.get_node("%UpgradesButton") as InkMenuButton).primary, "last/replay victory leads into upgrades")
+	result.show_result(reward, progress, 0, OK, "Bamboo Path")
+	var next: InkMenuButton = result.get_node("%NextButton") as InkMenuButton
+	assert_true(next.custom_minimum_size.x - next.get_label_rect().end.x >= 54.0,
+			"the whole next-stage name fits before its focus chevron")
 	reward.victory = false
 	result.show_result(reward, progress, 0, ERR_CANT_CREATE)
 	assert_true((result.get_node("%SaveLabel") as Label).text.contains("Could not save"), "save failure remains visible")

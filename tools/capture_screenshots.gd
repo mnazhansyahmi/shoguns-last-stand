@@ -310,6 +310,7 @@ func _capture_results() -> void:
 	(field.get_node("World/WaveDirector") as WaveDirector).stop()
 	await _frames(30)
 	var result: ResultScreen = field.get_node("ResultScreen") as ResultScreen
+	(field.get_node("Hud") as CanvasLayer).visible = false
 	var reward: BattleReward = BattleReward.new()
 	reward.victory = true
 	reward.enemies_defeated = 90

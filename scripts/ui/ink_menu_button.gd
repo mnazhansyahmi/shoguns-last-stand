@@ -8,6 +8,8 @@ const BORDER: int = 2
 const SUB_CAPTION_SIZE: int = 26
 ## The small line's baseline sits this far above the bottom edge.
 const SUB_CAPTION_BOTTOM: float = 20.0
+## The focus chevron occupies the right-hand 39 pixels; text must stop before it.
+const TRAILING_SPACE: float = 56.0
 
 @export var primary: bool = false
 
@@ -113,7 +115,7 @@ func _draw_label(lit: float, pressed: bool) -> void:
 		color = InkPalette.PAPER
 	if disabled:
 		color = InkPalette.UI_DISABLED
-	var width: float = size.x - left - margins.content_margin_right
+	var width: float = size.x - left - maxf(margins.content_margin_right, TRAILING_SPACE)
 	draw_string_outline(font, Vector2(left, baseline), text, HORIZONTAL_ALIGNMENT_LEFT, width, font_size, 2, Color(InkPalette.INK, 0.7))
 	draw_string(font, Vector2(left, baseline), text, HORIZONTAL_ALIGNMENT_LEFT, width, font_size, color)
 
@@ -128,6 +130,11 @@ func get_label_rect() -> Rect2:
 	var top: float = margins.content_margin_top + (area_height - font.get_height(font_size)) * 0.5
 	var width: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 	return Rect2(margins.content_margin_left, top, width, font.get_height(font_size))
+
+
+func minimum_label_width() -> float:
+	var label: Rect2 = get_label_rect()
+	return label.end.x + TRAILING_SPACE
 
 
 func get_sub_caption_rect() -> Rect2:

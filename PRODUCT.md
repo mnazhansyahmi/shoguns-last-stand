@@ -41,3 +41,16 @@ the articulated menu figure and the earlier whole-portrait breathing approach.
 The battle skeleton, fixed bone lengths, planted feet and hands-over-hilts remain
 the mechanical contract. Existing sunset composition, Ultimate ring, READY plate,
 navigation, other characters and gameplay are preserved.
+
+## Playtest game-feel refinement — 2026-10-22
+
+The user's latest playtest requests stronger samurai body volume, a less shuffling
+walk/run, the cached figure skill icons shown in their third screenshot, a game-like
+victory screen instead of a large text panel, and better title-character integration
+with its dusk backdrop. This is one authorized refinement phase, with separate commits
+for gait/proportions, icon restoration, battle results and title integration, then stop.
+Keep the slim bareheaded swordsman identity, fixed leg lengths/ground contact, combat
+rules, saved progression, all result actions, cooldown/key/lock layers and reduced
+decorative motion. The title remains a coherent painting without a limb rig; matching
+light, contact shadows and a painted rock integrate it into the existing scene.
+Use the existing ink/crimson/gold world. No Region 1 generator or new map work.

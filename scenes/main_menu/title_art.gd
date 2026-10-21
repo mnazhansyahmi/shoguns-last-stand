@@ -11,6 +11,9 @@ const SAMURAI_HEIGHT: float = 540.0
 ## How far below the moon's centre the samurai's feet stand.
 const LEDGE_DROP: float = 450.0
 const LEAF_COUNT: int = 14
+const ROCK: Texture2D = preload("res://assets/art/samurai/title_rock.png")
+const ROCK_ANCHOR: Vector2 = Vector2(900.0, 187.5)
+const ROCK_SCALE: float = 0.7
 
 var _portrait: PortraitMotion
 var _clock: float = 0.0
@@ -19,6 +22,7 @@ var _leaf_seeds: PackedVector4Array = PackedVector4Array()
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	_portrait = PortraitMotion.new()
 	_portrait.name = "Samurai"
 	add_child(_portrait)
@@ -73,21 +77,14 @@ func _draw() -> void:
 
 func _draw_outcrop() -> void:
 	var ledge: Vector2 = get_ledge_position()
-	var base_y: float = maxf(size.y, ledge.y + 200.0) + 10.0
-	var rock: PackedVector2Array = PackedVector2Array([
-		Vector2(ledge.x - 290.0, base_y), Vector2(ledge.x - 210.0, ledge.y + 240.0), Vector2(ledge.x - 180.0, ledge.y + 155.0),
-		Vector2(ledge.x - 110.0, ledge.y + 55.0), Vector2(ledge.x - 95.0, ledge.y + 10.0), Vector2(ledge.x - 70.0, ledge.y - 8.0),
-		Vector2(ledge.x + 60.0, ledge.y - 14.0), Vector2(ledge.x + 110.0, ledge.y + 18.0), Vector2(ledge.x + 165.0, ledge.y + 85.0),
-		Vector2(ledge.x + 235.0, ledge.y + 130.0), Vector2(ledge.x + 290.0, ledge.y + 220.0), Vector2(size.x + 40.0, ledge.y + 270.0),
-		Vector2(size.x + 40.0, base_y)])
-	InkBrush.fill(self, rock, InkPalette.INK)
-	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-95.0, 10.0), ledge + Vector2(-70.0, -8.0),
-			ledge + Vector2(60.0, -14.0), ledge + Vector2(110.0, 18.0)]), 2.0, 0.6, Color(InkPalette.GROUND_TOP, 0.6))
-	# A few dry-brush cracks in the stone.
-	var crack: Color = InkPalette.INK_DETAIL
-	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-90.0, 30.0), ledge + Vector2(-70.0, 90.0), ledge + Vector2(-110.0, 160.0)]), 4.0, 1.5, crack)
-	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(70.0, 40.0), ledge + Vector2(120.0, 120.0), ledge + Vector2(100.0, 200.0)]), 4.0, 1.5, crack)
-	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-200.0, 160.0), ledge + Vector2(-160.0, 230.0)]), 3.0, 1.5, crack)
+	var rock_rect: Rect2 = Rect2(ledge - ROCK_ANCHOR * ROCK_SCALE, ROCK.get_size() * ROCK_SCALE)
+	draw_texture_rect(ROCK, rock_rect, false, Color(0.65, 0.62, 0.72))
+	# Small contact shadows follow the two fixed soles, not the hair/cloth wind.
+	for foot: Vector2 in [Vector2(-51.0, -7.0), Vector2(49.0, -11.0)]:
+		for layer: int in 3:
+			draw_set_transform(ledge + foot + Vector2(-5.0, 2.0), 0.0, Vector2(1.0, 0.12))
+			draw_circle(Vector2.ZERO, 37.0 - layer * 6.0, Color(InkPalette.INK, 0.12 + layer * 0.08))
+	draw_set_transform(Vector2.ZERO)
 
 
 func _draw_leaves() -> void:

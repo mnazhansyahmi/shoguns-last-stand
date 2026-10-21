@@ -535,6 +535,7 @@ func _end_battle(victory: bool) -> void:
 	_pause_menu.close()
 	_hud.hide_status()
 	var stage: StageData = _wave_director.stage
+	_hud.visible = false
 	var reward: BattleReward = RewardCalculator.calculate(_kills, stage, victory, _was_cleared_before)
 	var unlocked_before: Array[AllyData] = ALLY_ROSTER.get_unlocked(_progress)
 	var levels_gained: int = _progress.record_battle(reward, stage.stage_id if stage != null else "")

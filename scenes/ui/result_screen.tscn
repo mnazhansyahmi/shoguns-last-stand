@@ -195,7 +195,7 @@ theme_override_constants/separation = 20
 [node name="NextButton" type="Button" parent="Center/Content/Buttons"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(370, 124)
+custom_minimum_size = Vector2(430, 124)
 layout_mode = 2
 theme_type_variation = &"MenuButtonPanel"
 theme_override_font_sizes/font_size = 30

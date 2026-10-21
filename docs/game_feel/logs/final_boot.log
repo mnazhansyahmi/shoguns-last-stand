@@ -1,0 +1,330 @@
+WorkerThreadPool: 16 threads, 4 max low-priority.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+TextServer: Added interface "Dummy"
+TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"
+Using "default" pen tablet driver...
+
+TextServer: Primary interface set to: "ICU / HarfBuzz / Graphite (Built-in)".
+Loading resource: res://assets/ui/ink_theme.tres remapped: res://assets/ui/ink_theme.tres
+Completed load for: 'res://assets/ui/ink_theme.tres' remapped 'res://assets/ui/ink_theme.tres' at thread -1
+Loading resource: res://default_bus_layout.tres remapped: res://default_bus_layout.tres
+Completed load for: 'res://default_bus_layout.tres' remapped 'res://default_bus_layout.tres' at thread -1
+CORE API HASH: 2004498165
+EDITOR API HASH: 1696660745
+SceneTreeFTI: traversal method DEFAULT
+Loading resource: res://scripts/systems/audio_manager.gd remapped: res://scripts/systems/audio_manager.gd
+Completed load for: 'res://scripts/systems/audio_manager.gd' remapped 'res://scripts/systems/audio_manager.gd' at thread -1
+Loaded system CA certificates
+Loading resource: res://scenes/main_menu/main_menu.tscn remapped: res://scenes/main_menu/main_menu.tscn
+Loading resource: res://scenes/main_menu/main_menu.gd remapped: res://scenes/main_menu/main_menu.gd
+Loading resource: res://assets/art/samurai/body_flow.png remapped: res://assets/art/samurai/body_flow.png
+Loading resource: res://.godot/imported/body_flow.png-9e8db165777d9116c5ca4e1928ee0e47.ctex remapped: res://.godot/imported/body_flow.png-9e8db165777d9116c5ca4e1928ee0e47.ctex
+Completed load for: 'res://assets/art/samurai/body_flow.png' remapped 'res://assets/art/samurai/body_flow.png' at thread -1
+Loading resource: res://assets/art/samurai/body_details.png remapped: res://assets/art/samurai/body_details.png
+Loading resource: res://.godot/imported/body_details.png-890a9ad2ee8f1c985bf97be4c661b654.ctex remapped: res://.godot/imported/body_details.png-890a9ad2ee8f1c985bf97be4c661b654.ctex
+Completed load for: 'res://assets/art/samurai/body_details.png' remapped 'res://assets/art/samurai/body_details.png' at thread -1
+Loading resource: res://assets/art/samurai/body_trunk.png remapped: res://assets/art/samurai/body_trunk.png
+Loading resource: res://.godot/imported/body_trunk.png-39bc936820599f9803b93963172df575.ctex remapped: res://.godot/imported/body_trunk.png-39bc936820599f9803b93963172df575.ctex
+Completed load for: 'res://assets/art/samurai/body_trunk.png' remapped 'res://assets/art/samurai/body_trunk.png' at thread -1
+Loading resource: res://assets/art/samurai/body_arms.png remapped: res://assets/art/samurai/body_arms.png
+Loading resource: res://.godot/imported/body_arms.png-0ae91b13bf0d125a451e6ceb2aa3ca73.ctex remapped: res://.godot/imported/body_arms.png-0ae91b13bf0d125a451e6ceb2aa3ca73.ctex
+Completed load for: 'res://assets/art/samurai/body_arms.png' remapped 'res://assets/art/samurai/body_arms.png' at thread -1
+Loading resource: res://assets/art/samurai/body_legs.png remapped: res://assets/art/samurai/body_legs.png
+Loading resource: res://.godot/imported/body_legs.png-395205bb36123c307a0c0be344d8c0c1.ctex remapped: res://.godot/imported/body_legs.png-395205bb36123c307a0c0be344d8c0c1.ctex
+Completed load for: 'res://assets/art/samurai/body_legs.png' remapped 'res://assets/art/samurai/body_legs.png' at thread -1
+Loading resource: res://assets/art/samurai/slim_parts.png remapped: res://assets/art/samurai/slim_parts.png
+Loading resource: res://.godot/imported/slim_parts.png-cd5befcad23af46d820a9052afbb58f0.ctex remapped: res://.godot/imported/slim_parts.png-cd5befcad23af46d820a9052afbb58f0.ctex
+Completed load for: 'res://assets/art/samurai/slim_parts.png' remapped 'res://assets/art/samurai/slim_parts.png' at thread -1
+Loading resource: res://assets/art/roster/samurai_head.png remapped: res://assets/art/roster/samurai_head.png
+Loading resource: res://.godot/imported/samurai_head.png-e9ab5876c6bb5f3148c9263872ec7715.ctex remapped: res://.godot/imported/samurai_head.png-e9ab5876c6bb5f3148c9263872ec7715.ctex
+Completed load for: 'res://assets/art/roster/samurai_head.png' remapped 'res://assets/art/roster/samurai_head.png' at thread -1
+Completed load for: 'res://scenes/main_menu/main_menu.gd' remapped 'res://scenes/main_menu/main_menu.gd' at thread -1
+Loading resource: res://scenes/ui/settings_panel.tscn remapped: res://scenes/ui/settings_panel.tscn
+Completed load for: 'res://scenes/ui/settings_panel.tscn' remapped 'res://scenes/ui/settings_panel.tscn' at thread -1
+Loading resource: res://scenes/backdrops/bamboo_outskirts.tscn remapped: res://scenes/backdrops/bamboo_outskirts.tscn
+Loading resource: res://scripts/visuals/backdrop_layer.gd remapped: res://scripts/visuals/backdrop_layer.gd
+Completed load for: 'res://scripts/visuals/backdrop_layer.gd' remapped 'res://scripts/visuals/backdrop_layer.gd' at thread -1
+Loading resource: res://scripts/visuals/region_backdrop.gd remapped: res://scripts/visuals/region_backdrop.gd
+Completed load for: 'res://scripts/visuals/region_backdrop.gd' remapped 'res://scripts/visuals/region_backdrop.gd' at thread -1
+Completed load for: 'res://scenes/backdrops/bamboo_outskirts.tscn' remapped 'res://scenes/backdrops/bamboo_outskirts.tscn' at thread -1
+Loading resource: res://scenes/main_menu/title_art.gd remapped: res://scenes/main_menu/title_art.gd
+Loading resource: res://assets/art/samurai/title_rock.png remapped: res://assets/art/samurai/title_rock.png
+Loading resource: res://.godot/imported/title_rock.png-caabcac5afb31b15cb926e61c60ac7ba.ctex remapped: res://.godot/imported/title_rock.png-caabcac5afb31b15cb926e61c60ac7ba.ctex
+Completed load for: 'res://assets/art/samurai/title_rock.png' remapped 'res://assets/art/samurai/title_rock.png' at thread -1
+Loading resource: res://assets/art/samurai/title_key_art.png remapped: res://assets/art/samurai/title_key_art.png
+Loading resource: res://.godot/imported/title_key_art.png-809549a3312479fca0ad946e7eabf8f6.ctex remapped: res://.godot/imported/title_key_art.png-809549a3312479fca0ad946e7eabf8f6.ctex
+Completed load for: 'res://assets/art/samurai/title_key_art.png' remapped 'res://assets/art/samurai/title_key_art.png' at thread -1
+Loading resource: res://scripts/visuals/shaders/title_key_art.gdshader remapped: res://scripts/visuals/shaders/title_key_art.gdshader
+Completed load for: 'res://scripts/visuals/shaders/title_key_art.gdshader' remapped 'res://scripts/visuals/shaders/title_key_art.gdshader' at thread -1
+Completed load for: 'res://scenes/main_menu/title_art.gd' remapped 'res://scenes/main_menu/title_art.gd' at thread -1
+Loading resource: res://scripts/ui/brush_stroke.gd remapped: res://scripts/ui/brush_stroke.gd
+Completed load for: 'res://scripts/ui/brush_stroke.gd' remapped 'res://scripts/ui/brush_stroke.gd' at thread -1
+Completed load for: 'res://scenes/main_menu/main_menu.tscn' remapped 'res://scenes/main_menu/main_menu.tscn' at thread -1
+Loading resource: res://data/audio/sfx_library.tres remapped: res://data/audio/sfx_library.tres
+Loading resource: res://assets/audio/sfx/sword_swing.wav remapped: res://assets/audio/sfx/sword_swing.wav
+Loading resource: res://.godot/imported/sword_swing.wav-3b7f40ada224c56604e4f38936f23011.sample remapped: res://.godot/imported/sword_swing.wav-3b7f40ada224c56604e4f38936f23011.sample
+Completed load for: 'res://assets/audio/sfx/sword_swing.wav' remapped 'res://assets/audio/sfx/sword_swing.wav' at thread -1
+Loading resource: res://assets/audio/sfx/hit.wav remapped: res://assets/audio/sfx/hit.wav
+Loading resource: res://.godot/imported/hit.wav-27e178036f6cee6545e9f025a3865a36.sample remapped: res://.godot/imported/hit.wav-27e178036f6cee6545e9f025a3865a36.sample
+Completed load for: 'res://assets/audio/sfx/hit.wav' remapped 'res://assets/audio/sfx/hit.wav' at thread -1
+Loading resource: res://assets/audio/sfx/heavy_hit.wav remapped: res://assets/audio/sfx/heavy_hit.wav
+Loading resource: res://.godot/imported/heavy_hit.wav-051ea4b9a0991e9824702ceeb8be042a.sample remapped: res://.godot/imported/heavy_hit.wav-051ea4b9a0991e9824702ceeb8be042a.sample
+Completed load for: 'res://assets/audio/sfx/heavy_hit.wav' remapped 'res://assets/audio/sfx/heavy_hit.wav' at thread -1
+Loading resource: res://assets/audio/sfx/dash.wav remapped: res://assets/audio/sfx/dash.wav
+Loading resource: res://.godot/imported/dash.wav-751f76a9c829859a6ceee9808d98ce52.sample remapped: res://.godot/imported/dash.wav-751f76a9c829859a6ceee9808d98ce52.sample
+Completed load for: 'res://assets/audio/sfx/dash.wav' remapped 'res://assets/audio/sfx/dash.wav' at thread -1
+Loading resource: res://assets/audio/sfx/spirit_slash.wav remapped: res://assets/audio/sfx/spirit_slash.wav
+Loading resource: res://.godot/imported/spirit_slash.wav-2f3b9140aaf9b9973cec144bec063ec4.sample remapped: res://.godot/imported/spirit_slash.wav-2f3b9140aaf9b9973cec144bec063ec4.sample
+Completed load for: 'res://assets/audio/sfx/spirit_slash.wav' remapped 'res://assets/audio/sfx/spirit_slash.wav' at thread -1
+Loading resource: res://assets/audio/sfx/summon.wav remapped: res://assets/audio/sfx/summon.wav
+Loading resource: res://.godot/imported/summon.wav-0bfcf88db026c70b0092bb0afbf8e70a.sample remapped: res://.godot/imported/summon.wav-0bfcf88db026c70b0092bb0afbf8e70a.sample
+Completed load for: 'res://assets/audio/sfx/summon.wav' remapped 'res://assets/audio/sfx/summon.wav' at thread -1
+Loading resource: res://assets/audio/sfx/enemy_death.wav remapped: res://assets/audio/sfx/enemy_death.wav
+Loading resource: res://.godot/imported/enemy_death.wav-6bae1d1bbf98e070071e748aa5403ba3.sample remapped: res://.godot/imported/enemy_death.wav-6bae1d1bbf98e070071e748aa5403ba3.sample
+Completed load for: 'res://assets/audio/sfx/enemy_death.wav' remapped 'res://assets/audio/sfx/enemy_death.wav' at thread -1
+Loading resource: res://assets/audio/sfx/gate_hit.wav remapped: res://assets/audio/sfx/gate_hit.wav
+Loading resource: res://.godot/imported/gate_hit.wav-d42694aac6c119cc740ef8590b9155c9.sample remapped: res://.godot/imported/gate_hit.wav-d42694aac6c119cc740ef8590b9155c9.sample
+Completed load for: 'res://assets/audio/sfx/gate_hit.wav' remapped 'res://assets/audio/sfx/gate_hit.wav' at thread -1
+Loading resource: res://assets/audio/sfx/victory.wav remapped: res://assets/audio/sfx/victory.wav
+Loading resource: res://.godot/imported/victory.wav-d747c65c83bb1dc7254ad538b97f6989.sample remapped: res://.godot/imported/victory.wav-d747c65c83bb1dc7254ad538b97f6989.sample
+Completed load for: 'res://assets/audio/sfx/victory.wav' remapped 'res://assets/audio/sfx/victory.wav' at thread -1
+Loading resource: res://assets/audio/sfx/defeat.wav remapped: res://assets/audio/sfx/defeat.wav
+Loading resource: res://.godot/imported/defeat.wav-df86edfd3df71ccf1f8f1f0e2e7cb130.sample remapped: res://.godot/imported/defeat.wav-df86edfd3df71ccf1f8f1f0e2e7cb130.sample
+Completed load for: 'res://assets/audio/sfx/defeat.wav' remapped 'res://assets/audio/sfx/defeat.wav' at thread -1
+Loading resource: res://assets/audio/sfx/button_click.wav remapped: res://assets/audio/sfx/button_click.wav
+Loading resource: res://.godot/imported/button_click.wav-d33b5bdc383bcd0defbc7c28ff8796db.sample remapped: res://.godot/imported/button_click.wav-d33b5bdc383bcd0defbc7c28ff8796db.sample
+Completed load for: 'res://assets/audio/sfx/button_click.wav' remapped 'res://assets/audio/sfx/button_click.wav' at thread -1
+Loading resource: res://assets/audio/sfx/ultimate.wav remapped: res://assets/audio/sfx/ultimate.wav
+Loading resource: res://.godot/imported/ultimate.wav-0f19fc8fa4f0da98ab51c372b490b116.sample remapped: res://.godot/imported/ultimate.wav-0f19fc8fa4f0da98ab51c372b490b116.sample
+Completed load for: 'res://assets/audio/sfx/ultimate.wav' remapped 'res://assets/audio/sfx/ultimate.wav' at thread -1
+Loading resource: res://assets/audio/sfx/ultimate_ready.wav remapped: res://assets/audio/sfx/ultimate_ready.wav
+Loading resource: res://.godot/imported/ultimate_ready.wav-faa969e75d2d40a995d12fdb86481dfc.sample remapped: res://.godot/imported/ultimate_ready.wav-faa969e75d2d40a995d12fdb86481dfc.sample
+Completed load for: 'res://assets/audio/sfx/ultimate_ready.wav' remapped 'res://assets/audio/sfx/ultimate_ready.wav' at thread -1
+Loading resource: res://assets/audio/sfx/heal.wav remapped: res://assets/audio/sfx/heal.wav
+Loading resource: res://.godot/imported/heal.wav-3e84ef6755b2f365f04a6d74faf25f77.sample remapped: res://.godot/imported/heal.wav-3e84ef6755b2f365f04a6d74faf25f77.sample
+Completed load for: 'res://assets/audio/sfx/heal.wav' remapped 'res://assets/audio/sfx/heal.wav' at thread -1
+Loading resource: res://assets/audio/sfx/magic_burst.wav remapped: res://assets/audio/sfx/magic_burst.wav
+Loading resource: res://.godot/imported/magic_burst.wav-8619140dabb5cc83d03c1d89e8800fe0.sample remapped: res://.godot/imported/magic_burst.wav-8619140dabb5cc83d03c1d89e8800fe0.sample
+Completed load for: 'res://assets/audio/sfx/magic_burst.wav' remapped 'res://assets/audio/sfx/magic_burst.wav' at thread -1
+Loading resource: res://assets/audio/sfx/war_cry.wav remapped: res://assets/audio/sfx/war_cry.wav
+Loading resource: res://.godot/imported/war_cry.wav-035efa7af411b67afb5560977fa8e1e2.sample remapped: res://.godot/imported/war_cry.wav-035efa7af411b67afb5560977fa8e1e2.sample
+Completed load for: 'res://assets/audio/sfx/war_cry.wav' remapped 'res://assets/audio/sfx/war_cry.wav' at thread -1
+Loading resource: res://assets/audio/sfx/flesh_hit.wav remapped: res://assets/audio/sfx/flesh_hit.wav
+Loading resource: res://.godot/imported/flesh_hit.wav-118eb4f79c8586124da86d1387aecd0f.sample remapped: res://.godot/imported/flesh_hit.wav-118eb4f79c8586124da86d1387aecd0f.sample
+Completed load for: 'res://assets/audio/sfx/flesh_hit.wav' remapped 'res://assets/audio/sfx/flesh_hit.wav' at thread -1
+Loading resource: res://assets/audio/sfx/flesh_heavy.wav remapped: res://assets/audio/sfx/flesh_heavy.wav
+Loading resource: res://.godot/imported/flesh_heavy.wav-955d8300a0c6c960b12bec17d0840af9.sample remapped: res://.godot/imported/flesh_heavy.wav-955d8300a0c6c960b12bec17d0840af9.sample
+Completed load for: 'res://assets/audio/sfx/flesh_heavy.wav' remapped 'res://assets/audio/sfx/flesh_heavy.wav' at thread -1
+Loading resource: res://assets/audio/sfx/spirit_flesh.wav remapped: res://assets/audio/sfx/spirit_flesh.wav
+Loading resource: res://.godot/imported/spirit_flesh.wav-4cb027ee231703f790212fe47afbe289.sample remapped: res://.godot/imported/spirit_flesh.wav-4cb027ee231703f790212fe47afbe289.sample
+Completed load for: 'res://assets/audio/sfx/spirit_flesh.wav' remapped 'res://assets/audio/sfx/spirit_flesh.wav' at thread -1
+Completed load for: 'res://data/audio/sfx_library.tres' remapped 'res://data/audio/sfx_library.tres' at thread -1
+Loading resource: res://assets/audio/sfx_gore/Katana swings.mp3 remapped: res://assets/audio/sfx_gore/Katana swings.mp3
+Loading resource: res://.godot/imported/Katana swings.mp3-cec7b372e53d53ca1e621606548320e0.mp3str remapped: res://.godot/imported/Katana swings.mp3-cec7b372e53d53ca1e621606548320e0.mp3str
+Completed load for: 'res://assets/audio/sfx_gore/Katana swings.mp3' remapped 'res://assets/audio/sfx_gore/Katana swings.mp3' at thread -1
+Loading resource: res://assets/audio/sfx_gore/Katana swings2.mp3 remapped: res://assets/audio/sfx_gore/Katana swings2.mp3
+Loading resource: res://.godot/imported/Katana swings2.mp3-0205b088d6fea67bf36a001e613fe6d4.mp3str remapped: res://.godot/imported/Katana swings2.mp3-0205b088d6fea67bf36a001e613fe6d4.mp3str
+Completed load for: 'res://assets/audio/sfx_gore/Katana swings2.mp3' remapped 'res://assets/audio/sfx_gore/Katana swings2.mp3' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/impactMetal_light_000.ogg remapped: res://assets/audio/sfx_kenney/impactMetal_light_000.ogg
+Loading resource: res://.godot/imported/impactMetal_light_000.ogg-8eefc8080bbca0ebca49aa1230f0a4bc.oggvorbisstr remapped: res://.godot/imported/impactMetal_light_000.ogg-8eefc8080bbca0ebca49aa1230f0a4bc.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/impactMetal_light_000.ogg' remapped 'res://assets/audio/sfx_kenney/impactMetal_light_000.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/impactMetal_light_001.ogg remapped: res://assets/audio/sfx_kenney/impactMetal_light_001.ogg
+Loading resource: res://.godot/imported/impactMetal_light_001.ogg-0f9da8d6e581710f979c9670e2f18493.oggvorbisstr remapped: res://.godot/imported/impactMetal_light_001.ogg-0f9da8d6e581710f979c9670e2f18493.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/impactMetal_light_001.ogg' remapped 'res://assets/audio/sfx_kenney/impactMetal_light_001.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/impactMetal_light_002.ogg remapped: res://assets/audio/sfx_kenney/impactMetal_light_002.ogg
+Loading resource: res://.godot/imported/impactMetal_light_002.ogg-1f2699f14b21ad9b088cc4f94f9dd33c.oggvorbisstr remapped: res://.godot/imported/impactMetal_light_002.ogg-1f2699f14b21ad9b088cc4f94f9dd33c.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/impactMetal_light_002.ogg' remapped 'res://assets/audio/sfx_kenney/impactMetal_light_002.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/impactMetal_light_003.ogg remapped: res://assets/audio/sfx_kenney/impactMetal_light_003.ogg
+Loading resource: res://.godot/imported/impactMetal_light_003.ogg-64b7ce9c129e3ba30d66f13fae7e718d.oggvorbisstr remapped: res://.godot/imported/impactMetal_light_003.ogg-64b7ce9c129e3ba30d66f13fae7e718d.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/impactMetal_light_003.ogg' remapped 'res://assets/audio/sfx_kenney/impactMetal_light_003.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/impactMetal_heavy_000.ogg remapped: res://assets/audio/sfx_kenney/impactMetal_heavy_000.ogg
+Loading resource: res://.godot/imported/impactMetal_heavy_000.ogg-7e5960eb11540c289690c5b920e41851.oggvorbisstr remapped: res://.godot/imported/impactMetal_heavy_000.ogg-7e5960eb11540c289690c5b920e41851.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/impactMetal_heavy_000.ogg' remapped 'res://assets/audio/sfx_kenney/impactMetal_heavy_000.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/impactMetal_heavy_001.ogg remapped: res://assets/audio/sfx_kenney/impactMetal_heavy_001.ogg
+Loading resource: res://.godot/imported/impactMetal_heavy_001.ogg-67fef10647bdfecc579b40cd81a34a9d.oggvorbisstr remapped: res://.godot/imported/impactMetal_heavy_001.ogg-67fef10647bdfecc579b40cd81a34a9d.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/impactMetal_heavy_001.ogg' remapped 'res://assets/audio/sfx_kenney/impactMetal_heavy_001.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/impactMetal_heavy_002.ogg remapped: res://assets/audio/sfx_kenney/impactMetal_heavy_002.ogg
+Loading resource: res://.godot/imported/impactMetal_heavy_002.ogg-3e47b440e388d41a9329b64b9cc360be.oggvorbisstr remapped: res://.godot/imported/impactMetal_heavy_002.ogg-3e47b440e388d41a9329b64b9cc360be.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/impactMetal_heavy_002.ogg' remapped 'res://assets/audio/sfx_kenney/impactMetal_heavy_002.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_gore/Spirit Slash.mp3 remapped: res://assets/audio/sfx_gore/Spirit Slash.mp3
+Loading resource: res://.godot/imported/Spirit Slash.mp3-9fe4c0b24ea0f21e7d8dbe1dbec6635c.mp3str remapped: res://.godot/imported/Spirit Slash.mp3-9fe4c0b24ea0f21e7d8dbe1dbec6635c.mp3str
+Completed load for: 'res://assets/audio/sfx_gore/Spirit Slash.mp3' remapped 'res://assets/audio/sfx_gore/Spirit Slash.mp3' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/impactBell_heavy_000.ogg remapped: res://assets/audio/sfx_kenney/impactBell_heavy_000.ogg
+Loading resource: res://.godot/imported/impactBell_heavy_000.ogg-cb578b26feaacb112b686e839af2d5d7.oggvorbisstr remapped: res://.godot/imported/impactBell_heavy_000.ogg-cb578b26feaacb112b686e839af2d5d7.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/impactBell_heavy_000.ogg' remapped 'res://assets/audio/sfx_kenney/impactBell_heavy_000.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_gore/zombie_groan_1.ogg remapped: res://assets/audio/sfx_gore/zombie_groan_1.ogg
+Loading resource: res://.godot/imported/zombie_groan_1.ogg-bd89b445266927891ea177c84b3cfa1c.oggvorbisstr remapped: res://.godot/imported/zombie_groan_1.ogg-bd89b445266927891ea177c84b3cfa1c.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_gore/zombie_groan_1.ogg' remapped 'res://assets/audio/sfx_gore/zombie_groan_1.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_gore/zombie_groan_2.ogg remapped: res://assets/audio/sfx_gore/zombie_groan_2.ogg
+Loading resource: res://.godot/imported/zombie_groan_2.ogg-3bb8b78d5794449829a43ae18b530155.oggvorbisstr remapped: res://.godot/imported/zombie_groan_2.ogg-3bb8b78d5794449829a43ae18b530155.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_gore/zombie_groan_2.ogg' remapped 'res://assets/audio/sfx_gore/zombie_groan_2.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_gore/zombie_groan_3.ogg remapped: res://assets/audio/sfx_gore/zombie_groan_3.ogg
+Loading resource: res://.godot/imported/zombie_groan_3.ogg-144e34961bd0eda968594607db9dc54c.oggvorbisstr remapped: res://.godot/imported/zombie_groan_3.ogg-144e34961bd0eda968594607db9dc54c.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_gore/zombie_groan_3.ogg' remapped 'res://assets/audio/sfx_gore/zombie_groan_3.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_gore/zombie_groan_4.ogg remapped: res://assets/audio/sfx_gore/zombie_groan_4.ogg
+Loading resource: res://.godot/imported/zombie_groan_4.ogg-c53afaf6ce0787531b7cbd532d879660.oggvorbisstr remapped: res://.godot/imported/zombie_groan_4.ogg-c53afaf6ce0787531b7cbd532d879660.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_gore/zombie_groan_4.ogg' remapped 'res://assets/audio/sfx_gore/zombie_groan_4.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_gore/zombie_groan_5.ogg remapped: res://assets/audio/sfx_gore/zombie_groan_5.ogg
+Loading resource: res://.godot/imported/zombie_groan_5.ogg-40d097fe36c92298627bbabb429f7b1e.oggvorbisstr remapped: res://.godot/imported/zombie_groan_5.ogg-40d097fe36c92298627bbabb429f7b1e.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_gore/zombie_groan_5.ogg' remapped 'res://assets/audio/sfx_gore/zombie_groan_5.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_gore/zombie_groan_6.ogg remapped: res://assets/audio/sfx_gore/zombie_groan_6.ogg
+Loading resource: res://.godot/imported/zombie_groan_6.ogg-658044d4f9148ab02f6ed8a8bf1fc6e7.oggvorbisstr remapped: res://.godot/imported/zombie_groan_6.ogg-658044d4f9148ab02f6ed8a8bf1fc6e7.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_gore/zombie_groan_6.ogg' remapped 'res://assets/audio/sfx_gore/zombie_groan_6.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/impactWood_heavy_000.ogg remapped: res://assets/audio/sfx_kenney/impactWood_heavy_000.ogg
+Loading resource: res://.godot/imported/impactWood_heavy_000.ogg-a4357b4cf0d69250715e5bca0529138c.oggvorbisstr remapped: res://.godot/imported/impactWood_heavy_000.ogg-a4357b4cf0d69250715e5bca0529138c.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/impactWood_heavy_000.ogg' remapped 'res://assets/audio/sfx_kenney/impactWood_heavy_000.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/impactWood_heavy_001.ogg remapped: res://assets/audio/sfx_kenney/impactWood_heavy_001.ogg
+Loading resource: res://.godot/imported/impactWood_heavy_001.ogg-b7433c79b068039e6e6eb0492f70d603.oggvorbisstr remapped: res://.godot/imported/impactWood_heavy_001.ogg-b7433c79b068039e6e6eb0492f70d603.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/impactWood_heavy_001.ogg' remapped 'res://assets/audio/sfx_kenney/impactWood_heavy_001.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/impactWood_heavy_002.ogg remapped: res://assets/audio/sfx_kenney/impactWood_heavy_002.ogg
+Loading resource: res://.godot/imported/impactWood_heavy_002.ogg-d59121453ed738b13944163b8f65fd96.oggvorbisstr remapped: res://.godot/imported/impactWood_heavy_002.ogg-d59121453ed738b13944163b8f65fd96.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/impactWood_heavy_002.ogg' remapped 'res://assets/audio/sfx_kenney/impactWood_heavy_002.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/click_001.ogg remapped: res://assets/audio/sfx_kenney/click_001.ogg
+Loading resource: res://.godot/imported/click_001.ogg-8ebb26f6dd1a47852bb3a9b053b36993.oggvorbisstr remapped: res://.godot/imported/click_001.ogg-8ebb26f6dd1a47852bb3a9b053b36993.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/click_001.ogg' remapped 'res://assets/audio/sfx_kenney/click_001.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/click_002.ogg remapped: res://assets/audio/sfx_kenney/click_002.ogg
+Loading resource: res://.godot/imported/click_002.ogg-ca7db118fa9a229cbc1f64f39d530a39.oggvorbisstr remapped: res://.godot/imported/click_002.ogg-ca7db118fa9a229cbc1f64f39d530a39.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/click_002.ogg' remapped 'res://assets/audio/sfx_kenney/click_002.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_kenney/click_003.ogg remapped: res://assets/audio/sfx_kenney/click_003.ogg
+Loading resource: res://.godot/imported/click_003.ogg-1ef3b4e2f90901616fb5cb07d71c19c5.oggvorbisstr remapped: res://.godot/imported/click_003.ogg-1ef3b4e2f90901616fb5cb07d71c19c5.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_kenney/click_003.ogg' remapped 'res://assets/audio/sfx_kenney/click_003.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_sonniss/ultimate_ready.ogg remapped: res://assets/audio/sfx_sonniss/ultimate_ready.ogg
+Loading resource: res://.godot/imported/ultimate_ready.ogg-ebab4cad3e11514155a30fbcbf459061.oggvorbisstr remapped: res://.godot/imported/ultimate_ready.ogg-ebab4cad3e11514155a30fbcbf459061.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_sonniss/ultimate_ready.ogg' remapped 'res://assets/audio/sfx_sonniss/ultimate_ready.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_gore/Sword Blade Slicing Flesh.mp3 remapped: res://assets/audio/sfx_gore/Sword Blade Slicing Flesh.mp3
+Loading resource: res://.godot/imported/Sword Blade Slicing Flesh.mp3-ec41adbb6b714178380e875b435ff7b5.mp3str remapped: res://.godot/imported/Sword Blade Slicing Flesh.mp3-ec41adbb6b714178380e875b435ff7b5.mp3str
+Completed load for: 'res://assets/audio/sfx_gore/Sword Blade Slicing Flesh.mp3' remapped 'res://assets/audio/sfx_gore/Sword Blade Slicing Flesh.mp3' at thread -1
+Loading resource: res://assets/audio/sfx_gore/Violent Sword Slice.mp3 remapped: res://assets/audio/sfx_gore/Violent Sword Slice.mp3
+Loading resource: res://.godot/imported/Violent Sword Slice.mp3-e77d7a7919d28d9f26566edf391aae86.mp3str remapped: res://.godot/imported/Violent Sword Slice.mp3-e77d7a7919d28d9f26566edf391aae86.mp3str
+Completed load for: 'res://assets/audio/sfx_gore/Violent Sword Slice.mp3' remapped 'res://assets/audio/sfx_gore/Violent Sword Slice.mp3' at thread -1
+Loading resource: res://assets/audio/sfx_gore/Violent Sword Slice 2.mp3 remapped: res://assets/audio/sfx_gore/Violent Sword Slice 2.mp3
+Loading resource: res://.godot/imported/Violent Sword Slice 2.mp3-8f960fb226d6bb341d65985982868e4a.mp3str remapped: res://.godot/imported/Violent Sword Slice 2.mp3-8f960fb226d6bb341d65985982868e4a.mp3str
+Completed load for: 'res://assets/audio/sfx_gore/Violent Sword Slice 2.mp3' remapped 'res://assets/audio/sfx_gore/Violent Sword Slice 2.mp3' at thread -1
+Loading resource: res://assets/audio/sfx_gore/Heavy attack.mp3 remapped: res://assets/audio/sfx_gore/Heavy attack.mp3
+Loading resource: res://.godot/imported/Heavy attack.mp3-1c2b88a0150c4868690878ccfb711ba4.mp3str remapped: res://.godot/imported/Heavy attack.mp3-1c2b88a0150c4868690878ccfb711ba4.mp3str
+Completed load for: 'res://assets/audio/sfx_gore/Heavy attack.mp3' remapped 'res://assets/audio/sfx_gore/Heavy attack.mp3' at thread -1
+Loading resource: res://assets/audio/sfx_sonniss/roar.ogg remapped: res://assets/audio/sfx_sonniss/roar.ogg
+Loading resource: res://.godot/imported/roar.ogg-134c1ddf1d5a2291689b1834a8e763f3.oggvorbisstr remapped: res://.godot/imported/roar.ogg-134c1ddf1d5a2291689b1834a8e763f3.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_sonniss/roar.ogg' remapped 'res://assets/audio/sfx_sonniss/roar.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_sonniss/slam_1.ogg remapped: res://assets/audio/sfx_sonniss/slam_1.ogg
+Loading resource: res://.godot/imported/slam_1.ogg-4afbeea92424ceeb1fc9d50ee9516f72.oggvorbisstr remapped: res://.godot/imported/slam_1.ogg-4afbeea92424ceeb1fc9d50ee9516f72.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_sonniss/slam_1.ogg' remapped 'res://assets/audio/sfx_sonniss/slam_1.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_sonniss/slam_2.ogg remapped: res://assets/audio/sfx_sonniss/slam_2.ogg
+Loading resource: res://.godot/imported/slam_2.ogg-8a29121da317bfaac037def4c1a66ba2.oggvorbisstr remapped: res://.godot/imported/slam_2.ogg-8a29121da317bfaac037def4c1a66ba2.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_sonniss/slam_2.ogg' remapped 'res://assets/audio/sfx_sonniss/slam_2.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_sonniss/stone_1.ogg remapped: res://assets/audio/sfx_sonniss/stone_1.ogg
+Loading resource: res://.godot/imported/stone_1.ogg-5f9722476e71cc45fa2190fca3424f72.oggvorbisstr remapped: res://.godot/imported/stone_1.ogg-5f9722476e71cc45fa2190fca3424f72.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_sonniss/stone_1.ogg' remapped 'res://assets/audio/sfx_sonniss/stone_1.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_sonniss/stone_2.ogg remapped: res://assets/audio/sfx_sonniss/stone_2.ogg
+Loading resource: res://.godot/imported/stone_2.ogg-3aa9f357841f5021afbc809c063698f3.oggvorbisstr remapped: res://.godot/imported/stone_2.ogg-3aa9f357841f5021afbc809c063698f3.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_sonniss/stone_2.ogg' remapped 'res://assets/audio/sfx_sonniss/stone_2.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_sonniss/explosion.ogg remapped: res://assets/audio/sfx_sonniss/explosion.ogg
+Loading resource: res://.godot/imported/explosion.ogg-75208a479e9d180c4ae045539cbdc626.oggvorbisstr remapped: res://.godot/imported/explosion.ogg-75208a479e9d180c4ae045539cbdc626.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_sonniss/explosion.ogg' remapped 'res://assets/audio/sfx_sonniss/explosion.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_sonniss/gate_destroyed.ogg remapped: res://assets/audio/sfx_sonniss/gate_destroyed.ogg
+Loading resource: res://.godot/imported/gate_destroyed.ogg-c14291f2bcef656d3edc5d3ebb9c2e6b.oggvorbisstr remapped: res://.godot/imported/gate_destroyed.ogg-c14291f2bcef656d3edc5d3ebb9c2e6b.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_sonniss/gate_destroyed.ogg' remapped 'res://assets/audio/sfx_sonniss/gate_destroyed.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_sonniss/boss_summon.ogg remapped: res://assets/audio/sfx_sonniss/boss_summon.ogg
+Loading resource: res://.godot/imported/boss_summon.ogg-5c96036d05d17e24768813a4b5296cb4.oggvorbisstr remapped: res://.godot/imported/boss_summon.ogg-5c96036d05d17e24768813a4b5296cb4.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_sonniss/boss_summon.ogg' remapped 'res://assets/audio/sfx_sonniss/boss_summon.ogg' at thread -1
+Loading resource: res://assets/audio/sfx_sonniss/whoosh.ogg remapped: res://assets/audio/sfx_sonniss/whoosh.ogg
+Loading resource: res://.godot/imported/whoosh.ogg-cda8524d7da9d4d9d7c889a5f463470f.oggvorbisstr remapped: res://.godot/imported/whoosh.ogg-cda8524d7da9d4d9d7c889a5f463470f.oggvorbisstr
+Completed load for: 'res://assets/audio/sfx_sonniss/whoosh.ogg' remapped 'res://assets/audio/sfx_sonniss/whoosh.ogg' at thread -1
+Loading resource: res://data/audio/music_library.tres remapped: res://data/audio/music_library.tres
+Completed load for: 'res://data/audio/music_library.tres' remapped 'res://data/audio/music_library.tres' at thread -1
+Loading resource: res://data/atmosphere/golden_sunset.tres remapped: res://data/atmosphere/golden_sunset.tres
+Completed load for: 'res://data/atmosphere/golden_sunset.tres' remapped 'res://data/atmosphere/golden_sunset.tres' at thread -1
+Loading resource: res://scripts/visuals/shaders/reed_sway.gdshader remapped: res://scripts/visuals/shaders/reed_sway.gdshader
+Completed load for: 'res://scripts/visuals/shaders/reed_sway.gdshader' remapped 'res://scripts/visuals/shaders/reed_sway.gdshader' at thread -1
+Loading resource: res://assets/audio/music/Voice of Evening Calm.mp3 remapped: res://assets/audio/music/Voice of Evening Calm.mp3
+Loading resource: res://.godot/imported/Voice of Evening Calm.mp3-56f84c1c0da6d0aa62b3a938f33c4272.mp3str remapped: res://.godot/imported/Voice of Evening Calm.mp3-56f84c1c0da6d0aa62b3a938f33c4272.mp3str
+Completed load for: 'res://assets/audio/music/Voice of Evening Calm.mp3' remapped 'res://assets/audio/music/Voice of Evening Calm.mp3' at thread -1
+Loading resource: res://data/regions/bamboo_outskirts.tres remapped: res://data/regions/bamboo_outskirts.tres
+Loading resource: res://data/stages/stage_1.tres remapped: res://data/stages/stage_1.tres
+Loading resource: res://data/stages/stage_1/wave_1.tres remapped: res://data/stages/stage_1/wave_1.tres
+Loading resource: res://data/enemies/hollow_soldier.tres remapped: res://data/enemies/hollow_soldier.tres
+Completed load for: 'res://data/enemies/hollow_soldier.tres' remapped 'res://data/enemies/hollow_soldier.tres' at thread -1
+Completed load for: 'res://data/stages/stage_1/wave_1.tres' remapped 'res://data/stages/stage_1/wave_1.tres' at thread -1
+Loading resource: res://data/stages/stage_1/wave_2.tres remapped: res://data/stages/stage_1/wave_2.tres
+Completed load for: 'res://data/stages/stage_1/wave_2.tres' remapped 'res://data/stages/stage_1/wave_2.tres' at thread -1
+Loading resource: res://data/stages/stage_1/wave_3.tres remapped: res://data/stages/stage_1/wave_3.tres
+Loading resource: res://data/enemies/oni_brute.tres remapped: res://data/enemies/oni_brute.tres
+Completed load for: 'res://data/enemies/oni_brute.tres' remapped 'res://data/enemies/oni_brute.tres' at thread -1
+Completed load for: 'res://data/stages/stage_1/wave_3.tres' remapped 'res://data/stages/stage_1/wave_3.tres' at thread -1
+Completed load for: 'res://data/stages/stage_1.tres' remapped 'res://data/stages/stage_1.tres' at thread -1
+Loading resource: res://data/stages/stage_2.tres remapped: res://data/stages/stage_2.tres
+Loading resource: res://data/atmosphere/rose_dusk.tres remapped: res://data/atmosphere/rose_dusk.tres
+Completed load for: 'res://data/atmosphere/rose_dusk.tres' remapped 'res://data/atmosphere/rose_dusk.tres' at thread -1
+Loading resource: res://data/stages/stage_2/wave_1.tres remapped: res://data/stages/stage_2/wave_1.tres
+Completed load for: 'res://data/stages/stage_2/wave_1.tres' remapped 'res://data/stages/stage_2/wave_1.tres' at thread -1
+Loading resource: res://data/stages/stage_2/wave_2.tres remapped: res://data/stages/stage_2/wave_2.tres
+Completed load for: 'res://data/stages/stage_2/wave_2.tres' remapped 'res://data/stages/stage_2/wave_2.tres' at thread -1
+Loading resource: res://data/stages/stage_2/wave_3.tres remapped: res://data/stages/stage_2/wave_3.tres
+Completed load for: 'res://data/stages/stage_2/wave_3.tres' remapped 'res://data/stages/stage_2/wave_3.tres' at thread -1
+Loading resource: res://data/stages/stage_2/wave_4.tres remapped: res://data/stages/stage_2/wave_4.tres
+Completed load for: 'res://data/stages/stage_2/wave_4.tres' remapped 'res://data/stages/stage_2/wave_4.tres' at thread -1
+Completed load for: 'res://data/stages/stage_2.tres' remapped 'res://data/stages/stage_2.tres' at thread -1
+Loading resource: res://data/stages/stage_3.tres remapped: res://data/stages/stage_3.tres
+Loading resource: res://data/atmosphere/misty_grove.tres remapped: res://data/atmosphere/misty_grove.tres
+Completed load for: 'res://data/atmosphere/misty_grove.tres' remapped 'res://data/atmosphere/misty_grove.tres' at thread -1
+Loading resource: res://data/stages/stage_3/wave_1.tres remapped: res://data/stages/stage_3/wave_1.tres
+Completed load for: 'res://data/stages/stage_3/wave_1.tres' remapped 'res://data/stages/stage_3/wave_1.tres' at thread -1
+Loading resource: res://data/stages/stage_3/wave_2.tres remapped: res://data/stages/stage_3/wave_2.tres
+Completed load for: 'res://data/stages/stage_3/wave_2.tres' remapped 'res://data/stages/stage_3/wave_2.tres' at thread -1
+Loading resource: res://data/stages/stage_3/wave_3.tres remapped: res://data/stages/stage_3/wave_3.tres
+Completed load for: 'res://data/stages/stage_3/wave_3.tres' remapped 'res://data/stages/stage_3/wave_3.tres' at thread -1
+Loading resource: res://data/stages/stage_3/wave_4.tres remapped: res://data/stages/stage_3/wave_4.tres
+Completed load for: 'res://data/stages/stage_3/wave_4.tres' remapped 'res://data/stages/stage_3/wave_4.tres' at thread -1
+Completed load for: 'res://data/stages/stage_3.tres' remapped 'res://data/stages/stage_3.tres' at thread -1
+Loading resource: res://data/stages/stage_4.tres remapped: res://data/stages/stage_4.tres
+Loading resource: res://data/atmosphere/broken_shrine.tres remapped: res://data/atmosphere/broken_shrine.tres
+Completed load for: 'res://data/atmosphere/broken_shrine.tres' remapped 'res://data/atmosphere/broken_shrine.tres' at thread -1
+Loading resource: res://data/stages/stage_4/wave_1.tres remapped: res://data/stages/stage_4/wave_1.tres
+Completed load for: 'res://data/stages/stage_4/wave_1.tres' remapped 'res://data/stages/stage_4/wave_1.tres' at thread -1
+Loading resource: res://data/stages/stage_4/wave_2.tres remapped: res://data/stages/stage_4/wave_2.tres
+Completed load for: 'res://data/stages/stage_4/wave_2.tres' remapped 'res://data/stages/stage_4/wave_2.tres' at thread -1
+Loading resource: res://data/stages/stage_4/wave_3.tres remapped: res://data/stages/stage_4/wave_3.tres
+Completed load for: 'res://data/stages/stage_4/wave_3.tres' remapped 'res://data/stages/stage_4/wave_3.tres' at thread -1
+Loading resource: res://data/stages/stage_4/wave_4.tres remapped: res://data/stages/stage_4/wave_4.tres
+Completed load for: 'res://data/stages/stage_4/wave_4.tres' remapped 'res://data/stages/stage_4/wave_4.tres' at thread -1
+Loading resource: res://data/stages/stage_4/wave_5.tres remapped: res://data/stages/stage_4/wave_5.tres
+Completed load for: 'res://data/stages/stage_4/wave_5.tres' remapped 'res://data/stages/stage_4/wave_5.tres' at thread -1
+Completed load for: 'res://data/stages/stage_4.tres' remapped 'res://data/stages/stage_4.tres' at thread -1
+Loading resource: res://data/stages/stage_5.tres remapped: res://data/stages/stage_5.tres
+Loading resource: res://data/atmosphere/ember_hollow.tres remapped: res://data/atmosphere/ember_hollow.tres
+Completed load for: 'res://data/atmosphere/ember_hollow.tres' remapped 'res://data/atmosphere/ember_hollow.tres' at thread -1
+Loading resource: res://data/stages/stage_5/wave_1.tres remapped: res://data/stages/stage_5/wave_1.tres
+Completed load for: 'res://data/stages/stage_5/wave_1.tres' remapped 'res://data/stages/stage_5/wave_1.tres' at thread -1
+Loading resource: res://data/stages/stage_5/wave_2.tres remapped: res://data/stages/stage_5/wave_2.tres
+Completed load for: 'res://data/stages/stage_5/wave_2.tres' remapped 'res://data/stages/stage_5/wave_2.tres' at thread -1
+Loading resource: res://data/stages/stage_5/wave_3.tres remapped: res://data/stages/stage_5/wave_3.tres
+Completed load for: 'res://data/stages/stage_5/wave_3.tres' remapped 'res://data/stages/stage_5/wave_3.tres' at thread -1
+Loading resource: res://data/stages/stage_5/wave_4.tres remapped: res://data/stages/stage_5/wave_4.tres
+Completed load for: 'res://data/stages/stage_5/wave_4.tres' remapped 'res://data/stages/stage_5/wave_4.tres' at thread -1
+Loading resource: res://data/stages/stage_5/wave_5.tres remapped: res://data/stages/stage_5/wave_5.tres
+Loading resource: res://data/enemies/fallen_daimyo.tres remapped: res://data/enemies/fallen_daimyo.tres
+Loading resource: res://scenes/enemies/boss.tscn remapped: res://scenes/enemies/boss.tscn
+Loading resource: res://scenes/enemies/enemy.tscn remapped: res://scenes/enemies/enemy.tscn
+Loading resource: res://scenes/enemies/enemy.gd remapped: res://scenes/enemies/enemy.gd
+Loading resource: res://scenes/player/spirit_slash.tscn remapped: res://scenes/player/spirit_slash.tscn
+Loading resource: res://scenes/player/spirit_slash.gd remapped: res://scenes/player/spirit_slash.gd
+Completed load for: 'res://scenes/player/spirit_slash.gd' remapped 'res://scenes/player/spirit_slash.gd' at thread -1
+Loading resource: res://scripts/visuals/vfx/spirit_slash_visual.gd remapped: res://scripts/visuals/vfx/spirit_slash_visual.gd
+Completed load for: 'res://scripts/visuals/vfx/spirit_slash_visual.gd' remapped 'res://scripts/visuals/vfx/spirit_slash_visual.gd' at thread -1
+Completed load for: 'res://scenes/player/spirit_slash.tscn' remapped 'res://scenes/player/spirit_slash.tscn' at thread -1
+Loading resource: res://scenes/allies/arrow.tscn remapped: res://scenes/allies/arrow.tscn
+Loading resource: res://scenes/allies/arrow.gd remapped: res://scenes/allies/arrow.gd
+Completed load for: 'res://scenes/allies/arrow.gd' remapped 'res://scenes/allies/arrow.gd' at thread -1
+Completed load for: 'res://scenes/allies/arrow.tscn' remapped 'res://scenes/allies/arrow.tscn' at thread -1
+Completed load for: 'res://scenes/enemies/enemy.gd' remapped 'res://scenes/enemies/enemy.gd' at thread -1
+Completed load for: 'res://scenes/enemies/enemy.tscn' remapped 'res://scenes/enemies/enemy.tscn' at thread -1
+Loading resource: res://scenes/enemies/boss.gd remapped: res://scenes/enemies/boss.gd
+Completed load for: 'res://scenes/enemies/boss.gd' remapped 'res://scenes/enemies/boss.gd' at thread -1
+Completed load for: 'res://scenes/enemies/boss.tscn' remapped 'res://scenes/enemies/boss.tscn' at thread -1
+Completed load for: 'res://data/enemies/fallen_daimyo.tres' remapped 'res://data/enemies/fallen_daimyo.tres' at thread -1
+Completed load for: 'res://data/stages/stage_5/wave_5.tres' remapped 'res://data/stages/stage_5/wave_5.tres' at thread -1
+Completed load for: 'res://data/stages/stage_5.tres' remapped 'res://data/stages/stage_5.tres' at thread -1
+Completed load for: 'res://data/regions/bamboo_outskirts.tres' remapped 'res://data/regions/bamboo_outskirts.tres' at thread -1
+XR: Clearing primary interface
+XR: Removed interface "Native mobile"
+XR: Removed interface "OpenXR"
