@@ -27,3 +27,26 @@ Thumbs.db
 *.tmp
 .vscode/
 .idea/
+
+# Python bytecode caches (tools/*.py)
+__pycache__/
+
+# Music tracks data/audio/music_library.tres does not use: kept on disk, not in the repo
+/assets/audio/music/Dream Sakura-remix.mp3
+/assets/audio/music/Dream Sakura-remix.mp3.import
+/assets/audio/music/Dream Sakura_Loop.ogg
+/assets/audio/music/Dream Sakura_Loop.ogg.import
+/assets/audio/music/Honobono Teahouse.mp3
+/assets/audio/music/Honobono Teahouse.mp3.import
+/assets/audio/music/Honobono Teahouse_Loop.mp3
+/assets/audio/music/Honobono Teahouse_Loop.mp3.import
+/assets/audio/music/Moonlight Japanese Harp.mp3
+/assets/audio/music/Moonlight Japanese Harp.mp3.import
+/assets/audio/music/Mountain God's Shrine.mp3
+/assets/audio/music/Mountain God's Shrine.mp3.import
+/assets/audio/music/Mysterious Kyoto.mp3
+/assets/audio/music/Mysterious Kyoto.mp3.import
+/assets/audio/music/Shamisen Samurai Rock.mp3
+/assets/audio/music/Shamisen Samurai Rock.mp3.import
+/assets/audio/music/Shamisen Samurai Rock_Loop.mp3
+/assets/audio/music/Shamisen Samurai Rock_Loop.mp3.import
