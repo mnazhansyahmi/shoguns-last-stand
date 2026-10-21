@@ -359,8 +359,9 @@ func _set_facing(direction: int) -> void:
 # --- Visuals from data ----------------------------------------------------
 
 func _apply_data() -> void:
-	# Every soldier gets its own phase, size (+-6%), speed (+-10%) and personal space.
-	_visual.enable_variation()
+	# Every soldier gets its own phase, size (+-6%), speed (+-10%) and personal space; the Hollow Soldiers, who come
+	# in crowds, also their own look, size (+-8%), hunch, hat and walk phase (UnitVisual.CROWD_*).
+	_visual.enable_variation(0, data.figure == InkFigure.Kind.HOLLOW_SOLDIER)
 	_spacing_scale = randf_range(0.8, 1.25)
 	UnitRig.build_collision(_body_shape, _hurtbox_shape, _hitbox_shape, data.body_size, _attack.hitbox_size)
 	var head_top: float = _visual.configure(data.figure, data.body_size.y)

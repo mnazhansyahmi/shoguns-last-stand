@@ -490,3 +490,29 @@ func test_ally_bars_show_only_after_a_hit_short_and_stacked_by_lane() -> void:
 			assert_true(not a.intersects(b), "ally bars %d and %d do not overlap" % [i, j])
 	bars[0]._process(WorldHealthBar.HIDE_DELAY + 0.1)
 	assert_true(not bars[0].visible, "it hides two seconds after the last hit")
+
+
+func test_hollow_soldiers_vary_in_look_size_hat_hunch_and_step() -> void:
+	var looks: Dictionary = {}
+	var bare: int = 0
+	var hunched: int = 0
+	var sizes: Array[float] = []
+	var phases: Dictionary = {}
+	for i: int in 40:
+		var visual: UnitVisual = UnitVisual.new()
+		add_to_tree(visual)
+		visual.enable_variation(500 + i, true)
+		visual.configure(InkFigure.Kind.HOLLOW_SOLDIER, 100.0)
+		looks[visual.crowd_look] = true
+		bare += 1 if visual.crowd_bare_head else 0
+		hunched += 1 if visual.crowd_hunch > 0.0 else 0
+		sizes.append(visual.size_variation)
+		phases[snappedf(visual.get_figure().gait.start_phase, 0.05)] = true
+		assert_true(absf(visual.size_variation - 1.0) <= UnitVisual.CROWD_SIZE + 0.0001, "size stays within +-8%")
+		assert_eq(visual.get_figure().bare_head, visual.crowd_bare_head, "the figure wears (or lacks) its hat")
+	assert_eq(looks.size(), UnitVisual.CROWD_TINTS.size(), "all four looks appear (base, darker, paler, rust)")
+	assert_true(bare > 2 and bare < 20, "some go bare-headed (%d of 40)" % bare)
+	assert_true(hunched > 4 and hunched < 30, "some are more hunched (%d of 40)" % hunched)
+	assert_true(sizes.max() - sizes.min() > 0.08, "sizes spread out")
+	assert_true(phases.size() > 8, "they do not step in unison")
+	assert_true(not RosterSpriteArt.bare_head_mesh(InkFigure.Kind.HOLLOW_SOLDIER).is_empty(), "the bare head triangulates")

@@ -23,6 +23,13 @@ const AFTERIMAGE_COUNT: int = 3
 const CULL_MARGIN: float = 360.0
 ## Variation ranges (fractions): size, walking speed; and the vertical offset in pixels.
 const VARY_SIZE: float = 0.06
+## A crowd unit (enable_variation(seed, true), the Hollow Soldiers) varies more: size, one of these looks (base, darker,
+## paler, rust: worn ink and old iron), a third more hunched, a tilted hat and a quarter bare-headed.
+const CROWD_SIZE: float = 0.08
+const CROWD_TINTS: Array[Color] = [Color(1.0, 1.0, 1.0), Color(0.72, 0.7, 0.76), Color(1.16, 1.13, 1.08), Color(1.1, 0.86, 0.7)]
+const CROWD_HUNCH: Vector2 = Vector2(0.06, 0.16)
+const CROWD_HEAD_CANT: float = 0.14
+const CROWD_BARE_CHANCE: float = 0.25
 const VARY_SPEED: float = 0.1
 const VARY_OFFSET_UP: float = 4.0
 const VARY_OFFSET_DOWN: float = 1.5
@@ -73,6 +80,11 @@ var vary: bool = false
 ## Multiplies the figure's height (about +-6%) and the unit's walking speed (about +-10%).
 var size_variation: float = 1.0
 var speed_variation: float = 1.0
+## The crowd look (see CROWD_TINTS): its index, how much more it leans, its head tilt, and whether it is bare-headed.
+var crowd_look: int = 0
+var crowd_hunch: float = 0.0
+var crowd_head_cant: float = 0.0
+var crowd_bare_head: bool = false
 ## Occasional idle/run events: a quick head turn or a stumble (visual only).
 var _event: StringName = &""
 var _event_time: float = 0.0
@@ -94,14 +106,21 @@ func _ready() -> void:
 ## Gives this unit its own look and rhythm: a random animation phase and cloth phase, about +-6%
 ## size, about +-10% speed, a small vertical offset and a random time to its first head turn or
 ## stumble. Call before configure(). `seed_value` 0 = random; a seed makes it repeatable (tests).
-func enable_variation(seed_value: int = 0) -> void:
+func enable_variation(seed_value: int = 0, crowd: bool = false) -> void:
 	vary = true
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	if seed_value != 0:
 		rng.seed = seed_value
 	else:
 		rng.randomize()
-	size_variation = rng.randf_range(1.0 - VARY_SIZE, 1.0 + VARY_SIZE)
+	var size: float = CROWD_SIZE if crowd else VARY_SIZE
+	size_variation = rng.randf_range(1.0 - size, 1.0 + size)
+	if crowd:
+		crowd_look = rng.randi_range(0, CROWD_TINTS.size() - 1)
+		_base_tint = CROWD_TINTS[crowd_look]
+		crowd_hunch = rng.randf_range(CROWD_HUNCH.x, CROWD_HUNCH.y) if rng.randf() < 0.34 else 0.0
+		crowd_head_cant = rng.randf_range(-CROWD_HEAD_CANT, CROWD_HEAD_CANT)
+		crowd_bare_head = rng.randf() < CROWD_BARE_CHANCE
 	speed_variation = rng.randf_range(1.0 - VARY_SPEED, 1.0 + VARY_SPEED)
 	position.y = rng.randf_range(-VARY_OFFSET_UP, VARY_OFFSET_DOWN)
 	_breath_phase = rng.randf() * TAU
@@ -111,6 +130,8 @@ func enable_variation(seed_value: int = 0) -> void:
 		_figure.clock = rng.randf() * 40.0
 		_figure.stride_phase = rng.randf() * TAU
 		_figure.flicker_phase = rng.randf() * TAU
+		_figure.gait.start_phase = rng.randf()
+		_apply_crowd_look()
 
 
 ## Sets which figure is drawn and its height in pixels. Returns the local y of the head top.
@@ -123,6 +144,7 @@ func configure(kind: InkFigure.Kind, height: float) -> float:
 		height *= size_variation
 	_figure.height = height
 	_figure.kind = kind
+	_apply_crowd_look()
 	_figure.ground_marker = Color(InkPalette.SAMURAI_RED, 0.85) if ground_marker else Color(0.0, 0.0, 0.0, 0.0)
 	_target = FigureKinds.pose(kind, _state if _state != &"" else &"idle", _combo_step, _heavy)
 	_blend_left = 1.0
@@ -232,6 +254,14 @@ func set_blinking(enabled: bool) -> void:
 	_blinking = enabled
 	if not enabled:
 		_blink_clock = 0.0
+
+
+func _apply_crowd_look() -> void:
+	if _figure == null:
+		return
+	_figure.hunch = crowd_hunch
+	_figure.head_cant = crowd_head_cant
+	_figure.bare_head = crowd_bare_head
 
 
 func set_tint(color: Color) -> void:

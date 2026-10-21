@@ -32,6 +32,14 @@ var spec: FigureKinds.Spec = FigureKinds.spec(Kind.SAMURAI)
 
 # Motion written by UnitVisual.
 var gait: LegGait = LegGait.new()
+## Crowd variety (UnitVisual.enable_variation): an extra forward lean of the torso, an extra tilt of the head (and
+## the hat on it), and a bare head where the kind has one (RosterSpriteArt.BARE_HEADS).
+var hunch: float = 0.0
+var head_cant: float = 0.0
+var bare_head: bool = false:
+	set(value):
+		bare_head = value
+		_apply_bare_head()
 var gait_enabled: bool = false
 var upright: bool = false
 ## Presentation-only equipment choice; combat figures show the stowed yumi by default.
@@ -124,6 +132,14 @@ static func additive_material() -> CanvasItemMaterial:
 	if _additive == null:
 		_additive = InkBrush.additive_material()
 	return _additive
+
+
+func _apply_bare_head() -> void:
+	var head: FigurePart = get_node_or_null("head") as FigurePart
+	if head == null:
+		return
+	head.art_mesh = RosterSpriteArt.bare_head_mesh(kind) if bare_head and RosterSpriteArt.BARE_HEADS.has(kind) else []
+	head.queue_redraw()
 
 
 func set_kind(value: Kind) -> void:
@@ -230,8 +246,8 @@ func refresh() -> void:
 	back_knee = LegIK.knee(hip + Vector2(-2.0, 0.0), back_ankle, spec.thigh, spec.shin)
 
 	_lift_fallen_legs()
-	torso_xf = root_xf * Transform2D(pose.lean + (gait.counter_turn if gait_enabled else 0.0), Vector2(1.0, (1.0 + spec.breath_amp * breath) * maxf(squash, 0.05)), 0.0, hip)
-	head_xf = torso_xf * Transform2D(pose.head_tilt + breath * 0.02, spec.neck)
+	torso_xf = root_xf * Transform2D(pose.lean + hunch + (gait.counter_turn if gait_enabled else 0.0), Vector2(1.0, (1.0 + spec.breath_amp * breath) * maxf(squash, 0.05)), 0.0, hip)
+	head_xf = torso_xf * Transform2D(pose.head_tilt + head_cant + breath * 0.02, spec.neck)
 	weapon_local = Transform2D(pose.blade, pose.grip)
 	weapon_xf = torso_xf * weapon_local
 	_rest_weapon_on_ground()
@@ -605,6 +621,7 @@ func _build_parts() -> void:
 		_parts.append(part)
 		_part_slots.append(FigurePainter.SLOTS[part_name])
 		by_name[part_name] = part
+	_apply_bare_head()
 	for definition: Dictionary in FigurePainter.glows(kind):
 		var glow: FigurePart = FigurePart.new()
 		glow.material = additive_material()

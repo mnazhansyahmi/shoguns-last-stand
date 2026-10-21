@@ -3,6 +3,8 @@ extends RefCounted
 ## World-space stance anchors survive body bob, pose blending, speed changes and mirroring.
 ## Only swing feet may move. Phase is distance-driven: a stopped actor cannot moonwalk.
 var phase: float = 0.0
+## The phase a fresh stance starts from (each soldier of a crowd its own, so they never march in step).
+var start_phase: float = 0.0
 var targets: Array[Vector2] = [Vector2.ZERO, Vector2.ZERO]
 var planted: Array[bool] = [true, true]
 var heel: Array[float] = [0.0, 0.0]
@@ -38,7 +40,7 @@ func step(frame: Transform2D, spec: FigureKinds.Spec, delta: float) -> void:
 		_anchors[1] = frame * Vector2(-width, 0.0)
 		_previous = frame.origin
 		_basis = frame.x
-		phase = 0.0
+		phase = start_phase
 		planted = [true, true]
 		_ready = true
 	var travel: float = (inverse * frame.origin - inverse * _previous).x

@@ -60,6 +60,14 @@ const ARMHOLES: Dictionary = {
 const NECKS: Dictionary = {
 	InkFigure.Kind.ONI_BRUTE: [Vector2(150, 2), Vector2(38, 30), Vector2(140, 52)],
 }
+## A bare-headed look for a crowd (no painted head without its hat exists): the head drawn below its hat brim (the
+## cut follows under the brim, left to right, past its torn edge) and a soft cap of its own hair over the skull
+## (centre, radii, sampled around), all in head-cell pixels. See bare_head_mesh().
+const BARE_HEADS: Dictionary = {
+	InkFigure.Kind.HOLLOW_SOLDIER: [
+		[Vector2(0, 182), Vector2(72, 172), Vector2(112, 136), Vector2(168, 102), Vector2(236, 100), Vector2(299, 114)],
+		Vector2(166, 106), Vector2(68, 42), Vector2(126, 128)],
+}
 ## Inside this fraction of its radius a patch is fully opaque; it fades to nothing at its rim.
 const PATCH_FEATHER: float = 0.72
 const PATCH_POINTS: int = 20
@@ -192,6 +200,36 @@ static func arm_trim(kind: InkFigure.Kind, part_name: StringName) -> float:
 	return region(kind, CELLS[part_name]).size.x * (joint + ARM_TRIM)
 
 
+## The head without its hat (BARE_HEADS) as one mesh [indices, vertices, colours, uvs] in head-cell pixels: the part
+## below the brim, then the hair cap over it. Drawn with the head's own atlas in place of its layer.
+static func bare_head_mesh(kind: InkFigure.Kind) -> Array:
+	var key: String = "%d:bare" % kind
+	if _patches.has(key):
+		return _patches[key]
+	var look: Array = BARE_HEADS[kind]
+	var cell: Rect2 = region(kind, CELLS[&"head"])
+	var atlas_size: Vector2 = atlas(kind).get_size()
+	var below: PackedVector2Array = PackedVector2Array(look[0] as Array)
+	below.append_array(PackedVector2Array([cell.size, Vector2(0.0, cell.size.y)]))
+	var vertices: PackedVector2Array = PackedVector2Array()
+	var uvs: PackedVector2Array = PackedVector2Array()
+	var colors: PackedColorArray = PackedColorArray()
+	for point: Vector2 in below:
+		vertices.append(point)
+		uvs.append((cell.position + point) / atlas_size)
+		colors.append(Color.WHITE)
+	var indices: PackedInt32Array = Geometry2D.triangulate_polygon(below)
+	var cap: Array = _ellipse_patch_in(cell, atlas_size, look[1], look[2], look[3], false)
+	var base: int = vertices.size()
+	for index: int in (cap[0] as PackedInt32Array):
+		indices.append(base + index)
+	vertices.append_array(cap[1])
+	colors.append_array(cap[2])
+	uvs.append_array(cap[3])
+	_patches[key] = [indices, vertices, colors, uvs]
+	return _patches[key]
+
+
 ## A soft-edged ellipse of painted torso as [indices, vertices, colours, uvs], vertices in torso-cell pixels (draw it
 ## under the torso's frame with atlas()). `back` = the patch closing the armhole on the torso's left, sampled from
 ## its closed right shoulder mirrored; otherwise the cap over the front arm's open shoulder end, sampled in place
@@ -246,8 +284,12 @@ static func torso_patch(kind: InkFigure.Kind) -> Array:
 ## at `center` with `radii`, sampled around `source` (mirrored left-right when `mirror`). Opaque inside PATCH_FEATHER
 ## of its radius, fading to nothing at its rim, so no seam shows on the painting under it.
 static func _ellipse_patch(kind: InkFigure.Kind, center: Vector2, radii: Vector2, source: Vector2, mirror: bool) -> Array:
-	var source_region: Rect2 = region(kind, CELLS[&"torso"])
-	var atlas_size: Vector2 = atlas(kind).get_size()
+	return _ellipse_patch_in(region(kind, CELLS[&"torso"]), atlas(kind).get_size(), center, radii, source, mirror)
+
+
+## The same ellipse, sampled from any cell of an atlas.
+static func _ellipse_patch_in(source_region: Rect2, atlas_size: Vector2, center: Vector2, radii: Vector2, source: Vector2,
+		mirror: bool) -> Array:
 	var vertices: PackedVector2Array = PackedVector2Array([center])
 	var uvs: PackedVector2Array = PackedVector2Array([(source_region.position + source.clamp(Vector2.ZERO, source_region.size)) / atlas_size])
 	var colors: PackedColorArray = PackedColorArray([Color.WHITE])
