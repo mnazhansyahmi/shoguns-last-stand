@@ -41,4 +41,7 @@ script = ExtResource("5_hitbox")
 
 [node name="HealthBar" type="Node2D" parent="."]
 script = ExtResource("6_bar")
+hide_until_damaged = true
+stagger = true
+stagger_group = 1
 fill_color = Color(0.561, 0.89, 1, 1)

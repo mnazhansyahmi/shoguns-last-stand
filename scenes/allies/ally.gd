@@ -91,8 +91,9 @@ func _ready() -> void:
 	lane_x = _pick_lane()
 	_visual.position.x = lane_x
 	var head_top: float = _visual.configure(data.figure, data.body_size.y)
-	_health_bar.position = Vector2(lane_x, head_top - 22.0)
-	_health_bar.bar_size = Vector2(clampf(data.body_size.x * 1.4, 56.0, 120.0), 8.0)
+	# Shown only after a hit (like the enemies'), short, and stacked over its lane so allies' bars never overlap.
+	_health_bar.set_base_position(Vector2(lane_x, head_top - 22.0))
+	_health_bar.bar_size = Vector2(clampf(data.body_size.x * 0.9, 40.0, 72.0), 7.0)
 	MotionSmoother.attach(self, [_visual, _health_bar] as Array[Node2D])
 
 	_health.health_changed.connect(_health_bar.set_values)

@@ -468,3 +468,25 @@ func test_two_allies_are_never_drawn_on_the_same_spot() -> void:
 			if child is WorldHealthBar:
 				bars += 1
 	assert_eq(bars, group.size(), "every ally has exactly one health bar")
+
+
+func test_ally_bars_show_only_after_a_hit_short_and_stacked_by_lane() -> void:
+	var group: Array[Ally] = []
+	for i: int in 4:
+		group.append(_ally("ashigaru", 900.0))
+	var bars: Array[WorldHealthBar] = []
+	for ally: Ally in group:
+		var bar: WorldHealthBar = ally.get_node("HealthBar")
+		assert_true(not bar.visible, "a full-health ally shows no bar")
+		assert_true(bar.bar_size.x <= 72.0, "the bar is short (%.0f)" % bar.bar_size.x)
+		(ally.get_node("HealthComponent") as HealthComponent).take_damage(5.0)
+		assert_true(bar.visible, "a hit shows it")
+		bars.append(bar)
+	WorldHealthBar.layout_staggered()
+	for i: int in bars.size():
+		for j: int in range(i + 1, bars.size()):
+			var a: Rect2 = Rect2(bars[i].global_position - bars[i].bar_size * 0.5, bars[i].bar_size).grow(2.0)
+			var b: Rect2 = Rect2(bars[j].global_position - bars[j].bar_size * 0.5, bars[j].bar_size).grow(2.0)
+			assert_true(not a.intersects(b), "ally bars %d and %d do not overlap" % [i, j])
+	bars[0]._process(WorldHealthBar.HIDE_DELAY + 0.1)
+	assert_true(not bars[0].visible, "it hides two seconds after the last hit")

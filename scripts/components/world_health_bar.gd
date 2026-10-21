@@ -1,8 +1,9 @@
 class_name WorldHealthBar
 extends Node2D
 ## Simple health bar drawn in world space, centered on this node.
-## Enemy bars use `hide_until_damaged` (a full-health crowd shows no bars) and `stagger`: bars
-## that would overlap are stacked upward so each stays readable in a melee.
+## Enemy and ally bars use `hide_until_damaged` (a full-health crowd shows no bars) and `stagger`: bars
+## that would overlap are stacked upward so each stays readable in a melee. Allies stack among themselves
+## (their own `stagger_group`), so the enemies' layout is unchanged by allies nearby.
 
 ## A bar that hides until damaged goes away again this long after the unit was last hit.
 const HIDE_DELAY: float = 2.0
@@ -21,6 +22,8 @@ const STAGGER_GAP: float = 6.0
 @export var hide_until_damaged: bool = false
 ## Stack upward when overlapping other staggering bars.
 @export var stagger: bool = false
+## Bars only stack with bars of the same group (0 = enemies, 1 = allies).
+@export var stagger_group: int = 0
 
 static var _stagger_bars: Array[WorldHealthBar] = []
 static var _layout_frame: int = -1
@@ -106,14 +109,17 @@ static func layout_staggered() -> void:
 		var used: Dictionary = {}
 		for j: int in i:
 			var other: WorldHealthBar = shown[j]
+			if other.stagger_group != bar.stagger_group:
+				continue
 			var reach: float = (bar.bar_size.x + other.bar_size.x) * 0.5 + STAGGER_GAP
 			if absf(bar._base_x() - other._base_x()) < reach and absf(bar._base_y() - other._base_y()) < STAGGER_STEP * 4.0:
 				used[other._level] = true
 		var level: int = 0
 		while used.has(level):
 			level += 1
+		# Moved by the change of level only, so an offset someone else adds (MotionSmoother) is kept.
+		bar.position.y += STAGGER_STEP * float(bar._level - level)
 		bar._level = level
-		bar.position = bar._base_position - Vector2(0.0, STAGGER_STEP * level)
 
 
 func _base_x() -> float:
