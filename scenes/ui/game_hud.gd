@@ -45,6 +45,8 @@ const SKILL_ICONS: Array[Array] = [
 @onready var _debug_hint_label: Label = %DebugHintLabel
 @onready var _touch_spacer: Control = %TouchSpacer
 
+var _summon_bar: HBoxContainer
+var _summon_buttons: Array[TouchActionButton] = []
 var _safe_rect: Rect2 = Rect2()
 ## The boss's bar with his name, under the wave text at the top of the screen (hidden without a boss).
 var _boss_bar: FillBar
@@ -62,6 +64,15 @@ var _ui_scale: float = 1.0
 
 
 func _ready() -> void:
+	var summon_margin: MarginContainer = MarginContainer.new()
+	summon_margin.name = "SummonPortraits"
+	summon_margin.add_theme_constant_override("margin_top", 28)
+	_summon_bar = HBoxContainer.new()
+	_summon_bar.alignment = BoxContainer.ALIGNMENT_CENTER
+	_summon_bar.add_theme_constant_override("separation", 20)
+	summon_margin.add_child(_summon_bar)
+	_summon_label.get_parent().add_child(summon_margin)
+	_summon_label.get_parent().move_child(summon_margin, _summon_label.get_index())
 	_gate_indicator = EdgeIndicator.new()
 	_gate_indicator.name = "GateIndicator"
 	_gate_indicator.points_left = true
@@ -198,6 +209,40 @@ func set_summon_text(text: String) -> void:
 	_summon_label.text = text
 
 
+func configure_summons(roster: Array[AllyData]) -> void:
+	for button: TouchActionButton in _summon_buttons:
+		button.release()
+		button.queue_free()
+	_summon_buttons.clear()
+	for slot: int in roster.size():
+		var data: AllyData = roster[slot]
+		var button: TouchActionButton = TouchActionButton.new()
+		button.action = StringName("summon_%d" % (slot + 1))
+		button.custom_minimum_size = Vector2(96.0, 96.0)
+		button.mouse_enabled = true
+		button.mouse_filter = Control.MOUSE_FILTER_STOP
+		button.font_size = 22
+		button.tooltip_text = data.display_name
+		_summon_bar.add_child(button)
+		button.modulate.a = 1.0
+		button.set_portrait(data.figure)
+		button.base_color = FigureKinds.spec(data.figure).accent
+		_summon_buttons.append(button)
+
+
+func set_summon_state(slot: int, cost: int, left: float, total: float, affordable: bool) -> void:
+	if slot < 0 or slot >= _summon_buttons.size():
+		return
+	var button: TouchActionButton = _summon_buttons[slot]
+	button.set_captions(button.tooltip_text, "%d SE" % cost)
+	button.set_cooldown(left / maxf(total, 0.001), left)
+	button.set_available(affordable, "need %d" % cost)
+
+
+func get_summon_button(slot: int) -> TouchActionButton:
+	return _summon_buttons[slot]
+
+
 func set_debug_hint_visible(visible_flag: bool) -> void:
 	_debug_hint_allowed = visible_flag
 	_refresh_bottom()
@@ -313,6 +358,7 @@ static func format_cooldown(seconds: float) -> String:
 
 func _refresh_bottom() -> void:
 	_summon_label.visible = not _touch_mode
+	_summon_bar.get_parent().visible = not _touch_mode
 	_hint_label.visible = not _touch_mode
 	_debug_hint_label.visible = _debug_hint_allowed and not _touch_mode
 	# Touch buttons show their own cooldowns and the Allies button shows the stance, so the icon row is for the

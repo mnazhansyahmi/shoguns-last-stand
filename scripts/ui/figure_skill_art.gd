@@ -13,6 +13,10 @@ static func supports(kind: int) -> bool:
 		UpgradeIcon.Kind.STANCE_HOLD, UpgradeIcon.Kind.ATTACK]
 
 
+static func portrait(owner: Node, kind: InkFigure.Kind) -> Texture2D:
+	return texture(owner, 100 + int(kind))
+
+
 static func texture(owner: Node, kind: int) -> Texture2D:
 	if not _textures.has(kind):
 		var result: ImageTexture = ImageTexture.create_from_image(Image.create(PIXELS, PIXELS, false, Image.FORMAT_RGBA8))
@@ -44,9 +48,17 @@ class Baker extends SubViewport:
 		size = Vector2i(PIXELS, PIXELS)
 		transparent_bg = true
 		render_target_update_mode = SubViewport.UPDATE_ONCE
-		var stage: Stage = Stage.new()
-		stage.icon_kind = icon_kind
-		add_child(stage)
+		if icon_kind >= 100:
+			var figure: InkFigure = InkFigure.new()
+			figure.kind = (icon_kind - 100) as InkFigure.Kind
+			figure.height = 255.0
+			figure.position = Vector2(113.0, 12.0 + figure.height * figure.spec.head_top / 100.0)
+			add_child(figure)
+			figure.refresh()
+		else:
+			var stage: Stage = Stage.new()
+			stage.icon_kind = icon_kind
+			add_child(stage)
 		await RenderingServer.frame_post_draw
 		var rendered: Image = get_texture().get_image()
 		if rendered != null and not rendered.is_empty():

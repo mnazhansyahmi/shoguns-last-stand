@@ -56,6 +56,7 @@ func _ready() -> void:
 	_progress = _save_manager.load_progress()
 	_apply_upgrades()
 	_touch.set_summon_count(_summoner.get_slot_count())
+	_hud.configure_summons(_summoner.ally_slots)
 	_settings_store = SettingsStore.new(settings_path)
 	_settings = _settings_store.load_settings()
 	if SceneRoutes.battle_stage != null:
@@ -149,7 +150,7 @@ func _process(delta: float) -> void:
 		1:
 			_update_leaf_keep_out()
 		2:
-			_hud.set_summon_text(_build_summon_text())
+			_hud.set_summon_text("Allies %d/%d" % [_summoner.get_ally_count(), _summoner.max_allies])
 			_update_wave_text()
 
 
@@ -331,20 +332,21 @@ func _update_cooldown_displays() -> void:
 	_hud.set_ultimate(_ultimate_meter.get_ratio(), _ultimate_meter.is_ready())
 	var cooldowns: Dictionary = _player.get_ability_cooldowns()
 	_hud.set_ability_cooldowns(cooldowns)
-	# The touch buttons are hidden without touch controls: they are brought up to date the frame they appear.
-	if not _touch.is_active():
-		return
-	_touch.set_ultimate_charge(_ultimate_meter.get_ratio(), _ultimate_meter.is_ready())
-	for key: String in cooldowns:
-		var info: Vector2 = cooldowns[key]
-		_touch.set_ability_cooldown(key, info.x / maxf(info.y, 0.001), info.x)
+	if _touch.is_active():
+		_touch.set_ultimate_charge(_ultimate_meter.get_ratio(), _ultimate_meter.is_ready())
+		for key: String in cooldowns:
+			var info: Vector2 = cooldowns[key]
+			_touch.set_ability_cooldown(key, info.x / maxf(info.y, 0.001), info.x)
 	for slot: int in _summoner.get_slot_count():
 		var data: AllyData = _summoner.get_slot_data(slot)
 		if data == null:
 			continue
 		var left: float = _summoner.get_cooldown_left(slot)
-		_touch.set_summon_state(slot, short_name(data), roundi(data.cost), left / maxf(data.summon_cooldown, 0.001), left,
-				_energy.can_afford(data.cost), FigureKinds.spec(data.figure).accent)
+		if _touch.is_active():
+			_touch.set_summon_state(slot, short_name(data), roundi(data.cost), left / maxf(data.summon_cooldown, 0.001), left,
+				_energy.can_afford(data.cost), FigureKinds.spec(data.figure).accent, data.figure)
+		else:
+			_hud.set_summon_state(slot, roundi(data.cost), left, data.summon_cooldown, _energy.can_afford(data.cost))
 
 
 ## "Shrine Healer" -> "Healer": the last word, short enough for a button.

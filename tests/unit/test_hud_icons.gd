@@ -154,3 +154,28 @@ func test_figure_art_is_shared_and_poses_are_frozen_game_figures() -> void:
 				assert_almost_eq(figure.modulate.a, 0.18, "refresh preserves the faded afterimage")
 			if entry[0] == UpgradeIcon.Kind.BOW:
 				assert_true(figure.pose.bow_out > 0.5 and figure.pose.bow_draw > 0.8, "the samurai draws his actual yumi")
+
+
+func test_keyboard_summons_use_clickable_cached_portraits_and_keep_costs() -> void:
+	var hud: GameHud = _hud()
+	var roster: AllyRoster = load("res://data/allies/roster.tres")
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
+	hud.configure_summons(roster.get_unlocked(progress))
+	for slot: int in 6:
+		var button: TouchActionButton = hud.get_summon_button(slot)
+		assert_eq(button.key_hint, str(slot + 1), "keyboard badges stay 1-6")
+		assert_true(button.mouse_enabled and button.portrait_kind >= 0, "a real portrait, clickable with the mouse")
+		assert_almost_eq(button.portrait_rect().position.y, -button.size.x * 0.25, "portrait breaks the circle by a quarter")
+	hud.set_summon_state(0, 30, 2.0, 4.0, false)
+	var button: TouchActionButton = hud.get_summon_button(0)
+	assert_eq(button.sub_caption, "30 SE", "cost remains while cooling down")
+	assert_true(not button.available and button.unavailable_text == "need 30", "unaffordable portrait dims and explains the cost")
+	var down: InputEventMouseButton = InputEventMouseButton.new()
+	down.button_index = MOUSE_BUTTON_LEFT
+	down.pressed = true
+	down.position = button.size * 0.5
+	button._gui_input(down)
+	assert_true(button.is_held() and Input.is_action_pressed("summon_1"), "mouse uses the same action as keyboard and touch")
+	button.release()
+	assert_true(not Input.is_action_pressed("summon_1"), "release never leaves the action held")

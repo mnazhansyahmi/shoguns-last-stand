@@ -24,6 +24,13 @@ var key_hint: String = ""
 ## A locked skill shows a padlock and how to unlock it ("Clear stage 2") instead of its name; "" = unlocked.
 var locked_text: String = ""
 
+var icon_kind: int = -1
+var portrait_kind: int = -1
+var mouse_enabled: bool = false
+var _art: Texture2D
+var _portrait_points: PackedVector2Array = PackedVector2Array()
+var _portrait_uvs: PackedVector2Array = PackedVector2Array()
+var _portrait_size: Vector2 = Vector2.ZERO
 var _touch_index: int = -1
 var _press_physics_frame: int = -1
 var _release_pending: bool = false
@@ -34,6 +41,52 @@ func _ready() -> void:
 	set_process(false)
 	key_hint = SkillHints.key_label(action)
 	_update_opacity()
+	var kinds: Dictionary = {&"attack": UpgradeIcon.Kind.ATTACK, &"heavy_attack": UpgradeIcon.Kind.HEAVY,
+		&"dash": UpgradeIcon.Kind.DASH, &"spirit_slash": UpgradeIcon.Kind.SPIRIT_SLASH,
+		&"bow": UpgradeIcon.Kind.BOW, &"war_cry": UpgradeIcon.Kind.WAR_CRY, &"stance": UpgradeIcon.Kind.STANCE_CHARGE}
+	if kinds.has(action):
+		set_icon(kinds[action])
+	elif action == &"ultimate":
+		icon_kind = UpgradeIcon.Kind.ULTIMATE
+		_art = FigureSkillArt.portrait(self, InkFigure.Kind.SAMURAI)
+
+
+func set_icon(value: int) -> void:
+	if icon_kind == value:
+		return
+	icon_kind = value
+	_art = FigureSkillArt.texture(self, value)
+	queue_redraw()
+
+
+func set_portrait(kind: InkFigure.Kind) -> void:
+	if portrait_kind == int(kind):
+		return
+	portrait_kind = int(kind)
+	_art = FigureSkillArt.portrait(self, kind)
+	queue_redraw()
+
+
+func _gui_input(event: InputEvent) -> void:
+	if not mouse_enabled:
+		return
+	var mouse: InputEventMouseButton = event as InputEventMouseButton
+	if mouse != null and mouse.button_index == MOUSE_BUTTON_LEFT:
+		var touch: InputEventScreenTouch = InputEventScreenTouch.new()
+		touch.index = 100000
+		touch.position = get_global_transform() * mouse.position
+		touch.pressed = mouse.pressed
+		if handle_touch(touch):
+			accept_event()
+
+
+func _exit_tree() -> void:
+	release()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PAUSED and is_node_ready():
+		release()
 
 
 ## Marks the skill locked ("Clear stage 2") or, with "", unlocked. A tap on a locked button still reaches the
@@ -167,9 +220,14 @@ func _draw() -> void:
 	fill.a = 0.55 if held else (0.3 + pulse * 0.3)
 	draw_circle(center, radius * (0.86 if held else 0.9), fill)
 	draw_arc(center, radius * 0.86, 0.0, TAU, 64, Color(base_color, 0.95), 5.0, true)
+	if _art != null:
+		if portrait_kind >= 0:
+			_draw_portrait(center, radius)
+		else:
+			FigureSkillArt.draw_round(self, _art, center, radius * 0.94)
 	if cooldown_ratio > 0.0:
 		_draw_sector(center, radius * 0.92, cooldown_ratio, Color(InkPalette.INK, 0.7))
-	if not available:
+	if not available and portrait_kind < 0:
 		var reach: float = radius * 0.62
 		draw_line(center + Vector2(-reach, reach), center + Vector2(reach, -reach), Color(InkPalette.PARCHMENT, 0.6), 6.0, true)
 	draw_arc(center, radius, 0.0, TAU, 64, InkPalette.GOLD_BRIGHT if held else Color(InkPalette.GOLD, 0.9), 4.0 if held else 3.0, true)
@@ -185,14 +243,21 @@ func _draw() -> void:
 		_draw_key_badge(font, center, radius)
 		return
 	var main_y: float = center.y + font_size * 0.35 - (font_size * 0.55 if not sub_caption.is_empty() else 0.0)
-	_draw_text(font, caption, Vector2(0.0, main_y), width, font_size)
-	var bottom_text: String = sub_caption
-	if cooldown_ratio > 0.0:
+	if _art == null:
+		_draw_text(font, caption, Vector2(0.0, main_y), width, font_size)
+	var bottom_text: String = sub_caption if portrait_kind >= 0 or action == &"ultimate" else ""
+	if cooldown_ratio > 0.0 and portrait_kind < 0:
 		bottom_text = "%.1fs" % cooldown_seconds
-	elif not available and not unavailable_text.is_empty():
+	elif not available and not unavailable_text.is_empty() and portrait_kind < 0:
 		bottom_text = unavailable_text
 	if not bottom_text.is_empty():
-		_draw_text(font, bottom_text, Vector2(0.0, main_y + font_size * 1.1), width, int(font_size * 0.8))
+		var plate: Rect2 = Rect2(center.x - radius * 0.82, center.y + radius * 0.48, radius * 1.64, radius * 0.48)
+		draw_style_box(_plate_style(), plate)
+		_draw_text(font, bottom_text, Vector2(plate.position.x, plate.position.y + plate.size.y * 0.75), plate.size.x, maxi(14, roundi(radius * 0.3)))
+	if portrait_kind >= 0:
+		var state: String = "%.1fs" % cooldown_seconds if cooldown_ratio > 0.0 else (unavailable_text if not available else "")
+		if not state.is_empty():
+			_draw_text(font, state, Vector2(0.0, center.y + radius * 0.2), width, maxi(16, roundi(radius * 0.35)))
 	_draw_key_badge(font, center, radius)
 
 
@@ -233,3 +298,34 @@ func _draw_sector(center: Vector2, radius: float, ratio: float, color: Color) ->
 		var angle: float = -PI * 0.5 + TAU * ratio * float(i) / float(steps)
 		points.append(center + Vector2(cos(angle), sin(angle)) * radius)
 	draw_colored_polygon(points, color)
+
+
+static var _plate: StyleBoxFlat
+
+
+static func _plate_style() -> StyleBoxFlat:
+	if _plate == null:
+		_plate = StyleBoxFlat.new()
+		_plate.bg_color = InkPalette.UI_CHARCOAL
+		_plate.border_color = InkPalette.GOLD
+		_plate.set_border_width_all(2)
+		_plate.set_corner_radius_all(5)
+	return _plate
+
+
+func portrait_rect() -> Rect2:
+	var edge: float = minf(size.x, size.y)
+	return Rect2(Vector2(size.x * 0.5 - edge * 0.625, -edge * 0.25), Vector2.ONE * edge * 1.25)
+
+
+func _draw_portrait(center: Vector2, radius: float) -> void:
+	if _portrait_size != size:
+		_portrait_size = size
+		var rect: Rect2 = portrait_rect()
+		_portrait_points = PackedVector2Array([Vector2(center.x - radius, rect.position.y), Vector2(center.x + radius, rect.position.y)])
+		for i: int in 33:
+			_portrait_points.append(center + Vector2.from_angle(PI * float(i) / 32.0) * radius)
+		_portrait_uvs.clear()
+		for point: Vector2 in _portrait_points:
+			_portrait_uvs.append((point - rect.position) / rect.size)
+	draw_polygon(_portrait_points, PackedColorArray([Color.WHITE if available else Color(0.4, 0.4, 0.4, 0.6)]), _portrait_uvs, _art)

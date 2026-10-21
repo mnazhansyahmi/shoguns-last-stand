@@ -173,16 +173,19 @@ func set_stance_state(stance_name: String, charging: bool) -> void:
 		button.base_color = color
 		button.queue_redraw()
 	button.set_captions("Allies", stance_name)
+	button.set_icon(UpgradeIcon.Kind.STANCE_CHARGE if charging else UpgradeIcon.Kind.STANCE_HOLD)
 
 
 func set_summon_state(slot: int, name: String, cost: int, ratio: float, seconds: float, affordable: bool,
-		accent: Color = Color(0.0, 0.0, 0.0, 0.0)) -> void:
+		accent: Color = Color(0.0, 0.0, 0.0, 0.0), kind: InkFigure.Kind = InkFigure.Kind.ASHIGARU) -> void:
 	var button: TouchActionButton = _buttons.get("summon_%d" % (slot + 1))
 	if button == null:
 		return
 	if accent.a > 0.0 and accent != button.base_color:
 		button.base_color = accent
 		button.queue_redraw()
+	button.set_portrait(kind)
+	button.tooltip_text = name
 	button.set_captions(name, "%d SE" % cost)
 	button.set_cooldown(ratio, seconds)
 	button.set_available(affordable, "need %d" % cost)

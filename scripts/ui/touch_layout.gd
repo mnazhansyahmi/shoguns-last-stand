@@ -25,7 +25,7 @@ const SUMMON_GAP: float = 18.0
 const SUMMON_SIDE_GAP: float = 24.0
 ## The ally stance button sits above the summon bar.
 const STANCE_SIZE: Vector2 = Vector2(210.0, 125.0)
-const STANCE_GAP: float = 14.0
+const STANCE_GAP: float = 58.0
 ## Right-handed positions inside the action cluster: arcs around the Attack button, which sits under the thumb in the
 ## corner. Closest ring: Heavy (to its left) and Dash (above it). Next ring: Spirit and Bow. Furthest: the Ultimate
 ## (bottom left) and the War Cry (top). Every button is a circle at least 44 pt across and none touch.
@@ -60,8 +60,9 @@ static func summon_metrics(count: int, available_width: float, ui_scale: float) 
 		cols = ceili(float(n) / 2.0)
 		size = (available_width - float(cols - 1) * gap) / float(cols)
 	size = clampf(size, SUMMON_MIN_SIZE, maxf(max_size, SUMMON_MIN_SIZE))
-	return {"size": size, "cols": cols, "rows": rows, "gap": gap,
-			"cluster": Vector2(float(cols) * size + float(cols - 1) * gap, float(rows) * size + float(rows - 1) * gap)}
+	var row_gap: float = maxf(gap, size * 0.25 + 8.0)
+	return {"size": size, "cols": cols, "rows": rows, "gap": gap, "row_gap": row_gap,
+			"cluster": Vector2(float(cols) * size + float(cols - 1) * gap, float(rows) * size + float(rows - 1) * row_gap)}
 
 
 ## Cluster rects: "joystick", "actions", "summons". Left-handed mirrors joystick and actions.
@@ -130,9 +131,10 @@ static func summon_button_rects(count: int, bar_size: Vector2, ui_scale: float) 
 	var size: float = metrics["size"]
 	var cols: int = metrics["cols"]
 	var gap: float = metrics["gap"]
+	var row_gap: float = metrics["row_gap"]
 	var result: Array[Rect2] = []
 	for i: int in n:
-		result.append(Rect2(Vector2(float(i % cols) * (size + gap), float(i / cols) * (size + gap)), Vector2(size, size)))
+		result.append(Rect2(Vector2(float(i % cols) * (size + gap), float(i / cols) * (size + row_gap)), Vector2(size, size)))
 	return result
 
 
