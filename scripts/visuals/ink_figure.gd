@@ -34,6 +34,8 @@ var spec: FigureKinds.Spec = FigureKinds.spec(Kind.SAMURAI)
 var gait: LegGait = LegGait.new()
 var gait_enabled: bool = false
 var upright: bool = false
+## Presentation-only equipment choice; combat figures show the stowed yumi by default.
+var show_stowed_bow: bool = true
 var stride: float = 0.0
 var stride_phase: float = 0.0
 var bob: float = 0.0
@@ -277,7 +279,7 @@ func refresh() -> void:
 		if _weapon_part != null:
 			_weapon_part.visible = not drawing
 		if _back_bow_part != null:
-			_back_bow_part.visible = pose.bow_out < 0.5
+			_back_bow_part.visible = show_stowed_bow and pose.bow_out < 0.5
 	if _hem_part != null:
 		var own_hem: bool = kind == Kind.HOLLOW_SOLDIER
 		var key: int = FigurePainter.hem_key(self) if own_hem else FigureTatters.key(self)

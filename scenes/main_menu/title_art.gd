@@ -7,9 +7,9 @@ extends Control
 const MOON_POSITION: Vector2 = Vector2(1480.0, 230.0)
 const MOON_DEPTH: float = 0.04
 const DESIGN_CENTER: Vector2 = Vector2(960.0, 540.0)
-const SAMURAI_HEIGHT: float = 320.0
+const SAMURAI_HEIGHT: float = 410.0
 ## How far below the moon's centre the samurai's feet stand.
-const LEDGE_DROP: float = 330.0
+const LEDGE_DROP: float = 450.0
 const LEAF_COUNT: int = 14
 
 var _figure: InkFigure
@@ -23,6 +23,8 @@ func _ready() -> void:
 	_figure.name = "Samurai"
 	_figure.height = SAMURAI_HEIGHT
 	_figure.kind = InkFigure.Kind.SAMURAI
+	_figure.upright = true
+	_figure.show_stowed_bow = false
 	_figure.scale.x = -1.0
 	add_child(_figure)
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -54,14 +56,14 @@ func _place_figure() -> void:
 		_figure.position = get_ledge_position()
 
 
-## Hasso no kamae: katana raised in both hands, feet planted wide; breathing, scarf in the wind.
+## Quiet low guard; slow breathing and a light breeze rather than an attack wind-up.
 func _pose_figure() -> void:
 	var pose: FigurePose = _figure.pose
 	pose.copy_from(FigureKinds.samurai_title_pose())
-	pose.lean += 0.01 * sin(_clock * 1.9)
-	pose.blade += 0.02 * sin(_clock * 1.3)
+	pose.lean += 0.004 * sin(_clock * 1.2)
+	pose.blade += 0.008 * sin(_clock * 0.9)
 	_figure.breath = sin(_clock * TAU * 0.25)
-	_figure.trail = 0.85 + 0.15 * sin(_clock * 0.7)
+	_figure.trail = 0.22 + 0.08 * sin(_clock * 0.7)
 	_figure.clock = _clock
 	_figure.refresh()
 
@@ -69,8 +71,11 @@ func _pose_figure() -> void:
 func _draw() -> void:
 	# Dark wash behind the menu column (left) and along the bottom, so text reads on the art.
 	var wash: Color = InkPalette.UI_CHARCOAL
-	draw_polygon(PackedVector2Array([Vector2(0.0, 0.0), Vector2(size.x * 0.55, 0.0), Vector2(size.x * 0.55, size.y), Vector2(0.0, size.y)]),
-			PackedColorArray([Color(wash, 0.9), Color(wash, 0.0), Color(wash, 0.0), Color(wash, 0.9)]))
+	draw_polygon(PackedVector2Array([Vector2(0.0, 0.0), Vector2(size.x * 0.38, 0.0), Vector2(size.x * 0.38, size.y), Vector2(0.0, size.y)]),
+			PackedColorArray([Color(wash, 0.96), Color(wash, 0.76), Color(wash, 0.76), Color(wash, 0.96)]))
+	draw_polygon(PackedVector2Array([Vector2(size.x * 0.38, 0.0), Vector2(size.x * 0.68, 0.0),
+			Vector2(size.x * 0.68, size.y), Vector2(size.x * 0.38, size.y)]),
+			PackedColorArray([Color(wash, 0.76), Color(wash, 0.0), Color(wash, 0.0), Color(wash, 0.76)]))
 	InkBrush.gradient_rect(self, Rect2(0.0, size.y * 0.72, size.x, size.y * 0.28), Color(wash, 0.0), Color(wash, 0.75))
 	_draw_outcrop()
 	_draw_leaves()
@@ -80,12 +85,14 @@ func _draw_outcrop() -> void:
 	var ledge: Vector2 = get_ledge_position()
 	var base_y: float = maxf(size.y, ledge.y + 200.0) + 10.0
 	var rock: PackedVector2Array = PackedVector2Array([
-		Vector2(ledge.x - 330.0, base_y), Vector2(ledge.x - 250.0, ledge.y + 190.0), Vector2(ledge.x - 210.0, ledge.y + 120.0),
-		Vector2(ledge.x - 150.0, ledge.y + 60.0), Vector2(ledge.x - 120.0, ledge.y + 8.0), Vector2(ledge.x - 60.0, ledge.y - 4.0),
-		Vector2(ledge.x + 40.0, ledge.y - 2.0), Vector2(ledge.x + 110.0, ledge.y + 10.0), Vector2(ledge.x + 160.0, ledge.y + 70.0),
-		Vector2(ledge.x + 250.0, ledge.y + 110.0), Vector2(ledge.x + 300.0, ledge.y + 210.0), Vector2(size.x + 40.0, ledge.y + 260.0),
+		Vector2(ledge.x - 290.0, base_y), Vector2(ledge.x - 210.0, ledge.y + 240.0), Vector2(ledge.x - 180.0, ledge.y + 155.0),
+		Vector2(ledge.x - 110.0, ledge.y + 55.0), Vector2(ledge.x - 95.0, ledge.y + 10.0), Vector2(ledge.x - 45.0, ledge.y + 2.0),
+		Vector2(ledge.x + 45.0, ledge.y + 2.0), Vector2(ledge.x + 110.0, ledge.y + 18.0), Vector2(ledge.x + 165.0, ledge.y + 85.0),
+		Vector2(ledge.x + 235.0, ledge.y + 130.0), Vector2(ledge.x + 290.0, ledge.y + 220.0), Vector2(size.x + 40.0, ledge.y + 270.0),
 		Vector2(size.x + 40.0, base_y)])
 	InkBrush.fill(self, rock, InkPalette.INK)
+	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-95.0, 10.0), ledge + Vector2(-45.0, 2.0),
+			ledge + Vector2(45.0, 2.0), ledge + Vector2(110.0, 18.0)]), 2.0, 0.6, Color(InkPalette.GROUND_TOP, 0.6))
 	# A few dry-brush cracks in the stone.
 	var crack: Color = InkPalette.INK_DETAIL
 	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-90.0, 30.0), ledge + Vector2(-70.0, 90.0), ledge + Vector2(-110.0, 160.0)]), 4.0, 1.5, crack)

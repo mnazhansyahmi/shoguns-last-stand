@@ -543,9 +543,9 @@ static func _samurai_war_cry_shout() -> FigurePose:
 	return FigurePose.make(-0.12, 6.0, Vector2(19.0, -49.0), -1.35).with_head(-0.22).with_glow(0.6).with_spread(1.9)
 
 
-## The title screen pose: hasso no kamae, katana raised in both hands beside the head, wide stance.
+## Title portrait: a composed low guard, with an unobstructed face and relaxed shoulders.
 static func samurai_title_pose() -> FigurePose:
-	var p: FigurePose = FigurePose.make(-0.02, 5.0, Vector2(21.0, -44.0), -1.25).with_head(-0.1).with_spread(1.8)
+	var p: FigurePose = FigurePose.make(-0.015, 0.0, Vector2(18.0, -17.0), 0.48).with_head(-0.035).with_spread(1.2)
 	p.pivot = Vector2(5.0, -31.0)
 	return p
 

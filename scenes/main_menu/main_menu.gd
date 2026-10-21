@@ -1,6 +1,6 @@
 extends Control
 ## Title screen: Continue (the first stage not cleared yet, "Start" on a new save), Stages (the stage select), Upgrades,
-## Settings, Credits and Quit, as gold-bordered panel buttons that slide and fade in one after another when the menu opens,
+## Settings, Credits and Quit, with a crimson primary action and quieter navigation rows that enter when the menu opens,
 ## plus a summary of saved progress.
 
 ## Seconds between one button starting its entrance and the next, and how far each slides in from the left.

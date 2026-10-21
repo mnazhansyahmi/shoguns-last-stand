@@ -1,19 +1,15 @@
 class_name InkMenuButton
 extends Button
-## A main-menu button: one simple shape for all six, a dark panel with a thin gold border (and a faint inner trim line)
-## under gold serif text. Its theme variation (MenuButtonPanel / MenuButtonPanelSub) strips the normal button boxes and
-## sets the font and margins; this class draws the panel and the label so that, when the button is hovered or focused,
-## the border brightens and a soft gold glow fades in around it (with a soft katana slash sound). An optional small line
-## (`sub_caption`) sits inside the panel under the label. Keyboard, gamepad and touch use the ordinary Button behaviour.
+## Title navigation: one crimson brush for the primary action, quieter parchment rows
+## for the rest. Full-size native Button hit areas and focus behaviour are retained.
 
 const GLOW_TIME: float = 0.18
-const CORNER: int = 4
 const BORDER: int = 2
-## The faint inner trim line sits this far inside the border.
-const TRIM_INSET: float = 6.0
 const SUB_CAPTION_SIZE: int = 26
 ## The small line's baseline sits this far above the bottom edge.
 const SUB_CAPTION_BOTTOM: float = 20.0
+
+@export var primary: bool = false
 
 ## The small line under the label ("Stage 3 - Misty Grove"); "" for none. Use the MenuButtonPanelSub variation for a
 ## button that has one, so the label leaves room for it.
@@ -26,18 +22,10 @@ var _glow: float = 0.0
 var _target: float = 0.0
 ## The slash sound is only played once the menu has been up a moment (the first focus when it opens is silent).
 var _armed: bool = false
-var _panel: StyleBoxFlat = StyleBoxFlat.new()
-var _trim: StyleBoxFlat = StyleBoxFlat.new()
 
 
 func _ready() -> void:
 	set_process(false)
-	_panel.set_corner_radius_all(CORNER)
-	_panel.set_border_width_all(BORDER)
-	_panel.corner_detail = 4
-	_trim.bg_color = Color(0.0, 0.0, 0.0, 0.0)
-	_trim.set_corner_radius_all(maxi(CORNER - 2, 0))
-	_trim.set_border_width_all(1)
 	mouse_entered.connect(_refresh_active)
 	mouse_exited.connect(_refresh_active)
 	focus_entered.connect(_refresh_active)
@@ -49,7 +37,7 @@ func _arm() -> void:
 	_armed = true
 
 
-## 0 = at rest, 1 = border fully bright and glowing.
+## 0 = at rest, 1 = focused/hovered highlight fully visible.
 func get_glow() -> float:
 	return _glow
 
@@ -60,7 +48,7 @@ func is_active() -> bool:
 
 
 func _refresh_active() -> void:
-	var active: bool = is_hovered() or has_focus()
+	var active: bool = not disabled and (is_hovered() or has_focus())
 	var was_active: bool = _target > 0.5
 	_target = 1.0 if active else 0.0
 	if active and not was_active and _armed:
@@ -78,17 +66,29 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var lit: float = ease(_glow, -2.0)
 	var pressed: bool = is_pressed()
-	# At rest the panel casts a soft ink shadow; lit, that shadow becomes the gold glow around it.
-	_panel.bg_color = Color(InkPalette.INK, 0.9).lerp(Color(InkPalette.UI_CHARCOAL, 0.94), lit)
-	if pressed:
-		_panel.bg_color = Color(InkPalette.UI_BUTTON_PRESSED, 0.96)
-	_panel.border_color = Color(InkPalette.GOLD, 0.62).lerp(InkPalette.GOLD_BRIGHT, lit)
-	_panel.shadow_color = Color(InkPalette.INK, 0.5).lerp(Color(InkPalette.GOLD_BRIGHT, 0.45), lit)
-	_panel.shadow_size = roundi(lerpf(8.0, 22.0, lit))
-	_panel.shadow_offset = Vector2(0.0, 4.0).lerp(Vector2.ZERO, lit)
-	draw_style_box(_panel, Rect2(Vector2.ZERO, size))
-	_trim.border_color = Color(InkPalette.GOLD, 0.14 + 0.16 * lit)
-	draw_style_box(_trim, Rect2(Vector2.ONE * TRIM_INSET, size - Vector2.ONE * TRIM_INSET * 2.0))
+	if primary:
+		var ink: Color = InkPalette.CRIMSON.darkened(0.25).lerp(InkPalette.CRIMSON, lit)
+		if pressed:
+			ink = InkPalette.CRIMSON.darkened(0.45)
+		if disabled:
+			ink = InkPalette.UI_BUTTON
+		draw_colored_polygon(PackedVector2Array([Vector2(8.0, 14.0), Vector2(size.x - 12.0, 10.0),
+				Vector2(size.x - 3.0, 26.0), Vector2(size.x - 11.0, size.y - 14.0),
+				Vector2(5.0, size.y - 10.0), Vector2(0.0, size.y - 28.0)]), Color(ink, 0.96))
+		draw_line(Vector2(22.0, size.y - 11.0), Vector2(size.x - 25.0, size.y - 14.0),
+				Color(InkPalette.GOLD, 0.45 + lit * 0.35), 1.0, true)
+	else:
+		draw_colored_polygon(PackedVector2Array([Vector2(8.0, 18.0), Vector2(size.x - 8.0, 18.0),
+				Vector2(size.x - 8.0, size.y - 18.0), Vector2(8.0, size.y - 18.0)]), Color(InkPalette.GOLD, 0.055 * lit))
+		draw_line(Vector2(40.0, size.y - 12.0), Vector2(size.x - 30.0, size.y - 12.0),
+				Color(InkPalette.GOLD, 0.12 + lit * 0.18), 1.0, true)
+	if lit > 0.0:
+		var middle: float = size.y * 0.5
+		var color: Color = Color(InkPalette.GOLD_BRIGHT, lit)
+		draw_colored_polygon(PackedVector2Array([Vector2(13.0, middle - 5.0), Vector2(18.0, middle),
+				Vector2(13.0, middle + 5.0), Vector2(8.0, middle)]), color)
+		draw_polyline(PackedVector2Array([Vector2(size.x - 39.0, middle - 7.0),
+				Vector2(size.x - 30.0, middle), Vector2(size.x - 39.0, middle + 7.0)]), color, 2.0, true)
 	_draw_label(lit, pressed)
 	if not sub_caption.is_empty():
 		var font: Font = get_theme_default_font()
@@ -97,9 +97,8 @@ func _draw() -> void:
 				size.x - left - 24.0, SUB_CAPTION_SIZE, Color(InkPalette.PARCHMENT_DIM, 0.95))
 
 
-## The gold serif label, on top of the panel (the theme makes the button's own text invisible). Gold at rest, brighter
-## when hovered or focused, paper white while pressed. It is centred in the space the margins leave, so with a small
-## line under it the label sits in the upper part of the panel and never touches that line.
+## The theme hides native text; draw parchment type here, warming to gold on focus.
+## Continue's bottom margin reserves its separate saved-stage caption.
 func _draw_label(lit: float, pressed: bool) -> void:
 	var font: Font = get_theme_font(&"font")
 	var font_size: int = get_theme_font_size(&"font_size")
@@ -107,11 +106,15 @@ func _draw_label(lit: float, pressed: bool) -> void:
 	var left: float = margins.content_margin_left
 	var area_height: float = size.y - margins.content_margin_top - margins.content_margin_bottom
 	var baseline: float = margins.content_margin_top + (area_height - font.get_height(font_size)) * 0.5 + font.get_ascent(font_size)
-	var color: Color = InkPalette.GOLD.lerp(InkPalette.GOLD_BRIGHT, lit)
+	var color: Color = InkPalette.PARCHMENT.lerp(InkPalette.GOLD_BRIGHT, lit)
+	if primary:
+		color = InkPalette.PAPER
 	if pressed:
 		color = InkPalette.PAPER
+	if disabled:
+		color = InkPalette.UI_DISABLED
 	var width: float = size.x - left - margins.content_margin_right
-	draw_string_outline(font, Vector2(left, baseline), text, HORIZONTAL_ALIGNMENT_LEFT, width, font_size, 6, Color(InkPalette.INK, 0.9))
+	draw_string_outline(font, Vector2(left, baseline), text, HORIZONTAL_ALIGNMENT_LEFT, width, font_size, 2, Color(InkPalette.INK, 0.7))
 	draw_string(font, Vector2(left, baseline), text, HORIZONTAL_ALIGNMENT_LEFT, width, font_size, color)
 
 
