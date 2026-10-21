@@ -395,6 +395,11 @@ func test_title_samurai_stands_against_the_moon() -> void:
 			"the menu uses one full-body painted illustration without limb nodes")
 	assert_true(samurai.scale.x > 0.0 and is_equal_approx(samurai.scale.x, samurai.scale.y),
 			"the painting keeps its anatomical right-hand sword without reflection or distortion")
+	var constants: Dictionary = art.get_script().get_script_constant_map()
+	var rock: Image = (constants["ROCK"] as Texture2D).get_image()
+	for sole: Vector2 in art.call(&"get_foot_contacts"):
+		var pixel: Vector2 = (sole - (art.call(&"get_ledge_position") as Vector2)) / float(constants["ROCK_SCALE"]) + (constants["ROCK_ANCHOR"] as Vector2)
+		assert_true(rock.get_pixelv(Vector2i(pixel)).a > 0.9, "each sandal touches opaque painted stone, not transparent sky")
 	var fog: CanvasItem = menu.get_node("Backdrop/FrontFog")
 	assert_true(not fog.visible, "front fog is off behind the menu so it never covers buttons")
 

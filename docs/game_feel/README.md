@@ -66,7 +66,7 @@ were encoded with `tools/encode_motion.py`, without generating or repainting fra
 
 ## Renderer evidence
 
-- [Main menu](main_menu.png) and [six-second menu playback](menu.webp).
+- [Main menu](main_menu.png) and [six-second menu playback](menu.webp) (recorded before the sole-contact follow-up below).
 - [Restored figure HUD](hud.png).
 - [Victory replay](victory.png), [first clear with ally unlock/Next](victory_first_clear.png), [defeat with save error](defeat_save_error.png), [wide phone results](phone_results.png).
 - [Samurai detail](samurai_detail.png), [motion sheet](samurai_motion_sheet.png), [run/stop strip](gait_strip.png), [crowded battle](crowded_battle.png).
@@ -87,5 +87,14 @@ The crowd's manually populated wave counter is not a balance result.
 The fresh finish review found one material issue (Next label/arrow spacing), then
 confirmed its correction on desktop and phone with no visible regression. That
 clearance covers the scored fix. No further world/style redesign was performed.
+
+## Sole-contact follow-up — 2026-10-22
+
+Closed the remaining small title-foot gap by lowering the painting four design
+pixels. Both contact shadows now derive from measured sole pixels in the source
+painting instead of estimated screen offsets. The title test samples the rock's
+actual alpha under each sole and fails if a foot is over transparent sky.
+All 449 tests pass again: [log](logs/sole_contact_tests.log). The linked main-menu
+image is refreshed after this correction; the earlier menu clip remains historical.
 
 `tools/make_region_1.py` was never run. Commits are local; stopped after this phase.

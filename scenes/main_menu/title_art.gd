@@ -14,6 +14,8 @@ const LEAF_COUNT: int = 14
 const ROCK: Texture2D = preload("res://assets/art/samurai/title_rock.png")
 const ROCK_ANCHOR: Vector2 = Vector2(900.0, 187.5)
 const ROCK_SCALE: float = 0.7
+## Measured sole contact pixels in the title painting, not its transparent canvas edge.
+const SOLE_PIXELS: Array[Vector2] = [Vector2(365.0, 1498.0), Vector2(680.0, 1474.0)]
 
 var _portrait: PortraitMotion
 var _clock: float = 0.0
@@ -52,7 +54,7 @@ func get_ledge_position() -> Vector2:
 
 func _place_figure() -> void:
 	if _portrait != null:
-		_portrait.position = get_ledge_position() + Vector2(0.0, -8.0)
+		_portrait.position = get_ledge_position() + Vector2(0.0, -4.0)
 		_portrait.scale = Vector2.ONE * SAMURAI_HEIGHT / PortraitMotion.ART_HEIGHT
 
 
@@ -60,6 +62,13 @@ func get_portrait_rect() -> Rect2:
 	var unit: float = SAMURAI_HEIGHT / PortraitMotion.ART_HEIGHT
 	var top_left: Vector2 = -PortraitMotion.FOOT_ANCHOR * unit
 	return Rect2(_portrait.position + top_left, PortraitMotion.ART.get_size() * unit)
+
+
+func get_foot_contacts() -> PackedVector2Array:
+	var contacts: PackedVector2Array = PackedVector2Array()
+	for pixel: Vector2 in SOLE_PIXELS:
+		contacts.append(_portrait.transform * (pixel - PortraitMotion.FOOT_ANCHOR))
+	return contacts
 
 
 func _draw() -> void:
@@ -80,9 +89,9 @@ func _draw_outcrop() -> void:
 	var rock_rect: Rect2 = Rect2(ledge - ROCK_ANCHOR * ROCK_SCALE, ROCK.get_size() * ROCK_SCALE)
 	draw_texture_rect(ROCK, rock_rect, false, Color(0.65, 0.62, 0.72))
 	# Small contact shadows follow the two fixed soles, not the hair/cloth wind.
-	for foot: Vector2 in [Vector2(-51.0, -7.0), Vector2(49.0, -11.0)]:
+	for foot: Vector2 in get_foot_contacts():
 		for layer: int in 3:
-			draw_set_transform(ledge + foot + Vector2(-5.0, 2.0), 0.0, Vector2(1.0, 0.12))
+			draw_set_transform(foot + Vector2(-2.0, 1.0), 0.0, Vector2(1.0, 0.12))
 			draw_circle(Vector2.ZERO, 37.0 - layer * 6.0, Color(InkPalette.INK, 0.12 + layer * 0.08))
 	draw_set_transform(Vector2.ZERO)
 
