@@ -372,6 +372,40 @@ content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
 content_margin_bottom = 10.0
+bg_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7882353, 0.63529414, 0.2901961, 0.5)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+corner_detail = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4pyob"]
+content_margin_left = 24.0
+content_margin_top = 10.0
+content_margin_right = 24.0
+content_margin_bottom = 10.0
+bg_color = Color(0.18431373, 0.5254902, 0.72156864, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.56078434, 0.8901961, 1, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+corner_detail = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3hypj"]
+content_margin_left = 24.0
+content_margin_top = 10.0
+content_margin_right = 24.0
+content_margin_bottom = 10.0
 bg_color = Color(0.30188236, 0.25905883, 0.20454903, 1)
 border_width_left = 4
 border_width_top = 4
@@ -384,7 +418,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4pyob"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wjb0o"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -523,6 +557,8 @@ PanelContainer/styles/panel = SubResource("StyleBoxFlat_jfs0a")
 PrimaryButton/base_type = &"Button"
 PrimaryButton/colors/font_color = Color(0.9098039, 0.76862746, 0.41568628, 1)
 PrimaryButton/styles/normal = SubResource("StyleBoxFlat_1tgj8")
+ProgressBar/styles/background = SubResource("StyleBoxFlat_15tg0")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_4pyob")
 SpiritLabel/base_type = &"Label"
 SpiritLabel/colors/font_color = Color(0.56078434, 0.8901961, 1, 1)
 SpiritLabel/colors/font_outline_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
@@ -539,8 +575,8 @@ TitleLabel/fonts/font = SubResource("SystemFont_rfr0i")
 ToggleButton/base_type = &"Button"
 ToggleButton/colors/font_hover_pressed_color = Color(0.91764706, 0.8745098, 0.76862746, 1)
 ToggleButton/colors/font_pressed_color = Color(0.91764706, 0.8745098, 0.76862746, 1)
-ToggleButton/styles/hover_pressed = SubResource("StyleBoxFlat_15tg0")
-ToggleButton/styles/pressed = SubResource("StyleBoxFlat_15tg0")
+ToggleButton/styles/hover_pressed = SubResource("StyleBoxFlat_3hypj")
+ToggleButton/styles/pressed = SubResource("StyleBoxFlat_3hypj")
 VScrollBar/styles/grabber = SubResource("StyleBoxFlat_wxo51")
 VScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_c48xg")
 VScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_c48xg")
@@ -550,5 +586,5 @@ WarningLabel/colors/font_color = Color(0.9098039, 0.4745098, 0.37254903, 1)
 WarningLabel/colors/font_outline_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
 WarningLabel/constants/outline_size = 0
 Window/colors/title_color = Color(0.9098039, 0.76862746, 0.41568628, 1)
-Window/styles/embedded_border = SubResource("StyleBoxFlat_4pyob")
-Window/styles/embedded_unfocused_border = SubResource("StyleBoxFlat_4pyob")
+Window/styles/embedded_border = SubResource("StyleBoxFlat_wjb0o")
+Window/styles/embedded_unfocused_border = SubResource("StyleBoxFlat_wjb0o")

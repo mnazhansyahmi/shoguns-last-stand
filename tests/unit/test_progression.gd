@@ -206,3 +206,32 @@ func test_upgraded_stats_reach_battle_units() -> void:
 	ally.setup(UpgradeApplier.build_ally_data(ASHIGARU, progress, CATALOG), 400.0)
 	add_to_tree(ally)
 	assert_almost_eq(ally.get_health().max_health, 160.0, "summoned Ashigaru has upgraded HP")
+
+
+func test_battle_results_preserve_rewards_replay_warning_and_reduced_motion() -> void:
+	var old_motion: bool = GameSettings.reduced_decorative_motion
+	GameSettings.reduced_decorative_motion = true
+	var result: ResultScreen = add_to_tree(load("res://scenes/ui/result_screen.tscn").instantiate()) as ResultScreen
+	var reward: BattleReward = BattleReward.new()
+	reward.victory = true
+	reward.enemies_defeated = 90
+	reward.gold = 979
+	reward.xp = 1780
+	reward.replay = true
+	reward.replay_multiplier = 0.5
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.gold = 2379
+	progress.xp = 16290
+	result.show_result(reward, progress, 1, OK)
+	assert_eq((result.get_node("%GoldLabel") as Label).text, "+979", "earned gold is exact, not rounded by presentation")
+	assert_eq((result.get_node("%XpLabel") as Label).text, "+1780", "earned XP is preserved")
+	assert_eq((result.get_node("%KillsLabel") as Label).text, "90", "kills keep their numeric place")
+	assert_true((result.get_node("%GoldDetail") as Label).text.contains("50%"), "replay reduction remains disclosed")
+	assert_almost_eq((result.get_node("%XpTrack") as ProgressBar).value, 55.0, "XP bar shows progress within level 18")
+	assert_almost_eq((result.get_node("%Celebration") as ResultCelebration).reveal, 1.0, "reduced motion skips the burst")
+	assert_true((result.get_node("%UpgradesButton") as InkMenuButton).primary, "last/replay victory leads into upgrades")
+	reward.victory = false
+	result.show_result(reward, progress, 0, ERR_CANT_CREATE)
+	assert_true((result.get_node("%SaveLabel") as Label).text.contains("Could not save"), "save failure remains visible")
+	assert_true((result.get_node("%RetryButton") as InkMenuButton).primary, "defeat offers retry as the main action")
+	GameSettings.reduced_decorative_motion = old_motion

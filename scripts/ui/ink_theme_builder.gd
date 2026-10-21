@@ -27,6 +27,8 @@ static func build() -> Theme:
 	_buttons(theme, serif)
 	_panels(theme)
 	_sliders(theme)
+	theme.set_stylebox(&"background", &"ProgressBar", box(InkPalette.INK, Color(InkPalette.GOLD, 0.5), 1, 2))
+	theme.set_stylebox(&"fill", &"ProgressBar", box(InkPalette.SPIRIT_DEEP, InkPalette.SPIRIT, 1, 2))
 	_scrollbars(theme)
 	return theme
 

@@ -24,6 +24,11 @@ const OK_COLOR: Color = InkPalette.PARCHMENT_DIM
 @onready var _upgrades_button: Button = %UpgradesButton
 @onready var _menu_button: Button = %MenuButton
 @onready var _next_button: Button = %NextButton
+@onready var _gold_detail: Label = %GoldDetail
+@onready var _xp_detail: Label = %XpDetail
+@onready var _xp_track: ProgressBar = %XpTrack
+@onready var _celebration: ResultCelebration = %Celebration
+var _presentation: Tween
 
 
 func _ready() -> void:
@@ -44,22 +49,24 @@ func show_result(reward: BattleReward, progress: PlayerProgress, levels_gained: 
 		_subtitle_label.text = "The village is safe."
 		if not new_allies.is_empty():
 			_subtitle_label.text += "   New ally: %s!" % ", ".join(new_allies)
-		_gold_label.text = "Gold earned: +%d   (enemies %d + stage bonus %d)" % [reward.gold, reward.kill_gold, reward.bonus_gold]
-		_xp_label.text = "XP earned: +%d   (enemies %d + stage bonus %d)" % [reward.xp, reward.kill_xp, reward.bonus_xp]
+		_gold_detail.text = "Enemies %d + bonus %d" % [reward.kill_gold, reward.bonus_gold]
+		_xp_detail.text = "Enemies %d + bonus %d" % [reward.kill_xp, reward.bonus_xp]
 	else:
 		_title_label.text = "DEFEAT"
 		_title_label.add_theme_color_override("font_color", DEFEAT_COLOR)
 		_subtitle_label.text = "The village gate has fallen."
 		var percent: int = roundi(reward.kill_ratio * 100.0)
-		_gold_label.text = "Gold earned: +%d   (%d%% of enemy rewards)" % [reward.gold, percent]
-		_xp_label.text = "XP earned: +%d   (%d%% of enemy rewards)" % [reward.xp, percent]
+		_gold_detail.text = "%d%% of enemy rewards" % percent
+		_xp_detail.text = "%d%% of enemy rewards" % percent
 	if reward.replay:
-		_gold_label.text += "   - replay: %d%% gold" % roundi(reward.replay_multiplier * 100.0)
-	_kills_label.text = "Enemies defeated: %d" % reward.enemies_defeated
+		_gold_detail.text += "\nReplay: %d%% gold" % roundi(reward.replay_multiplier * 100.0)
+	_gold_label.text = "+%d" % reward.gold
+	_xp_label.text = "+%d" % reward.xp
+	_kills_label.text = str(reward.enemies_defeated)
 
 	var level: int = progress.get_level()
 	var next_level_xp: int = PlayerProgress.xp_for_level(level + 1)
-	_totals_label.text = "Total gold: %d      Level %d   (%d / %d XP)" % [progress.gold, level, progress.xp, next_level_xp]
+	_totals_label.text = "Gold %d     /     Level %d     /     %d of %d XP" % [progress.gold, level, progress.xp, next_level_xp]
 	_level_up_label.visible = levels_gained > 0
 	_level_up_label.text = "Level up! You are now level %d." % level
 
@@ -72,8 +79,25 @@ func show_result(reward: BattleReward, progress: PlayerProgress, levels_gained: 
 
 	_next_button.visible = not next_stage_name.is_empty()
 	_next_button.text = "Next: %s" % next_stage_name if not next_stage_name.is_empty() else "Next Stage"
+	(_retry_button as InkMenuButton).primary = not reward.victory
+	(_upgrades_button as InkMenuButton).primary = reward.victory and next_stage_name.is_empty()
+	_retry_button.queue_redraw()
+	_upgrades_button.queue_redraw()
+	_celebration.victory = reward.victory
+	_celebration.reveal = 1.0
+	if _presentation != null and _presentation.is_valid():
+		_presentation.kill()
+	var base_xp: int = PlayerProgress.xp_for_level(level)
+	var fill: float = 100.0 * float(progress.xp - base_xp) / maxf(1.0, next_level_xp - base_xp)
+	_xp_track.value = fill
+	if not GameSettings.reduced_decorative_motion:
+		_celebration.reveal = 0.0
+		_xp_track.value = 0.0
+		_presentation = create_tween().set_parallel(true)
+		_presentation.tween_property(_celebration, "reveal", 1.0, 0.8).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		_presentation.tween_property(_xp_track, "value", fill, 0.8).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 	visible = true
 	if _next_button.visible:
 		_next_button.grab_focus()
 	else:
-		_retry_button.grab_focus()
+		(_upgrades_button if reward.victory else _retry_button).grab_focus()

@@ -1,6 +1,8 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/result_screen.gd" id="1_result"]
+[ext_resource type="Script" path="res://scripts/ui/result_celebration.gd" id="2_art"]
+[ext_resource type="Script" path="res://scripts/ui/ink_menu_button.gd" id="3_button"]
 
 [node name="ResultScreen" type="CanvasLayer"]
 process_mode = 3
@@ -13,7 +15,18 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
+mouse_filter = 0
+color = Color(0.04, 0.025, 0.045, 0.68)
+
+[node name="Celebration" type="Control" parent="."]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_art")
 
 [node name="Center" type="CenterContainer" parent="."]
 anchors_preset = 15
@@ -21,23 +34,20 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="Panel" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(1100, 0)
+[node name="Content" type="VBoxContainer" parent="Center"]
+custom_minimum_size = Vector2(1440, 0)
 layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
 
-[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+[node name="CrestSpace" type="Control" parent="Center/Content"]
+custom_minimum_size = Vector2(0, 95)
 layout_mode = 2
-theme_override_constants/margin_left = 56
-theme_override_constants/margin_top = 40
-theme_override_constants/margin_right = 56
-theme_override_constants/margin_bottom = 40
+mouse_filter = 2
 
-[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="TitleLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="Center/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
@@ -45,92 +55,177 @@ theme_override_font_sizes/font_size = 104
 text = "VICTORY"
 horizontal_alignment = 1
 
-[node name="SubtitleLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="SubtitleLabel" type="Label" parent="Center/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"DimLabel"
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 32
 text = "The village is safe."
 horizontal_alignment = 1
 
-[node name="Separator" type="HSeparator" parent="Center/Panel/Margin/VBox"]
+[node name="RewardSpace" type="Control" parent="Center/Content"]
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
+mouse_filter = 2
 
-[node name="KillsLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="Rewards" type="HBoxContainer" parent="Center/Content"]
+layout_mode = 2
+theme_override_constants/separation = 60
+
+[node name="Kills" type="VBoxContainer" parent="Center/Content/Rewards"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Heading" type="Label" parent="Center/Content/Rewards/Kills"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "ENEMIES DEFEATED"
+horizontal_alignment = 1
+
+[node name="KillsLabel" type="Label" parent="Center/Content/Rewards/Kills"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 34
-text = "Enemies defeated: 0"
+theme_override_font_sizes/font_size = 76
+text = "0"
+horizontal_alignment = 1
 
-[node name="GoldLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="Note" type="Label" parent="Center/Content/Rewards/Kills"]
+layout_mode = 2
+theme_type_variation = &"DimLabel"
+theme_override_font_sizes/font_size = 22
+text = "Battle total"
+horizontal_alignment = 1
+
+[node name="Gold" type="VBoxContainer" parent="Center/Content/Rewards"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Heading" type="Label" parent="Center/Content/Rewards/Gold"]
+layout_mode = 2
+theme_type_variation = &"GoldLabel"
+theme_override_font_sizes/font_size = 25
+text = "GOLD EARNED"
+horizontal_alignment = 1
+
+[node name="GoldLabel" type="Label" parent="Center/Content/Rewards/Gold"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"GoldLabel"
-theme_override_font_sizes/font_size = 34
-text = "Gold earned: +0"
+theme_override_font_sizes/font_size = 76
+text = "+0"
+horizontal_alignment = 1
 
-[node name="XpLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="GoldDetail" type="Label" parent="Center/Content/Rewards/Gold"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"DimLabel"
+theme_override_font_sizes/font_size = 22
+text = ""
+horizontal_alignment = 1
+
+[node name="Xp" type="VBoxContainer" parent="Center/Content/Rewards"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Heading" type="Label" parent="Center/Content/Rewards/Xp"]
+layout_mode = 2
+theme_type_variation = &"SpiritLabel"
+theme_override_font_sizes/font_size = 25
+text = "XP EARNED"
+horizontal_alignment = 1
+
+[node name="XpLabel" type="Label" parent="Center/Content/Rewards/Xp"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SpiritLabel"
-theme_override_font_sizes/font_size = 34
-text = "XP earned: +0"
+theme_override_font_sizes/font_size = 76
+text = "+0"
+horizontal_alignment = 1
 
-[node name="TotalsLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="XpDetail" type="Label" parent="Center/Content/Rewards/Xp"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "Total gold: 0      Level 1   (0 / 100 XP)"
+theme_type_variation = &"DimLabel"
+theme_override_font_sizes/font_size = 22
+text = ""
+horizontal_alignment = 1
 
-[node name="LevelUpLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="ProgressSpace" type="Control" parent="Center/Content"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="TotalsLabel" type="Label" parent="Center/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = ""
+horizontal_alignment = 1
+
+[node name="XpTrack" type="ProgressBar" parent="Center/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(920, 18)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+show_percentage = false
+
+[node name="LevelUpLabel" type="Label" parent="Center/Content"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_type_variation = &"GoldLabel"
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 32
 text = "Level up!"
+horizontal_alignment = 1
 
-[node name="SaveLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="SaveLabel" type="Label" parent="Center/Content"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"DimLabel"
 theme_override_font_sizes/font_size = 24
 text = "Progress saved."
+horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 16)
-layout_mode = 2
-
-[node name="Buttons" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+[node name="Buttons" type="HBoxContainer" parent="Center/Content"]
 layout_mode = 2
 alignment = 1
-theme_override_constants/separation = 24
+theme_override_constants/separation = 20
 
-[node name="NextButton" type="Button" parent="Center/Panel/Margin/VBox/Buttons"]
+[node name="NextButton" type="Button" parent="Center/Content/Buttons"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(340, 124)
+custom_minimum_size = Vector2(370, 124)
 layout_mode = 2
-theme_type_variation = &"PrimaryButton"
-theme_override_font_sizes/font_size = 38
+theme_type_variation = &"MenuButtonPanel"
+theme_override_font_sizes/font_size = 30
 text = "Next Stage"
+script = ExtResource("3_button")
+primary = true
 
-[node name="RetryButton" type="Button" parent="Center/Panel/Margin/VBox/Buttons"]
+[node name="RetryButton" type="Button" parent="Center/Content/Buttons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 124)
+custom_minimum_size = Vector2(240, 124)
 layout_mode = 2
-theme_override_font_sizes/font_size = 42
+theme_type_variation = &"MenuButtonPanel"
+theme_override_font_sizes/font_size = 32
 text = "Retry"
+script = ExtResource("3_button")
 
-[node name="UpgradesButton" type="Button" parent="Center/Panel/Margin/VBox/Buttons"]
+[node name="UpgradesButton" type="Button" parent="Center/Content/Buttons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 124)
+custom_minimum_size = Vector2(270, 124)
 layout_mode = 2
-theme_override_font_sizes/font_size = 42
+theme_type_variation = &"MenuButtonPanel"
+theme_override_font_sizes/font_size = 32
 text = "Upgrades"
+script = ExtResource("3_button")
 
-[node name="MenuButton" type="Button" parent="Center/Panel/Margin/VBox/Buttons"]
+[node name="MenuButton" type="Button" parent="Center/Content/Buttons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 124)
+custom_minimum_size = Vector2(290, 124)
 layout_mode = 2
-theme_override_font_sizes/font_size = 42
+theme_type_variation = &"MenuButtonPanel"
+theme_override_font_sizes/font_size = 32
 text = "Main Menu"
+script = ExtResource("3_button")

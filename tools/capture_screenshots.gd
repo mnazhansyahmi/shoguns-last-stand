@@ -75,6 +75,10 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if _only == "results":
+		await _capture_results()
+		quit(0)
+		return
 	if _only == "settings":
 		var menu: Node = MAIN_MENU.instantiate()
 		menu.set("save_path", DATA_DIR + "/save.json")
@@ -292,6 +296,51 @@ func _capture_battle() -> void:
 ## The battle HUD's vitals (`--only=hud`, with --size/--touch for a phone): at full health, just after a hit (the ghost
 ## trail of lost health), at low health (the red pulse), and with the Ultimate ready (the glowing ring). Each is saved
 ## whole and as a 2x close-up of the top-left corner.
+func _capture_results() -> void:
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.gold = 2379
+	progress.xp = 16290
+	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
+	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
+	SceneRoutes.battle_stage = StageProgression.default_region().stages[4]
+	var field: Node = BATTLEFIELD.instantiate()
+	field.set("save_path", DATA_DIR + "/save.json")
+	field.set("settings_path", DATA_DIR + "/settings.cfg")
+	root.add_child(field)
+	(field.get_node("World/WaveDirector") as WaveDirector).stop()
+	await _frames(30)
+	var result: ResultScreen = field.get_node("ResultScreen") as ResultScreen
+	var reward: BattleReward = BattleReward.new()
+	reward.victory = true
+	reward.enemies_defeated = 90
+	reward.gold = 979
+	reward.kill_gold = 654
+	reward.bonus_gold = 325
+	reward.xp = 1780
+	reward.kill_xp = 1630
+	reward.bonus_xp = 150
+	reward.replay = true
+	reward.replay_multiplier = 0.5
+	paused = true
+	result.show_result(reward, progress, 1, OK)
+	await _frames(75)
+	await _capture("victory_replay")
+	reward.replay = false
+	result.show_result(reward, progress, 1, OK, "Bamboo Path", PackedStringArray(["Shrine Healer"]))
+	await _frames(75)
+	await _capture("victory_first_clear")
+	reward.victory = false
+	reward.kill_ratio = 0.5
+	reward.gold = 327
+	reward.xp = 815
+	result.show_result(reward, progress, 0, ERR_CANT_CREATE)
+	await _frames(75)
+	await _capture("defeat_save_error")
+	paused = false
+	field.free()
+	await AudioManager.shutdown_audio(self)
+
+
 func _capture_hud() -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
