@@ -43,6 +43,7 @@ class GroundContacts extends RefCounted:
 static var _contacts: Dictionary = {}
 ## Kind -> the original vertices of its weapon (before the rim-light copy), weapon space.
 static var _weapon_points: Dictionary = {}
+static var _weapon_bounds: Dictionary = {}
 
 
 static func ground_contacts(kind: InkFigure.Kind) -> GroundContacts:
@@ -77,6 +78,27 @@ static func weapon_points(kind: InkFigure.Kind) -> PackedVector2Array:
 		# must not turn every figure refresh into hundreds of redundant ground queries.
 		_weapon_points[kind] = Geometry2D.convex_hull(_original_vertices(batch)) if batch != null else PackedVector2Array()
 	return _weapon_points[kind]
+
+
+## A bounding circle of the held weapon in figure units (x, y of its centre and the radius, z), or a negative radius
+## if the kind holds none: a weapon whose circle is above the ground cannot touch it.
+static func weapon_bound(kind: InkFigure.Kind) -> Vector3:
+	if not _weapon_bounds.has(kind):
+		var points: PackedVector2Array = weapon_points(kind)
+		var bound: Vector3 = Vector3(0.0, 0.0, -1.0)
+		if not points.is_empty():
+			var low: Vector2 = points[0]
+			var high: Vector2 = points[0]
+			for point: Vector2 in points:
+				low = Vector2(minf(low.x, point.x), minf(low.y, point.y))
+				high = Vector2(maxf(high.x, point.x), maxf(high.y, point.y))
+			var center: Vector2 = (low + high) * 0.5
+			var radius: float = 0.0
+			for point: Vector2 in points:
+				radius = maxf(radius, point.distance_to(center))
+			bound = Vector3(center.x, center.y, radius + 0.01)
+		_weapon_bounds[kind] = bound
+	return _weapon_bounds[kind]
 
 
 ## A part's own vertices: with the rim-light copy the batch holds them twice.

@@ -13,6 +13,9 @@ var _lengths: PackedFloat32Array = PackedFloat32Array()
 var _color: Color = InkPalette.GOLD_BRIGHT
 var _blot: PackedVector2Array = PackedVector2Array()
 var _heavy: bool = false
+## The blot is triangulated once, here, and every frame's shapes go out in one draw command.
+var _blot_triangles: PackedInt32Array = PackedInt32Array()
+var _batch: InkBatch = InkBatch.new()
 
 
 ## `direction_x` is the knockback direction (+1 right, -1 left, 0 = all around).
@@ -40,6 +43,7 @@ func setup(direction_x: float, heavy: bool, killed: bool, target: Target) -> voi
 		_lengths.append(rng.randf_range(14.0, 30.0) * (1.3 if heavy else 1.0))
 	if heavy or killed:
 		_blot = InkEffect.blot_points(rng, Vector2.ZERO, 13.0 if heavy else 10.0, 0.8, 7)
+		_blot_triangles = Geometry2D.triangulate_polygon(_blot)
 
 
 func _advance(delta: float) -> void:
@@ -52,13 +56,13 @@ func _advance(delta: float) -> void:
 func _draw() -> void:
 	var p: float = progress()
 	var fade: float = 1.0 - p
-	if not _blot.is_empty():
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE * (0.7 + 0.6 * p))
-		InkBrush.fill(self, _blot, Color(InkPalette.INK, 0.7 * fade))
-		draw_set_transform(Vector2.ZERO)
+	_batch.clear()
+	if not _blot_triangles.is_empty():
+		_batch.fill_triangulated(_blot, _blot_triangles, Color(InkPalette.INK, 0.7 * fade), 0.7 + 0.6 * p)
 	if p < 0.35:
-		draw_circle(Vector2.ZERO, (16.0 if _heavy else 11.0) * (1.0 - p), Color(InkPalette.PAPER, (0.35 - p) * 2.4))
+		_batch.disc(Vector2.ZERO, (16.0 if _heavy else 11.0) * (1.0 - p), Color(InkPalette.PAPER, (0.35 - p) * 2.4), 16)
+	var color: Color = Color(_color, fade)
 	for i: int in _positions.size():
 		var direction: Vector2 = _velocities[i].normalized() if _velocities[i].length_squared() > 1.0 else Vector2.RIGHT
-		var tail: Vector2 = _positions[i] - direction * _lengths[i] * fade
-		InkBrush.stroke(self, PackedVector2Array([tail, _positions[i]]), 1.4, 5.0, Color(_color, fade))
+		_batch.segment(_positions[i] - direction * _lengths[i] * fade, _positions[i], 1.4, 5.0, color)
+	_batch.draw(self)

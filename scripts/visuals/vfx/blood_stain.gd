@@ -7,6 +7,7 @@ const LIFETIME: float = 9.0
 ## The stain shows up after the drops have had time to fall.
 const DELAY: float = 0.2
 const FLATTEN: float = 0.3
+const SPOT_SEGMENTS: int = 20
 
 var _blot: PackedVector2Array = PackedVector2Array()
 var _spots: PackedVector2Array = PackedVector2Array()
@@ -28,8 +29,9 @@ func setup(size: float, direction_x: float) -> void:
 	_batch.clear()
 	_batch.fill(_blot, Color(InkPalette.BLOOD_DARK, 0.85))
 	for i: int in _spots.size():
-		# Match Godot's native circle tessellation, flattened into the same ground ellipse.
-		_batch.ellipse(_spots[i], Vector2(_spot_sizes[i], _spot_sizes[i] * FLATTEN), Color(InkPalette.BLOOD, 0.8), 64)
+		# A spot is at most a few pixels across: 20 segments are within 0.07 px of a true circle (64 tripled the
+		# vertices of every stain, and there can be 60 of them on the ground).
+		_batch.ellipse(_spots[i], Vector2(_spot_sizes[i], _spot_sizes[i] * FLATTEN), Color(InkPalette.BLOOD, 0.8), SPOT_SEGMENTS)
 	queue_redraw()
 
 

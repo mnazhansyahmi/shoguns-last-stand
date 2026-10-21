@@ -14,6 +14,9 @@ const TARGET_GROUPS: Dictionary = {
 	EnemyData.TargetKind.GATE: &"gate",
 }
 const SCAN_INTERVAL: float = 0.2
+## An enemy that stands still on the floor skips physics for up to this many frames in a row (most of a fight is
+## spent standing and swinging); it still checks the floor now and then, so a body moved away is never left hanging.
+const IDLE_SLIDE_SKIPS: int = 5
 const FRICTION: float = 1800.0
 const CORPSE_TIME: float = 0.8
 const LOSE_TARGET_FACTOR: float = 1.5
@@ -38,6 +41,8 @@ var _attack: AttackProfile
 var _attack_phase: AttackPhase = AttackPhase.WINDUP
 var _attack_cooldown_left: float = 0.0
 var _target: Node2D
+## Frames in a row that move_and_slide() was skipped (see IDLE_SLIDE_SKIPS).
+var _idle_slides: int = 0
 var _scan_timer: float = 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity", 980.0)
 ## How much room this soldier keeps from the one in front (random: a crowd is never evenly spaced).
@@ -96,6 +101,10 @@ func _physics_process(delta: float) -> void:
 				_resume()
 		State.DEAD:
 			_brake(delta)
+	if _idle_slides < IDLE_SLIDE_SKIPS and velocity.is_zero_approx() and is_on_floor():
+		_idle_slides += 1
+		return
+	_idle_slides = 0
 	move_and_slide()
 
 

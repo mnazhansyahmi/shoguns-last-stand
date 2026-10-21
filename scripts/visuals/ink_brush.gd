@@ -6,56 +6,51 @@ extends RefCounted
 ## Also holds the shared glow texture, the additive material and two-bone IK.
 
 static var _glow_texture: GradientTexture2D
+## Every one-off helper below builds into this one batch and draws it at once (draw copies the arrays), so a call
+## allocates nothing. Drawing is never nested, so one batch is enough.
+static var _scratch: InkBatch = InkBatch.new()
 
 
 static func fill(ci: CanvasItem, points: PackedVector2Array, color: Color) -> void:
-	var batch: InkBatch = InkBatch.new()
-	batch.fill(points, color)
-	batch.draw(ci)
+	_scratch.fill(points, color)
+	_scratch.flush(ci)
 
 
 static func fill_convex(ci: CanvasItem, points: PackedVector2Array, color: Color) -> void:
-	var batch: InkBatch = InkBatch.new()
-	batch.fill_convex(points, color)
-	batch.draw(ci)
+	_scratch.fill_convex(points, color)
+	_scratch.flush(ci)
 
 
 static func limb(ci: CanvasItem, a: Vector2, b: Vector2, w0: float, w1: float, color: Color) -> void:
-	var batch: InkBatch = InkBatch.new()
-	batch.limb(a, b, w0, w1, color)
-	batch.draw(ci)
+	_scratch.limb(a, b, w0, w1, color)
+	_scratch.flush(ci)
 
 
 static func stroke(ci: CanvasItem, points: PackedVector2Array, w0: float, w1: float, color: Color) -> void:
-	var batch: InkBatch = InkBatch.new()
-	batch.stroke(points, w0, w1, color)
-	batch.draw(ci)
+	_scratch.stroke(points, w0, w1, color)
+	_scratch.flush(ci)
 
 
 static func ridge_fill(ci: CanvasItem, tops: PackedVector2Array, bottom_y: float, top_color: Color,
 		bottom_color: Color) -> void:
-	var batch: InkBatch = InkBatch.new()
-	batch.ridge_fill(tops, bottom_y, top_color, bottom_color)
-	batch.draw(ci)
+	_scratch.ridge_fill(tops, bottom_y, top_color, bottom_color)
+	_scratch.flush(ci)
 
 
 static func gradient_rect(ci: CanvasItem, rect: Rect2, top_color: Color, bottom_color: Color) -> void:
-	var batch: InkBatch = InkBatch.new()
-	batch.gradient_rect(rect, top_color, bottom_color)
-	batch.draw(ci)
+	_scratch.gradient_rect(rect, top_color, bottom_color)
+	_scratch.flush(ci)
 
 
 static func ribbon(ci: CanvasItem, outer: PackedVector2Array, inner: PackedVector2Array,
 		outer_colors: PackedColorArray, inner_colors: PackedColorArray) -> void:
-	var batch: InkBatch = InkBatch.new()
-	batch.ribbon(outer, inner, outer_colors, inner_colors)
-	batch.draw(ci)
+	_scratch.ribbon(outer, inner, outer_colors, inner_colors)
+	_scratch.flush(ci)
 
 
 static func ellipse(ci: CanvasItem, center: Vector2, radii: Vector2, color: Color, segments: int = 18) -> void:
-	var batch: InkBatch = InkBatch.new()
-	batch.ellipse(center, radii, color, segments)
-	batch.draw(ci)
+	_scratch.ellipse(center, radii, color, segments)
+	_scratch.flush(ci)
 
 
 static func ellipse_points(center: Vector2, radii: Vector2, segments: int = 18) -> PackedVector2Array:

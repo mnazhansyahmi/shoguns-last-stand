@@ -139,11 +139,18 @@ func _process(delta: float) -> void:
 			_hud.show_message("Allies: %s" % SummonManager.stance_name(_summoner.get_stance()), 1.2)
 	_update_cooldown_displays()
 	_update_stance_display()
-	_hud.set_summon_text(_build_summon_text())
-	_update_wave_text()
 	_update_respawn(delta)
-	_update_edge_indicators()
-	_update_leaf_keep_out()
+	# Text and indicators that change a few times a second are refreshed a few times a second, on different frames so
+	# no single frame carries them all; the bars above animate smoothly, so they stay per frame.
+	var tick: int = Engine.get_process_frames()
+	match tick % 6:
+		0, 3:
+			_update_edge_indicators()
+		1:
+			_update_leaf_keep_out()
+		2:
+			_hud.set_summon_text(_build_summon_text())
+			_update_wave_text()
 
 
 ## Falling leaves never fly over the HUD or the touch controls.
@@ -316,14 +323,18 @@ func _apply_upgrades() -> void:
 func _update_stance_display() -> void:
 	var stance: Ally.Stance = _summoner.get_stance()
 	_hud.set_stance(SummonManager.stance_name(stance))
-	_touch.set_stance_state(SummonManager.stance_name(stance), stance == Ally.Stance.CHARGE)
+	if _touch.is_active():
+		_touch.set_stance_state(SummonManager.stance_name(stance), stance == Ally.Stance.CHARGE)
 
 
 func _update_cooldown_displays() -> void:
 	_hud.set_ultimate(_ultimate_meter.get_ratio(), _ultimate_meter.is_ready())
-	_touch.set_ultimate_charge(_ultimate_meter.get_ratio(), _ultimate_meter.is_ready())
 	var cooldowns: Dictionary = _player.get_ability_cooldowns()
 	_hud.set_ability_cooldowns(cooldowns)
+	# The touch buttons are hidden without touch controls: they are brought up to date the frame they appear.
+	if not _touch.is_active():
+		return
+	_touch.set_ultimate_charge(_ultimate_meter.get_ratio(), _ultimate_meter.is_ready())
 	for key: String in cooldowns:
 		var info: Vector2 = cooldowns[key]
 		_touch.set_ability_cooldown(key, info.x / maxf(info.y, 0.001), info.x)

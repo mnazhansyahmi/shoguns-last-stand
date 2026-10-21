@@ -7,7 +7,9 @@ extends SceneTree
 ## Reports wall-clock frame time
 ## (average / p95 / max) and the renderer's own CPU and GPU time for the viewport.
 ## Diagnostic flags (to attribute cost): --hide-figures, --freeze-visuals, --no-backdrop,
-## --no-effects, --no-hud.
+## --no-effects, --no-hud. --trace prints the node and unit counts every 250 frames (to spot growth or a stuck fight).
+## --frames=N measures N frames instead of MEASURE_FRAMES (a longer run averages out the
+## machine's own noise).
 ## Uses its own save/settings under user://perf, never the player's.
 
 const BATTLEFIELD: PackedScene = preload("res://scenes/battlefield/battlefield.tscn")
@@ -57,7 +59,11 @@ func _run() -> void:
 	var render_gpu: float = 0.0
 	var spawned: int = 0
 	var last_usec: int = Time.get_ticks_usec()
-	for frame: int in WARMUP_FRAMES + MEASURE_FRAMES:
+	var measure_frames: int = MEASURE_FRAMES
+	for flag: String in _flags:
+		if flag.begins_with("--frames="):
+			measure_frames = maxi(int(flag.trim_prefix("--frames=")), 60)
+	for frame: int in WARMUP_FRAMES + measure_frames:
 		if paused:
 			field.call(&"_resume")
 		energy.set_energy(energy.max_energy)
@@ -76,6 +82,8 @@ func _run() -> void:
 				visual.set_process(not _flags.has("--freeze-visuals"))
 		await process_frame
 		var now: int = Time.get_ticks_usec()
+		if _flags.has("--trace") and frame % 250 == 0:
+			_print_trace(field, frame, float(now - last_usec) / 1000.0)
 		if frame >= WARMUP_FRAMES:
 			wall.append(float(now - last_usec) / 1000.0)
 			render_cpu += RenderingServer.viewport_get_measured_render_time_cpu(viewport_rid) + RenderingServer.get_frame_setup_time_cpu()
@@ -96,3 +104,15 @@ func _run() -> void:
 	field.free()
 	await AudioManager.shutdown_audio(self)
 	quit(0 if within_budget else 1)
+
+
+func _print_trace(field: Node, frame: int, frame_ms: float) -> void:
+	var states: Dictionary = {}
+	for node: Node in field.get_node("World/Enemies").get_children():
+		var enemy: Enemy = node as Enemy
+		if enemy != null:
+			states[enemy.get_state_name()] = int(states.get(enemy.get_state_name(), 0)) + 1
+	print("TRACE f%d: %.2f ms | nodes %d, orphans %d | allies %d, stains %d, effects %d+%d | enemy states %s" % [frame, frame_ms,
+			int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)),
+			field.get_node("World/Allies").get_child_count(), field.get_node("World/Stains").get_child_count(),
+			field.get_node("World/Effects").get_child_count(), field.get_node("World/HitEffects").get_child_count(), str(states)])

@@ -17,13 +17,20 @@ var _basis: Vector2 = Vector2.RIGHT
 var _ready: bool = false
 var _last_rate: float = 1.0
 var _direction: float = 1.0
+## The frame of the last step, and whether that step left both feet planted with nothing moving: the same frame
+## again would give exactly the same stance, so it is skipped.
+var _last_frame: Transform2D = Transform2D.IDENTITY
+var _at_rest: bool = false
 
 
 func reset() -> void:
 	_ready = false
+	_at_rest = false
 
 
 func step(frame: Transform2D, spec: FigureKinds.Spec, delta: float) -> void:
+	if _at_rest and frame == _last_frame:
+		return
 	var inverse: Transform2D = frame.affine_inverse()
 	if not _ready or frame.origin.distance_to(_previous) > 160.0 or frame.x.dot(_basis) < 0.0:
 		var width: float = (spec.stance.x - spec.stance.y) * 0.5
@@ -79,3 +86,5 @@ func step(frame: Transform2D, spec: FigureKinds.Spec, delta: float) -> void:
 	var support_x: float = targets[0].x if planted[0] else targets[1].x
 	hip_shift = clampf(support_x * 0.12, -1.4, 1.4) if moving else (targets[0].x + targets[1].x) * 0.5
 	counter_turn = sin(phase * TAU) * (0.018 if spec.heavy_gait else 0.035) if moving else 0.0
+	_last_frame = frame
+	_at_rest = not moving and planted[0] and planted[1]

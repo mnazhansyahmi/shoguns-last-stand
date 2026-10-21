@@ -334,8 +334,10 @@ func _lowest_contact(hip_point: Vector2, ankle: Vector2, xf: Transform2D) -> flo
 ## While the body falls (it turns about the feet) the legs swing down through the ground: lift the whole body by the
 ## depth they would reach.
 func _lift_fallen_legs() -> void:
+	if fall <= 0.0:
+		return
 	var contacts: FigurePainter.GroundContacts = FigurePainter.ground_contacts(kind)
-	if fall <= 0.0 or contacts.points.is_empty():
+	if contacts.points.is_empty():
 		return
 	var lowest: float = maxf(_lowest_contact(hip + Vector2(2.0, 0.0), front_ankle, root_xf),
 			_lowest_contact(hip + Vector2(-2.0, 0.0), back_ankle, root_xf))
@@ -350,6 +352,11 @@ func _lift_fallen_legs() -> void:
 func _rest_weapon_on_ground() -> void:
 	var points: PackedVector2Array = FigurePainter.weapon_points(kind)
 	if points.is_empty():
+		return
+	# Most of the time the weapon is well clear of the ground: one test of its bounding circle says so.
+	var bound: Vector3 = FigurePainter.weapon_bound(kind)
+	var centre: Vector2 = weapon_xf * Vector2(bound.x, bound.y)
+	if centre.y + bound.z * maxf(weapon_xf.x.length(), weapon_xf.y.length()) <= 0.0:
 		return
 	for pass_index: int in 3:
 		var lowest: float = -INF

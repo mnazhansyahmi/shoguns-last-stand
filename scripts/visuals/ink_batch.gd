@@ -107,6 +107,56 @@ func fill_fan(center: Vector2, ring: PackedVector2Array, color: Color) -> void:
 		indices.append(base + 1 + (i + 1) % count)
 
 
+## A polygon that was triangulated once (`triangles` from Geometry2D.triangulate_polygon), scaled about the origin:
+## for an effect that redraws the same blot every frame without triangulating it again.
+func fill_triangulated(points: PackedVector2Array, triangles: PackedInt32Array, color: Color, scale: float = 1.0) -> void:
+	if triangles.is_empty():
+		return
+	var base: int = vertices.size()
+	for point: Vector2 in points:
+		vertices.append(point * scale)
+		colors.append(color)
+	for index: int in triangles:
+		indices.append(base + index)
+
+
+## A flat tapered segment from a (width w0) to b (width w1), square ends: the same quad as a two-point stroke(), built
+## without any point array (for the many short streaks of a spray of drops or sparks).
+func segment(a: Vector2, b: Vector2, w0: float, w1: float, color: Color) -> void:
+	var direction: Vector2 = b - a
+	if direction.length_squared() < 0.000001:
+		direction = Vector2.RIGHT
+	var normal: Vector2 = direction.normalized().orthogonal()
+	var base: int = vertices.size()
+	vertices.append(a + normal * w0 * 0.5)
+	vertices.append(a - normal * w0 * 0.5)
+	vertices.append(b + normal * w1 * 0.5)
+	vertices.append(b - normal * w1 * 0.5)
+	for i: int in 4:
+		colors.append(color)
+	indices.append(base)
+	indices.append(base + 1)
+	indices.append(base + 2)
+	indices.append(base + 1)
+	indices.append(base + 3)
+	indices.append(base + 2)
+
+
+## A filled disc as a fan of `segments` triangles (no point array: the ring is computed in place).
+func disc(center: Vector2, radius: float, color: Color, segments: int = 12) -> void:
+	var base: int = vertices.size()
+	vertices.append(center)
+	colors.append(color)
+	for i: int in segments:
+		var angle: float = TAU * float(i) / float(segments)
+		vertices.append(center + Vector2(cos(angle), sin(angle)) * radius)
+		colors.append(color)
+	for i: int in segments:
+		indices.append(base)
+		indices.append(base + 1 + i)
+		indices.append(base + 1 + (i + 1) % segments)
+
+
 func circle(center: Vector2, radius: float, color: Color) -> void:
 	ellipse(center, Vector2(radius, radius), color, clampi(int(radius * 1.2), 8, 24))
 

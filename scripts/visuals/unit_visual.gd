@@ -29,6 +29,9 @@ const VARY_OFFSET_DOWN: float = 1.5
 const STATES: Array[StringName] = [&"idle", &"run", &"windup", &"heavy_windup", &"strike", &"cast",
 		&"dash", &"hurt", &"spawn", &"dead", &"shoot", &"war_cry"]
 const GOLD_FLASH_TIME: float = 0.4
+## A pose that eases toward its target is within a millionth of it after this many blend time constants: it stops being
+## blended (most figures spend most of their time settled in a state).
+const BLEND_SETTLE: float = 14.0
 
 @export var figure_kind: InkFigure.Kind = InkFigure.Kind.SAMURAI
 ## Figure height in pixels.
@@ -62,6 +65,8 @@ var _blinking: bool = false
 var _blink_clock: float = 0.0
 var _dissolve_spawned: bool = false
 var _afterimages_left: int = 0
+## Seconds of blending left before the pose has settled on its target (see BLEND_SETTLE).
+var _blend_left: float = 0.0
 
 ## Per-unit variation (enable_variation): no two soldiers in a crowd move alike.
 var vary: bool = false
@@ -120,6 +125,7 @@ func configure(kind: InkFigure.Kind, height: float) -> float:
 	_figure.kind = kind
 	_figure.ground_marker = Color(InkPalette.SAMURAI_RED, 0.85) if ground_marker else Color(0.0, 0.0, 0.0, 0.0)
 	_target = FigureKinds.pose(kind, _state if _state != &"" else &"idle", _combo_step, _heavy)
+	_blend_left = 1.0
 	_guard = FigureKinds.pose(kind, &"idle")
 	_feel = FigureKinds.feel(kind, _state if _state != &"" else &"idle", _heavy)
 	_spring.stop()
@@ -177,6 +183,7 @@ func play_state(state: StringName) -> void:
 				_spawn_entrance()
 			_heavy = false
 	_target = FigureKinds.pose(figure_kind, state, _combo_step, _heavy)
+	_blend_left = BLEND_SETTLE / _blend_rate()
 	_feel = FigureKinds.feel(figure_kind, state, _heavy)
 	if state == &"strike":
 		_last_strike_time = _time
@@ -241,7 +248,8 @@ func _process(delta: float) -> void:
 			_spring.stop()
 		else:
 			_spring.step(_pose, _aim_pose(), _feel, delta)
-	else:
+	elif _blend_left > 0.0:
+		_blend_left -= delta
 		_pose.blend_toward(_target, 1.0 - exp(-_blend_rate() * delta))
 	_update_motion(delta)
 	if is_on_screen():

@@ -4,10 +4,12 @@ extends RefCounted
 ## Reach is handled at the pelvis/target, never by scaling a bone.
 const MAX_BEND: float = 115.0
 const SOLE: float = 2.5
+## cos(MAX_BEND), so the minimum reach needs no trigonometry per call.
+const COS_MAX_BEND: float = -0.42261826174069944
 
 
 static func minimum_reach(thigh: float, shin: float) -> float:
-	return sqrt(thigh * thigh + shin * shin + 2.0 * thigh * shin * cos(deg_to_rad(MAX_BEND)))
+	return sqrt(thigh * thigh + shin * shin + 2.0 * thigh * shin * COS_MAX_BEND)
 
 
 static func fit_hip(hip: Vector2, front: Vector2, back: Vector2, thigh: float, shin: float) -> Vector2:
