@@ -1,44 +1,42 @@
 extends Control
 ## Title screen artwork over the Bamboo Outskirts backdrop: a dark wash behind the menu column,
-## an ink rock outcrop, the samurai standing on it silhouetted against the moon with the scarf
-## streaming in the wind, and bamboo leaves drifting across. Drawn by code; ignores input.
+## an ink rock outcrop, the original painted samurai against the moon, and drifting bamboo
+## leaves. The portrait is static; the surrounding atmosphere moves. Ignores input.
 
 ## The backdrop's moon (BambooOutskirtsPainter) and its layer depth, to line the samurai up with it.
 const MOON_POSITION: Vector2 = Vector2(1480.0, 230.0)
 const MOON_DEPTH: float = 0.04
 const DESIGN_CENTER: Vector2 = Vector2(960.0, 540.0)
-const SAMURAI_HEIGHT: float = 410.0
+const SAMURAI_HEIGHT: float = 540.0
 ## How far below the moon's centre the samurai's feet stand.
 const LEDGE_DROP: float = 450.0
 const LEAF_COUNT: int = 14
 
-var _figure: InkFigure
+var _portrait: Sprite2D
 var _clock: float = 0.0
 var _leaf_seeds: PackedVector4Array = PackedVector4Array()
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_figure = InkFigure.new()
-	_figure.name = "Samurai"
-	_figure.height = SAMURAI_HEIGHT
-	_figure.kind = InkFigure.Kind.SAMURAI
-	_figure.upright = true
-	_figure.show_stowed_bow = false
-	_figure.scale.x = -1.0
-	add_child(_figure)
+	_portrait = Sprite2D.new()
+	_portrait.name = "Samurai"
+	_portrait.texture = SamuraiSpriteArt.PORTRAIT
+	_portrait.region_enabled = true
+	_portrait.region_rect = SamuraiSpriteArt.PORTRAIT_REGION
+	_portrait.region_filter_clip_enabled = true
+	_portrait.offset = Vector2(0.0, -SamuraiSpriteArt.PORTRAIT_REGION.size.y * 0.5)
+	add_child(_portrait)
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = 7
 	for i: int in LEAF_COUNT:
 		_leaf_seeds.append(Vector4(rng.randf(), rng.randf(), rng.randf_range(0.6, 1.4), rng.randf() * TAU))
 	resized.connect(_place_figure)
 	_place_figure()
-	_pose_figure()
 
 
 func _process(delta: float) -> void:
 	_clock += delta
-	_pose_figure()
 	queue_redraw()
 
 
@@ -52,20 +50,14 @@ func get_ledge_position() -> Vector2:
 
 
 func _place_figure() -> void:
-	if _figure != null:
-		_figure.position = get_ledge_position()
+	if _portrait != null:
+		_portrait.position = get_ledge_position() + Vector2(0.0, 7.0)
+		_portrait.scale = Vector2.ONE * SAMURAI_HEIGHT / SamuraiSpriteArt.PORTRAIT_REGION.size.y
 
 
-## Quiet low guard; slow breathing and a light breeze rather than an attack wind-up.
-func _pose_figure() -> void:
-	var pose: FigurePose = _figure.pose
-	pose.copy_from(FigureKinds.samurai_title_pose())
-	pose.lean += 0.004 * sin(_clock * 1.2)
-	pose.blade += 0.008 * sin(_clock * 0.9)
-	_figure.breath = sin(_clock * TAU * 0.25)
-	_figure.trail = 0.22 + 0.08 * sin(_clock * 0.7)
-	_figure.clock = _clock
-	_figure.refresh()
+func get_portrait_rect() -> Rect2:
+	var width: float = SamuraiSpriteArt.PORTRAIT_REGION.size.x * SAMURAI_HEIGHT / SamuraiSpriteArt.PORTRAIT_REGION.size.y
+	return Rect2(get_ledge_position() + Vector2(-width * 0.5, 7.0 - SAMURAI_HEIGHT), Vector2(width, SAMURAI_HEIGHT))
 
 
 func _draw() -> void:
@@ -86,13 +78,13 @@ func _draw_outcrop() -> void:
 	var base_y: float = maxf(size.y, ledge.y + 200.0) + 10.0
 	var rock: PackedVector2Array = PackedVector2Array([
 		Vector2(ledge.x - 290.0, base_y), Vector2(ledge.x - 210.0, ledge.y + 240.0), Vector2(ledge.x - 180.0, ledge.y + 155.0),
-		Vector2(ledge.x - 110.0, ledge.y + 55.0), Vector2(ledge.x - 95.0, ledge.y + 10.0), Vector2(ledge.x - 45.0, ledge.y + 2.0),
-		Vector2(ledge.x + 45.0, ledge.y + 2.0), Vector2(ledge.x + 110.0, ledge.y + 18.0), Vector2(ledge.x + 165.0, ledge.y + 85.0),
+		Vector2(ledge.x - 110.0, ledge.y + 55.0), Vector2(ledge.x - 95.0, ledge.y + 10.0), Vector2(ledge.x - 55.0, ledge.y - 12.0),
+		Vector2(ledge.x + 45.0, ledge.y - 6.0), Vector2(ledge.x + 110.0, ledge.y + 18.0), Vector2(ledge.x + 165.0, ledge.y + 85.0),
 		Vector2(ledge.x + 235.0, ledge.y + 130.0), Vector2(ledge.x + 290.0, ledge.y + 220.0), Vector2(size.x + 40.0, ledge.y + 270.0),
 		Vector2(size.x + 40.0, base_y)])
 	InkBrush.fill(self, rock, InkPalette.INK)
-	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-95.0, 10.0), ledge + Vector2(-45.0, 2.0),
-			ledge + Vector2(45.0, 2.0), ledge + Vector2(110.0, 18.0)]), 2.0, 0.6, Color(InkPalette.GROUND_TOP, 0.6))
+	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-95.0, 10.0), ledge + Vector2(-55.0, -12.0),
+			ledge + Vector2(45.0, -6.0), ledge + Vector2(110.0, 18.0)]), 2.0, 0.6, Color(InkPalette.GROUND_TOP, 0.6))
 	# A few dry-brush cracks in the stone.
 	var crack: Color = InkPalette.INK_DETAIL
 	InkBrush.stroke(self, PackedVector2Array([ledge + Vector2(-90.0, 30.0), ledge + Vector2(-70.0, 90.0), ledge + Vector2(-110.0, 160.0)]), 4.0, 1.5, crack)

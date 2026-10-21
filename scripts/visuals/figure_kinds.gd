@@ -89,15 +89,18 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.idle_blade = Vector2(0.025, 1.1)
 			s.idle_lean = Vector2(0.008, 0.9)
 			s.idle_head = Vector2(0.035, 0.45)
-			# Legs are drawn as flared hakama wedges (FigurePainter), so the stance is wide.
+			# Preserve the planted stance while the light hakama follows the leg bones.
 			s.stance = Vector2(6.5, -8.5)
 			# Two hands on a long hilt: the back hand 9 units behind the front one.
 			s.back_hand_on_weapon = Vector2(-9.0, 0.0)
-			# Legs built like the Spear Guardian's: plain tapered limbs (the hakama flare is added in FigurePainter).
-			s.thigh_w = Vector2(10.0, 9.0)
-			s.shin_w = Vector2(9.0, 7.0)
+			# Lean presentation widths; bone lengths and motion stay unchanged.
+			s.thigh_w = Vector2(7.0, 5.8)
+			s.shin_w = Vector2(5.3, 3.8)
+			s.arm_w = Vector2(5.0, 4.0)
+			s.fore_w = Vector2(3.7, 3.0)
+			s.sleeve_width = Vector2(5.8, 1.2)
 			s.foot = 9.0
-			s.head_top = 112.0
+			s.head_top = 104.0
 			s.shadow_width = 26.0
 			s.springy = true
 			s.cloth = true

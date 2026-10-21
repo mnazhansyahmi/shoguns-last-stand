@@ -5,7 +5,9 @@ This file is a record for the project. It is NOT shown in the game and NOT inclu
 
 What the game shows on its Credits screen is `docs/CREDITS.md`, and that holds only the credits a licence REQUIRES
 (plus the creator line). Rule: record every third-party asset here; add it to `docs/CREDITS.md` only if its licence
-requires attribution. All art is drawn by code; there are no image files.
+requires attribution. Most art is drawn by code. The user-approved samurai portrait and layered
+atlas are original generated artwork, not third-party stock; their exact production prompts are
+embedded in the PNGs and recorded in `assets/art/samurai/provenance.json`.
 
 ## Music: Free Japanese Fantasy Music Pack by Momiziba
 

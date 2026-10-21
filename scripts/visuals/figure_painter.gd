@@ -144,15 +144,15 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 	var order: Array[StringName] = []
 	match kind:
 		InkFigure.Kind.SAMURAI:
-			# Short hakama and tassets leave both articulated legs and flat tabi visible.
+			# Slim painted hakama and independent sandals keep the articulated legs visible.
 			# The yumi is slung on his back, behind everything; the Bow skill takes it into his hand.
 			# He has legs (hakama trousers over bent knees), the back leg behind the body. Both hands hold the hilt in
 			# front of him, so the back arm is drawn over the torso, under the front arm.
-			order.append_array([&"yumi_back", &"hem", &"sleeve_b", &"thigh_b", &"shin_b", &"foot_b", &"pauldron_back"])
+			order.append_array([&"yumi_back", &"mane", &"hem", &"sleeve_b", &"thigh_b", &"shin_b", &"foot_b"])
 			order.append_array([&"thigh_f", &"shin_f", &"foot_f", &"skirt", &"torso", &"head", &"tails"])
 			order.append_array(_BACK_ARM)
 			order.append_array(_FRONT_ARM)
-			order.append_array([&"sleeve_f", &"pauldron_front", &"weapon", &"bow", &"blade_glow"])
+			order.append_array([&"sleeve_f", &"weapon", &"bow", &"blade_glow"])
 		InkFigure.Kind.ASHIGARU:
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
 			order.append_array([&"hem", &"torso", &"head", &"weapon"])
@@ -339,7 +339,10 @@ static func paint_dynamic(fig: InkFigure, part_name: StringName, ci: CanvasItem)
 	match part_name:
 		&"tails":
 			if fig.kind == InkFigure.Kind.SAMURAI:
-				_paint_cloth_tails(fig, ci, InkPalette.SAMURAI_RED, 5.2, 4.6)
+				if fig.secondary != null:
+					for chain: ClothChain in fig.secondary.scarf:
+						SamuraiSpriteArt.paint_cloth(ci, fig.global_transform.affine_inverse() * chain.points,
+								7.0 * fig.get_unit_scale(), true)
 			else:
 				_paint_cloth_tails(fig, ci, InkPalette.ARCHER_TEAL, 4.0, 3.4)
 		&"sleeve_f":
@@ -398,6 +401,9 @@ static func _paint_cloth_tails(fig: InkFigure, ci: CanvasItem, color: Color, wid
 ## A sleeve flap hanging from the arm: a tapered strip following its cloth chain.
 static func _paint_sleeve(fig: InkFigure, ci: CanvasItem, chain: ClothChain, color: Color) -> void:
 	var s: float = fig.get_unit_scale()
+	if fig.kind == InkFigure.Kind.SAMURAI:
+		SamuraiSpriteArt.paint_cloth(ci, fig.global_transform.affine_inverse() * chain.points, 8.0 * s, false)
+		return
 	var batch: InkBatch = InkBatch.new()
 	batch.stroke(fig.global_transform.affine_inverse() * chain.points, fig.spec.sleeve_width.x * s, fig.spec.sleeve_width.y * s, color)
 	batch.draw(ci)
@@ -466,32 +472,9 @@ static func _table(ys: Array[float], values: Array[float], y: float) -> float:
 static func _build_samurai(parts: Dictionary) -> void:
 	var ink: Color = InkPalette.INK
 	var detail: Color = InkPalette.INK_DETAIL
-	var back_ink: Color = InkPalette.INK_BACK
 	var red: Color = InkPalette.SAMURAI_RED
-	var spec: FigureKinds.Spec = FigureKinds.spec(InkFigure.Kind.SAMURAI)
-	var leg: float = spec.thigh + spec.shin
 
-	_samurai_hakama_flare(parts, spec, ink, back_ink, detail)
-
-	# Sode: layered shoulder lames, swinging from the shoulder.
-	parts[&"pauldron_front"] = _sode(ink, detail)
-	parts[&"pauldron_back"] = _sode(back_ink, back_ink)
-
-	parts[&"skirt"] = _samurai_kusazuri(ink, detail, red)
-	parts[&"torso"] = _samurai_body(ink, detail, red)
-
-	# Kote: armoured sleeves on the forearms (a plate with lacing lines before the wrist).
-	for front: bool in [true, false]:
-		var color: Color = ink if front else back_ink
-		var kote: InkBatch = InkBatch.new()
-		kote.limb(Vector2.ZERO, Vector2(spec.fore_arm, 0.0), 6.4, 4.6, color)
-		kote.circle(Vector2(spec.fore_arm, 0.0), spec.hand_r, color)
-		if front:
-			kote.limb(Vector2(4.0, -3.0), Vector2(4.0, 3.0), 1.3, 1.3, detail)
-			kote.limb(Vector2(spec.fore_arm - 4.0, -2.4), Vector2(spec.fore_arm - 4.0, 2.4), 1.3, 1.3, detail)
-		parts[&"fore_f" if front else &"fore_b"] = kote
-
-	parts[&"head"] = _samurai_head(ink, detail)
+	SamuraiSpriteArt.build_body(parts)
 	parts[&"yumi_back"] = _samurai_yumi_back(ink, detail, red)
 
 	var katana: InkBatch = InkBatch.new()
@@ -521,14 +504,14 @@ static func _build_samurai(parts: Dictionary) -> void:
 static func _samurai_yumi_back(ink: Color, detail: Color, red: Color) -> InkBatch:
 	var batch: InkBatch = InkBatch.new()
 	var lower: Vector2 = Vector2(-10.0, -2.0)
-	var upper: Vector2 = Vector2(-26.0, -86.0)
-	var control: Vector2 = Vector2(-29.6, -41.0)
+	var upper: Vector2 = Vector2(-20.0, -64.0)
+	var control: Vector2 = Vector2(-25.5, -32.0)
 	batch.stroke(PackedVector2Array([lower, upper]), 1.1, 1.1, detail)
 	var curve: PackedVector2Array = PackedVector2Array()
 	for i: int in 15:
 		curve.append(_quadratic(lower, control, upper, float(i) / 14.0))
-	batch.stroke(curve, 4.6, 2.6, ink)
-	batch.stroke(PackedVector2Array([_quadratic(lower, control, upper, 0.3), _quadratic(lower, control, upper, 0.4)]), 5.6, 5.6, red)
+	batch.stroke(curve, 2.2, 1.3, detail)
+	batch.stroke(PackedVector2Array([_quadratic(lower, control, upper, 0.3), _quadratic(lower, control, upper, 0.4)]), 2.6, 2.6, red.darkened(0.2))
 	return batch
 
 

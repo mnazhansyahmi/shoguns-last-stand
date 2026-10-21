@@ -19,6 +19,7 @@ static var theme: AtmosphereTheme
 static var time: float = 0.0
 
 static var _rim_material: ShaderMaterial
+static var _painted_rim_material: ShaderMaterial
 
 
 ## The theme in force (the default sunset until a stage sets its own).
@@ -61,6 +62,15 @@ static func rim_material() -> ShaderMaterial:
 	return _rim_material
 
 
+## All painted samurai layers share one alpha-aware material and the same sun/theme.
+static func painted_rim_material() -> ShaderMaterial:
+	if _painted_rim_material == null:
+		_painted_rim_material = ShaderMaterial.new()
+		_painted_rim_material.shader = load("res://scripts/visuals/shaders/painted_ink.gdshader") as Shader
+		_update_rim()
+	return _painted_rim_material
+
+
 ## The rim light's colour for a theme: the sun's own warm colour, at a soft strength. It is a sliver of
 ## sunlight on the sun-facing edge, not an outline.
 static func rim_color_for(theme_now: AtmosphereTheme) -> Color:
@@ -68,7 +78,9 @@ static func rim_color_for(theme_now: AtmosphereTheme) -> Color:
 
 
 static func _update_rim() -> void:
-	if _rim_material == null:
+	if _rim_material == null and _painted_rim_material == null:
 		return
-	_rim_material.set_shader_parameter("rim_color", rim_color_for(current()))
-	_rim_material.set_shader_parameter("rim_offset", SUN_DIRECTION.normalized() * RIM_THICKNESS)
+	for material: ShaderMaterial in [_rim_material, _painted_rim_material]:
+		if material != null:
+			material.set_shader_parameter("rim_color", rim_color_for(current()))
+			material.set_shader_parameter("rim_offset", SUN_DIRECTION.normalized() * RIM_THICKNESS)

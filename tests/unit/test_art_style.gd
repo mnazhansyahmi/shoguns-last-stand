@@ -385,11 +385,15 @@ func test_title_samurai_stands_against_the_moon() -> void:
 	menu.set("settings_path", "user://test_saves/title_settings.cfg")
 	add_to_tree(menu)
 	var art: Control = menu.get_node("TitleArt")
-	var samurai: InkFigure = art.get_node("Samurai") as InkFigure
+	var samurai: Sprite2D = art.get_node("Samurai") as Sprite2D
 	var moon: Vector2 = art.call(&"get_moon_position")
-	var head_top: float = samurai.position.y + samurai.get_head_top_y()
+	var portrait: Rect2 = art.call(&"get_portrait_rect")
 	assert_true(absf(samurai.position.x - moon.x) < 40.0, "samurai stands under the moon")
-	assert_true(head_top > moon.y - 80.0 and head_top < moon.y + 40.0, "the samurai's head is against the moon disc")
+	assert_true(portrait.position.y < moon.y and portrait.position.y + portrait.size.y * 0.22 > moon.y,
+			"the moon stays behind the portrait's head")
+	var source: Image = Image.load_from_file("res://assets/art/samurai/slim_menu.png")
+	assert_true(samurai.texture != null and source != null and source.get_pixel(0, 0).a == 0.0,
+			"the original painted portrait has genuine background transparency")
 	var fog: CanvasItem = menu.get_node("Backdrop/FrontFog")
 	assert_true(not fog.visible, "front fog is off behind the menu so it never covers buttons")
 

@@ -99,7 +99,7 @@ func tail_rest(fig: InkFigure, tail: int) -> PackedVector2Array:
 ## Where the tails are pinned (scarf at the neck, headband behind the head), in world pixels.
 func _tail_anchor(fig: InkFigure) -> Vector2:
 	if fig.kind == InkFigure.Kind.SAMURAI:
-		return fig.global_transform * (fig.torso_xf * Vector2(-3.0, -33.0))
+		return fig.global_transform * (fig.torso_xf * Vector2(-6.0, -4.0))
 	return fig.global_transform * (fig.head_xf * Vector2(-6.0, -9.5))
 
 

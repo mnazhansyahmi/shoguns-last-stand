@@ -7,6 +7,9 @@ extends Node2D
 var figure: InkFigure
 var part_name: StringName = &""
 var batch: InkBatch
+## Optional original painted layer on the same bone frame as procedural parts.
+var art: Texture2D
+var art_frame: Transform2D = Transform2D.IDENTITY
 var dynamic: bool = false
 var glow_points: PackedVector2Array = PackedVector2Array()
 var glow_radii: PackedFloat32Array = PackedFloat32Array()
@@ -14,7 +17,11 @@ var glow_colors: PackedColorArray = PackedColorArray()
 
 
 func _draw() -> void:
-	if dynamic:
+	if art != null:
+		draw_set_transform_matrix(art_frame)
+		draw_texture(art, Vector2.ZERO)
+		draw_set_transform_matrix(Transform2D.IDENTITY)
+	elif dynamic:
 		FigurePainter.paint_dynamic(figure, part_name, self)
 	elif batch != null:
 		batch.draw(self)

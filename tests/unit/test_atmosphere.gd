@@ -255,7 +255,7 @@ func test_rim_copy_is_drawn_first_and_shares_the_shapes() -> void:
 	assert_eq(lit.colors[plain.vertices.size()], Color.RED, "the real shapes keep their colour")
 
 
-func test_all_figures_share_one_rim_material() -> void:
+func test_procedural_and_painted_figures_share_their_respective_rim_materials() -> void:
 	var first: InkFigure = InkFigure.new()
 	first.height = 100.0
 	add_to_tree(first)
@@ -266,8 +266,9 @@ func test_all_figures_share_one_rim_material() -> void:
 	second.kind = InkFigure.Kind.ONI_BRUTE
 	var torso_a: FigurePart = first.get_node("torso") as FigurePart
 	var torso_b: FigurePart = second.get_node("torso") as FigurePart
-	assert_true(torso_a.material != null and torso_a.material == torso_b.material, "every figure's parts use the same material (so they batch)")
-	assert_true(torso_a.material == Atmosphere.rim_material(), "which is the Atmosphere's rim material")
+	assert_true(torso_a.material == Atmosphere.painted_rim_material(), "painted body layers share the alpha-aware material")
+	assert_true(first.get_node("head").get("material") == torso_a.material, "head and torso share the painted material")
+	assert_true(torso_b.material == Atmosphere.rim_material(), "procedural figures retain their shared rim material")
 	var offset: Vector2 = Atmosphere.rim_material().get_shader_parameter("rim_offset")
 	assert_true(offset.x > 0.0 and offset.y < 0.0, "the light comes from the upper right, where the sun is")
 	assert_true(offset.length() >= 1.0 and offset.length() <= 1.8, "and the rim is a thin soft sliver (%.1f world px)" % offset.length())

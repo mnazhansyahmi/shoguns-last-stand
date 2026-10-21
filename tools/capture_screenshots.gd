@@ -237,18 +237,26 @@ func _capture_battle() -> void:
 		await _capture("battle_cooldowns")
 		await _frames(120)
 	if _skills:
-		Input.action_press("bow")
-		await _frames(2)
-		Input.action_release("bow")
+		# Staged skill plates keep hostile actors still so a hit cannot obscure
+		# or interrupt the exact equipment/cloth state being reviewed.
+		for enemy: Node in get_nodes_in_group("enemies"):
+			enemy.process_mode = Node.PROCESS_MODE_DISABLED
+		# Start explicitly after the attack settles: a just-pressed key during
+		# recovery can be ignored and silently capture the wrong equipment.
+		await _frames(40)
+		assert(player.call("use_skill", &"bow"), "Bow capture requires an unlocked ready skill")
 		await _frames(10)
+		assert(player.call("get_state_name") == "BOW", "Bow capture missed its draw state")
 		await _capture("battle_bow_draw")
 		await _frames(70)
-		Input.action_press("war_cry")
-		await _frames(2)
-		Input.action_release("war_cry")
+		(player.call("get_health") as HealthComponent).clear_invulnerability()
+		assert(player.call("use_skill", &"war_cry"), "War Cry capture requires an unlocked ready skill")
 		await _frames(22)
+		assert(player.call("get_state_name") == "WAR_CRY", "War Cry capture missed its cast state")
 		await _capture("battle_war_cry")
 		await _frames(30)
+		for enemy: Node in get_nodes_in_group("enemies"):
+			enemy.process_mode = Node.PROCESS_MODE_INHERIT
 	if _fireball:
 		await _capture_fireball(field)
 	if _fight:

@@ -264,6 +264,10 @@ func refresh() -> void:
 	_update_slots()
 	for i: int in _parts.size():
 		_parts[i].transform = _slot_xf[_part_slots[i]]
+		if kind == Kind.SAMURAI and _parts[i].part_name == &"mane":
+			var tie: Vector2 = Vector2(-3.0, -21.0)
+			var sway: float = sin(clock * 5.0) * (0.025 + trail * 0.05)
+			_parts[i].transform *= Transform2D(0.0, tie) * Transform2D(sway, Vector2.ZERO) * Transform2D(0.0, -tie)
 	for part: FigurePart in _dynamic_parts:
 		part.queue_redraw()
 	if _bow_part != null:
@@ -516,6 +520,14 @@ func _build_parts() -> void:
 			_back_bow_part = part
 		if part_name == &"bow" and spec.has_back_bow:
 			part.visible = false
+		if kind == Kind.SAMURAI and SamuraiSpriteArt.has_part(part_name):
+			part.art = SamuraiSpriteArt.texture(part_name)
+			part.art_frame = SamuraiSpriteArt.frame(part_name)
+			# Painted layers carry their own ink edges; the procedural UV-flag rim shader
+			# cannot be applied to a normal image texture.
+			part.material = Atmosphere.painted_rim_material()
+		elif kind == Kind.SAMURAI and part.dynamic:
+			part.material = Atmosphere.painted_rim_material()
 		add_child(part)
 		_parts.append(part)
 		_part_slots.append(FigurePainter.SLOTS[part_name])
