@@ -3,20 +3,15 @@ extends RefCounted
 ## Original painted layers derived from the approved slim swordsman. Regions and joint
 ## anchors are authored once; all instances share AtlasTextures and rigid draw transforms.
 
-const ATLAS: Texture2D = preload("res://assets/art/samurai/slim_parts.png")
+const ATLAS: Texture2D = preload("res://assets/art/samurai/body_trunk.png")
+const ARMS: Texture2D = preload("res://assets/art/samurai/body_arms.png")
+const LEGS: Texture2D = preload("res://assets/art/samurai/body_legs.png")
+const DETAILS: Texture2D = preload("res://assets/art/samurai/body_details.png")
+const FLOW: Texture2D = preload("res://assets/art/samurai/body_flow.png")
+const LEGACY: Texture2D = preload("res://assets/art/samurai/slim_parts.png")
 const HEAD: Texture2D = preload("res://assets/art/roster/samurai_head.png")
-## Each region holds its whole painted part (tools check none is cut). The skirt's torn front tip reaches into the
-## hair's column, so the skirt is drawn through its own outline (outline_mesh()) and the hair stops above the tip.
-const SOURCES: Dictionary = {
-	&"head": Rect2(239, 158, 952, 979), &"mane": Rect2(940, 98, 306, 232),
-	&"torso": Rect2(330, 68, 297, 291), &"skirt": Rect2(639, 70, 323, 298),
-	&"upper_f": Rect2(42, 412, 261, 225), &"fore_f": Rect2(337, 442, 277, 166),
-	&"thigh_f": Rect2(640, 391, 303, 257), &"shin_f": Rect2(955, 440, 260, 150),
-	&"upper_b": Rect2(32, 687, 288, 250), &"fore_b": Rect2(336, 743, 280, 154),
-	&"thigh_b": Rect2(639, 676, 300, 255), &"shin_b": Rect2(980, 737, 240, 170),
-	&"foot_f": Rect2(68, 971, 232, 192), &"foot_b": Rect2(352, 972, 241, 190),
-	&"weapon": Rect2(936, 1047, 309, 62),
-}
+## Same logical body-part layout; four detail sheets give each bone layer more pixels.
+const SOURCES: Dictionary = SamuraiBodyLayout.SOURCES
 const RECTS: Dictionary = {
 	&"head": Rect2(-8.0, -17.5, 20.0, 21.0),
 	&"mane": Rect2(-35.0, -21.0, 31.0, 19.0),
@@ -28,16 +23,7 @@ const RECTS: Dictionary = {
 }
 ## Pixel-space proximal/distal joints in each cropped layer, target bone length and
 ## cross-axis pixel scale. This corrects the painter's natural diagonal cloth direction.
-const JOINTS: Dictionary = {
-	&"upper_f": [Vector2(22, 42), Vector2(230, 87), 13.0, 0.060],
-	&"fore_f": [Vector2(26, 54), Vector2(242, 110), 13.0, 0.042],
-	&"thigh_f": [Vector2(39, 60), Vector2(264, 170), 23.0, 0.100],
-	&"shin_f": [Vector2(29, 65), Vector2(230, 93), 23.0, 0.075],
-	&"upper_b": [Vector2(35, 55), Vector2(245, 93), 13.0, 0.056],
-	&"fore_b": [Vector2(28, 53), Vector2(240, 100), 13.0, 0.042],
-	&"thigh_b": [Vector2(35, 95), Vector2(266, 155), 23.0, 0.096],
-	&"shin_b": [Vector2(32, 95), Vector2(225, 60), 23.0, 0.073],
-}
+const JOINTS: Dictionary = SamuraiBodyLayout.JOINTS
 
 ## The ponytail keeps at least this fraction of its length between root and tip, bends by at most this fraction of
 ## that span, and is drawn along this many points (hair_spine()).
@@ -50,11 +36,11 @@ static var _frames: Dictionary = {}
 static var _ribbon_indices: Dictionary = {}
 static var _bounds: Dictionary = {}
 static var _source_image: Image
-static var _head_image: Image
+static var _images: Dictionary = {}
 
 ## Authored cloth within the same atlas: no solid geometric substitute over the paint.
-const SASH_REGION: Rect2 = Rect2(634, 1000, 296, 190)
-const SLEEVE_REGION: Rect2 = Rect2(42, 412, 261, 225)
+const SASH_REGION: Rect2 = SamuraiBodyLayout.SOURCES[&"sash"]
+const SLEEVE_REGION: Rect2 = SamuraiBodyLayout.SOURCES[&"sleeve_f"]
 
 
 ## The ponytail's spine from its hair chain: one gentle curve from the root toward where the chain's tip points, never
@@ -90,7 +76,7 @@ static func smooth_ribbon(points: PackedVector2Array) -> PackedVector2Array:
 
 ## `end_width` >= 0 tapers the strip from `width` at the first point to it at the last (a bow limb, an arrow).
 static func paint_cloth(ci: CanvasItem, points: PackedVector2Array, width: float, sash: bool,
-		source_region: Rect2 = Rect2(), atlas: Texture2D = ATLAS, end_width: float = -1.0) -> void:
+		source_region: Rect2 = Rect2(), atlas: Texture2D = FLOW, end_width: float = -1.0) -> void:
 	if points.size() < 2:
 		return
 	var vertices: PackedVector2Array = PackedVector2Array()
@@ -164,6 +150,17 @@ static func _area(polygon: PackedVector2Array) -> float:
 	return area * 0.5
 
 
+## All instances share their detail plate; no per-frame texture allocation.
+static func atlas_for(part_name: StringName) -> Texture2D:
+	if part_name == &"head": return HEAD
+	if part_name == &"weapon": return LEGACY
+	if part_name in [&"mane", &"sash"]: return FLOW
+	if part_name in [&"upper_f", &"fore_f", &"upper_b", &"fore_b"]: return ARMS
+	if part_name in [&"thigh_f", &"shin_f", &"thigh_b", &"shin_b"]: return LEGS
+	if part_name in [&"foot_f", &"foot_b", &"sleeve_f", &"sleeve_b"]: return DETAILS
+	return ATLAS
+
+
 static func has_part(part_name: StringName) -> bool:
 	return SOURCES.has(part_name)
 
@@ -171,7 +168,7 @@ static func has_part(part_name: StringName) -> bool:
 static func texture(part_name: StringName) -> AtlasTexture:
 	if not _textures.has(part_name):
 		var art: AtlasTexture = AtlasTexture.new()
-		art.atlas = HEAD if part_name == &"head" else ATLAS
+		art.atlas = atlas_for(part_name)
 		art.region = SOURCES[part_name]
 		art.filter_clip = true
 		_textures[part_name] = art
@@ -197,9 +194,9 @@ static func frame(part_name: StringName) -> Transform2D:
 ## layers, not collision shapes; metadata keeps those tests independent of a GPU.
 static func bounds(part_name: StringName) -> PackedVector2Array:
 	if not _bounds.has(part_name):
-		if _source_image == null: _source_image = ATLAS.get_image()
-		if _head_image == null: _head_image = HEAD.get_image()
-		_bounds[part_name] = alpha_bounds(_head_image if part_name == &"head" else _source_image, SOURCES[part_name], frame(part_name))
+		var atlas: Texture2D = atlas_for(part_name)
+		if not _images.has(atlas): _images[atlas] = atlas.get_image()
+		_bounds[part_name] = alpha_bounds(_images[atlas], SOURCES[part_name], frame(part_name))
 	return _bounds[part_name]
 
 
@@ -223,6 +220,8 @@ static func alpha_bounds(image: Image, source: Rect2, transform: Transform2D) ->
 
 static func build_body(parts: Dictionary) -> void:
 	for part_name: StringName in SOURCES:
+		if not FigurePainter.layout(InkFigure.Kind.SAMURAI).has(part_name): continue
+		if FigurePainter.DYNAMIC_PARTS.has(part_name): continue
 		# Bounds are conservative; independent feet end at the same sole as the solver.
 		var batch: InkBatch = InkBatch.new()
 		batch.fill(bounds(part_name), InkPalette.INK)

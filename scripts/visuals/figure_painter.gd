@@ -426,7 +426,9 @@ static func _paint_cloth_tails(fig: InkFigure, ci: CanvasItem, color: Color, wid
 static func _paint_sleeve(fig: InkFigure, ci: CanvasItem, chain: ClothChain, color: Color) -> void:
 	var s: float = fig.get_unit_scale()
 	if fig.kind == InkFigure.Kind.SAMURAI:
-		SamuraiSpriteArt.paint_cloth(ci, ci.global_transform.affine_inverse() * chain.points, 8.0 * s, false)
+		var sleeve: StringName = &"sleeve_f" if chain == fig.secondary.sleeve_front else &"sleeve_b"
+		SamuraiSpriteArt.paint_cloth(ci, ci.global_transform.affine_inverse() * chain.points, 8.0 * s, false,
+				SamuraiSpriteArt.SOURCES[sleeve], SamuraiSpriteArt.DETAILS)
 		return
 	if RosterSpriteArt.NAMES.has(fig.kind):
 		SamuraiSpriteArt.paint_cloth(ci, SamuraiSpriteArt.smooth_ribbon(ci.global_transform.affine_inverse() * chain.points),

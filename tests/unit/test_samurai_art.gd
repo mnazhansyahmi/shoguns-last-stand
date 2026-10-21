@@ -13,12 +13,20 @@ func test_painted_limb_anchors_match_the_skeleton_joints() -> void:
 
 
 func test_painted_parts_are_cached_and_atlas_regions_stay_in_the_source() -> void:
-	var source: Image = Image.load_from_file("res://assets/art/samurai/slim_parts.png")
-	var full: Rect2 = Rect2(Vector2.ZERO, Vector2(source.get_size()))
 	for part_name: StringName in SamuraiSpriteArt.SOURCES:
+		var full: Rect2 = Rect2(Vector2.ZERO, SamuraiSpriteArt.atlas_for(part_name).get_size())
 		assert_true(full.encloses(SamuraiSpriteArt.SOURCES[part_name]), "%s is inside the atlas" % part_name)
 		assert_true(SamuraiSpriteArt.texture(part_name) == SamuraiSpriteArt.texture(part_name), "%s shares one texture" % part_name)
 		assert_true(SamuraiSpriteArt.texture(part_name).filter_clip, "%s cannot sample its neighbour" % part_name)
+
+
+func test_body_detail_density_and_filtering_match_the_painted_head() -> void:
+	for name: StringName in [&"torso", &"skirt", &"upper_f", &"fore_f", &"thigh_f", &"shin_f", &"foot_f"]:
+		assert_true(SamuraiSpriteArt.SOURCES[name].size.x >= 500.0, "%s has a full detail layer rather than a 250px cell" % name)
+	var figure: InkFigure = InkFigure.new()
+	add_to_tree(figure)
+	assert_eq(figure.texture_filter, CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC,
+			"the stretched body frames retain detail while minifying")
 
 
 func test_painted_characters_keep_their_distinct_equipment() -> void:
