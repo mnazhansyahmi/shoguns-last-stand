@@ -1,0 +1,10 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+stage_3 | mode=bot | upgrades=none | wins 3/3 | gate left avg 100% | time avg 166s | player deaths avg 3.0 | allies summoned 25.7, lost 23.0
+    WIN  gate 100%  158s  deaths 2  allies lost 19/23
+    WIN  gate 100%  173s  deaths 4  allies lost 27/28
+    WIN  gate 100%  166s  deaths 3  allies lost 23/26
+stage_5 | mode=bot | upgrades=none | wins 3/3 | gate left avg  65% | time avg 343s | player deaths avg 11.0 | allies summoned 56.3, lost 55.3
+    WIN  gate  40%  335s  deaths 10  allies lost 54/55
+    WIN  gate  85%  359s  deaths 12  allies lost 58/59
+    WIN  gate  70%  335s  deaths 11  allies lost 54/55

@@ -516,3 +516,7 @@ func _set_facing(direction: int) -> void:
 		return
 	facing = direction
 	_visual.set_facing(direction)
+
+
+func get_body_height() -> float:
+	return _visual.figure_height

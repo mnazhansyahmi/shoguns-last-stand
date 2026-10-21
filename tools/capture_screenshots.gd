@@ -75,6 +75,10 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if _only == "healing":
+		await _capture_healing()
+		quit(0)
+		return
 	if _only == "controls":
 		await _capture_controls()
 		quit(0)
@@ -837,6 +841,10 @@ func _capture_upgrades() -> void:
 		menu.call("select_tab", tab)
 		await _frames(12)
 		await _capture("upgrades_tab%d" % tab)
+		if tab == UpgradeTabs.Tab.SKILLS:
+			(menu.get_node("%Scroll") as ScrollContainer).scroll_vertical = 100000
+			await _frames(8)
+			await _capture("upgrades_skills_more")
 		if tab == UpgradeTabs.Tab.ALLIES:
 			(menu.get_node("%Scroll") as ScrollContainer).scroll_vertical = 100000
 			await _frames(8)
@@ -1077,6 +1085,13 @@ func _capture_icons() -> void:
 		sheet.add_child(icon)
 		_label(sheet, UpgradeIcon.Kind.keys()[kinds[i]], icon.position + Vector2(120.0, 290.0))
 	await _frames(12)
+	var active_bakers: int = 0
+	for child: Node in root.get_children():
+		if child is FigureSkillArt.Baker:
+			active_bakers += 1
+	print("One-shot figure bake workers after capture warmup: %d" % active_bakers)
+	if active_bakers != 0:
+		push_error("Figure icon render targets should be freed after baking")
 	await _capture("figure_icons")
 	sheet.free()
 
@@ -1092,4 +1107,42 @@ func _capture_controls() -> void:
 	await _frames(20)
 	await _capture("settings_controls")
 	menu.free()
+	await AudioManager.shutdown_audio(self)
+
+
+func _capture_healing() -> void:
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.stages_cleared = ["stage_1", "stage_2"] as Array[String]
+	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
+	SceneRoutes.battle_stage = StageProgression.default_region().stages[2]
+	var field: Node = BATTLEFIELD.instantiate()
+	field.set("save_path", DATA_DIR + "/save.json")
+	field.set("settings_path", DATA_DIR + "/settings.cfg")
+	root.add_child(field)
+	(field.get_node("World/WaveDirector") as WaveDirector).stop()
+	for enemy: Node in get_nodes_in_group("enemies"):
+		enemy.queue_free()
+	var player: Player = field.get_node("World/Player") as Player
+	player.global_position.x = 900.0
+	var healer: Ally = load("res://scenes/allies/ally.tscn").instantiate() as Ally
+	healer.setup(load("res://data/allies/shrine_healer.tres") as AllyData, 700.0)
+	field.get_node("World").add_child(healer)
+	healer.global_position = Vector2(700.0, 880.0)
+	await _frames(35)
+	field.get_node("World").process_mode = Node.PROCESS_MODE_DISABLED
+	player.get_health().take_damage(80.0)
+	healer.set("_heal_target", player)
+	healer.call("_cast_heal")
+	var visual: UnitVisual = healer.get_node("Visual") as UnitVisual
+	visual.play_state(&"strike")
+	_tick_one(visual, 0.15)
+	for number: Node in (field.get_node("World/BattleFeedback") as BattleFeedback).numbers_parent.get_children():
+		if number is DamageNumber:
+			(number as DamageNumber)._process(0.12)
+	var hud: GameHud = field.get_node("Hud") as GameHud
+	(hud.get_node("%BannerLabel") as Control).hide()
+	hud.set_wave_text("Shrine Healer")
+	await _frames(3)
+	await _capture("samurai_healing")
+	field.free()
 	await AudioManager.shutdown_audio(self)

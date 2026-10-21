@@ -1,0 +1,10 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+stage_3 | mode=allies | upgrades=none | wins 0/3 | gate left avg   0% | time avg 677s | player deaths avg 3.0 | allies summoned 112.3, lost 111.7
+    LOSS gate   0%  620s  deaths 3  allies lost 102/103
+    LOSS gate   0%  810s  deaths 3  allies lost 134/134
+    LOSS gate   0%  602s  deaths 3  allies lost 99/100
+stage_5 | mode=allies | upgrades=none | wins 0/3 | gate left avg   0% | time avg 440s | player deaths avg 3.3 | allies summoned 73.0, lost 72.3
+    LOSS gate   0%  436s  deaths 3  allies lost 72/72
+    LOSS gate   0%  438s  deaths 4  allies lost 72/73
+    LOSS gate   0%  446s  deaths 3  allies lost 73/74

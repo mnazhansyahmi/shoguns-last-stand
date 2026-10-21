@@ -9,12 +9,13 @@ extends CharacterBody2D
 
 signal defeated(ally: Ally)
 ## A healer's blessing landed: who was healed and by how much.
-signal healed(target: Ally, amount: float)
+signal healed(target: Node2D, amount: float)
 
 enum State { SPAWN, IDLE, ADVANCE, ATTACK, RECOVER, HURT, DEAD }
 enum AttackPhase { WINDUP, ACTIVE }
 
 const ARROW_SCENE: PackedScene = preload("res://scenes/allies/arrow.tscn")
+const SAMURAI_HEAL_SCALE: float = 0.5
 const SCAN_INTERVAL: float = 0.2
 const FRICTION: float = 1800.0
 const CORPSE_TIME: float = 0.8
@@ -66,7 +67,7 @@ var _attack_phase: AttackPhase = AttackPhase.WINDUP
 var _attack_cooldown_left: float = 0.0
 var _target: Enemy
 var _scan_timer: float = 0.0
-var _heal_target: Ally
+var _heal_target: Node2D
 var _gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity", 980.0)
 
 
@@ -284,8 +285,8 @@ func _process_support(delta: float) -> void:
 		_walk(direction, delta)
 
 
-## The injured ally (not herself) with the lowest health ratio within aggro range, or null.
-func _find_heal_target() -> Ally:
+## Lowest-health ally in aggro range (never herself), then the wounded samurai as fallback.
+func _find_heal_target() -> Node2D:
 	var best: Ally = null
 	var best_ratio: float = data.heal_below_ratio
 	for node: Node in get_tree().get_nodes_in_group("allies"):
@@ -298,13 +299,35 @@ func _find_heal_target() -> Ally:
 		if ratio < best_ratio:
 			best = ally
 			best_ratio = ratio
-	return best
+	# Injured allies always have priority, even if the samurai has less health.
+	if best != null:
+		return best
+	for node: Node in get_tree().get_nodes_in_group("player"):
+		var samurai: Player = node as Player
+		if samurai != null and samurai.is_inside_tree() and not samurai.is_dead() \
+				and samurai.get_health().get_ratio() < 1.0 \
+				and absf(samurai.global_position.x - global_position.x) <= _aggro_range():
+			return samurai
+	return null
 
 
-## True while the stored heal target is a living ally still below the heal threshold.
+func _patient_health(patient: Node2D) -> HealthComponent:
+	return (patient as Player).get_health() if patient is Player else (patient as Ally).get_health()
+
+
+func _patient_height(patient: Node2D) -> float:
+	return (patient as Player).get_body_height() if patient is Player else (patient as Ally).data.body_size.y
+
+
+## Validate the stored reference before passing it to any typed patient helper.
 func _has_valid_heal_target() -> bool:
-	if not is_instance_valid(_heal_target) or not _heal_target.is_inside_tree() or _heal_target.is_dead() \
-			or _heal_target.get_health().get_ratio() >= data.heal_below_ratio:
+	if not is_instance_valid(_heal_target) or not _heal_target.is_inside_tree():
+		_heal_target = null
+		return false
+	var health: HealthComponent = _patient_health(_heal_target)
+	var threshold: float = 1.0 if _heal_target is Player else data.heal_below_ratio
+	if health.is_dead() or health.get_ratio() >= threshold \
+			or (_heal_target is Player and absf(_heal_target.global_position.x - global_position.x) > _aggro_range()):
 		_heal_target = null
 		return false
 	return true
@@ -368,17 +391,24 @@ func _process_attack(delta: float) -> void:
 func _cast_heal() -> void:
 	if not _has_valid_heal_target():
 		return
-	var target: Ally = _heal_target
-	var restored: float = target.get_health().heal(data.attack_damage * _attack.damage_multiplier)
+	# Preserve ally blessings already in progress. A samurai blessing must yield to
+	# injured allies and still be in casting range when it lands.
+	if _heal_target is Player:
+		_heal_target = _find_heal_target()
+		if not _has_valid_heal_target() or absf(_heal_target.global_position.x - global_position.x) > data.attack_range:
+			return
+	var target: Node2D = _heal_target
+	var heal_scale: float = SAMURAI_HEAL_SCALE if target is Player else 1.0
+	var restored: float = _patient_health(target).heal(data.attack_damage * _attack.damage_multiplier * heal_scale)
 	AudioManager.play(&"heal")
 	var glint: HealGlint = HealGlint.new()
-	glint.setup(target.data.body_size.y)
+	glint.setup(_patient_height(target))
 	get_parent().add_child(glint)
 	glint.global_position = target.global_position
 	if restored > 0.0:
 		healed.emit(target, restored)
 		if is_instance_valid(BattleFeedback.active):
-			BattleFeedback.active.spawn_text_number(target.global_position + Vector2(0.0, -target.data.body_size.y),
+			BattleFeedback.active.spawn_text_number(target.global_position + Vector2(0.0, -_patient_height(target)),
 					"+%d" % roundi(restored), InkPalette.JADE)
 
 

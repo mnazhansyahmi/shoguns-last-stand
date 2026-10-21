@@ -33,7 +33,7 @@ func _enemy(x: float) -> Enemy:
 ## Fireballs and explosions are added next to the fighters, not tracked: clear them after each test.
 func cleanup() -> void:
 	for node: Node in tree_root.get_children():
-		if node is Fireball or node is FireBurst:
+		if node is Fireball or node is FireBurst or node is HealGlint:
 			node.free()
 	super.cleanup()
 
@@ -345,3 +345,81 @@ func test_result_screen_announces_a_newly_unlocked_ally() -> void:
 	assert_true(subtitle.text.contains("Shrine Healer"), "the victory text names the new ally")
 	screen.show_result(reward, PlayerProgress.new(), 0, OK, "")
 	assert_true(not subtitle.text.contains("New ally"), "and says nothing when there is none")
+
+
+func _samurai(x: float) -> Player:
+	var samurai: Player = add_to_tree(load("res://scenes/player/player.tscn").instantiate()) as Player
+	samurai.global_position = Vector2(x, 880.0)
+	return samurai
+
+
+func test_healer_prioritises_injured_allies_then_heals_samurai_at_half_strength_with_number() -> void:
+	var healer: Ally = _ally("shrine_healer", 400.0)
+	var friend: Ally = _ally("ashigaru", 450.0)
+	var samurai: Player = _samurai(460.0)
+	_health(friend).take_damage(30.0)
+	_health(samurai).take_damage(180.0)
+	var numbers: Node2D = add_to_tree(Node2D.new()) as Node2D
+	var feedback: BattleFeedback = add_to_tree(BattleFeedback.new()) as BattleFeedback
+	feedback.numbers_parent = numbers
+	assert_eq(healer.call("_find_heal_target"), friend, "an injured ally comes first even when the samurai is worse off")
+	healer.set("_heal_target", friend)
+	healer.call("_cast_heal")
+	assert_almost_eq(_health(friend).current_health, 118.0, "ally receives the normal 28")
+	assert_almost_eq(_health(samurai).current_health, 20.0, "samurai waits for allies")
+	assert_eq(healer.call("_find_heal_target"), samurai, "with allies above the threshold the wounded samurai is selected")
+	var received: Array = []
+	healer.healed.connect(func(target: Node2D, amount: float) -> void: received.append([target, amount]))
+	healer.set("_heal_target", samurai)
+	healer.call("_cast_heal")
+	assert_almost_eq(_health(samurai).current_health, 34.0, "samurai receives half the normal healing")
+	assert_true(received.size() == 1 and received[0][0] == samurai and received[0][1] == 14.0, "signal reports the samurai and actual amount")
+	var found: bool = false
+	for number: Node in numbers.get_children():
+		if number is DamageNumber:
+			found = found or number.get("text") == "+14"
+	assert_true(found, "the samurai gets a visible +14 number")
+
+
+func test_healer_does_not_heal_out_of_range_dead_or_freed_samurai() -> void:
+	var healer: Ally = _ally("shrine_healer", 400.0)
+	var samurai: Player = _samurai(450.0)
+	_health(samurai).take_damage(50.0)
+	healer.set("_heal_target", samurai)
+	samurai.global_position.x = 400.0 + healer.data.attack_range + 10.0
+	healer.call("_cast_heal")
+	assert_almost_eq(_health(samurai).current_health, 150.0, "moving out of healing reach during windup cancels the blessing")
+	samurai.global_position.x = 450.0
+	_health(samurai).take_damage(10000.0)
+	assert_eq(healer.call("_find_heal_target"), null, "dead samurai cannot be revived by healing")
+	healer.set("_heal_target", samurai)
+	samurai.free()
+	assert_true(not healer.call("_has_valid_heal_target"), "freed stored patient is cleared before any typed call")
+	healer.call("_cast_heal")
+
+
+func test_healer_tops_up_small_samurai_wounds_and_upgrades_scale_before_halving() -> void:
+	var healer: Ally = _ally("shrine_healer", 400.0)
+	var samurai: Player = _samurai(450.0)
+	_health(samurai).take_damage(1.0)
+	healer.set("_heal_target", samurai)
+	healer.call("_cast_heal")
+	assert_almost_eq(_health(samurai).current_health, 200.0, "even a small wound is healed, capped at maximum")
+	healer.data = healer.data.duplicate() as AllyData
+	healer.data.attack_damage = 43.0
+	_health(samurai).take_damage(70.0)
+	healer.set("_heal_target", samurai)
+	healer.call("_cast_heal")
+	assert_almost_eq(_health(samurai).current_health, 151.5, "upgraded 43-point blessing restores 21.5 on samurai")
+
+
+func test_healer_completes_an_ally_blessing_already_in_progress() -> void:
+	var healer: Ally = _ally("shrine_healer", 400.0)
+	var patient: Ally = _ally("ashigaru", 450.0)
+	var later: Ally = _ally("ashigaru", 900.0)
+	_health(patient).take_damage(30.0)
+	healer.set("_heal_target", patient)
+	_health(later).take_damage(70.0)
+	healer.call("_cast_heal")
+	assert_almost_eq(_health(patient).current_health, 118.0, "an existing ally blessing is not cancelled to chase another ally")
+	assert_eq(healer.call("_find_heal_target"), later, "the next blessing targets the most injured ally")
