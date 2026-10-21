@@ -66,7 +66,7 @@ An ally's upgrades show in the upgrade menu from the start but can only be bough
 
 Every stage is a different sunset (indigo to crimson to gold): Golden Sunset, Rose Dusk, Misty Grove, Broken Shrine (blood red) and Oni's Hollow (an eclipse). Pampas grass and reeds sway in wind that gusts and changes, red maple leaves and petals drift on it, light rays cut through the fog, and a thin rim of the sun's light outlines every fighter. See docs/ART_BIBLE.md.
 
-Stages unlock in order (stage N needs stage N-1 cleared) and are picked on the stage select screen (Start). Hollow Soldiers and Oni Brutes appear, and stage 5 ends with a boss, The Fallen Daimyo (below). Oni Brutes head for the gate once it is in range (target priority gate → allies → player).
+Stages unlock in order (stage N needs stage N-1 cleared) and are picked on the stage select screen (Stages), or started straight from the main menu with Continue (the first stage not cleared yet). Hollow Soldiers and Oni Brutes appear, and stage 5 ends with a boss, The Fallen Daimyo (below). Oni Brutes head for the gate once it is in range (target priority gate → allies → player).
 
 | # | Stage | Waves | Soldiers | Oni | Fastest spawn | First clear gold | Replay gold |
 |---|---|---|---|---|---|---|---|

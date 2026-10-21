@@ -33,13 +33,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 80
-theme_override_constants/margin_top = 40
+theme_override_constants/margin_top = 36
 theme_override_constants/margin_right = 80
-theme_override_constants/margin_bottom = 40
+theme_override_constants/margin_bottom = 30
 
 [node name="VBox" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 14
 
 [node name="Header" type="HBoxContainer" parent="Margin/VBox"]
 layout_mode = 2
@@ -53,27 +53,96 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 64
 text = "Bamboo Outskirts"
 
-[node name="ProgressLabel" type="Label" parent="Margin/VBox/Header"]
+[node name="LevelLabel" type="Label" parent="Margin/VBox/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"GoldLabel"
 size_flags_vertical = 4
-theme_override_font_sizes/font_size = 30
-text = "Gold 0"
+theme_override_font_sizes/font_size = 26
+text = "Gold 0   -   Level 1"
 
 [node name="Separator" type="HSeparator" parent="Margin/VBox"]
 layout_mode = 2
 
-[node name="Scroll" type="ScrollContainer" parent="Margin/VBox"]
+[node name="Body" type="HBoxContainer" parent="Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-horizontal_scroll_mode = 0
+theme_override_constants/separation = 36
 
-[node name="StageList" type="VBoxContainer" parent="Margin/VBox/Scroll"]
+[node name="Scroll" type="ScrollContainer" parent="Margin/VBox/Body"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 14
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="CardFlow" type="HFlowContainer" parent="Margin/VBox/Body/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 22
+theme_override_constants/v_separation = 22
+
+[node name="SidePanel" type="PanelContainer" parent="Margin/VBox/Body"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(460, 0)
+layout_mode = 2
+
+[node name="DetailBox" type="VBoxContainer" parent="Margin/VBox/Body/SidePanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DetailName" type="Label" parent="Margin/VBox/Body/SidePanel/DetailBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 40
+text = "The Village Gate"
+autowrap_mode = 3
+
+[node name="DetailDescription" type="Label" parent="Margin/VBox/Body/SidePanel/DetailBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"DimLabel"
+theme_override_font_sizes/font_size = 26
+text = "Description"
+autowrap_mode = 3
+
+[node name="DetailStats" type="Label" parent="Margin/VBox/Body/SidePanel/DetailBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Waves"
+
+[node name="DetailRewards" type="Label" parent="Margin/VBox/Body/SidePanel/DetailBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"GoldLabel"
+theme_override_font_sizes/font_size = 28
+text = "Rewards"
+autowrap_mode = 3
+
+[node name="DetailLock" type="Label" parent="Margin/VBox/Body/SidePanel/DetailBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"WarningLabel"
+theme_override_font_sizes/font_size = 28
+text = "Clear the stage before it first."
+autowrap_mode = 3
+
+[node name="Spacer" type="Control" parent="Margin/VBox/Body/SidePanel/DetailBox"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="PlayButton" type="Button" parent="Margin/VBox/Body/SidePanel/DetailBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 124)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+theme_override_font_sizes/font_size = 46
+text = "Play"
 
 [node name="Footer" type="HBoxContainer" parent="Margin/VBox"]
 layout_mode = 2

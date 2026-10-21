@@ -22,3 +22,4 @@ defeat_reward_ratio = 0.5
 replay_gold_multiplier = 0.5
 atmosphere = ExtResource("atmo")
 description = "The Oni's lair. Survive the swarm, then face The Fallen Daimyo, the corrupted lord who commands it."
+tagline = "The lair of the Oni"

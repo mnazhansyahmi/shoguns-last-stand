@@ -26,6 +26,34 @@ extends Resource
 @export_multiline var description: String = ""
 
 
+## A few words for the stage card ("Mist and faster packs"); the full description is in the stage select's side panel.
+@export var tagline: String = ""
+
+
+## The one line a stage card shows: its tagline, or the first sentence of the description when there is none.
+func short_description() -> String:
+	if not tagline.is_empty():
+		return tagline
+	var end: int = description.find(". ")
+	return (description.substr(0, end + 1) if end >= 0 else description).strip_edges()
+
+
+## True for a stage with a boss in one of its waves (the stage card shows a boss crest).
+func has_boss() -> bool:
+	return boss_name() != ""
+
+
+## The display name of the first boss in the stage's waves, or "".
+func boss_name() -> String:
+	for wave: WaveData in waves:
+		if wave == null:
+			continue
+		for entry: WaveEntry in wave.entries:
+			if entry != null and entry.enemy is BossData:
+				return entry.enemy.display_name
+	return ""
+
+
 func get_enemy_total() -> int:
 	var total: int = 0
 	for wave: WaveData in waves:

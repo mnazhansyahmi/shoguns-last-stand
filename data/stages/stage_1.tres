@@ -20,3 +20,4 @@ defeat_reward_ratio = 0.5
 replay_gold_multiplier = 0.5
 atmosphere = ExtResource("atmo")
 description = "The first attack on the village. Learn to fight and summon allies."
+tagline = "The first attack on the village"

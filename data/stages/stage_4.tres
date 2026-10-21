@@ -22,3 +22,4 @@ defeat_reward_ratio = 0.5
 replay_gold_multiplier = 0.5
 atmosphere = ExtResource("atmo")
 description = "Five waves around the ruined shrine. The Oni come in pairs and threes."
+tagline = "The ruined shrine"

@@ -21,3 +21,4 @@ defeat_reward_ratio = 0.5
 replay_gold_multiplier = 0.5
 atmosphere = ExtResource("atmo")
 description = "Thick mist and faster packs. Oni Brutes start heading for the gate."
+tagline = "Mist and faster packs"

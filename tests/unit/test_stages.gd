@@ -160,7 +160,7 @@ func test_first_clear_offers_next_stage_and_replay_does_not() -> void:
 	assert_eq(after.gold - saved.gold, floori(stage.clear_gold_bonus * stage.replay_gold_multiplier), "replay bonus reduced")
 
 
-func test_stage_select_shows_locked_stages_disabled() -> void:
+func test_stage_select_shows_a_card_per_stage_with_locked_ones_unplayable() -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
 	progress.stages_cleared.append("stage_1")
 	SaveManager.new(SAVE_PATH).save_progress(progress)
@@ -168,11 +168,14 @@ func test_stage_select_shows_locked_stages_disabled() -> void:
 	select.set("save_path", SAVE_PATH)
 	add_to_tree(select)
 	for i: int in 5:
-		var button: Button = select.get_stage_button(i)
-		assert_true(button != null, "row %d exists (locked stages are still listed)" % (i + 1))
-		if button == null:
+		var card: StageCard = select.get_stage_card(i)
+		assert_true(card != null, "card %d exists (locked stages still have a card)" % (i + 1))
+		if card == null:
 			continue
-		assert_eq(button.disabled, i >= 2, "stage %d %s" % [i + 1, "locked" if i >= 2 else "playable"])
-	assert_true(select.get_stage_button(0).text.contains("CLEARED"), "cleared stage marked")
-	assert_true(select.get_stage_button(1).text.contains("NEW"), "newly unlocked stage marked")
-	assert_true(select.get_stage_button(2).text.contains("LOCKED"), "locked stage marked")
+		assert_eq(card.unlocked, i < 2, "stage %d %s" % [i + 1, "playable" if i < 2 else "locked"])
+		assert_eq(card.cleared, i == 0, "only stage 1 is cleared")
+	assert_eq(select.get_stage_card(2).locked_text, "Clear Bamboo Path", "a locked card says which stage to clear")
+	assert_eq(select.get_selected_index(), 1, "the first stage not cleared starts selected")
+	assert_true(not (select.get_play_button() as Button).disabled, "and can be played")
+	select.get_stage_card(3)._on_focus_entered()
+	assert_true((select.get_play_button() as Button).disabled, "a locked stage selected cannot be played")

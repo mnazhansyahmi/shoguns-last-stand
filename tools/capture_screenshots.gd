@@ -102,6 +102,10 @@ func _run() -> void:
 		credits.free()
 		quit(0)
 		return
+	if _only == "stages":
+		await _capture_stage_select()
+		quit(0)
+		return
 	if _only == "mainmenu":
 		await _capture_main_menu()
 		quit(0)
@@ -785,6 +789,28 @@ func _capture_upgrades() -> void:
 			await _frames(8)
 			await _capture("upgrades_tab2_locked")
 	menu.free()
+
+
+## The stage select with two stages cleared (so one card is open, two are locked), the boss card selected, then the
+## second card selected (`--only=stages`; add --size=2341x1080 for the phone shape).
+func _capture_stage_select() -> void:
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.gold = 640
+	progress.xp = 420
+	progress.stages_cleared = ["stage_1", "stage_2"] as Array[String]
+	SaveManager.new(DATA_DIR + "/stages_save.json").save_progress(progress)
+	var select: Node = load("res://scenes/stage_select/stage_select.tscn").instantiate()
+	select.set("save_path", DATA_DIR + "/stages_save.json")
+	root.add_child(select)
+	await _frames(20)
+	await _capture("stages_default")
+	select.get_stage_card(4).grab_focus()
+	await _frames(12)
+	await _capture("stages_boss_locked")
+	select.get_stage_card(1).grab_focus()
+	await _frames(12)
+	await _capture("stages_open")
+	select.free()
 
 
 ## The main menu on a fresh save (mid-entrance, then at rest) and on a save with two stages cleared, with a button

@@ -15,6 +15,7 @@ STAGES = [
     {
         "number": 2, "name": "Bamboo Path", "bonus_gold": 200, "bonus_xp": 70, "break": 5.0,
         "description": "Soldiers slip through the bamboo in longer lines. One Oni Brute.",
+        "tagline": "Soldiers in the bamboo",
         "waves": [
             [("H", 8, 0.0, 0.8)],
             [("H", 10, 0.0, 0.7)],
@@ -25,6 +26,7 @@ STAGES = [
     {
         "number": 3, "name": "Misty Grove", "bonus_gold": 260, "bonus_xp": 90, "break": 5.0,
         "description": "Thick mist and faster packs. Oni Brutes start heading for the gate.",
+        "tagline": "Mist and faster packs",
         "waves": [
             [("H", 10, 0.0, 0.6)],
             [("H", 10, 0.0, 0.55), ("O", 1, 1.0, 0.0)],
@@ -35,6 +37,7 @@ STAGES = [
     {
         "number": 4, "name": "Broken Shrine", "bonus_gold": 330, "bonus_xp": 110, "break": 6.0,
         "description": "Five waves around the ruined shrine. The Oni come in pairs and threes.",
+        "tagline": "The ruined shrine",
         "waves": [
             [("H", 14, 0.0, 0.5)],
             [("H", 12, 0.0, 0.45), ("O", 2, 1.0, 3.0)],
@@ -46,6 +49,7 @@ STAGES = [
     {
         "number": 5, "name": "Oni's Hollow", "bonus_gold": 650, "bonus_xp": 150, "break": 6.0,
         "description": "The Oni's lair. Survive the swarm, then the boss wave of Oni Brutes.",
+        "tagline": "The lair of the Oni",
         "waves": [
             [("H", 16, 0.0, 0.45)],
             [("H", 14, 0.0, 0.4), ("O", 3, 1.0, 2.5)],
@@ -100,7 +104,8 @@ def stage_tres(stage, wave_paths):
               "clear_gold_bonus = %d" % stage["bonus_gold"], "clear_xp_bonus = %d" % stage["bonus_xp"],
               "defeat_reward_ratio = 0.5", "replay_gold_multiplier = 0.5",
               'atmosphere = ExtResource("atmo")',
-              'description = "%s"' % stage["description"], ""]
+              'description = "%s"' % stage["description"],
+              'tagline = "%s"' % stage.get("tagline", ""), ""]
     return "\n".join(lines)
 
 
