@@ -109,7 +109,9 @@ func test_unlocks_survive_save_and_load() -> void:
 func test_next_stage_follows_region_order() -> void:
 	var region: RegionData = _region()
 	assert_true(StageProgression.next_stage(region, region.stages[0]) == region.stages[1], "stage 1 -> stage 2")
-	assert_true(StageProgression.next_stage(region, region.stages[4]) == null, "no stage after stage 5")
+	var village: RegionData = StageProgression.regions()[1]
+	assert_true(StageProgression.next_stage(region, region.stages[4]) == village.stages[0], "stage 5 -> stage 6, the Burning Village")
+	assert_true(StageProgression.next_stage(village, village.stages[4]) == null, "no stage after stage 10")
 
 
 # --- Rewards ----------------------------------------------------------------

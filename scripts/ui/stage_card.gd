@@ -19,6 +19,8 @@ const LINE_SIZE: int = 22
 var stage: StageData
 ## 0-based position in the region.
 var index: int = 0
+## The stage's number in the campaign (stage 6 is the Burning Village's first); 0 = index + 1.
+var number: int = 0
 var unlocked: bool = true
 var cleared: bool = false
 ## "Clear The Village Gate" on a locked card.
@@ -41,12 +43,13 @@ func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 
-func setup(p_stage: StageData, p_index: int, p_unlocked: bool, p_cleared: bool, p_locked_text: String) -> void:
+func setup(p_stage: StageData, p_index: int, p_unlocked: bool, p_cleared: bool, p_locked_text: String, p_number: int = 0) -> void:
 	stage = p_stage
 	index = p_index
 	unlocked = p_unlocked
 	cleared = p_cleared
 	locked_text = p_locked_text
+	number = p_number
 	name = "Card%d" % (p_index + 1)
 	if _preview != null:
 		_preview.setup(stage.atmosphere)
@@ -107,6 +110,11 @@ func _gui_input(event: InputEvent) -> void:
 			activated.emit(self)
 
 
+## The number on the badge: the campaign number, or the position in the region.
+func get_number() -> int:
+	return number if number > 0 else index + 1
+
+
 ## The text on the locked picture and in the details panel's lock line.
 func get_locked_text() -> String:
 	return locked_text if not unlocked else ""
@@ -129,7 +137,7 @@ func _draw_face() -> void:
 	var badge_center: Vector2 = Vector2(36.0, picture.end.y)
 	_face.draw_circle(badge_center, BADGE_RADIUS + 3.0, Color(InkPalette.INK, 0.95))
 	_face.draw_circle(badge_center, BADGE_RADIUS, InkPalette.GOLD if unlocked else InkPalette.UI_DISABLED)
-	_draw_centered_at(serif, str(index + 1), badge_center + Vector2(0.0, 11.0), 30, InkPalette.INK)
+	_draw_centered_at(serif, str(get_number()), badge_center + Vector2(0.0, 11.0), 30, InkPalette.INK)
 	# Name and the one line.
 	var name_color: Color = InkPalette.GOLD_BRIGHT if unlocked else InkPalette.UI_DISABLED
 	var title: String = stage.display_name if stage != null else ""

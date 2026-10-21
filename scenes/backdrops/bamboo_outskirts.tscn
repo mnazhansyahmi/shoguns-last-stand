@@ -55,6 +55,12 @@ script = ExtResource("1_layer")
 layer = 6
 depth = 0.55
 
+[node name="Fires" type="Node2D" parent="."]
+script = ExtResource("1_layer")
+layer = 16
+depth = 0.55
+additive = true
+
 [node name="MistLow" type="Node2D" parent="."]
 script = ExtResource("1_layer")
 layer = 7

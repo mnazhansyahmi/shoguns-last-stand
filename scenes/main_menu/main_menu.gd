@@ -25,7 +25,6 @@ const INTRO_SLIDE: float = 70.0
 
 var _settings_store: SettingsStore
 var _settings: GameSettings
-var _region: RegionData
 ## The stage Continue starts.
 var _continue_stage: StageData
 var _intro: Array[Tween] = []
@@ -50,7 +49,6 @@ func _ready() -> void:
 
 	var save_manager: SaveManager = SaveManager.new(save_path)
 	var progress: PlayerProgress = save_manager.load_progress()
-	_region = StageProgression.default_region()
 	_show_progress(progress)
 	var warnings: PackedStringArray = []
 	for warning: String in [save_manager.last_warning, _settings_store.last_warning]:
@@ -97,9 +95,10 @@ func _on_progress_reset() -> void:
 ## The gold and level line, and what Continue says and starts.
 func _show_progress(progress: PlayerProgress) -> void:
 	_progress_label.text = "Gold %d   -   Level %d" % [progress.gold, progress.get_level()]
-	_continue_stage = StageProgression.continue_stage(progress, _region)
+	# Continue runs across the whole campaign: after stage 5 it offers the Burning Village.
+	_continue_stage = StageProgression.campaign_continue_stage(progress)
 	_continue_button.text = "Start" if StageProgression.is_fresh(progress) else "Continue"
-	_continue_button.sub_caption = StageProgression.stage_line(_region, _continue_stage)
+	_continue_button.sub_caption = StageProgression.stage_line(StageProgression.region_of(_continue_stage), _continue_stage)
 
 
 func get_continue_stage() -> StageData:

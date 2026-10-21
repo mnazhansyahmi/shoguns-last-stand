@@ -12,10 +12,10 @@ extends SceneTree
 ##   unlock=progressive|none|all              progressive (default): stage N starts with the
 ##                                            stages before it cleared, so allies unlock as in the
 ##                                            real game; none: nothing cleared; all: everything
-##   curve      economy curve: plays every Region 1 stage in order with one persistent save,
-##              retrying until a win (max `runs` attempts), replaying each cleared stage once,
-##              and buying the cheapest upgrades after every battle
-##   zero       plays every Region 1 stage once with no upgrades (difficulty spread)
+##   curve      economy curve: plays every campaign stage (Regions 1 and 2) in order with one
+##              persistent save, retrying until a win (max `runs` attempts), replaying each
+##              cleared stage once, and buying the cheapest upgrades after every battle
+##   zero       plays every campaign stage once with no upgrades (difficulty spread)
 ## Uses its own save/settings under user://balance_sim (never the player's real save).
 ## The bot is a proxy for a reasonable player, not a perfect one: treat results as trends.
 
@@ -80,7 +80,7 @@ func _run() -> void:
 	if special == "curve":
 		await _run_curve(runs)
 	elif special == "zero":
-		for stage: StageData in StageProgression.default_region().stages:
+		for stage: StageData in StageProgression.all_stages():
 			var result: Dictionary = await run_battle(stage, "bot", _fresh_progress(stage))
 			_print_summary(stage, "bot", {}, [result])
 	if not special.is_empty():
@@ -109,7 +109,7 @@ func _fresh_progress(stage: StageData) -> PlayerProgress:
 	var progress: PlayerProgress = PlayerProgress.new()
 	if _unlock_mode == "none":
 		return progress
-	for earlier: StageData in StageProgression.default_region().stages:
+	for earlier: StageData in StageProgression.all_stages():
 		if _unlock_mode == "progressive" and earlier.stage_id == stage.stage_id:
 			break
 		progress.stages_cleared.append(earlier.stage_id)
@@ -315,7 +315,7 @@ func _release_all() -> void:
 func _run_curve(max_attempts: int) -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
 	print("stage    | try | result  | gate | deaths | gold earned | upgrades bought | levels owned | gold left")
-	for stage: StageData in StageProgression.default_region().stages:
+	for stage: StageData in StageProgression.all_stages():
 		var attempts: int = 0
 		var replayed: bool = false
 		while attempts < max_attempts:

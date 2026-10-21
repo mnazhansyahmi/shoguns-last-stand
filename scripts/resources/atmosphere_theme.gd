@@ -6,8 +6,13 @@ extends Resource
 ## so every battle has its own sunset. The values here are checked against the art bible's
 ## contrast rules by a test (see action_band_colors()).
 
+## What stands in the land layers: the bamboo groves of Region 1 or the burning village of Region 2 (houses on fire,
+## smoke columns and charred posts instead of bamboo). The sky, mist, ground and reeds are the same for both.
+enum Scenery { BAMBOO_OUTSKIRTS, BURNING_VILLAGE }
+
 @export var theme_id: String = "golden_sunset"
 @export var display_name: String = "Golden Sunset"
+@export var scenery: Scenery = Scenery.BAMBOO_OUTSKIRTS
 
 @export_group("Sky")
 ## Top of the sky (indigo), the middle band (crimson) and the glow that meets the horizon (gold).
@@ -49,6 +54,15 @@ extends Resource
 @export_range(0.0, 1.0) var wind_gust: float = 0.45
 ## Share of the falling things that are petals rather than maple leaves.
 @export_range(0.0, 1.0) var petal_share: float = 0.3
+@export_group("Fire (burning village)")
+## The hot heart of the flames, their outer tongues, and the smoke rising from them.
+@export var fire_core: Color = Color("#ffd27a")
+@export var fire_glow: Color = Color("#ff6a24")
+@export var smoke: Color = Color("#5a4048")
+## 0..1: how many of the houses burn and how tall the flames are.
+@export_range(0.0, 1.0) var fire_intensity: float = 0.0
+## Share of the drifting things that are embers rising from the fires instead of leaves falling.
+@export_range(0.0, 1.0) var ember_share: float = 0.0
 
 
 ## The colours that can appear behind a fighter, with the contrast each must reach against INK

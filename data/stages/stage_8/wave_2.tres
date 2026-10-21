@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WaveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="1_wave"]
+[ext_resource type="Script" path="res://scripts/resources/wave_entry.gd" id="2_entry"]
+[ext_resource type="Resource" path="res://data/enemies/hollow_soldier.tres" id="e_H"]
+[ext_resource type="Resource" path="res://data/enemies/oni_brute.tres" id="e_O"]
+
+[sub_resource type="Resource" id="Entry_1"]
+script = ExtResource("2_entry")
+enemy = ExtResource("e_H")
+count = 18
+start_delay = 0.0
+spawn_interval = 0.35
+
+[sub_resource type="Resource" id="Entry_2"]
+script = ExtResource("2_entry")
+enemy = ExtResource("e_O")
+count = 3
+start_delay = 1.0
+spawn_interval = 2.5
+
+[resource]
+script = ExtResource("1_wave")
+entries = Array[ExtResource("2_entry")]([SubResource("Entry_1"), SubResource("Entry_2")])

@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="AtmosphereTheme" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/atmosphere_theme.gd" id="1_theme"]
+
+[resource]
+script = ExtResource("1_theme")
+theme_id = "smoke_shrine"
+display_name = "Smoke Shrine"
+scenery = 1
+sky_top = Color(0.1176, 0.1020, 0.2039, 1)
+sky_mid = Color(0.4157, 0.1804, 0.2902, 1)
+sky_low = Color(0.7843, 0.3765, 0.2431, 1)
+sky_horizon = Color(0.9098, 0.6275, 0.4392, 1)
+sun_core = Color(0.9647, 0.8235, 0.6275, 1)
+sun_halo = Color(0.9098, 0.4706, 0.2902, 1)
+cloud_lit = Color(0.9098, 0.4706, 0.2902, 1)
+cloud_shadow = Color(0.2275, 0.1412, 0.2510, 1)
+mountain_far = Color(0.6902, 0.5020, 0.5333, 1)
+mountain_mid = Color(0.6039, 0.4235, 0.4784, 1)
+mist = Color(0.8706, 0.6667, 0.5882, 1)
+ground_top = Color(0.7216, 0.5569, 0.5020, 1)
+ground_bottom = Color(0.1333, 0.1020, 0.1490, 1)
+bamboo_far = Color(0.6588, 0.4863, 0.5020, 1)
+bamboo_near = Color(0.1882, 0.1412, 0.1804, 1)
+ray_color = Color(0.9412, 0.6039, 0.3843, 1)
+rim_color = Color(0.9569, 0.6275, 0.4392, 1)
+reed_stalk = Color(0.7529, 0.5412, 0.4157, 1)
+reed_plume = Color(0.9255, 0.7843, 0.6745, 1)
+petal_color = Color(0.9412, 0.7216, 0.6275, 1)
+fire_core = Color(1.0000, 0.8784, 0.5412, 1)
+fire_glow = Color(1.0000, 0.4784, 0.1647, 1)
+smoke = Color(0.2275, 0.1647, 0.2118, 1)
+leaf_colors = PackedColorArray(0.7843, 0.2275, 0.1647, 1, 0.9098, 0.4157, 0.2275, 1, 0.6588, 0.1647, 0.1647, 1)
+sun_radius = 88.0
+eclipse = false
+cloud_alpha = 0.8
+wind_base = 0.35
+wind_gust = 0.4
+petal_share = 0.05
+fire_intensity = 0.8
+ember_share = 0.55

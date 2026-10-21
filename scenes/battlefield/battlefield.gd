@@ -400,7 +400,7 @@ func _on_retry_requested() -> void:
 
 
 func _on_next_stage_requested() -> void:
-	var next: StageData = StageProgression.next_stage(StageProgression.default_region(), _wave_director.stage)
+	var next: StageData = StageProgression.next_stage(StageProgression.region_of(_wave_director.stage), _wave_director.stage)
 	if next != null:
 		SceneRoutes.go_to_battle(get_tree(), next)
 
@@ -545,7 +545,7 @@ func _end_battle(victory: bool) -> void:
 	var save_error: Error = _save_manager.save_progress(_progress)
 	var next_name: String = ""
 	if victory and not _was_cleared_before:
-		var next: StageData = StageProgression.next_stage(StageProgression.default_region(), stage)
+		var next: StageData = StageProgression.next_stage(StageProgression.region_of(stage), stage)
 		if next != null:
 			next_name = next.display_name
 	_result_screen.show_result(reward, _progress, levels_gained, save_error, next_name, new_allies)

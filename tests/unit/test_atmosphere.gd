@@ -14,9 +14,10 @@ func cleanup() -> void:
 	super.cleanup()
 
 
+## Every stage's theme, across the whole campaign (the Burning Village keeps the same contrast rules).
 func _themes() -> Array[AtmosphereTheme]:
 	var themes: Array[AtmosphereTheme] = []
-	for stage: StageData in StageProgression.default_region().stages:
+	for stage: StageData in StageProgression.all_stages():
 		themes.append(stage.atmosphere)
 	return themes
 
@@ -24,7 +25,7 @@ func _themes() -> Array[AtmosphereTheme]:
 # --- Themes ---------------------------------------------------------------------
 
 func test_every_stage_has_its_own_theme() -> void:
-	var stages: Array[StageData] = StageProgression.default_region().stages
+	var stages: Array[StageData] = StageProgression.all_stages()
 	var ids: Dictionary = {}
 	for stage: StageData in stages:
 		assert_true(stage.atmosphere != null, "%s has an atmosphere theme" % stage.stage_id)
