@@ -1,6 +1,7 @@
 extends "res://tests/test_case.gd"
-## The main menu: Continue (the first stage not cleared, "Start" on a new save), the six brush-stroke buttons in order, the
-## crimson underline and scale-up on hover and focus, and the staggered entrance.
+## The main menu: Continue (the first stage not cleared, "Start" on a new save), the six panel buttons in order and all
+## the same shape, the stage line inside Continue clear of its label, the brighter border and glow on hover and focus, and
+## the staggered entrance.
 
 const MAIN_MENU_SCENE: PackedScene = preload("res://scenes/main_menu/main_menu.tscn")
 const SAVE_DIR: String = "user://test_main_menu/"
@@ -91,8 +92,9 @@ func test_the_menu_has_the_six_buttons_in_order() -> void:
 	assert_eq(found, ORDER, "Continue, Stages, Upgrades, Settings, Credits, Quit")
 	for slot_name: String in ORDER:
 		var button: Button = menu.get_node("%" + slot_name + "Button") as Button
-		assert_true(button is InkMenuButton, "%s is a brush-stroke button" % slot_name)
-		assert_true(button.theme_type_variation == &"BrushButton" or button.theme_type_variation == &"BrushButtonSub", "%s uses the brush theme variation" % slot_name)
+		assert_true(button is InkMenuButton, "%s is a menu panel button" % slot_name)
+		assert_true(button.theme_type_variation == &"MenuButtonPanel" or button.theme_type_variation == &"MenuButtonPanelSub", "%s uses the panel theme variation" % slot_name)
+		assert_eq(button.size.x, (menu.get_node("%ContinueButton") as Control).size.x, "%s is as wide as the others" % slot_name)
 		assert_true(button.custom_minimum_size.y >= TouchLayout.MIN_TOUCH_TARGET and button.custom_minimum_size.x >= TouchLayout.MIN_TOUCH_TARGET, "%s keeps its 44 pt target" % slot_name)
 		assert_true(button.focus_mode == Control.FOCUS_ALL, "%s takes keyboard and gamepad focus" % slot_name)
 	assert_eq((menu.get_node("%StagesButton") as Button).text, "Stages", "Stages says Stages")
@@ -115,23 +117,37 @@ func test_continue_says_start_on_a_new_save_and_names_the_stage_it_will_play() -
 	assert_eq((mid.call("get_continue_stage") as StageData).stage_id, "stage_3", "which is the one it starts")
 
 
-func test_hover_or_focus_sweeps_in_the_crimson_underline_and_scales_the_button_up() -> void:
+func test_the_stage_line_sits_inside_continue_clear_of_its_label() -> void:
+	var region: RegionData = _region()
+	var menu: Control = _menu([] as Array[String])
+	var button: InkMenuButton = menu.get_node("%ContinueButton") as InkMenuButton
+	var panel: Rect2 = Rect2(Vector2.ZERO, button.size).grow(-float(InkMenuButton.BORDER))
+	for stage: StageData in region.stages:
+		for word: String in ["Start", "Continue"]:
+			button.text = word
+			button.sub_caption = StageProgression.stage_line(region, stage)
+			var label: Rect2 = button.get_label_rect()
+			var line: Rect2 = button.get_sub_caption_rect()
+			assert_true(panel.encloses(label), "'%s' is inside the panel" % word)
+			assert_true(panel.encloses(line), "'%s' is inside the panel" % button.sub_caption)
+			assert_true(label.end.y <= line.position.y, "'%s' does not touch '%s' (%.1f / %.1f)" % [word, button.sub_caption, label.end.y, line.position.y])
+
+
+func test_hover_or_focus_brightens_the_border_and_fades_in_the_glow() -> void:
 	var menu: Control = _menu([] as Array[String])
 	var button: InkMenuButton = menu.get_node("%UpgradesButton") as InkMenuButton
-	assert_almost_eq(button.get_sweep(), 0.0, "idle: no underline")
-	assert_almost_eq(button.scale.x, 1.0, "and full size")
+	assert_almost_eq(button.get_glow(), 0.0, "idle: no glow")
 	button.grab_focus()
 	assert_true(button.is_active(), "focusing it (keyboard, gamepad) lights it")
 	for i: int in 30:
 		button._process(1.0 / 30.0)
-	assert_almost_eq(button.get_sweep(), 1.0, "the underline has swept all the way in")
-	assert_true(button.scale.x > 1.03 and button.scale.x <= InkMenuButton.HOVER_SCALE + 0.001, "and the button is a little bigger (%.3f)" % button.scale.x)
+	assert_almost_eq(button.get_glow(), 1.0, "the glow has faded all the way in")
+	assert_almost_eq(button.scale.x, 1.0, "the panel keeps its size and shape")
 	button.release_focus()
 	assert_true(not button.is_active(), "losing focus puts it out")
 	for i: int in 30:
 		button._process(1.0 / 30.0)
-	assert_almost_eq(button.get_sweep(), 0.0, "the underline is gone")
-	assert_almost_eq(button.scale.x, 1.0, "and the size is back")
+	assert_almost_eq(button.get_glow(), 0.0, "the glow is gone")
 
 
 func test_the_katana_slash_plays_on_hover_but_not_when_the_menu_opens() -> void:

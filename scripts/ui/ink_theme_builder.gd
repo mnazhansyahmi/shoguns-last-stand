@@ -13,7 +13,7 @@ const LABEL_VARIATIONS: Array[StringName] = [&"TitleLabel", &"HeaderLabel", &"Go
 		&"WarningLabel", &"SuccessLabel", &"SpiritLabel", &"HudLabel", &"HudDimLabel", &"HudTitleLabel",
 		&"HudBannerLabel", &"HudMessageLabel"]
 const BUTTON_VARIATIONS: Array[StringName] = [&"ToggleButton", &"PrimaryButton", &"DangerButton", &"CostButton", &"CostButtonShort",
-		&"BrushButton", &"BrushButtonSub"]
+		&"MenuButtonPanel", &"MenuButtonPanelSub"]
 ## The upgrade shop's cards: an upgrade you can see, and one for an ally not yet unlocked.
 const PANEL_VARIATIONS: Array[StringName] = [&"CardPanel", &"CardPanelLocked"]
 
@@ -135,22 +135,22 @@ static func _buttons(theme: Theme, serif: Font) -> void:
 	_menu_buttons(theme, serif)
 
 
-## The main menu's buttons (InkMenuButton): no box at all, because the button draws its own brush stroke; gold serif text
-## set well in from the left (the margins say where InkMenuButton draws it). BrushButtonSub leaves room under the label
-## for the small line (Continue's stage).
+## The main menu's buttons (InkMenuButton): no box from the theme, because the button draws its own panel (so it can
+## fade its glow in); gold serif text set in from the left (the margins say where InkMenuButton draws it).
+## MenuButtonPanelSub leaves room under the label, inside the panel, for the small line (Continue's stage).
 static func _menu_buttons(theme: Theme, serif: Font) -> void:
-	for variation: StringName in [&"BrushButton", &"BrushButtonSub"]:
+	for variation: StringName in [&"MenuButtonPanel", &"MenuButtonPanelSub"]:
 		theme.set_type_variation(variation, &"Button")
 		var bare: StyleBoxEmpty = StyleBoxEmpty.new()
-		bare.content_margin_left = 64.0
-		bare.content_margin_right = 40.0
-		bare.content_margin_top = 12.0
-		bare.content_margin_bottom = 12.0 if variation == &"BrushButton" else 46.0
+		bare.content_margin_left = 40.0
+		bare.content_margin_right = 24.0
+		bare.content_margin_top = 8.0
+		bare.content_margin_bottom = 8.0 if variation == &"MenuButtonPanel" else 48.0
 		for state: StringName in [&"normal", &"hover", &"pressed", &"hover_pressed", &"disabled", &"focus"]:
 			theme.set_stylebox(state, variation, bare)
 		theme.set_font(&"font", variation, serif)
-		# The button's own text is drawn before (so under) the brush stroke: it is made invisible here and the button draws
-		# the gold label itself on top of the stroke (InkMenuButton._draw_label).
+		# The button's own text would be drawn before (so under) the panel: it is made invisible here and the button draws
+		# the gold label itself on top of the panel (InkMenuButton._draw_label).
 		var clear: Color = Color(0.0, 0.0, 0.0, 0.0)
 		for color_name: StringName in [&"font_color", &"font_hover_color", &"font_focus_color", &"font_pressed_color",
 				&"font_hover_pressed_color", &"font_disabled_color", &"font_outline_color"]:

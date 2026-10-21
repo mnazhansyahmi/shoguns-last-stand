@@ -13,23 +13,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 corner_detail = 4
 
-[sub_resource type="SystemFont" id="SystemFont_ggrc3"]
-font_names = PackedStringArray("Yu Mincho", "Hiragino Mincho ProN", "Noto Serif CJK JP", "Noto Serif JP", "Noto Serif", "Georgia", "Times New Roman", "serif")
-font_weight = 600
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cyifv"]
-content_margin_left = 64.0
-content_margin_top = 12.0
-content_margin_right = 40.0
-content_margin_bottom = 12.0
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2bgu6"]
-content_margin_left = 64.0
-content_margin_top = 12.0
-content_margin_right = 40.0
-content_margin_bottom = 46.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jp7na"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ggrc3"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -46,7 +30,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iig7g"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cyifv"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -68,7 +52,7 @@ expand_margin_top = 4.0
 expand_margin_right = 4.0
 expand_margin_bottom = 4.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ps0xt"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2bgu6"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -85,7 +69,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dgg8l"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jp7na"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -102,7 +86,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xubre"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iig7g"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -119,7 +103,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vido8"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ps0xt"]
 content_margin_left = 14.0
 content_margin_top = 14.0
 content_margin_right = 14.0
@@ -136,7 +120,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ursd8"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dgg8l"]
 content_margin_left = 14.0
 content_margin_top = 14.0
 content_margin_right = 14.0
@@ -153,7 +137,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_amxsp"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xubre"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -170,7 +154,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p4bob"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vido8"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -187,7 +171,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wxo51"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ursd8"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -204,7 +188,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c48xg"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_amxsp"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -221,7 +205,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yg2rf"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p4bob"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -238,7 +222,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_53m1n"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wxo51"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -251,7 +235,7 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a3en2"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c48xg"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -264,7 +248,7 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hjbgc"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yg2rf"]
 content_margin_left = 6.0
 content_margin_top = 6.0
 content_margin_right = 6.0
@@ -277,31 +261,31 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 corner_detail = 4
 
-[sub_resource type="Gradient" id="Gradient_rwmmf"]
+[sub_resource type="Gradient" id="Gradient_53m1n"]
 offsets = PackedFloat32Array(0, 0.62, 0.7, 0.86, 0.92)
 colors = PackedColorArray(0.91764706, 0.8745098, 0.76862746, 1, 0.91764706, 0.8745098, 0.76862746, 1, 0.7882353, 0.63529414, 0.2901961, 1, 0.7882353, 0.63529414, 0.2901961, 1, 0.7882353, 0.63529414, 0.2901961, 0)
 
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_yobq5"]
-gradient = SubResource("Gradient_rwmmf")
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_a3en2"]
+gradient = SubResource("Gradient_53m1n")
 width = 52
 height = 52
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 fill_to = Vector2(0.5, 0)
 
-[sub_resource type="Gradient" id="Gradient_blhwo"]
+[sub_resource type="Gradient" id="Gradient_hjbgc"]
 offsets = PackedFloat32Array(0, 0.62, 0.7, 0.86, 0.92)
 colors = PackedColorArray(0.9098039, 0.76862746, 0.41568628, 1, 0.9098039, 0.76862746, 0.41568628, 1, 0.7882353, 0.63529414, 0.2901961, 1, 0.7882353, 0.63529414, 0.2901961, 1, 0.7882353, 0.63529414, 0.2901961, 0)
 
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_rfr0i"]
-gradient = SubResource("Gradient_blhwo")
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_rwmmf"]
+gradient = SubResource("Gradient_hjbgc")
 width = 52
 height = 52
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 fill_to = Vector2(0.5, 0)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5f0vv"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yobq5"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -314,7 +298,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 corner_detail = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3wec0"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blhwo"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -330,6 +314,22 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 corner_detail = 4
+
+[sub_resource type="SystemFont" id="SystemFont_rfr0i"]
+font_names = PackedStringArray("Yu Mincho", "Hiragino Mincho ProN", "Noto Serif CJK JP", "Noto Serif JP", "Noto Serif", "Georgia", "Times New Roman", "serif")
+font_weight = 600
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5f0vv"]
+content_margin_left = 40.0
+content_margin_top = 8.0
+content_margin_right = 24.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3wec0"]
+content_margin_left = 40.0
+content_margin_top = 8.0
+content_margin_right = 24.0
+content_margin_bottom = 48.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jfs0a"]
 content_margin_left = 24.0
@@ -407,38 +407,6 @@ expand_margin_bottom = 8.0
 
 [resource]
 AcceptDialog/styles/panel = SubResource("StyleBoxFlat_egmke")
-BrushButton/base_type = &"Button"
-BrushButton/colors/font_color = Color(0, 0, 0, 0)
-BrushButton/colors/font_disabled_color = Color(0, 0, 0, 0)
-BrushButton/colors/font_focus_color = Color(0, 0, 0, 0)
-BrushButton/colors/font_hover_color = Color(0, 0, 0, 0)
-BrushButton/colors/font_hover_pressed_color = Color(0, 0, 0, 0)
-BrushButton/colors/font_outline_color = Color(0, 0, 0, 0)
-BrushButton/colors/font_pressed_color = Color(0, 0, 0, 0)
-BrushButton/constants/outline_size = 0
-BrushButton/fonts/font = SubResource("SystemFont_ggrc3")
-BrushButton/styles/disabled = SubResource("StyleBoxEmpty_cyifv")
-BrushButton/styles/focus = SubResource("StyleBoxEmpty_cyifv")
-BrushButton/styles/hover = SubResource("StyleBoxEmpty_cyifv")
-BrushButton/styles/hover_pressed = SubResource("StyleBoxEmpty_cyifv")
-BrushButton/styles/normal = SubResource("StyleBoxEmpty_cyifv")
-BrushButton/styles/pressed = SubResource("StyleBoxEmpty_cyifv")
-BrushButtonSub/base_type = &"Button"
-BrushButtonSub/colors/font_color = Color(0, 0, 0, 0)
-BrushButtonSub/colors/font_disabled_color = Color(0, 0, 0, 0)
-BrushButtonSub/colors/font_focus_color = Color(0, 0, 0, 0)
-BrushButtonSub/colors/font_hover_color = Color(0, 0, 0, 0)
-BrushButtonSub/colors/font_hover_pressed_color = Color(0, 0, 0, 0)
-BrushButtonSub/colors/font_outline_color = Color(0, 0, 0, 0)
-BrushButtonSub/colors/font_pressed_color = Color(0, 0, 0, 0)
-BrushButtonSub/constants/outline_size = 0
-BrushButtonSub/fonts/font = SubResource("SystemFont_ggrc3")
-BrushButtonSub/styles/disabled = SubResource("StyleBoxEmpty_2bgu6")
-BrushButtonSub/styles/focus = SubResource("StyleBoxEmpty_2bgu6")
-BrushButtonSub/styles/hover = SubResource("StyleBoxEmpty_2bgu6")
-BrushButtonSub/styles/hover_pressed = SubResource("StyleBoxEmpty_2bgu6")
-BrushButtonSub/styles/normal = SubResource("StyleBoxEmpty_2bgu6")
-BrushButtonSub/styles/pressed = SubResource("StyleBoxEmpty_2bgu6")
 Button/colors/font_color = Color(0.91764706, 0.8745098, 0.76862746, 1)
 Button/colors/font_disabled_color = Color(0.47843137, 0.44705883, 0.4, 1)
 Button/colors/font_focus_color = Color(0.91764706, 0.8745098, 0.76862746, 1)
@@ -446,31 +414,31 @@ Button/colors/font_hover_color = Color(0.9098039, 0.76862746, 0.41568628, 1)
 Button/colors/font_hover_pressed_color = Color(0.9098039, 0.76862746, 0.41568628, 1)
 Button/colors/font_outline_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
 Button/colors/font_pressed_color = Color(0.9098039, 0.76862746, 0.41568628, 1)
-Button/styles/disabled = SubResource("StyleBoxFlat_jp7na")
-Button/styles/focus = SubResource("StyleBoxFlat_iig7g")
-Button/styles/hover = SubResource("StyleBoxFlat_ps0xt")
-Button/styles/hover_pressed = SubResource("StyleBoxFlat_dgg8l")
-Button/styles/normal = SubResource("StyleBoxFlat_xubre")
-Button/styles/pressed = SubResource("StyleBoxFlat_dgg8l")
+Button/styles/disabled = SubResource("StyleBoxFlat_ggrc3")
+Button/styles/focus = SubResource("StyleBoxFlat_cyifv")
+Button/styles/hover = SubResource("StyleBoxFlat_2bgu6")
+Button/styles/hover_pressed = SubResource("StyleBoxFlat_jp7na")
+Button/styles/normal = SubResource("StyleBoxFlat_iig7g")
+Button/styles/pressed = SubResource("StyleBoxFlat_jp7na")
 CardPanel/base_type = &"PanelContainer"
-CardPanel/styles/panel = SubResource("StyleBoxFlat_vido8")
+CardPanel/styles/panel = SubResource("StyleBoxFlat_ps0xt")
 CardPanelLocked/base_type = &"PanelContainer"
-CardPanelLocked/styles/panel = SubResource("StyleBoxFlat_ursd8")
+CardPanelLocked/styles/panel = SubResource("StyleBoxFlat_dgg8l")
 CostButton/base_type = &"Button"
 CostButton/colors/font_color = Color(0.9098039, 0.76862746, 0.41568628, 1)
 CostButton/colors/font_focus_color = Color(0.9098039, 0.76862746, 0.41568628, 1)
-CostButton/styles/normal = SubResource("StyleBoxFlat_amxsp")
+CostButton/styles/normal = SubResource("StyleBoxFlat_xubre")
 CostButtonShort/base_type = &"Button"
 CostButtonShort/colors/font_color = Color(0.9098039, 0.4745098, 0.37254903, 1)
 CostButtonShort/colors/font_focus_color = Color(0.9098039, 0.4745098, 0.37254903, 1)
 CostButtonShort/colors/font_hover_color = Color(0.9098039, 0.4745098, 0.37254903, 1)
-CostButtonShort/styles/normal = SubResource("StyleBoxFlat_p4bob")
+CostButtonShort/styles/normal = SubResource("StyleBoxFlat_vido8")
 DangerButton/base_type = &"Button"
 DangerButton/colors/font_color = Color(0.9098039, 0.4745098, 0.37254903, 1)
 DangerButton/colors/font_hover_color = Color(0.91764706, 0.8745098, 0.76862746, 1)
-DangerButton/styles/hover = SubResource("StyleBoxFlat_wxo51")
-DangerButton/styles/normal = SubResource("StyleBoxFlat_c48xg")
-DangerButton/styles/pressed = SubResource("StyleBoxFlat_yg2rf")
+DangerButton/styles/hover = SubResource("StyleBoxFlat_ursd8")
+DangerButton/styles/normal = SubResource("StyleBoxFlat_amxsp")
+DangerButton/styles/pressed = SubResource("StyleBoxFlat_p4bob")
 DimLabel/base_type = &"Label"
 DimLabel/colors/font_color = Color(0.72156864, 0.6784314, 0.5803922, 1)
 DimLabel/colors/font_outline_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
@@ -479,25 +447,25 @@ GoldLabel/base_type = &"Label"
 GoldLabel/colors/font_color = Color(0.9098039, 0.76862746, 0.41568628, 1)
 GoldLabel/colors/font_outline_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
 GoldLabel/constants/outline_size = 0
-HScrollBar/styles/grabber = SubResource("StyleBoxFlat_53m1n")
-HScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_a3en2")
-HScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_a3en2")
-HScrollBar/styles/scroll = SubResource("StyleBoxFlat_hjbgc")
-HSlider/icons/grabber = SubResource("GradientTexture2D_yobq5")
-HSlider/icons/grabber_highlight = SubResource("GradientTexture2D_rfr0i")
-HSlider/styles/grabber_area = SubResource("StyleBoxFlat_5f0vv")
-HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_5f0vv")
-HSlider/styles/slider = SubResource("StyleBoxFlat_3wec0")
+HScrollBar/styles/grabber = SubResource("StyleBoxFlat_wxo51")
+HScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_c48xg")
+HScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_c48xg")
+HScrollBar/styles/scroll = SubResource("StyleBoxFlat_yg2rf")
+HSlider/icons/grabber = SubResource("GradientTexture2D_a3en2")
+HSlider/icons/grabber_highlight = SubResource("GradientTexture2D_rwmmf")
+HSlider/styles/grabber_area = SubResource("StyleBoxFlat_yobq5")
+HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_yobq5")
+HSlider/styles/slider = SubResource("StyleBoxFlat_blhwo")
 HeaderLabel/base_type = &"Label"
 HeaderLabel/colors/font_color = Color(0.9098039, 0.76862746, 0.41568628, 1)
 HeaderLabel/colors/font_outline_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
 HeaderLabel/constants/outline_size = 0
-HeaderLabel/fonts/font = SubResource("SystemFont_ggrc3")
+HeaderLabel/fonts/font = SubResource("SystemFont_rfr0i")
 HudBannerLabel/base_type = &"Label"
 HudBannerLabel/colors/font_color = Color(0.9098039, 0.76862746, 0.41568628, 1)
 HudBannerLabel/colors/font_outline_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
 HudBannerLabel/constants/outline_size = 14
-HudBannerLabel/fonts/font = SubResource("SystemFont_ggrc3")
+HudBannerLabel/fonts/font = SubResource("SystemFont_rfr0i")
 HudDimLabel/base_type = &"Label"
 HudDimLabel/colors/font_color = Color(0.72156864, 0.6784314, 0.5803922, 0.9)
 HudDimLabel/colors/font_outline_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
@@ -514,10 +482,42 @@ HudTitleLabel/base_type = &"Label"
 HudTitleLabel/colors/font_color = Color(0.9098039, 0.76862746, 0.41568628, 1)
 HudTitleLabel/colors/font_outline_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
 HudTitleLabel/constants/outline_size = 8
-HudTitleLabel/fonts/font = SubResource("SystemFont_ggrc3")
+HudTitleLabel/fonts/font = SubResource("SystemFont_rfr0i")
 Label/colors/font_color = Color(0.91764706, 0.8745098, 0.76862746, 1)
 Label/colors/font_outline_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
 Label/constants/outline_size = 0
+MenuButtonPanel/base_type = &"Button"
+MenuButtonPanel/colors/font_color = Color(0, 0, 0, 0)
+MenuButtonPanel/colors/font_disabled_color = Color(0, 0, 0, 0)
+MenuButtonPanel/colors/font_focus_color = Color(0, 0, 0, 0)
+MenuButtonPanel/colors/font_hover_color = Color(0, 0, 0, 0)
+MenuButtonPanel/colors/font_hover_pressed_color = Color(0, 0, 0, 0)
+MenuButtonPanel/colors/font_outline_color = Color(0, 0, 0, 0)
+MenuButtonPanel/colors/font_pressed_color = Color(0, 0, 0, 0)
+MenuButtonPanel/constants/outline_size = 0
+MenuButtonPanel/fonts/font = SubResource("SystemFont_rfr0i")
+MenuButtonPanel/styles/disabled = SubResource("StyleBoxEmpty_5f0vv")
+MenuButtonPanel/styles/focus = SubResource("StyleBoxEmpty_5f0vv")
+MenuButtonPanel/styles/hover = SubResource("StyleBoxEmpty_5f0vv")
+MenuButtonPanel/styles/hover_pressed = SubResource("StyleBoxEmpty_5f0vv")
+MenuButtonPanel/styles/normal = SubResource("StyleBoxEmpty_5f0vv")
+MenuButtonPanel/styles/pressed = SubResource("StyleBoxEmpty_5f0vv")
+MenuButtonPanelSub/base_type = &"Button"
+MenuButtonPanelSub/colors/font_color = Color(0, 0, 0, 0)
+MenuButtonPanelSub/colors/font_disabled_color = Color(0, 0, 0, 0)
+MenuButtonPanelSub/colors/font_focus_color = Color(0, 0, 0, 0)
+MenuButtonPanelSub/colors/font_hover_color = Color(0, 0, 0, 0)
+MenuButtonPanelSub/colors/font_hover_pressed_color = Color(0, 0, 0, 0)
+MenuButtonPanelSub/colors/font_outline_color = Color(0, 0, 0, 0)
+MenuButtonPanelSub/colors/font_pressed_color = Color(0, 0, 0, 0)
+MenuButtonPanelSub/constants/outline_size = 0
+MenuButtonPanelSub/fonts/font = SubResource("SystemFont_rfr0i")
+MenuButtonPanelSub/styles/disabled = SubResource("StyleBoxEmpty_3wec0")
+MenuButtonPanelSub/styles/focus = SubResource("StyleBoxEmpty_3wec0")
+MenuButtonPanelSub/styles/hover = SubResource("StyleBoxEmpty_3wec0")
+MenuButtonPanelSub/styles/hover_pressed = SubResource("StyleBoxEmpty_3wec0")
+MenuButtonPanelSub/styles/normal = SubResource("StyleBoxEmpty_3wec0")
+MenuButtonPanelSub/styles/pressed = SubResource("StyleBoxEmpty_3wec0")
 Panel/styles/panel = SubResource("StyleBoxFlat_jfs0a")
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_jfs0a")
 PrimaryButton/base_type = &"Button"
@@ -535,16 +535,16 @@ TitleLabel/base_type = &"Label"
 TitleLabel/colors/font_color = Color(0.9098039, 0.76862746, 0.41568628, 1)
 TitleLabel/colors/font_outline_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
 TitleLabel/constants/outline_size = 14
-TitleLabel/fonts/font = SubResource("SystemFont_ggrc3")
+TitleLabel/fonts/font = SubResource("SystemFont_rfr0i")
 ToggleButton/base_type = &"Button"
 ToggleButton/colors/font_hover_pressed_color = Color(0.91764706, 0.8745098, 0.76862746, 1)
 ToggleButton/colors/font_pressed_color = Color(0.91764706, 0.8745098, 0.76862746, 1)
 ToggleButton/styles/hover_pressed = SubResource("StyleBoxFlat_15tg0")
 ToggleButton/styles/pressed = SubResource("StyleBoxFlat_15tg0")
-VScrollBar/styles/grabber = SubResource("StyleBoxFlat_53m1n")
-VScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_a3en2")
-VScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_a3en2")
-VScrollBar/styles/scroll = SubResource("StyleBoxFlat_hjbgc")
+VScrollBar/styles/grabber = SubResource("StyleBoxFlat_wxo51")
+VScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_c48xg")
+VScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_c48xg")
+VScrollBar/styles/scroll = SubResource("StyleBoxFlat_yg2rf")
 WarningLabel/base_type = &"Label"
 WarningLabel/colors/font_color = Color(0.9098039, 0.4745098, 0.37254903, 1)
 WarningLabel/colors/font_outline_color = Color(0.07058824, 0.0627451, 0.09411765, 1)
