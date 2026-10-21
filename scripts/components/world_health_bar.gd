@@ -112,8 +112,15 @@ static func layout_staggered() -> void:
 			if other.stagger_group != bar.stagger_group:
 				continue
 			var reach: float = (bar.bar_size.x + other.bar_size.x) * 0.5 + STAGGER_GAP
-			if absf(bar._base_x() - other._base_x()) < reach and absf(bar._base_y() - other._base_y()) < STAGGER_STEP * 4.0:
-				used[other._level] = true
+			if absf(bar._base_x() - other._base_x()) < reach:
+				# Different unit heights have different baseline y values. Reserve
+				# levels that actually touch the already placed bar, not its level
+				# number (which is relative to that other unit's own baseline).
+				var clearance: float = (bar.bar_size.y + other.bar_size.y) * 0.5 + STAGGER_GAP
+				var delta_y: float = bar._base_y() - other.global_position.y
+				var first: int = maxi(0, floori((delta_y - clearance) / STAGGER_STEP) + 1)
+				var last: int = ceili((delta_y + clearance) / STAGGER_STEP) - 1
+				for occupied: int in range(first, last + 1): used[occupied] = true
 		var level: int = 0
 		while used.has(level):
 			level += 1

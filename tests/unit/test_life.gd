@@ -492,6 +492,24 @@ func test_ally_bars_show_only_after_a_hit_short_and_stacked_by_lane() -> void:
 	assert_true(not bars[0].visible, "it hides two seconds after the last hit")
 
 
+func test_staggering_checks_actual_bar_positions_when_head_heights_differ() -> void:
+	var bars: Array[WorldHealthBar] = []
+	for y: float in [0.0, 5.0, -8.0, 11.0, -17.0, 2.0]:
+		var bar: WorldHealthBar = WorldHealthBar.new()
+		bar.stagger = true
+		bar.stagger_group = 99
+		bar.bar_size = Vector2(64.0, 6.0)
+		bar.position = Vector2(900.0, y)
+		add_to_tree(bar)
+		bars.append(bar)
+	WorldHealthBar.layout_staggered()
+	for i: int in bars.size():
+		for j: int in range(i + 1, bars.size()):
+			var a: Rect2 = Rect2(bars[i].global_position - bars[i].bar_size * 0.5, bars[i].bar_size).grow(2.0)
+			var b: Rect2 = Rect2(bars[j].global_position - bars[j].bar_size * 0.5, bars[j].bar_size).grow(2.0)
+			assert_true(not a.intersects(b), "unequal head heights still yield separate bars")
+
+
 func test_hollow_soldiers_vary_in_look_size_hat_hunch_and_step() -> void:
 	var looks: Dictionary = {}
 	var bare: int = 0

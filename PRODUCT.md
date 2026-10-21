@@ -31,3 +31,13 @@ without removing combat poses. This approval supersedes the static menu choice.
 
 Burning Village, more stages, new enemy counters and additional allies belong to
 a later phase. Stop after this character refinement for user review.
+
+## Approved samurai art consistency pass — 2026-10-21
+
+The user requested three separate commits: consistent battle body/head painting
+detail, one full-body title illustration with only subtle free hair/sash/hem and
+sword glint motion, and a dedicated painted HUD bust. This explicitly supersedes
+the articulated menu figure and the earlier whole-portrait breathing approach.
+The battle skeleton, fixed bone lengths, planted feet and hands-over-hilts remain
+the mechanical contract. Existing sunset composition, Ultimate ring, READY plate,
+navigation, other characters and gameplay are preserved.

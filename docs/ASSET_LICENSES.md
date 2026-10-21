@@ -148,3 +148,27 @@ The following original painted layers replace the battle samurai's low-density b
 
 > Two isolated production cutout flowing accessories for the SAME lean black-robed samurai shown in the references. Match the detailed ink/watercolour of his isolated head. Wide 2-row composition, ONE accessory per row, generous transparent empty gap between rows and generous margins all around. No other objects, no face, no body. Top row: one long black ponytail with complete small tie and attachment on RIGHT, richly painted flowing wisps tapering LEFT. Bottom row: one long dark RED waist sash, knot/attachment on RIGHT, restrained curved cloth tapering LEFT into natural frayed ends. Both accessories predominantly HORIZONTAL. Crisp refined hair and cloth detail, broad readable shadow planes, charcoal highlights, no blur or halo or detached black debris. Genuine transparent alpha background. No typography, grid, paper or shadows behind objects. These parts will follow cloth curves in a game; each must be fully separate with no other accessory pixels anywhere inside its rectangular bounds.
 
+
+## Painted title illustration — 2026-10-21
+
+### initial_candidate
+
+- File: `builds/samurai_consistency/title_candidate.png (superseded, not shipped)`
+- Tool: OpenAI built-in image_gen; date: 2026-10-21.
+- Original generated artwork, using the existing project samurai identity/costume and then the initial candidate as edit references; no third-party stock or additional attribution requirement.
+- Exact prompt:
+
+> One finished full-body PAINTED TITLE ILLUSTRATION of the SAME lean Japanese swordsman as the attached head and costume reference. Image one is identity/face authority; image two is costume/material authority, NOT a collage layout. This is a single coherent anatomical painting with naturally connected arms/hands, not a sprite sheet, not puppet parts.
+Full standing figure, calm relaxed stance, three-quarter view facing LEFT toward the menu, upright athletic posture, short natural neck and proportionate head. Slim fast unarmoured young man, black layered kimono, ivory inner collar, grey waist sash, gathered black hakama, substantial wrapped calves, sandals. Both soles on ONE flat horizontal line, slight natural stance; complete feet and hair remain inside canvas. Flowing black ponytail and restrained RED sash trail to the RIGHT, free cloth hem gently lifts to the right.
+RIGHT HAND holds one katana LOW beside the right thigh: four distinct curved fingers visibly wrapped around the MIDDLE of the dark hilt, thumb opposing, hand well below the chest, guard visible beyond the knuckles, pommel visible behind the hand. The hand must NOT touch the blade or guard. Blade points diagonally down LEFT, its tip still above the sole line. LEFT hand loose beside the body or resting naturally on a dark scabbard at the left hip. No sword or hilt crossing chest, no crossed arms, no floating wrist, no deformed fingers. Elegant modest guard, no ornate giant medallion.
+Fine crisp ink/watercolour contours, sculpted skin planes and cloth folds matching the face, charcoal blacks and warm grey highlights, restrained red cloth, no armour, no helmet. Light from behind/upper left so figure reads against the game's pale moon. Character ONLY on a genuinely transparent background: the game supplies moon, rock and sunset scenery. No painted ground/rock/shadow/moon, no typography, border or paper backing. Tall portrait composition with generous transparent margins around the entire figure and sword.
+
+### final_grip_edit
+
+- File: `assets/art/samurai/title_key_art.png`
+- Tool: OpenAI built-in image_gen; date: 2026-10-21.
+- Original generated artwork, using the existing project samurai identity/costume and then the initial candidate as edit references; no third-party stock or additional attribution requirement.
+- Exact prompt:
+
+> Edit the attached full-body samurai illustration. Preserve his face, identity, costume, stance, sword angle, hair and cloth arrangement and the whole full-body composition. Correct ONLY his sword-holding RIGHT HAND: compact natural CLOSED fist around the middle of the dark hilt, with four short fingers curled across the FRONT of the cylindrical handle and thumb opposing them. Show a clear knuckle ridge and curled fingertips, not long straight fingers laid along the handle. The wrist connects naturally to the wrapped forearm. Leave visible handle on BOTH sides of the fist, with guard separated from the hand. Keep the sword low and avoid any hilt crossing chest. The free left hand stays relaxed. Also remove any ambient haze, shadow or coloured fog behind the character: genuine transparent background and clean soft painted alpha edges only. No white outline. Preserve complete figure and sword inside the canvas.
+

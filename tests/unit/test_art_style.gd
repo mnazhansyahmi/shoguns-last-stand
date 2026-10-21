@@ -391,8 +391,8 @@ func test_title_samurai_stands_against_the_moon() -> void:
 	assert_true(absf(samurai.position.x - moon.x) < 40.0, "samurai stands under the moon")
 	assert_true(portrait.position.y < moon.y and portrait.position.y + portrait.size.y * 0.22 > moon.y,
 			"the moon stays behind the portrait's head")
-	assert_true((samurai.get_node("torso") as FigurePart).art != null and samurai.has_node("fore_f"),
-			"the menu draws separate painted body and arm layers on the actual skeleton")
+	assert_true(PortraitMotion.ART != null and samurai.get_child_count() == 0,
+			"the menu uses one full-body painted illustration without limb nodes")
 	var fog: CanvasItem = menu.get_node("Backdrop/FrontFog")
 	assert_true(not fog.visible, "front fog is off behind the menu so it never covers buttons")
 

@@ -76,8 +76,9 @@ func _run_all() -> void:
 	var total: int = 0
 	var failed: int = 0
 	for path: String in TEST_SCRIPTS:
+		var errors_before_load: int = _errors.count
 		var script: GDScript = load(path) as GDScript
-		if script == null:
+		if script == null or _errors.count != errors_before_load:
 			print("FAIL  could not load %s" % path)
 			failed += 1
 			continue

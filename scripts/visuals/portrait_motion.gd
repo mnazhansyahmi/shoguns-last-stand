@@ -1,34 +1,60 @@
 class_name PortraitMotion
-extends InkFigure
-## The title uses the articulated combat figure with an authored resting pose.
-## Each limb, the head, hair and cloth have independent frames; no image warp.
+extends Node2D
+## One coherent title painting. Only free hair, sash and hem pixels move; face,
+## hands, torso, legs and soles stay fixed. No InkFigure or limb rig is used.
 
+const ART: Texture2D = preload("res://assets/art/samurai/title_key_art.png")
+const FOOT_ANCHOR: Vector2 = Vector2(535.0, 1498.0)
+const ART_HEIGHT: float = 1464.0
+const COLUMNS: int = 64
+const ROWS: int = 96
 var reduced_motion: bool = false
+var _motion_material: ShaderMaterial
+static var _vertices: PackedVector2Array
+static var _uvs: PackedVector2Array
+static var _weights: PackedColorArray
+static var _indices: PackedInt32Array
 
 
 func _ready() -> void:
-	height = 100.0
-	show_stowed_bow = false
-	super._ready()
-	set_kind(Kind.SAMURAI)
-	spec.back_hand_on_weapon = Vector2(NAN, 0.0)
-	var weapon: FigurePart = get_node("weapon") as FigurePart
-	# A resting one-handed hold: the hand around the middle of the hilt (the sword slid 4 units forward along its
-	# axis), so the pommel stays clear of his chest instead of crowding it.
-	weapon.art_frame = Transform2D(0.0, Vector2(0.78, 0.8), 0.0, Vector2(4.0, 0.0)) * weapon.art_frame
-	upright = true
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	_build_mesh()
+	_motion_material = ShaderMaterial.new()
+	_motion_material.shader = preload("res://scripts/visuals/shaders/title_key_art.gdshader")
+	material = _motion_material
 	set_time(0.0)
+	queue_redraw()
 
 
 func set_time(seconds: float) -> void:
-	clock = seconds
-	var amount: float = 0.15 if reduced_motion else 1.0
-	breath = sin(seconds * TAU * 0.22) * amount
-	pose.lean = 0.015 + sin(seconds * 0.8) * 0.007 * amount
-	pose.crouch = 0.0
-	pose.spread = 1.1
-	pose.grip = Vector2(17.0, -10.0) + Vector2(0.3, 0.4) * breath
-	pose.back_grip = Vector2(-12.0, -8.0) + Vector2(0.1, 0.25) * breath
-	pose.blade = 0.7 + sin(seconds * 0.9) * 0.012 * amount
-	pose.head_tilt = -0.03 + sin(seconds * 0.65) * 0.018 * amount
-	refresh()
+	if _motion_material == null: return
+	_motion_material.set_shader_parameter("motion_time", seconds)
+	_motion_material.set_shader_parameter("motion_amount", 0.15 if reduced_motion else 1.0)
+
+
+## Masks deliberately stop outside the face, both hands and the standing body.
+static func motion_weights(uv: Vector2) -> Color:
+	var hair: float = smoothstep(0.64, 0.78, uv.x) * smoothstep(0.04, 0.10, uv.y) * (1.0 - smoothstep(0.24, 0.31, uv.y))
+	var sash: float = smoothstep(0.72, 0.85, uv.x) * smoothstep(0.40, 0.47, uv.y) * (1.0 - smoothstep(0.62, 0.70, uv.y))
+	var hem: float = smoothstep(0.67, 0.85, uv.x) * smoothstep(0.65, 0.72, uv.y) * (1.0 - smoothstep(0.80, 0.86, uv.y))
+	return Color(hair, sash, hem, 1.0)
+
+
+static func _build_mesh() -> void:
+	if not _vertices.is_empty(): return
+	for row: int in ROWS + 1:
+		for col: int in COLUMNS + 1:
+			var uv: Vector2 = Vector2(float(col) / COLUMNS, float(row) / ROWS)
+			_vertices.append(uv * ART.get_size() - FOOT_ANCHOR)
+			_uvs.append(uv)
+			_weights.append(motion_weights(uv))
+	for row: int in ROWS:
+		for col: int in COLUMNS:
+			var a: int = row * (COLUMNS + 1) + col
+			var b: int = a + COLUMNS + 1
+			_indices.append_array(PackedInt32Array([a, a + 1, b, a + 1, b + 1, b]))
+
+
+func _draw() -> void:
+	RenderingServer.canvas_item_add_triangle_array(get_canvas_item(), _indices, _vertices,
+			_weights, _uvs, PackedInt32Array(), PackedFloat32Array(), ART.get_rid())

@@ -24,25 +24,22 @@ func _visual(kind: InkFigure.Kind) -> UnitVisual:
 	return visual
 
 
-func test_menu_uses_articulated_limbs_and_keeps_both_soles_pinned() -> void:
+func test_title_painting_pins_face_hands_body_and_soles_with_only_free_cloth_motion() -> void:
 	var portrait: PortraitMotion = PortraitMotion.new()
 	add_to_tree(portrait)
-	var foot_f: Vector2 = portrait.front_ankle
-	var foot_b: Vector2 = portrait.back_ankle
-	var first_hand: Vector2 = portrait.front_hand
-	var motion: float = 0.0
-	for step: int in 180:
-		portrait.set_time(float(step) / 60.0)
-		motion = maxf(motion, first_hand.distance_to(portrait.front_hand))
-		assert_true(portrait.front_ankle.distance_to(foot_f) < 0.01, "front sole stays planted")
-		assert_true(portrait.back_ankle.distance_to(foot_b) < 0.01, "back sole stays planted")
-	assert_true(motion > 0.1, "the articulated resting hand follows breathing")
-	assert_true(portrait.get_node("fore_f") != portrait.get_node("torso"), "hand and body are independent painted parts")
-	assert_true(is_nan(portrait.spec.back_hand_on_weapon.x), "the relaxed hand is released from the sword")
-	assert_true(portrait.secondary.hair != null, "title hair has the same live chain as gameplay")
+	var title_node: Node = portrait
+	assert_true(not title_node is InkFigure and portrait.get_child_count() == 0, "the menu has one painting and no limb rig")
+	for uv: Vector2 in [Vector2(0.55, 0.15), Vector2(0.30, 0.55), Vector2(0.68, 0.52), Vector2(0.5, 0.65), Vector2(0.35, 0.97), Vector2(0.68, 0.96)]:
+		var weights: Color = PortraitMotion.motion_weights(uv)
+		assert_true(weights.r == 0.0 and weights.g == 0.0 and weights.b == 0.0, "face, hands, body and feet cannot warp")
+	assert_true(PortraitMotion.motion_weights(Vector2(0.88, 0.19)).r > 0.9, "free hair moves")
+	assert_true(PortraitMotion.motion_weights(Vector2(0.90, 0.56)).g > 0.9, "free sash moves")
+	assert_true(PortraitMotion.motion_weights(Vector2(0.88, 0.76)).b > 0.9, "free hem moves")
+	portrait.set_time(1.5)
+	assert_almost_eq((portrait.material as ShaderMaterial).get_shader_parameter("motion_time"), 1.5, "time reaches the cloth shader")
 	portrait.reduced_motion = true
 	portrait.set_time(2.0)
-	assert_true(absf(portrait.breath) <= 0.15, "reduced motion damps the resting pose")
+	assert_almost_eq((portrait.material as ShaderMaterial).get_shader_parameter("motion_amount"), 0.15, "reduced motion reaches the decorative layers")
 
 
 func test_every_ally_has_live_anchored_cloth_that_moves_at_idle() -> void:
