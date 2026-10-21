@@ -316,8 +316,9 @@ func _is_blocked_by_other_enemy(direction: int) -> bool:
 		if node == self:
 			continue
 		var other: Enemy = node as Enemy
-		# Flyers pass over the marching line (and it under them).
-		if other == null or other.is_dead() or other.is_flying() != is_flying():
+		# Flyers pass over the marching line (and it under them). Fighters walk past an archer standing to shoot, so a
+		# Spectral Archer out of the allies' reach never holds up the rest of the wave behind it.
+		if other == null or other.is_dead() or other.is_flying() != is_flying() or (other.data.ranged and not data.ranged):
 			continue
 		var dx: float = other.global_position.x - global_position.x
 		var spacing: float = (my_half + other.get_half_width()) * 0.85 * _spacing_scale
@@ -415,7 +416,7 @@ func _filter_hit(hitbox: HitboxComponent) -> HurtboxComponent.Filter:
 		return HurtboxComponent.Filter.IGNORE
 	if not _shield_up:
 		return HurtboxComponent.Filter.ACCEPT
-	if hitbox.heavy:
+	if hitbox.heavy or hitbox.breaks_shields:
 		_break_shield()
 		return HurtboxComponent.Filter.ACCEPT
 	var push: float = hitbox.get_knockback_direction_x(global_position.x)

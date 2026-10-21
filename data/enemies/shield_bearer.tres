@@ -36,4 +36,4 @@ body_size = Vector2(50, 112)
 figure = 3
 tint = Color(0.95, 0.86, 0.78, 1)
 prop = 2
-counter_hint = "Blocks blows from the front: break the shield with a heavy attack, or strike from behind"
+counter_hint = "Blocks blows from the front. Break the shield with a heavy attack or the Hatamoto, or strike from behind"

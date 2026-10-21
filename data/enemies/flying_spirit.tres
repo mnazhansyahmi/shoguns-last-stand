@@ -36,4 +36,4 @@ hover_height = 70.0
 body_size = Vector2(40, 80)
 figure = 3
 prop = 3
-counter_hint = "Floats out of reach: only the Bow, Yumi Archers and the Onmyoji hit it"
+counter_hint = "Floats out of reach. Only the Bow, Yumi Archers and the Onmyoji hit it"

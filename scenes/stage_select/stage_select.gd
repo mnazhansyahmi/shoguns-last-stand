@@ -8,8 +8,6 @@ extends Control
 ## or a double click) starts it; a single tap only selects it, so the details can be read first. Page up / down (or a
 ## tab) switches region; a locked region still shows its cards, padlocked.
 
-const HOLLOW_SOLDIER: EnemyData = preload("res://data/enemies/hollow_soldier.tres")
-const ONI_BRUTE: EnemyData = preload("res://data/enemies/oni_brute.tres")
 ## Cards share the width of the card area but never get wider than this (their picture is cropped to fit, not stretched).
 const MAX_CARD_WIDTH: float = 540.0
 const CARD_GAP: float = 22.0
@@ -32,6 +30,7 @@ const TAB_FONT_SIZE: int = 30
 @onready var _detail_stats: Label = %DetailStats
 @onready var _detail_rewards: Label = %DetailRewards
 @onready var _detail_lock: Label = %DetailLock
+@onready var _detail_foes: Label = %DetailFoes
 
 var _progress: PlayerProgress
 var _regions: Array[RegionData] = []
@@ -219,6 +218,9 @@ func _show_details(card: StageCard) -> void:
 	_detail_stats.visible = unlocked
 	_detail_rewards.visible = unlocked
 	_detail_lock.visible = not unlocked
+	# The new foes and how to beat them show even on a locked stage, so the player can prepare.
+	_detail_foes.text = foes_text(stage)
+	_detail_foes.visible = not _detail_foes.text.is_empty()
 	_play_button.disabled = not unlocked
 	_play_button.text = "Play" if unlocked else "Locked"
 	if not unlocked:
@@ -228,17 +230,20 @@ func _show_details(card: StageCard) -> void:
 	_detail_rewards.text = rewards_text(stage, card.cleared)
 
 
-## "5 waves", "42 soldiers", "3 Oni Brutes" and, for the boss stage, "Boss: The Fallen Daimyo".
+## "5 waves", "42 soldiers", "3 Oni Brutes", "12 Flying Spirits" and, for a boss stage, "Boss: The Fallen Daimyo".
 static func stats_text(stage: StageData) -> String:
 	var lines: Array[String] = ["%d %s" % [stage.waves.size(), "wave" if stage.waves.size() == 1 else "waves"]]
-	var soldiers: int = stage.count_enemy(HOLLOW_SOLDIER)
-	if soldiers > 0:
-		lines.append("%d %s" % [soldiers, "soldier" if soldiers == 1 else "soldiers"])
-	var oni: int = stage.count_enemy(ONI_BRUTE)
-	if oni > 0:
-		lines.append("%d Oni Brute%s" % [oni, "" if oni == 1 else "s"])
+	lines.append_array(StageBriefing.count_lines(stage))
 	if stage.has_boss():
 		lines.append("Boss: %s" % stage.boss_name())
+	return "\n".join(lines)
+
+
+## How to beat the foes this stage brings for the first time ("New - Shield Bearer: ..."), or "".
+static func foes_text(stage: StageData) -> String:
+	var lines: Array[String] = []
+	for enemy: EnemyData in StageBriefing.new_foes(stage):
+		lines.append("New - " + StageBriefing.hint_line(enemy))
 	return "\n".join(lines)
 
 

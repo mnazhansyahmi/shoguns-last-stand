@@ -137,6 +137,17 @@ theme_override_font_sizes/font_size = 72
 text = "Samurai down"
 horizontal_alignment = 1
 
+[node name="BriefingLabel" type="Label" parent="Margin/CenterBox"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(1100, 0)
+layout_mode = 2
+theme_type_variation = &"HudMessageLabel"
+theme_override_font_sizes/font_size = 30
+text = "Foes: Hollow Soldier, Spectral Archer"
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="BottomBox" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
 size_flags_vertical = 8

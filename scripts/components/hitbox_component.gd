@@ -10,6 +10,8 @@ signal hit_blocked(hurtbox: HurtboxComponent)
 @export var faction: Faction.Type = Faction.Type.DEFENDERS
 ## Reaches flying enemies (arrows and the Onmyoji's fire; see EnemyData.flying).
 @export var reaches_air: bool = false
+## Breaks a Shield Bearer's shield like a heavy blow, without a heavy blow's hit-stop and shake (the Hatamoto's naginata).
+@export var breaks_shields: bool = false
 ## Node credited as the damage source. Defaults to the parent.
 @export var source: Node
 

@@ -186,6 +186,6 @@ figure = 9
 tint = Color(1.3, 0.78, 0.55, 1)
 prop = 4
 scene = ExtResource("6_scene")
-counter_hint = "Watch the ground: step out of the burning warnings before the pillars rise"
+counter_hint = "Watch the ground. Step out of the burning warnings before the pillars rise"
 phases = Array[ExtResource("5_phase")]([SubResource("Phase_1"), SubResource("Phase_2"), SubResource("Phase_3")])
 attacks = Array[ExtResource("2_attack_data")]([SubResource("Attack_sweep"), SubResource("Attack_slam"), SubResource("Attack_eruption"), SubResource("Attack_wave"), SubResource("Attack_leap"), SubResource("Attack_summon")])

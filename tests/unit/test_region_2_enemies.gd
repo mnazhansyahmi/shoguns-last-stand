@@ -135,6 +135,17 @@ func test_a_heavy_blow_breaks_the_shield_for_good() -> void:
 	assert_true(_blade(1.0).try_hit(bearer.get_hurtbox()) and health.current_health < after, "then ordinary cuts from in front land")
 
 
+func test_the_hatamoto_is_the_shield_breaker() -> void:
+	var hatamoto: AllyData = preload("res://data/allies/hatamoto.tres")
+	assert_true(hatamoto.breaks_shields and not ASHIGARU.breaks_shields, "the Hatamoto's naginata splits shields")
+	var bearer: Enemy = _enemy(SHIELD)
+	bearer.call(&"_set_facing", -1)
+	var naginata: HitboxComponent = _blade(1.0)
+	naginata.breaks_shields = true
+	assert_true(naginata.try_hit(bearer.get_hurtbox()), "a blow from in front lands")
+	assert_true(not bearer.is_shield_up(), "and breaks the shield without being a heavy attack")
+
+
 func test_arrows_stop_on_the_shield() -> void:
 	var bearer: Enemy = _enemy(SHIELD, 1200.0)
 	bearer.call(&"_set_facing", -1)
@@ -181,6 +192,15 @@ func test_flyers_do_not_hold_up_the_marching_line() -> void:
 	var soldier: Enemy = _enemy(preload("res://data/enemies/hollow_soldier.tres"), 1010.0)
 	assert_true(not soldier.call(&"_is_blocked_by_other_enemy", -1), "a soldier walks under a spirit")
 	assert_true(not spirit.call(&"_is_blocked_by_other_enemy", 1), "and a spirit over a soldier")
+
+
+func test_an_archer_standing_to_shoot_does_not_hold_up_the_fighters() -> void:
+	var archer: Enemy = _enemy(ARCHER, 1000.0)
+	var soldier: Enemy = _enemy(preload("res://data/enemies/hollow_soldier.tres"), 1010.0)
+	var second: Enemy = _enemy(ARCHER, 1015.0)
+	assert_true(not soldier.call(&"_is_blocked_by_other_enemy", -1), "a soldier walks past an archer")
+	assert_true(second.call(&"_is_blocked_by_other_enemy", -1), "archers still queue behind each other")
+	assert_true(archer.call(&"_is_blocked_by_other_enemy", 1), "while an archer backing off still bumps into a fighter")
 
 
 func test_props_replace_the_body_weapon_and_the_wisp_hides_the_body() -> void:
