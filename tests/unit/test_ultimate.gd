@@ -166,6 +166,9 @@ func test_ultimate_hits_every_enemy_in_range_once_and_empties_the_meter() -> voi
 	assert_eq(_health_of(near).current_health, HOLLOW_SOLDIER.max_health, "enemies are untouched during the wind-up")
 
 	_tick_player(player, player.stats.ultimate_windup + 0.02)
+	assert_eq(hits[0], -1, "dash marks appear before damage is committed")
+	assert_true(player.ultimate_cinematic, "the dash retains control until its impact and recovery")
+	skill.advance_cinematic(UltimateSkill.IMPACT_TIME)
 	assert_eq(hits[0], 4, "it hit the four enemies in range (two soldiers ahead, one behind, the Oni)")
 	var damage: float = player.stats.base_damage * player.stats.ultimate_damage_multiplier
 	assert_true(near.is_dead() and far_right.is_dead() and behind.is_dead(), "soldiers die to a 9x hit (%.0f damage)" % damage)
@@ -196,6 +199,7 @@ func test_ultimate_is_a_panic_button_and_cannot_be_hurt_or_repeated() -> void:
 	var frames: int = 0
 	while player.get_state_name() == "ULTIMATE" and frames < 200:
 		player._physics_process(STEP)
+		skill.advance_cinematic(STEP)
 		frames += 1
 	assert_eq(player.get_state_name(), "IDLE", "he recovers to idle afterwards")
 	assert_true(float(frames) * STEP >= player.stats.ultimate_windup + player.stats.ultimate_recovery - STEP,
@@ -231,6 +235,8 @@ func test_ultimate_freezes_the_game_briefly_through_battle_feedback() -> void:
 	assert_true(skill.request() == UltimateSkill.Result.OK, "started")
 	assert_true(not feedback.is_hit_stopped(), "the game keeps running while the blade goes up")
 	_tick_player(player, player.stats.ultimate_windup + 0.02)
+	assert_almost_eq(Engine.time_scale, 0.25, "the dash suspends the battle in slow motion")
+	skill.advance_cinematic(UltimateSkill.IMPACT_TIME)
 	assert_true(feedback.is_hit_stopped(), "the game freezes when the sweep lands (the dramatic pause)")
 	assert_true(skill.pause_seconds >= 0.1 and skill.pause_seconds <= 0.3, "for a short beat")
 	feedback.end_hit_stop()
@@ -240,6 +246,43 @@ func test_ultimate_freezes_the_game_briefly_through_battle_feedback() -> void:
 		if child is CanvasLayer:
 			layers += 1
 	assert_eq(layers, 1, "the brush sweep is on screen")
+
+
+func test_cinematic_finishes_under_one_and_a_half_seconds_and_restores_control() -> void:
+	var setup: Dictionary = _ready_skill()
+	var player: Player = setup["player"]
+	var skill: UltimateSkill = setup["skill"]
+	var feedback: BattleFeedback = add_to_tree(BattleFeedback.new()) as BattleFeedback
+	var camera: BattleCamera = add_to_tree(BattleCamera.new()) as BattleCamera
+	skill.camera = camera
+	var removed: Enemy = _enemy(700)
+	skill.request()
+	_tick_player(player, player.stats.ultimate_windup + 0.01)
+	removed.free()
+	assert_true(not camera.is_processing(), "camera holds the marked battlefield during the dash")
+	skill.advance_cinematic(UltimateSkill.IMPACT_TIME - 0.01)
+	assert_true(player.global_position.x >= player.min_x and player.global_position.x <= player.max_x, "dash remains inside battle bounds")
+	skill.advance_cinematic(UltimateSkill.CINEMATIC_TIME)
+	assert_eq(player.get_state_name(), "IDLE", "control is returned")
+	assert_true(camera.is_processing(), "camera follow is restored")
+	assert_almost_eq(Engine.time_scale, 1.0, "time is restored even when targets disappear")
+	assert_true(not feedback.is_hit_stopped(), "no hit-stop leaks after the cinematic")
+	assert_true(player.stats.ultimate_windup + UltimateSkill.CINEMATIC_TIME + minf(skill.pause_seconds, 0.1) < 1.5, "full windup, timeline and impact hold stay under 1.5 real seconds")
+
+
+func test_cinematic_cancellation_restores_time_camera_and_player() -> void:
+	var setup: Dictionary = _ready_skill()
+	var player: Player = setup["player"]
+	var skill: UltimateSkill = setup["skill"]
+	add_to_tree(BattleFeedback.new())
+	var camera: BattleCamera = add_to_tree(BattleCamera.new()) as BattleCamera
+	skill.camera = camera
+	skill.request()
+	_tick_player(player, player.stats.ultimate_windup + 0.01)
+	assert_true(player.ultimate_cinematic, "cinematic began")
+	skill.cancel_cinematic()
+	assert_true(not player.ultimate_cinematic and camera.is_processing(), "interruption releases camera and player")
+	assert_almost_eq(Engine.time_scale, 1.0, "interruption releases time")
 
 
 # --- Sweep effect ---------------------------------------------------------------

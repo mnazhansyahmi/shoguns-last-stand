@@ -274,6 +274,7 @@ func _on_settings_closed(settings: GameSettings) -> void:
 func _apply_settings() -> void:
 	_settings.apply_audio()
 	_feedback.configure(_settings)
+	(_hud.get_boss_bar() as BossHealthBar).shake_enabled = _settings.screen_shake
 	var show_touch: bool = _settings.should_show_touch_controls(GameSettings.detect_touchscreen())
 	_touch.set_active(show_touch and not _is_game_over)
 	_hud.set_touch_mode(show_touch)
@@ -551,7 +552,8 @@ func _on_enemy_spawned(enemy: Enemy) -> void:
 		AudioManager.play_music(&"boss")
 
 
-func _on_boss_phase_changed(_phase: int, banner: String) -> void:
+func _on_boss_phase_changed(phase: int, banner: String) -> void:
+	_hud.set_boss_phase(phase)
 	if not banner.is_empty():
 		_hud.show_banner(banner)
 
@@ -592,6 +594,7 @@ func _end_battle(victory: bool) -> void:
 	_is_game_over = true
 	_respawn_time_left = -1.0
 	_wave_director.stop()
+	_ultimate.cancel_cinematic()
 	_feedback.end_hit_stop()
 	AudioManager.play(&"victory" if victory else &"defeat")
 	_touch.set_active(false)

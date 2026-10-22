@@ -259,6 +259,20 @@ func test_overlapping_numbers_stack_upward_with_spacing() -> void:
 	assert_almost_eq(far.global_position.y, 500.0, "a number far from the others is not moved", 0.01)
 
 
+func test_combat_labels_wrap_inside_all_screen_edges_and_do_not_overlap() -> void:
+	var feedback: BattleFeedback = _feedback()
+	for edge: Vector2 in [Vector2(-100, -100), Vector2(4000, -100), Vector2(-100, 4000), Vector2(4000, 4000)]:
+		for child: Node in feedback.numbers_parent.get_children(): child.free()
+		var numbers: Array[DamageNumber] = []
+		for i: int in 6: numbers.append(feedback.spawn_text_number(edge, "Shield broken", Color.WHITE))
+		for frame: int in 20:
+			for number: DamageNumber in numbers: number._process(1.0 / 60.0)
+		for i: int in numbers.size():
+			var bounds: Rect2 = numbers[i].get_screen_bounds()
+			assert_true(numbers[i].get_viewport_rect().grow(-15).encloses(bounds), "long label and its outline remain inside the screen")
+			for j: int in i: assert_true(not bounds.intersects(numbers[j].get_screen_bounds()), "edge labels wrap without overlaps")
+
+
 func test_at_most_six_numbers_are_on_screen() -> void:
 	var feedback: BattleFeedback = _feedback()
 	var newest: DamageNumber

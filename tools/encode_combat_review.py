@@ -1,8 +1,9 @@
 """Encode actual Godot captures as compact review clips (no source-art processing)."""
 from pathlib import Path
+import sys
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[1] / 'docs/combat_polish/part3'
+ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parents[1] / 'docs/combat_polish/part3'
 for name in ('fallen_daimyo', 'burning_general'):
     folder = ROOT / name
     files = sorted(folder.glob('frame_*.png'))

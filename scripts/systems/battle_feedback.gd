@@ -45,6 +45,7 @@ var _time_left: float = 0.0
 var _hit_stop_end_msec: int = 0
 var _live_sparks: int = 0
 var _live_blood: int = 0
+var _cinematic_scale: float = 1.0
 
 
 ## Called by HurtboxComponent after a hit is applied. No-op outside a battle.
@@ -69,6 +70,7 @@ func _enter_tree() -> void:
 func _exit_tree() -> void:
 	if active == self:
 		active = null
+	set_cinematic_scale(1.0)
 	end_hit_stop()
 	_stop_shake()
 
@@ -165,16 +167,9 @@ func _place_number(number: DamageNumber, position: Vector2) -> void:
 	while live.size() >= MAX_DAMAGE_NUMBERS:
 		var oldest: DamageNumber = live.pop_front()
 		oldest.queue_free()
-	var at: Vector2 = position
-	var moved: bool = true
-	while moved:
-		moved = false
-		for other: DamageNumber in live:
-			if absf(other.global_position.x - at.x) < DamageNumber.SPACING * 2.8 and absf(other.global_position.y - at.y) < DamageNumber.SPACING:
-				at.y = other.global_position.y - DamageNumber.SPACING
-				moved = true
 	numbers_parent.add_child(number)
-	number.global_position = at
+	number.global_position = position
+	number.keep_on_screen()
 
 
 func spawn_hit_spark(victim: Node, position: Vector2, hit: HitData) -> HitSpark:
@@ -262,7 +257,13 @@ func end_hit_stop() -> void:
 	if _hit_stop_end_msec == 0:
 		return
 	_hit_stop_end_msec = 0
-	Engine.time_scale = 1.0
+	Engine.time_scale = _cinematic_scale
+
+
+## One clock owner: hit-stop temporarily takes precedence over the Ultimate's slow motion.
+func set_cinematic_scale(value: float) -> void:
+	_cinematic_scale = clampf(value, 0.1, 1.0)
+	if _hit_stop_end_msec == 0: Engine.time_scale = _cinematic_scale
 
 
 func is_hit_stopped() -> bool:

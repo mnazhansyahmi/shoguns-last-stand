@@ -56,3 +56,17 @@ func test_boss_bar_never_intersects_player_bars_at_large_ui_scales() -> void:
 		hud.apply_layout(Rect2(0, 0, 1920, 1080), Vector2(1920,1080), scale)
 		hud.show_boss("The Burning General")
 		assert_true(hud.get_boss_bar().position.y >= hud.block_bottom(hud.get_node("%TopLeft") as Control), "boss bar clears player cluster")
+
+
+func test_boss_bar_holds_damage_then_drains_and_resets_for_the_next_boss() -> void:
+	var bar: BossHealthBar = add_to_tree(BossHealthBar.new()) as BossHealthBar
+	bar.set_ratio_text(0.6, "60%")
+	assert_almost_eq(bar.ghost_ratio, 1.0, "damage leaves a visible drain trail")
+	bar._process(0.1)
+	assert_almost_eq(bar.ghost_ratio, 1.0, "trail holds briefly")
+	bar._process(0.8)
+	assert_almost_eq(bar.ghost_ratio, 0.6, "trail catches up")
+	bar.set_phase(2)
+	assert_true(bar._phase_flash > 0.0, "phase changes trigger feedback")
+	bar.reset_health()
+	assert_true(bar.phase == 1 and bar.ghost_ratio == 1.0 and bar.ratio == 1.0, "a new boss starts clean")

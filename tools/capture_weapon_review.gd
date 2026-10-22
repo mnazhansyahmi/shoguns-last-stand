@@ -32,6 +32,10 @@ func _run() -> void:
 			visual.figure_height = 205
 			visual.position = Vector2(170 + (column % 4) * 500, 480 + (column / 4) * 560)
 			sheet.add_child(visual)
+			if kind == InkFigure.Kind.SHIELD_BEARER:
+				var prop: EnemyProp = EnemyProp.new()
+				prop.setup(EnemyProp.Kind.SHIELD, visual, visual.figure_height)
+				visual.add_child(prop)
 			visual.play_state(STATES[column])
 			for frame: int in (12 if STATES[column] == &"strike" else 28): visual._process(1.0 / 60.0)
 			for child: Node in visual.get_children():

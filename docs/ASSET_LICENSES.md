@@ -1,5 +1,13 @@
 # Asset licences
 
+## Painted boss health frame — 2026-10-23
+
+- File: `assets/art/boss_bar_frame.png`.
+- Tool: OpenAI built-in imagegen; original generated game UI art, no third-party source.
+- Use: BossHealthBar ornamental frame and blank name plate. Live fill and text are runtime UI.
+- Prompt: Use case: stylized-concept. Asset type: transparent painted boss health bar frame for a Japanese ink fantasy action game. Paint ONE very wide horizontal ornamental frame, aspect ratio 6:1, straight-on flat UI asset, no perspective. Blackened iron and worn antique gold, carved Japanese cloud scrolls and small oni-mask terminals at both ends, restrained ember-red accents, brush-painted metal with rough sumi edges matching detailed ink-painted samurai characters. A thin long rectangular health window runs from 10% to 90% of width at vertical 60% to 78%; this entire window is truly transparent and empty so a live health fill can show through. Above it a broad dark charcoal nameplate from 22% to 78% of width at vertical 20% to 53%, blank with no writing, gives space for runtime title and boss name. Ornament is elegant, readable at 780 pixels wide, generous transparent padding 5% around perimeter, no solid background, no text, no numbers, no letters, no health fill, no extra objects. Deliver clean alpha PNG.
+
+
 ## Isolated menu motion — 2026-10-22
 
 Original edits of the project's generated `menu_scene.png`, using OpenAI built-in

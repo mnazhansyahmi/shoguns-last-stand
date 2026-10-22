@@ -48,6 +48,8 @@ func merge(amount: float, is_heavy: bool, label_color: Color, scale_factor: floa
 	color = label_color if heavy else color
 	size_factor = maxf(size_factor, scale_factor)
 	_age = minf(_age, LIFETIME * 0.25)
+	_apply_animation()
+	keep_on_screen()
 	queue_redraw()
 
 
@@ -65,6 +67,7 @@ func _process(delta: float) -> void:
 	_age += delta
 	position += Vector2(_drift_x, -RISE) * (delta / LIFETIME)
 	_apply_animation()
+	keep_on_screen()
 	if _age >= LIFETIME:
 		queue_free()
 
@@ -81,6 +84,47 @@ func _apply_animation() -> void:
 
 func _draw() -> void:
 	var font: Font = ThemeDB.fallback_font
-	var origin: Vector2 = Vector2(-80.0, 0.0)
-	draw_string_outline(font, origin, text, HORIZONTAL_ALIGNMENT_CENTER, 160.0, FONT_SIZE, OUTLINE_SIZE, InkPalette.INK)
-	draw_string(font, origin, text, HORIZONTAL_ALIGNMENT_CENTER, 160.0, FONT_SIZE, color)
+	var width: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x
+	var origin: Vector2 = Vector2(-width * 0.5, 0.0)
+	draw_string_outline(font, origin, text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, OUTLINE_SIZE, InkPalette.INK)
+	draw_string(font, origin, text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, color)
+
+
+func get_screen_bounds() -> Rect2:
+	var font: Font = ThemeDB.fallback_font
+	var width: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x
+	var rect: Rect2 = Rect2(Vector2(-width * 0.5 - OUTLINE_SIZE, -font.get_ascent(FONT_SIZE) - OUTLINE_SIZE),
+		Vector2(width + OUTLINE_SIZE * 2, font.get_height(FONT_SIZE) + OUTLINE_SIZE * 2))
+	return get_global_transform_with_canvas() * rect
+
+
+## Bounded screen-space placement. Later numbers yield to earlier ones; top-edge
+## stacks wrap down or sideways instead of continuing outside the viewport.
+func keep_on_screen() -> void:
+	if not is_inside_tree(): return
+	var canvas: Transform2D = get_viewport().get_canvas_transform()
+	var inverse: Transform2D = canvas.affine_inverse()
+	var safe: Rect2 = get_viewport_rect().grow(-16.0)
+	var start: Vector2 = canvas * global_position
+	var extent: Vector2 = get_screen_bounds().size + Vector2(10, 8)
+	var occupied: Array[Rect2] = []
+	for child: Node in get_parent().get_children():
+		if child == self: break
+		var other: DamageNumber = child as DamageNumber
+		if other != null and not other.is_queued_for_deletion(): occupied.append(other.get_screen_bounds().grow(4))
+	for column: int in 5:
+		var horizontal: int = ((column + 1) / 2) * (1 if column % 2 else -1)
+		for row: int in 13:
+			var vertical: int = -row if row <= 6 else row - 6
+			global_position = inverse * (start + Vector2(horizontal * extent.x, vertical * extent.y))
+			var bounds: Rect2 = get_screen_bounds()
+			var shift: Vector2 = Vector2(clampf(bounds.position.x, safe.position.x, maxf(safe.position.x, safe.end.x - bounds.size.x)),
+				clampf(bounds.position.y, safe.position.y, maxf(safe.position.y, safe.end.y - bounds.size.y))) - bounds.position
+			global_position += inverse.basis_xform(shift)
+			bounds = get_screen_bounds()
+			var clear: bool = true
+			for taken: Rect2 in occupied:
+				if bounds.intersects(taken):
+					clear = false
+					break
+			if clear: return

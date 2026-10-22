@@ -50,7 +50,7 @@ var _summon_bar: HBoxContainer
 var _summon_buttons: Array[TouchActionButton] = []
 var _safe_rect: Rect2 = Rect2()
 ## The boss's bar with his name, under the wave text at the top of the screen (hidden without a boss).
-var _boss_bar: FillBar
+var _boss_bar: BossHealthBar
 ## The round skill icons by id ("dash", "heavy", "slash", "bow", "war_cry", "stance").
 var _skill_icons: Dictionary = {}
 ## "CHARGE" or "HOLD".
@@ -95,11 +95,11 @@ func _ready() -> void:
 	_ultimate_ring.set_key_hint(SkillHints.key_label(&"ultimate"))
 	set_skills_unlocked(false, false)
 	set_stance(_stance_name)
-	_boss_bar = FillBar.new()
+	_boss_bar = BossHealthBar.new()
 	_boss_bar.name = "BossBar"
-	_boss_bar.custom_minimum_size = Vector2(780.0, 50.0)
+	_boss_bar.custom_minimum_size = Vector2(780.0, 130.0)
 	_boss_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_boss_bar.fill_color = Color(InkPalette.DAIMYO_CURSE.darkened(0.25), 1.0)
+	_boss_bar.fill_color = Color(0.48, 0.035, 0.025)
 	_boss_bar.font_size = 28
 	# Ticks at one third and two thirds mark where the phases change.
 	_boss_bar.segments = 3
@@ -148,6 +148,8 @@ func get_stance_name() -> String:
 ## Shows the boss bar with the boss's name.
 func show_boss(boss_name: String) -> void:
 	_boss_bar.caption = boss_name
+	_boss_bar.title = "LORD OF THE BURNING VILLAGE" if boss_name.contains("Burning") else "LORD OF THE BROKEN OATH"
+	_boss_bar.reset_health()
 	_boss_bar.visible = true
 	_boss_bar.queue_redraw()
 	_place_boss_bar()
@@ -184,10 +186,14 @@ func _place_boss_bar() -> void:
 	if _boss_bar == null: return
 	var view: Vector2 = get_viewport().get_visible_rect().size
 	_boss_bar.scale = Vector2.ONE * _ui_scale
-	_boss_bar.size = Vector2(minf(780.0, (view.x - 64) / _ui_scale), 50)
+	_boss_bar.size = Vector2(minf(900.0, (view.x - 64) / _ui_scale), 150)
 	# Always below the *actual* vitals/skills cluster, including enlarged UI.
 	_boss_bar.position = Vector2((view.x - _boss_bar.size.x * _ui_scale) * 0.5,
-		maxf(block_bottom(_top_left), block_bottom(_wave_box)) + 20)
+		maxf(block_bottom(_top_left), block_bottom(_wave_box)) + 24)
+
+
+func set_boss_phase(phase: int) -> void:
+	_boss_bar.set_phase(phase)
 
 
 func set_boss_health(current: float, maximum: float) -> void:

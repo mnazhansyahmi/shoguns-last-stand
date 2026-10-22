@@ -4,6 +4,24 @@ const HEAVIES: Array[InkFigure.Kind] = [InkFigure.Kind.ONI_BRUTE, InkFigure.Kind
 const STATES: Array[StringName] = [&"idle", &"run", &"windup", &"heavy_windup", &"strike", &"hurt", &"dead"]
 
 
+func test_shield_follows_the_wrist_and_falling_body_instead_of_staying_upright() -> void:
+	var visual: UnitVisual = UnitVisual.new()
+	visual.figure_kind = InkFigure.Kind.SHIELD_BEARER
+	add_to_tree(visual)
+	visual.set_process(false)
+	var prop: EnemyProp = EnemyProp.new()
+	prop.setup(EnemyProp.Kind.SHIELD, visual, 110)
+	visual.add_child(prop)
+	for state: StringName in STATES:
+		visual.play_state(state)
+		for tick: int in 20: visual._process(1.0 / 60.0)
+		var fig: InkFigure = visual.get_figure()
+		var frame: Transform2D = prop.shield_frame()
+		assert_true(prop.to_global(frame.origin).distance_to(fig.to_global(fig.torso_xf * fig.back_hand)) < 0.01, "shield handle remains in the fist")
+		var expected: Transform2D = prop.global_transform.affine_inverse() * fig.global_transform * fig.torso_xf
+		assert_almost_eq(frame.get_rotation(), expected.get_rotation(), "shield turns with the body through death")
+
+
 func test_painted_weapon_registration_pins_real_hilts_and_preserves_shape() -> void:
 	for kind: int in WeaponRegistration.POINTS:
 		var source: Rect2
