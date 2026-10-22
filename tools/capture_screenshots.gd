@@ -31,7 +31,7 @@ var _fireball: bool = false
 var _cooldowns: bool = false
 ## --black: the kind sheet (--only=kind:<name>) in pure black, to check the silhouette.
 var _black: bool = false
-## --stage=N: play the staged battle on that Region 1 stage (its own sky theme).
+## --stage=N: play the staged battle on that campaign stage (1-10, its own sky theme).
 var _stage_number: int = 1
 
 
@@ -216,8 +216,8 @@ func _capture_battle() -> void:
 	if not _locked:
 		progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
-	var region: RegionData = StageProgression.default_region()
-	SceneRoutes.battle_stage = region.stages[clampi(_stage_number, 1, region.stages.size()) - 1]
+	var stages: Array[StageData] = StageProgression.all_stages()
+	SceneRoutes.battle_stage = stages[clampi(_stage_number, 1, stages.size()) - 1]
 	var field: Node = BATTLEFIELD.instantiate()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
@@ -525,8 +525,8 @@ func _capture_playtest() -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
-	var region: RegionData = StageProgression.default_region()
-	SceneRoutes.battle_stage = region.stages[clampi(_stage_number, 1, region.stages.size()) - 1]
+	var stages: Array[StageData] = StageProgression.all_stages()
+	SceneRoutes.battle_stage = stages[clampi(_stage_number, 1, stages.size()) - 1]
 	var field: Node = BATTLEFIELD.instantiate()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
@@ -614,8 +614,8 @@ func _capture_crowd() -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
-	var region: RegionData = StageProgression.default_region()
-	SceneRoutes.battle_stage = region.stages[clampi(_stage_number, 1, region.stages.size()) - 1]
+	var stages: Array[StageData] = StageProgression.all_stages()
+	SceneRoutes.battle_stage = stages[clampi(_stage_number, 1, stages.size()) - 1]
 	var field: Node = BATTLEFIELD.instantiate()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
@@ -636,8 +636,15 @@ func _capture_crowd() -> void:
 			await _frames(4)
 	player.global_position.x = 760.0
 	var spawned: int = 0
+	var village_foes: Array[EnemyData] = []
+	if _stage_number >= 6:
+		for enemy_name: String in ["spectral_archer", "shield_bearer", "flying_spirit", "burning_general"]:
+			village_foes.append(load("res://data/enemies/%s.tres" % enemy_name) as EnemyData)
 	for i: int in 22:
-		var enemy: Enemy = spawner.spawn(ONI if i % 11 == 5 else HOLLOW)
+		var enemy_data: EnemyData = ONI if i % 11 == 5 else HOLLOW
+		if not village_foes.is_empty():
+			enemy_data = village_foes[i % 3] if i > 0 else village_foes[3]
+		var enemy: Enemy = spawner.spawn(enemy_data)
 		if enemy != null:
 			enemy.global_position.x = 760.0 + 80.0 * float(i % 12) + (i / 12) * 40.0
 			spawned += 1
@@ -943,6 +950,15 @@ func _capture_stage_select() -> void:
 	await _frames(12)
 	await _capture("stages_open")
 	select.free()
+	# The Burning Village tab with Region 1 cleared.
+	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "stage_6"] as Array[String]
+	SaveManager.new(DATA_DIR + "/stages_save.json").save_progress(progress)
+	var village: Node = load("res://scenes/stage_select/stage_select.tscn").instantiate()
+	village.set("save_path", DATA_DIR + "/stages_save.json")
+	root.add_child(village)
+	await _frames(20)
+	await _capture("stages_village")
+	village.free()
 
 
 ## The main menu on a fresh save (mid-entrance, then at rest) and on a save with two stages cleared, with a button

@@ -12,10 +12,13 @@ extends Node2D
 @export var theme: AtmosphereTheme
 
 var _rays: CanvasItem
+## The burning village's flame glow (empty in the bamboo scenery); it flickers.
+var _fires: CanvasItem
 
 
 func _ready() -> void:
 	_rays = get_node_or_null("Rays") as CanvasItem
+	_fires = get_node_or_null("Fires") as CanvasItem
 	apply_theme(theme)
 	if front_fog:
 		return
@@ -52,3 +55,8 @@ func _process(delta: float) -> void:
 	if _rays != null:
 		# The beams brighten and fade slowly, and a little more in a gust.
 		_rays.modulate.a = clampf(0.72 + 0.28 * sin(Atmosphere.time * 0.42) + (Atmosphere.wind_strength() - 0.4) * 0.4, 0.3, 1.0)
+	if _fires != null:
+		# Uneven flicker: a few out-of-step waves, a little wilder in a gust.
+		var t: float = Atmosphere.time
+		_fires.modulate.a = clampf(0.78 + 0.12 * sin(t * 7.3) + 0.08 * sin(t * 12.9 + 1.1) + 0.06 * sin(t * 3.1 + 0.4)
+				+ (Atmosphere.wind_strength() - 0.4) * 0.2, 0.4, 1.0)

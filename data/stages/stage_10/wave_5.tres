@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="WaveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="1_wave"]
+[ext_resource type="Script" path="res://scripts/resources/wave_entry.gd" id="2_entry"]
+[ext_resource type="Resource" path="res://data/enemies/burning_general.tres" id="e_G"]
+[ext_resource type="Resource" path="res://data/enemies/hollow_soldier.tres" id="e_H"]
+[ext_resource type="Resource" path="res://data/enemies/shield_bearer.tres" id="e_S"]
+
+[sub_resource type="Resource" id="Entry_1"]
+script = ExtResource("2_entry")
+enemy = ExtResource("e_G")
+count = 1
+start_delay = 0.0
+spawn_interval = 0.0
+
+[sub_resource type="Resource" id="Entry_2"]
+script = ExtResource("2_entry")
+enemy = ExtResource("e_H")
+count = 12
+start_delay = 2.0
+spawn_interval = 0.5
+
+[sub_resource type="Resource" id="Entry_3"]
+script = ExtResource("2_entry")
+enemy = ExtResource("e_S")
+count = 4
+start_delay = 4.0
+spawn_interval = 2.5
+
+[resource]
+script = ExtResource("1_wave")
+entries = Array[ExtResource("2_entry")]([SubResource("Entry_1"), SubResource("Entry_2"), SubResource("Entry_3")])

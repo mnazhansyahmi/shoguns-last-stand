@@ -13,7 +13,7 @@ const LAYERS: Array[BambooOutskirtsPainter.Layer] = [
 	BambooOutskirtsPainter.Layer.CLOUDS_HIGH, BambooOutskirtsPainter.Layer.CLOUDS_LOW,
 	BambooOutskirtsPainter.Layer.DISTANT_MOUNTAINS, BambooOutskirtsPainter.Layer.MOUNTAINS,
 	BambooOutskirtsPainter.Layer.MIST_HIGH, BambooOutskirtsPainter.Layer.HILLS,
-	BambooOutskirtsPainter.Layer.BAMBOO_FAR, BambooOutskirtsPainter.Layer.MIST_LOW,
+	BambooOutskirtsPainter.Layer.BAMBOO_FAR, BambooOutskirtsPainter.Layer.FIRES, BambooOutskirtsPainter.Layer.MIST_LOW,
 	BambooOutskirtsPainter.Layer.BAMBOO_NEAR, BambooOutskirtsPainter.Layer.GROUND]
 
 var theme_to_paint: AtmosphereTheme

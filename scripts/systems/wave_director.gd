@@ -2,17 +2,25 @@ class_name WaveDirector
 extends Node
 ## Runs a StageData: break -> spawn wave -> wait until cleared -> break -> ... -> stage_cleared.
 ## Enemies are counted through their `defeated` and `tree_exiting` signals (never by polling),
-## so an enemy removed for any reason can never block wave completion.
+## so an enemy removed for any reason can never block wave completion. Two safety nets watch a running wave: a wave
+## with nothing left to spawn and no living enemy for EMPTY_WAVE_GRACE seconds is completed anyway, and a wave whose
+## enemies live on while nobody deals damage for STALL_WARNING_TIME seconds logs a warning (stall_detected) with its state.
 
 signal wave_started(wave_number: int, total_waves: int)
 signal wave_cleared(wave_number: int)
 signal break_started(next_wave_number: int, duration: float)
 signal remaining_changed(remaining: int)
 signal stage_cleared
+## Enemies are alive but nobody has dealt damage for STALL_WARNING_TIME seconds (also logged as a warning).
+signal stall_detected(report: String)
 
 enum Phase { IDLE, BREAK, SPAWNING, CLEARING, COMPLETE }
 
 const SPAWN_RETRY_DELAY: float = 0.5
+## Seconds a fully spawned wave may have no living enemy before it is completed anyway.
+const EMPTY_WAVE_GRACE: float = 5.0
+## Seconds without any damage dealt, while enemies are alive, before a stall is reported.
+const STALL_WARNING_TIME: float = 30.0
 
 @export var stage: StageData
 @export var spawner: EnemySpawner
@@ -27,6 +35,9 @@ var _queue: Array[EnemyData] = []
 var _queue_delays: Array[float] = []
 var _next_spawn: int = 0
 var _tracked: Dictionary = {}
+var _empty_time: float = 0.0
+var _quiet_time: float = 0.0
+var _stall_reported: bool = false
 
 
 func _ready() -> void:
@@ -65,6 +76,14 @@ func tick(delta: float) -> void:
 		Phase.SPAWNING:
 			_spawn_timer -= delta
 			_spawn_due()
+	if _phase == Phase.SPAWNING or _phase == Phase.CLEARING:
+		_watch_wave(delta)
+
+
+## Any hit by anyone (the battlefield forwards every reported hit): the fight is still going.
+func note_damage() -> void:
+	_quiet_time = 0.0
+	_stall_reported = false
 
 
 # --- Queries ----------------------------------------------------------------
@@ -108,6 +127,9 @@ func _begin_break(duration: float) -> void:
 
 
 func _start_wave() -> void:
+	_empty_time = 0.0
+	_quiet_time = 0.0
+	_stall_reported = false
 	_build_queue(stage.waves[_wave_index])
 	_phase = Phase.SPAWNING
 	_spawn_timer = _queue_delays[0] if not _queue_delays.is_empty() else 0.0
@@ -183,3 +205,47 @@ func _check_wave_cleared() -> void:
 	else:
 		_wave_index += 1
 		_begin_break(stage.break_duration)
+
+
+# --- Safety nets ------------------------------------------------------------
+
+func _watch_wave(delta: float) -> void:
+	var living: Array[Enemy] = _living_enemies()
+	if _phase == Phase.CLEARING and living.is_empty():
+		_empty_time += delta
+		if _empty_time >= EMPTY_WAVE_GRACE:
+			push_warning("WaveDirector: wave %d had no living enemy for %.0f s; completing it (%d stale entries)." % [
+					_wave_index + 1, EMPTY_WAVE_GRACE, _tracked.size()])
+			_tracked.clear()
+			remaining_changed.emit(get_remaining_count())
+			_check_wave_cleared()
+		return
+	_empty_time = 0.0
+	if living.is_empty():
+		_quiet_time = 0.0
+		return
+	_quiet_time += delta
+	if _quiet_time >= STALL_WARNING_TIME and not _stall_reported:
+		_stall_reported = true
+		var report: String = _stall_report(living)
+		push_warning(report)
+		stall_detected.emit(report)
+
+
+## The tracked enemies still in the tree and alive.
+func _living_enemies() -> Array[Enemy]:
+	var living: Array[Enemy] = []
+	for id: int in _tracked:
+		var enemy: Enemy = instance_from_id(id) as Enemy
+		if enemy != null and enemy.is_inside_tree() and not enemy.is_dead():
+			living.append(enemy)
+	return living
+
+
+func _stall_report(living: Array[Enemy]) -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	for enemy: Enemy in living:
+		parts.append("%s at x %.0f" % [enemy.data.display_name if enemy.data != null else "?", enemy.global_position.x])
+	return "WaveDirector: no damage dealt for %.0f s in wave %d/%d (%s): %d alive, %d still to spawn: %s." % [
+			STALL_WARNING_TIME, _wave_index + 1, get_total_waves(), Phase.keys()[_phase], living.size(),
+			_queue.size() - _next_spawn, ", ".join(parts)]

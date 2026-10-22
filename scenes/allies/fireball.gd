@@ -82,6 +82,8 @@ func _explode(center_x: float) -> void:
 	var blast: HitboxComponent = HitboxComponent.new()
 	blast.name = "BlastHitbox"
 	blast.faction = Faction.Type.DEFENDERS
+	# The fire reaches flying spirits.
+	blast.reaches_air = true
 	if is_instance_valid(_source):
 		blast.source = _source
 	add_child(blast)

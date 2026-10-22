@@ -62,6 +62,18 @@ func get_enemy_total() -> int:
 	return total
 
 
+## Every kind of enemy the stage spawns, in the order they first appear (bosses included).
+func enemy_types() -> Array[EnemyData]:
+	var found: Array[EnemyData] = []
+	for wave: WaveData in waves:
+		if wave == null:
+			continue
+		for entry: WaveEntry in wave.entries:
+			if entry != null and entry.enemy != null and not found.has(entry.enemy):
+				found.append(entry.enemy)
+	return found
+
+
 ## How many of `enemy` the whole stage spawns.
 func count_enemy(enemy: EnemyData) -> int:
 	var total: int = 0

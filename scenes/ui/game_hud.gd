@@ -39,6 +39,7 @@ const SKILL_ICONS: Array[Array] = [
 @onready var _pause_button: Button = %PauseButton
 @onready var _banner_label: Label = %BannerLabel
 @onready var _status_label: Label = %StatusLabel
+@onready var _briefing_label: Label = %BriefingLabel
 @onready var _message_label: Label = %MessageLabel
 @onready var _summon_label: Label = %SummonLabel
 @onready var _hint_label: Label = %HintLabel
@@ -58,6 +59,7 @@ var _gate_indicator: EdgeIndicator
 var _enemy_indicator: EdgeIndicator
 var _banner_tween: Tween
 var _message_tween: Tween
+var _briefing_tween: Tween
 var _touch_mode: bool = false
 var _tutorial_hint_allowed: bool = false
 var _ui_scale: float = 1.0
@@ -339,6 +341,18 @@ func get_pause_button_rect() -> Rect2:
 ## Big centered text that fades out after `duration` seconds.
 func show_banner(text: String, duration: float = 2.0) -> void:
 	_banner_tween = _show_fading(_banner_label, text, duration, _banner_tween)
+
+
+## The pre-battle info in the middle of the screen before wave 1: the foes coming and how to beat the new ones
+## (StageBriefing.battle_text). Fades out after `duration`.
+func show_briefing(text: String, duration: float) -> void:
+	if text.is_empty():
+		return
+	_briefing_tween = _show_fading(_briefing_label, text, duration, _briefing_tween)
+
+
+func get_briefing_text() -> String:
+	return _briefing_label.text if _briefing_label.visible else ""
 
 
 ## Small message above the summon area (e.g. why a summon failed).

@@ -14,6 +14,8 @@ enum Kind {
 	WAVE,
 	## Calls Hollow Soldiers out of the ground around him.
 	SUMMON,
+	## Pillars of fire burst from the ground around the target, each where a warning burned first.
+	ERUPTION,
 }
 
 @export var id: StringName = &"sweep"
@@ -46,6 +48,14 @@ enum Kind {
 @export_group("Projectile (WAVE)")
 @export var projectile_speed: float = 460.0
 @export var projectile_range: float = 1100.0
+## The wave is a wall of flame instead of the Daimyo's cursed crescent.
+@export var fire: bool = false
+
+@export_group("Eruption (ERUPTION)")
+@export var pillar_count: int = 3
+## Distance between neighbouring pillars (they are centred on the target).
+@export var pillar_spacing: float = 190.0
+@export var pillar_size: Vector2 = Vector2(110.0, 260.0)
 
 @export_group("Summon (SUMMON)")
 @export var summon_enemy: EnemyData

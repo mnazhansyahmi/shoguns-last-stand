@@ -15,6 +15,9 @@ static var LEAF_PARTS: Array[PackedVector2Array] = [
 ]
 static var PETAL: PackedVector2Array = PackedVector2Array([Vector2(0.0, -1.0), Vector2(0.62, -0.25), Vector2(0.42, 0.85),
 		Vector2(-0.42, 0.85), Vector2(-0.62, -0.25)])
+## An ember (the burning village): a small spark rising from the fires instead of a leaf falling (AtmosphereTheme.ember_share).
+static var EMBER_SHAPE: PackedVector2Array = PackedVector2Array([Vector2(0.0, -1.0), Vector2(0.55, 0.0), Vector2(0.0, 1.0), Vector2(-0.55, 0.0)])
+const EMBER: int = 2
 const MARGIN: float = 120.0
 
 ## Foreground leaves are bigger, faster and fully lit; background ones are small and dimmer.
@@ -75,12 +78,15 @@ func _process(delta: float) -> void:
 		velocity.x = lerpf(velocity.x, wind * push * (1.3 - 0.4 * size_factor), minf(step * 1.2, 1.0))
 		velocity.x += sin(_clock * 2.3 + _phase[i]) * 36.0 * step
 		var fall: float = (_is_petal[i] * -14.0 + 52.0) * speed_scale * (0.8 + 0.3 * wind)
+		if _is_petal[i] == EMBER:
+			# Embers rise on the heat of the fires, wavering.
+			fall = -(48.0 + 26.0 * sin(_phase[i] * 5.0)) * speed_scale
 		velocity.y = lerpf(velocity.y, fall + sin(_clock * 3.1 + _phase[i] * 2.0) * 22.0, minf(step * 2.0, 1.0))
 		_velocity[i] = velocity
 		_position[i] += velocity * step
 		_angle[i] += _spin[i] * step * (0.6 + wind)
 		var p: Vector2 = _position[i]
-		if p.y > view.end.y + MARGIN or p.x > view.end.x + MARGIN or p.x < view.position.x - MARGIN * 2.0:
+		if p.y > view.end.y + MARGIN or p.y < view.position.y - MARGIN or p.x > view.end.x + MARGIN or p.x < view.position.x - MARGIN * 2.0:
 			_respawn(i, false, view)
 	queue_redraw()
 
@@ -97,6 +103,12 @@ func _draw() -> void:
 		var flip: float = cos(_clock * 2.6 + _phase[i] * 3.0)
 		var xf: Transform2D = Transform2D(_angle[i], Vector2(_size[i] * (0.25 + 0.75 * absf(flip)), _size[i]), 0.0, _position[i])
 		var color: Color = _color[i]
+		if _is_petal[i] == EMBER:
+			# A small hot spark that brightens and dims.
+			var glow: float = 0.55 + 0.45 * sin(_clock * 9.0 + _phase[i] * 4.0)
+			var spark: Transform2D = Transform2D(_angle[i], Vector2.ONE * _size[i], 0.0, _position[i])
+			batch.fill_convex(spark * EMBER_SHAPE, Color(color, color.a * (0.45 + 0.55 * glow)))
+			continue
 		if flip < 0.0:
 			color = color.darkened(0.18)
 		if _is_petal[i] == 1:
@@ -128,10 +140,17 @@ func _view_rect() -> Rect2:
 func _respawn(i: int, anywhere: bool, view: Rect2 = Rect2(-100.0, 0.0, 1920.0, 1080.0)) -> void:
 	var theme_now: AtmosphereTheme = Atmosphere.current()
 	_is_petal[i] = 1 if _rng.randf() < theme_now.petal_share else 0
+	if _rng.randf() < theme_now.ember_share:
+		_is_petal[i] = EMBER
 	var base_size: float = _rng.randf_range(11.0, 19.0) if foreground else _rng.randf_range(8.0, 15.0)
 	_size[i] = base_size * (0.7 if _is_petal[i] == 1 else 1.0)
+	if _is_petal[i] == EMBER:
+		_size[i] = base_size * 0.42
 	if anywhere:
 		_position[i] = Vector2(_rng.randf_range(view.position.x, view.end.x), _rng.randf_range(view.position.y, view.end.y))
+	elif _is_petal[i] == EMBER:
+		# Embers come up from the fires below the screen.
+		_position[i] = Vector2(_rng.randf_range(view.position.x - MARGIN, view.end.x), view.end.y + _rng.randf_range(10.0, MARGIN * 0.8))
 	elif _rng.randf() < 0.65:
 		_position[i] = Vector2(_rng.randf_range(view.position.x - MARGIN, view.end.x), view.position.y - _rng.randf_range(20.0, MARGIN))
 	else:
@@ -145,5 +164,7 @@ func _respawn(i: int, anywhere: bool, view: Rect2 = Rect2(-100.0, 0.0, 1920.0, 1
 
 func _pick_color(i: int) -> Color:
 	var theme_now: AtmosphereTheme = Atmosphere.current()
+	if _is_petal[i] == EMBER:
+		return Color(theme_now.fire_core.lerp(theme_now.fire_glow, float(i % 3) / 2.0), 1.0 if foreground else 0.85)
 	var base: Color = theme_now.petal_color if _is_petal[i] == 1 else theme_now.leaf_colors[i % theme_now.leaf_colors.size()]
 	return Color(base, 1.0 if foreground else 0.78)

@@ -101,8 +101,8 @@ func _ready() -> void:
 	_pause_menu.set_save_path(save_path)
 	_pause_menu.progress_reset.connect(_on_progress_reset)
 	_pause_menu.resume_requested.connect(_resume)
-	_pause_menu.restart_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.BATTLEFIELD))
-	_pause_menu.main_menu_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.MAIN_MENU))
+	_pause_menu.restart_requested.connect(_leave_battle.bind(SceneRoutes.BATTLEFIELD))
+	_pause_menu.main_menu_requested.connect(_leave_battle.bind(SceneRoutes.MAIN_MENU))
 	_pause_menu.settings_changed.connect(_on_settings_changed)
 	_pause_menu.settings_closed.connect(_on_settings_closed)
 	_result_screen.retry_requested.connect(_on_retry_requested)
@@ -119,6 +119,9 @@ func _ready() -> void:
 	_hud.set_remaining(0)
 	_hud.set_tutorial_hint(_wave_director.stage.stage_id if _wave_director.stage != null else "", _was_cleared_before)
 	_hud.hide_status()
+	# The pre-battle info: the foes coming and how to beat the ones that need a plan, until wave 1 starts.
+	if _wave_director.stage != null:
+		_hud.show_briefing(StageBriefing.battle_text(_wave_director.stage), maxf(_wave_director.stage.first_wave_delay, 3.0))
 	_apply_settings()
 	for warning: String in [_save_manager.last_warning, _settings_store.last_warning]:
 		if not warning.is_empty():
@@ -400,13 +403,15 @@ func _on_retry_requested() -> void:
 
 
 func _on_next_stage_requested() -> void:
-	var next: StageData = StageProgression.next_stage(StageProgression.default_region(), _wave_director.stage)
+	var next: StageData = StageProgression.next_stage(StageProgression.region_of(_wave_director.stage), _wave_director.stage)
 	if next != null:
 		SceneRoutes.go_to_battle(get_tree(), next)
 
 
-## Fighting charges the Ultimate: damage the samurai deals (allies count less) and damage he takes.
+## Fighting charges the Ultimate: damage the samurai deals (allies count less) and damage he takes. Any hit also tells
+## the WaveDirector the fight is going (its stall watch).
 func _on_hit_reported(victim: Node, hit: HitData) -> void:
+	_wave_director.note_damage()
 	if victim is Enemy:
 		if is_instance_valid(hit.source) and hit.source is Player:
 			_ultimate_meter.add_damage_dealt(hit.damage)
@@ -546,11 +551,23 @@ func _end_battle(victory: bool) -> void:
 	var save_error: Error = _save_manager.save_progress(_progress)
 	var next_name: String = ""
 	if victory and not _was_cleared_before:
-		var next: StageData = StageProgression.next_stage(StageProgression.default_region(), stage)
+		var next: StageData = StageProgression.next_stage(StageProgression.region_of(stage), stage)
 		if next != null:
 			next_name = next.display_name
 	_result_screen.show_result(reward, _progress, levels_gained, save_error, next_name, new_allies)
 	get_tree().paused = true
+
+
+## Leave a battle still being fought (pause menu Restart or Main Menu). The battle ends first: freeing the scene frees
+## its enemies, and the WaveDirector would count the last wave's enemies leaving as a clear and save a victory.
+func _leave_battle(path: String) -> void:
+	_abandon_battle()
+	SceneRoutes.go_to(get_tree(), path)
+
+
+func _abandon_battle() -> void:
+	_is_game_over = true
+	_wave_director.stop()
 
 
 ## Leave the battle after resetting so its old progress cannot be written back by a later result.

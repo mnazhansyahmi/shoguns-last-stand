@@ -134,6 +134,33 @@ func test_battlefield_leaves_no_connections_behind() -> void:
 	assert_eq(viewport_signal.get_connections().size(), baseline, "freeing the battlefield removes its connections")
 
 
+func test_leaving_during_the_last_wave_is_not_a_victory() -> void:
+	var stage: StageData = (load("res://data/stages/stage_1.tres") as StageData).duplicate()
+	var entry: WaveEntry = WaveEntry.new()
+	entry.enemy = HOLLOW_SOLDIER
+	entry.count = 2
+	var wave: WaveData = WaveData.new()
+	wave.entries.append(entry)
+	stage.waves = [wave]
+	stage.first_wave_delay = 0.0
+	SceneRoutes.battle_stage = stage
+	var field: Node = BATTLEFIELD_SCENE.instantiate()
+	field.set("save_path", SAVE_PATH)
+	field.set("settings_path", SETTINGS_PATH)
+	add_to_tree(field)
+	SceneRoutes.battle_stage = null
+	var director: WaveDirector = field.get_node("World/WaveDirector")
+	director.tick(0.0)
+	for i: int in 20:
+		director.tick(0.5)
+	assert_eq(director.get_remaining_count(), 2, "the whole last wave is on the field")
+	# Pause menu > Main Menu / Restart: the scene and its enemies are freed as the battle is left.
+	field.call(&"_abandon_battle")
+	field.free()
+	var saved: PlayerProgress = SaveManager.new(SAVE_PATH).load_progress()
+	assert_true(not saved.stages_cleared.has("stage_1") and saved.victories == 0, "leaving is not a clear")
+
+
 func test_gate_destruction_ends_battle_in_defeat() -> void:
 	var field: Node = BATTLEFIELD_SCENE.instantiate()
 	field.set("save_path", SAVE_PATH)

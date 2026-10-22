@@ -7,6 +7,8 @@ const MAX_LIFETIME: float = 3.0
 @onready var _hitbox: HitboxComponent = $Hitbox
 
 var spawn_position: Vector2 = Vector2.ZERO
+## Whose arrow it is: the defenders' (the Bow, the Yumi Archers) or an enemy's (the Spectral Archer). Set before adding.
+var faction: Faction.Type = Faction.Type.DEFENDERS
 var _direction: float = 1.0
 var _damage: float = 12.0
 var _speed: float = 900.0
@@ -34,8 +36,14 @@ func _ready() -> void:
 	MotionSmoother.attach(self, [$Shaft as Node2D, $Head as Node2D, $Fletching as Node2D] as Array[Node2D])
 	if is_instance_valid(_source):
 		_hitbox.source = _source
+	if faction != _hitbox.faction:
+		_hitbox.set_faction(faction)
+	# Arrows fly high enough to reach flying spirits.
+	_hitbox.reaches_air = true
 	_hitbox.knockback_direction_x = _direction
 	_hitbox.hit_landed.connect(_on_hit_landed)
+	# An arrow that strikes a shield stops there.
+	_hitbox.hit_blocked.connect(_on_hit_landed)
 	_hitbox.activate(_damage, _knockback)
 
 

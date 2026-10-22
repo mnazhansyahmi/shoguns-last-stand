@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RegionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/region_data.gd" id="1_region"]
+[ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="2_stage"]
+[ext_resource type="Resource" path="res://data/stages/stage_6.tres" id="s6"]
+[ext_resource type="Resource" path="res://data/stages/stage_7.tres" id="s7"]
+[ext_resource type="Resource" path="res://data/stages/stage_8.tres" id="s8"]
+[ext_resource type="Resource" path="res://data/stages/stage_9.tres" id="s9"]
+[ext_resource type="Resource" path="res://data/stages/stage_10.tres" id="s10"]
+
+[resource]
+script = ExtResource("1_region")
+region_id = "burning_village"
+display_name = "Burning Village"
+stages = Array[ExtResource("2_stage")]([ExtResource("s6"), ExtResource("s7"), ExtResource("s8"), ExtResource("s9"), ExtResource("s10")])
