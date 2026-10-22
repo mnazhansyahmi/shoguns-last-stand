@@ -29,6 +29,7 @@ var theme: AtmosphereTheme
 
 var _drift: float = 0.0
 var _sway_material: ShaderMaterial
+var _atmosphere_material: ShaderMaterial
 
 
 func _ready() -> void:
@@ -41,6 +42,12 @@ func _ready() -> void:
 		var ground: ShaderMaterial = ShaderMaterial.new()
 		ground.shader = preload("res://scripts/visuals/shaders/ground_blend.gdshader")
 		material = ground
+		_atmosphere_material = ground
+	elif layer in [BambooOutskirtsPainter.Layer.SKY, BambooOutskirtsPainter.Layer.MOUNTAINS, BambooOutskirtsPainter.Layer.BAMBOO_FAR]:
+		_atmosphere_material = ShaderMaterial.new()
+		_atmosphere_material.shader = preload("res://scripts/visuals/shaders/world_atmosphere.gdshader")
+		_atmosphere_material.set_shader_parameter("depth_kind", 0.0 if layer == BambooOutskirtsPainter.Layer.SKY else (1.0 if layer == BambooOutskirtsPainter.Layer.MOUNTAINS else 2.0))
+		material = _atmosphere_material
 	elif additive:
 		var blend: CanvasItemMaterial = CanvasItemMaterial.new()
 		blend.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
@@ -51,6 +58,9 @@ func _ready() -> void:
 ## Repaints this layer with a new theme.
 func apply_theme(new_theme: AtmosphereTheme) -> void:
 	theme = new_theme
+	var burning: bool = PaintedWorld.burning(new_theme)
+	if _atmosphere_material != null: _atmosphere_material.set_shader_parameter("village", burning)
+	if _sway_material != null: _sway_material.set_shader_parameter("village", burning)
 	queue_redraw()
 
 

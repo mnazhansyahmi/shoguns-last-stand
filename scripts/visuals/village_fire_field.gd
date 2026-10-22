@@ -6,10 +6,14 @@ const SMOKE: Texture2D = preload("res://assets/art/world/sharp/village_smoke.png
 ## Measured roof/window/fence attachment points in village_scenery.png.
 const ANCHORS: PackedVector2Array = [Vector2(0.075, 0.47), Vector2(0.18, 0.59),
 	Vector2(0.28, 0.70), Vector2(0.44, 0.82), Vector2(0.67, 0.65),
-	Vector2(0.82, 0.58), Vector2(0.93, 0.31)]
+	Vector2(0.82, 0.58), Vector2(0.93, 0.35)]
+const FLAME_CELLS: Array[Rect2] = [Rect2(0.039872, 0.012759, 0.359649, 0.501595),
+	Rect2(0.399522, 0.122807, 0.574960, 0.397129), Rect2(0.016746, 0.539075, 0.382775, 0.423445),
+	Rect2(0.399522, 0.622807, 0.586124, 0.342903)]
 var sites: Array[Dictionary] = []
 var _materials: Array[ShaderMaterial] = []
 var _last_reduced: int = -1
+var _wind_clock: float = 0.0
 static var _light: GradientTexture2D
 
 
@@ -18,8 +22,8 @@ static func layout(stage_key: String, ground: bool = false) -> Array[Dictionary]
 	rng.seed = stage_key.hash() + (781 if ground else 19)
 	var result: Array[Dictionary] = []
 	if ground:
-		for i: int in 4:
-			result.append({"position": Vector2(100 + i * 540 + rng.randf_range(-65, 90), rng.randf_range(885, 910)),
+		for i: int in 2:
+			result.append({"position": Vector2(350 + i * 1100 + rng.randf_range(-65, 90), rng.randf_range(885, 900)),
 				"size": Vector2(rng.randf_range(20, 38), rng.randf_range(28, 55)),
 				"phase": rng.randf() * TAU, "cell": rng.randi_range(0, 3), "smoke": false, "anchor": -1, "tile": 0})
 		return result
@@ -27,17 +31,17 @@ static func layout(stage_key: String, ground: bool = false) -> Array[Dictionary]
 	theme.scenery = AtmosphereTheme.Scenery.BURNING_VILLAGE
 	for tile: int in range(-1, 3):
 		var rect: Rect2 = PaintedWorld.tile_rect(2, tile, theme)
-		for i: int in ANCHORS.size():
+		for i: int in [0, 2, 4, 6]:
 			# Select sites, never jitter the attachment off the painted architecture.
-			if rng.randf() < 0.28: continue
+			if rng.randf() < 0.45: continue
 			var uv: Vector2 = ANCHORS[i]
 			if posmod(tile, 2) == 1: uv.x = 1.0 - uv.x
 			var at: Vector2 = rect.position + uv * rect.size
 			if at.x < -380 or at.x > 2380: continue
-			var height: float = rng.randf_range(55, 130)
+			var height: float = rng.randf_range(40, 85)
 			result.append({"position": at, "size": Vector2(height * rng.randf_range(0.4, 0.7), height),
 				"phase": rng.randf() * TAU, "cell": rng.randi_range(0, 3),
-				"smoke": height > 92 and i % 2 == 0, "anchor": i, "tile": tile})
+				"smoke": true, "anchor": i, "tile": tile})
 	return result
 
 
@@ -56,6 +60,9 @@ func configure(stage_key: String, ground: bool = false) -> void:
 		_light.gradient.colors = PackedColorArray([Color.WHITE, Color(1, 1, 1, 0)])
 	_batch("Glow", _light, preload("res://scripts/visuals/shaders/village_glow.gdshader"), 0, ground)
 	_batch("Smoke", SMOKE, preload("res://scripts/visuals/shaders/village_smoke.gdshader"), 1, ground)
+	if not ground:
+		_batch("Heat", _light, preload("res://scripts/visuals/shaders/village_heat.gdshader"), 3, ground)
+		_batch("Embers", _light, preload("res://scripts/visuals/shaders/village_embers.gdshader"), 4, ground)
 	_batch("Flames", PaintedWorld.FIRE, preload("res://scripts/visuals/shaders/village_flames.gdshader"), 2, ground)
 	_last_reduced = -1
 	_process(0)
@@ -72,12 +79,14 @@ func _batch(label: String, tex: Texture2D, shader: Shader, kind: int, ground: bo
 		var at: Vector2 = site.position
 		var uv: Rect2 = Rect2(0, 0, 1, 1)
 		if kind == 0:
-			size *= Vector2(3.0, 0.42 if ground else 0.6)
-			at.y += size.y * 0.5
+			size *= Vector2(3.0, 0.42 if ground else 1.9)
+			at.y += size.y * (0.5 if ground else 0.32)
 		elif kind == 1:
 			size *= Vector2(1.8, 2.4)
+		elif kind == 2:
+			uv = FLAME_CELLS[site.cell]
 		else:
-			uv = PaintedWorld.FIRE_CELLS[site.cell]
+			size *= Vector2(1.8, 2.3)
 		var rect: Rect2 = Rect2(at - Vector2(size.x * 0.5, size.y), size)
 		var n: int = points.size()
 		points.append_array(PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]))
@@ -100,13 +109,21 @@ func _batch(label: String, tex: Texture2D, shader: Shader, kind: int, ground: bo
 	draw.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	var paint: ShaderMaterial = ShaderMaterial.new()
 	paint.shader = shader
+	if kind == 2:
+		var cells: PackedVector4Array = PackedVector4Array()
+		for rect: Rect2 in FLAME_CELLS: cells.append(Vector4(rect.position.x, rect.position.y, rect.size.x, rect.size.y))
+		paint.set_shader_parameter("cells", cells)
 	draw.material = paint
 	_materials.append(paint)
 	add_child(draw)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	var reduced: int = int(GameSettings.reduced_decorative_motion)
+	_wind_clock -= delta
+	if _wind_clock <= 0.0:
+		_wind_clock = 0.15
+		for paint: ShaderMaterial in _materials: paint.set_shader_parameter("wind", Atmosphere.wind_strength())
 	if reduced == _last_reduced: return
 	_last_reduced = reduced
 	for paint: ShaderMaterial in _materials:

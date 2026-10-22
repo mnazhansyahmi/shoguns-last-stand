@@ -1197,6 +1197,9 @@ func _capture(shot_name: String) -> void:
 	var error: Error = image.save_png(path)
 	print("%s -> %s (%s)" % [shot_name, ProjectSettings.globalize_path(path), error_string(error)])
 	if shot_name.begins_with("crowd_"):
+		var grayscale: Image = image.duplicate() as Image
+		grayscale.convert(Image.FORMAT_L8)
+		grayscale.save_png(_out_dir.path_join(_tag + shot_name + "_grayscale.png"))
 		# A true 100% pixel crop, without resampling or a different camera zoom.
 		var crop_size: Vector2i = Vector2i(640, 440).min(image.get_size())
 		var crop_at: Vector2i = Vector2i(image.get_width() / 2 - crop_size.x / 2,

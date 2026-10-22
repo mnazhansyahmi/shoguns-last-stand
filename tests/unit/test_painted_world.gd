@@ -85,3 +85,21 @@ func test_battle_unit_presentation_grows_without_scaling_collision_or_ui_icons()
 	icon.presentation_scale = 1.08
 	icon.configure(InkFigure.Kind.BURNING_GENERAL, 310)
 	assert_eq(icon.get_figure().scale, Vector2.ONE, "the already-large bosses keep their touch-safe authored size")
+
+
+func test_village_readability_is_scoped_and_fire_roots_have_painted_support() -> void:
+	var backdrop: RegionBackdrop = add_to_tree(load("res://scenes/backdrops/bamboo_outskirts.tscn").instantiate()) as RegionBackdrop
+	var village: AtmosphereTheme = load("res://data/atmosphere/burning_market.tres") as AtmosphereTheme
+	backdrop.apply_theme(village)
+	for name: String in ["Sky", "Mountains", "BambooFar", "Ground", "ReedsFront"]:
+		var paint: ShaderMaterial = (backdrop.get_node(name) as CanvasItem).material as ShaderMaterial
+		assert_true(paint != null and paint.get_shader_parameter("village") == true, "village-only haze and calm ground on " + name)
+	var image: Image = PaintedWorld.VILLAGE[2].get_image()
+	for stage: String in ["ember_road", "ashen_fields", "burning_market", "smoke_shrine", "burning_keep"]:
+		var sites: Array[Dictionary] = VillageFireField.layout(stage)
+		assert_true(sites.size() <= 10, "fewer retained roof fires")
+		for site: Dictionary in sites:
+			var uv: Vector2 = VillageFireField.ANCHORS[site.anchor]
+			assert_true(image.get_pixelv(Vector2i(uv * Vector2(image.get_size()))).a > 0.8, "fire grows out of opaque painted timber, never empty sky")
+	backdrop.apply_theme(null)
+	assert_true((backdrop.get_node("Sky").material as ShaderMaterial).get_shader_parameter("village") == false, "bamboo keeps original painting")
