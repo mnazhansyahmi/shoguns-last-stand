@@ -90,6 +90,22 @@ static func paint(ci: CanvasItem, layer: BambooOutskirtsPainter.Layer, theme: At
 			_tiles(ci, 2, theme, Color(0.9, 0.9, 0.9), 0.0, drawing)
 		BambooOutskirtsPainter.Layer.GROUND:
 			_tiles(ci, 3, theme, Color.WHITE, 0.0, drawing)
+			# Boss headroom can open the phone camera below the authored ground band.
+			# Continue its opaque lower quarter at native density, mirroring each seam.
+			var tex: Texture2D = textures(theme)[3]
+			var source_band: Rect2 = Rect2(0, tex.get_height() * 0.75, tex.get_width(), tex.get_height() * 0.25)
+			var band_size: Vector2 = source_band.size * TILE_SCALES[3]
+			var first: int = floori((LEFT - SCENERY_ORIGIN) / band_size.x)
+			var last: int = ceili((RIGHT - SCENERY_ORIGIN) / band_size.x)
+			for row: int in 8:
+				for tile: int in range(first, last):
+					var flip: Vector2 = Vector2(-1 if posmod(tile, 2) else 1, -1 if row % 2 == 0 else 1)
+					var at: Vector2 = Vector2(SCENERY_ORIGIN + tile * band_size.x, 1394.4 + row * band_size.y)
+					if flip.x < 0: at.x += band_size.x
+					if flip.y < 0: at.y += band_size.y
+					ci.draw_set_transform_matrix(drawing * Transform2D(0, flip, 0, at))
+					ci.draw_texture_rect_region(tex, Rect2(Vector2.ZERO, band_size), source_band)
+			ci.draw_set_transform_matrix(drawing)
 		BambooOutskirtsPainter.Layer.REEDS_FRONT:
 			_tiles(ci, 4, theme, Color(0.8, 0.8, 0.8, 0.85), 0.0, drawing)
 		BambooOutskirtsPainter.Layer.REEDS_BACK:

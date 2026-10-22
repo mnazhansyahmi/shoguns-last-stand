@@ -55,7 +55,35 @@ func test_boss_bar_never_intersects_player_bars_at_large_ui_scales() -> void:
 	for scale: float in [0.8, 1.0, 1.25, 1.4]:
 		hud.apply_layout(Rect2(0, 0, 1920, 1080), Vector2(1920,1080), scale)
 		hud.show_boss("The Burning General")
-		assert_true(hud.get_boss_bar().position.y >= hud.block_bottom(hud.get_node("%TopLeft") as Control), "boss bar clears player cluster")
+		var bar: FillBar = hud.get_boss_bar()
+		assert_true(bar.position.y >= hud.block_bottom(hud.get_node("%WaveBox") as Control), "bar is below the wave counter")
+		assert_true(bar.position.y < hud.block_bottom(hud.get_node("%TopLeft") as Control), "left HUD no longer pushes the bar into combat")
+		var left_end: float = 32.0 + (hud.get_node("%TopLeft") as Control).get_combined_minimum_size().x * (hud.get_node("%TopLeft") as Control).scale.x
+		assert_true(bar.position.x > left_end + 4, "bar and left HUD occupy separate columns")
+		assert_true(bar.position.y + bar.size.y < 230, "bar remains in the top header")
+
+
+func test_boss_header_reserves_camera_room_on_desktop_and_phone() -> void:
+	for view_size: Vector2i in [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2400, 1080)]:
+		var viewport: SubViewport = add_to_tree(SubViewport.new()) as SubViewport
+		viewport.size = view_size
+		var hud: GameHud = load("res://scenes/ui/game_hud.tscn").instantiate() as GameHud
+		viewport.add_child(hud)
+		var safe: Rect2 = Rect2(40, 0, view_size.x - 80, view_size.y)
+		for scale: float in [0.9, 1.0, 1.4]:
+			hud.apply_layout(safe, Vector2(view_size), scale)
+			hud.show_boss("The Burning General")
+			var bar: FillBar = hud.get_boss_bar()
+			assert_almost_eq(bar.position.x + bar.size.x * 0.5, safe.get_center().x, "bar is centered in the safe area")
+			assert_true(bar.position.y + bar.size.y <= 230, "all supported aspects keep the header high")
+		var camera: BattleCamera = BattleCamera.new()
+		viewport.add_child(camera)
+		camera.set_lift(180)
+		camera.set_boss_headroom(hud.get_boss_header_bottom(), 450)
+		var ground: float = camera.get_ground_screen_y() - 180
+		assert_true(ground - 450 * camera.zoom.y >= hud.get_boss_header_bottom() + 23, "boss body and leap clear the bar")
+		camera.set_boss_headroom(0, 0)
+		assert_almost_eq(camera.zoom.x, camera.battle_zoom, "ordinary zoom returns after the boss")
 
 
 func test_boss_bar_holds_damage_then_drains_and_resets_for_the_next_boss() -> void:

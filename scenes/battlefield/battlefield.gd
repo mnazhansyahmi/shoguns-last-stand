@@ -43,6 +43,7 @@ const GATE_ALERT_MSEC: int = 3000
 @onready var _result_screen: ResultScreen = $ResultScreen
 
 var _is_game_over: bool = false
+var _boss_view_envelope: float = 0.0
 var _respawn_time_left: float = -1.0
 var _save_manager: SaveManager
 var _progress: PlayerProgress
@@ -289,6 +290,7 @@ func _apply_layout() -> void:
 	_hud.apply_layout(safe_rect, viewport_size, _settings.ui_scale)
 	_camera.update_base()
 	_update_camera_lift(viewport_size, safe_rect)
+	_camera.set_boss_headroom(_hud.get_boss_header_bottom(), _boss_view_envelope)
 
 
 ## With touch controls on screen, move the camera down (the world up) so the ground, the
@@ -529,6 +531,9 @@ func _on_enemy_spawned(enemy: Enemy) -> void:
 	var boss: Boss = enemy as Boss
 	if boss != null:
 		_hud.show_boss(boss.data.display_name)
+		var leap_height: float = float(ProjectSettings.get_setting("physics/2d/default_gravity", 980.0)) * Boss.LEAP_AIR_TIME * Boss.LEAP_AIR_TIME / 8.0
+		_boss_view_envelope = boss.data.body_size.y * 1.2 + leap_height
+		_apply_layout()
 		var burning: bool = boss.data.figure == InkFigure.Kind.BURNING_GENERAL
 		_hud.show_boss_entrance(boss.data.display_name, "LORD OF THE BURNING VILLAGE" if burning else "LORD OF THE BROKEN OATH")
 		_feedback.shake(13.0, 0.65)
@@ -569,6 +574,8 @@ func _on_boss_minions_requested(enemy_data: EnemyData, positions: PackedFloat32A
 
 func _on_boss_defeated(_enemy: Enemy) -> void:
 	_hud.hide_boss()
+	_boss_view_envelope = 0.0
+	_apply_layout()
 
 
 ## Every enemy killed (wave or debug) is worth its reward.

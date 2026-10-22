@@ -71,8 +71,10 @@ func _draw() -> void:
 	var font: Font = get_theme_default_font()
 	var plate_left: float = size.x * 0.24
 	var plate_width: float = size.x * 0.52
-	draw_string(font, Vector2(plate_left, size.y * 0.27), title, HORIZONTAL_ALIGNMENT_CENTER, plate_width, 13, InkPalette.GOLD)
-	draw_string_outline(font, Vector2(plate_left, size.y * 0.44), caption, HORIZONTAL_ALIGNMENT_CENTER, plate_width, 24, 4, InkPalette.INK)
-	draw_string(font, Vector2(plate_left, size.y * 0.44), caption, HORIZONTAL_ALIGNMENT_CENTER, plate_width, 24, InkPalette.PARCHMENT)
-	draw_string(font, Vector2(trough.position.x, size.y * 0.68), value_text, HORIZONTAL_ALIGNMENT_CENTER, trough.size.x, 17, InkPalette.PARCHMENT)
+	var compact: bool = size.y < 110
+	var name_size: int = 17 if compact else 24
+	draw_string(font, Vector2(plate_left, size.y * 0.25), title, HORIZONTAL_ALIGNMENT_CENTER, plate_width, 9 if compact else 13, InkPalette.GOLD)
+	draw_string_outline(font, Vector2(plate_left, size.y * 0.45), caption, HORIZONTAL_ALIGNMENT_CENTER, plate_width, name_size, 3, InkPalette.INK)
+	draw_string(font, Vector2(plate_left, size.y * 0.45), caption, HORIZONTAL_ALIGNMENT_CENTER, plate_width, name_size, InkPalette.PARCHMENT)
+	draw_string(font, Vector2(trough.position.x, size.y * 0.68), value_text, HORIZONTAL_ALIGNMENT_CENTER, trough.size.x, 12 if compact else 17, InkPalette.PARCHMENT)
 	draw_set_transform(Vector2.ZERO)

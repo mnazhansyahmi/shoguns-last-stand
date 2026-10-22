@@ -63,6 +63,7 @@ var _briefing_tween: Tween
 var _touch_mode: bool = false
 var _tutorial_hint_allowed: bool = false
 var _ui_scale: float = 1.0
+var _layout_size: Vector2 = Vector2(1920, 1080)
 
 
 func _ready() -> void:
@@ -97,7 +98,7 @@ func _ready() -> void:
 	set_stance(_stance_name)
 	_boss_bar = BossHealthBar.new()
 	_boss_bar.name = "BossBar"
-	_boss_bar.custom_minimum_size = Vector2(780.0, 130.0)
+	_boss_bar.custom_minimum_size = Vector2.ZERO
 	_boss_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_boss_bar.fill_color = Color(0.48, 0.035, 0.025)
 	_boss_bar.font_size = 28
@@ -151,6 +152,7 @@ func show_boss(boss_name: String) -> void:
 	_boss_bar.title = "LORD OF THE BURNING VILLAGE" if boss_name.contains("Burning") else "LORD OF THE BROKEN OATH"
 	_boss_bar.reset_health()
 	_boss_bar.visible = true
+	_layout_top_clusters()
 	_boss_bar.queue_redraw()
 	_place_boss_bar()
 
@@ -184,12 +186,27 @@ func show_boss_entrance(boss_name: String, title: String = "LORD OF THE BURNING 
 
 func _place_boss_bar() -> void:
 	if _boss_bar == null: return
-	var view: Vector2 = get_viewport().get_visible_rect().size
-	_boss_bar.scale = Vector2.ONE * _ui_scale
-	_boss_bar.size = Vector2(minf(900.0, (view.x - 64) / _ui_scale), 150)
-	# Always below the *actual* vitals/skills cluster, including enlarged UI.
-	_boss_bar.position = Vector2((view.x - _boss_bar.size.x * _ui_scale) * 0.5,
-		maxf(block_bottom(_top_left), block_bottom(_wave_box)) + 24)
+	var safe: Rect2 = _safe_rect if _safe_rect.has_area() else Rect2(Vector2.ZERO, _layout_size)
+	_boss_bar.scale = Vector2.ONE
+	_boss_bar.size = Vector2(minf(560.0, safe.size.x * 0.29), 90.0)
+	_boss_bar.position = Vector2(safe.get_center().x - _boss_bar.size.x * 0.5, block_bottom(_wave_box) + 8.0)
+
+
+func _layout_top_clusters() -> void:
+	if _boss_bar == null: return
+	var wave_scale: float = minf(_ui_scale, 1.0) if _boss_bar.visible else _ui_scale
+	var left_scale: float = _ui_scale
+	if _boss_bar.visible:
+		var safe: Rect2 = _safe_rect if _safe_rect.has_area() else Rect2(Vector2.ZERO, _layout_size)
+		var middle: float = minf(560.0, safe.size.x * 0.29)
+		var available: float = (safe.size.x - middle) * 0.5 - SCREEN_MARGIN.x - 20
+		left_scale = minf(left_scale, available / maxf(_top_left.get_combined_minimum_size().x, 1.0))
+	_top_left.scale = Vector2.ONE * left_scale
+	_wave_box.scale = Vector2.ONE * wave_scale
+
+
+func get_boss_header_bottom() -> float:
+	return _boss_bar.position.y + _boss_bar.size.y + 8.0 if _boss_bar.visible else 0.0
 
 
 func set_boss_phase(phase: int) -> void:
@@ -202,6 +219,7 @@ func set_boss_health(current: float, maximum: float) -> void:
 
 func hide_boss() -> void:
 	_boss_bar.visible = false
+	_layout_top_clusters()
 
 
 func is_boss_bar_visible() -> bool:
@@ -307,6 +325,8 @@ func set_touch_mode(enabled: bool) -> void:
 
 ## Keeps HUD content inside the safe area and scales the corner clusters around their corners.
 func apply_layout(safe_rect: Rect2, viewport_size: Vector2, ui_scale: float) -> void:
+	_layout_size = viewport_size
+	_safe_rect = safe_rect
 	_ui_scale = TouchLayout.clamp_scale(ui_scale)
 	_margin.add_theme_constant_override("margin_left", roundi(safe_rect.position.x + SCREEN_MARGIN.x))
 	_margin.add_theme_constant_override("margin_top", roundi(safe_rect.position.y + SCREEN_MARGIN.y))
@@ -314,6 +334,7 @@ func apply_layout(safe_rect: Rect2, viewport_size: Vector2, ui_scale: float) -> 
 	_margin.add_theme_constant_override("margin_bottom", roundi(viewport_size.y - safe_rect.end.y + SCREEN_MARGIN.y))
 	for control: Control in [_top_left, _wave_box, _pause_button]:
 		control.scale = Vector2(_ui_scale, _ui_scale)
+	_layout_top_clusters()
 	_place_indicators(safe_rect)
 	_refresh_bottom()
 	_update_pivots()
@@ -348,7 +369,7 @@ func get_enemy_indicator() -> EdgeIndicator:
 ## a frame after its content changes (and a scaled control's own rect ignores its scale).
 func block_bottom(control: Control) -> float:
 	var height: float = maxf(control.size.y, control.get_combined_minimum_size().y)
-	return _safe_rect.position.y + SCREEN_MARGIN.y + height * _ui_scale
+	return _safe_rect.position.y + SCREEN_MARGIN.y + height * control.scale.y
 
 
 ## Tabs sit at the screen edges just below the top HUD (the vitals, pause button), above
@@ -372,7 +393,7 @@ func _place_indicators(safe_rect: Rect2) -> void:
 func get_keep_out_rects() -> Array[Rect2]:
 	var rects: Array[Rect2] = []
 	for control: Control in [_top_left, _wave_box, _pause_button, get_node_or_null("Margin/BottomBox") as Control,
-			_gate_indicator, _enemy_indicator]:
+			_gate_indicator, _enemy_indicator, _boss_bar]:
 		if control != null and control.is_visible_in_tree():
 			rects.append(control.get_global_transform() * Rect2(Vector2.ZERO, control.size))
 	return rects
@@ -433,6 +454,7 @@ func _refresh_bottom() -> void:
 
 
 func _update_pivots() -> void:
+	_layout_top_clusters()
 	_top_left.pivot_offset = Vector2.ZERO
 	_wave_box.pivot_offset = Vector2(_wave_box.size.x * 0.5, 0.0)
 	_pause_button.pivot_offset = Vector2(_pause_button.size.x, 0.0)
