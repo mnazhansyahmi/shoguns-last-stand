@@ -32,6 +32,7 @@ func _ready() -> void:
 	_hitbox = HitboxComponent.new()
 	_hitbox.name = "Hitbox"
 	_hitbox.faction = Faction.Type.ENEMIES
+	_hitbox.fire = true
 	add_child(_hitbox)
 	var shape_node: CollisionShape2D = CollisionShape2D.new()
 	var rect: RectangleShape2D = RectangleShape2D.new()

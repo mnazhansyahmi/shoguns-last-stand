@@ -11,11 +11,18 @@ extends SceneTree
 ## --frames=N measures N frames instead of MEASURE_FRAMES (a longer run averages out the
 ## machine's own noise).
 ## --touch also measures the touch UI, with the same combat, timing and frame budget.
+## --region2 uses the Burning Village backdrop and its four painted enemy types.
 ## Uses its own save/settings under user://perf, never the player's.
 
 const BATTLEFIELD: PackedScene = preload("res://scenes/battlefield/battlefield.tscn")
 const HOLLOW: EnemyData = preload("res://data/enemies/hollow_soldier.tres")
 const ONI: EnemyData = preload("res://data/enemies/oni_brute.tres")
+const REGION_2_ENEMIES: Array[EnemyData] = [
+	preload("res://data/enemies/spectral_archer.tres"),
+	preload("res://data/enemies/shield_bearer.tres"),
+	preload("res://data/enemies/flying_spirit.tres"),
+]
+const GENERAL: EnemyData = preload("res://data/enemies/burning_general.tres")
 const DATA_DIR: String = "user://perf"
 const ENEMIES: int = 30
 const WARMUP_FRAMES: int = 120
@@ -35,6 +42,11 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	# Keep successive samples independent of earlier probe saves and purchased upgrades.
+	SaveManager.new(DATA_DIR + "/save.json").save_progress(PlayerProgress.new())
+	SettingsStore.new(DATA_DIR + "/settings.cfg").save_settings(GameSettings.new())
+	if _flags.has("--region2"):
+		SceneRoutes.battle_stage = load("res://data/stages/stage_8.tres") as StageData
 	var field: Node = BATTLEFIELD.instantiate()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
@@ -75,7 +87,10 @@ func _run() -> void:
 		if frame % 20 == 0:
 			summoner.request_summon((frame / 20) % 2)
 		while spawner.get_alive_count() < ENEMIES:
-			var enemy: Enemy = spawner.spawn(ONI if spawned % 10 == 0 else HOLLOW)
+			var data: EnemyData = ONI if spawned % 10 == 0 else HOLLOW
+			if _flags.has("--region2"):
+				data = GENERAL if spawned % 30 == 0 else REGION_2_ENEMIES[spawned % REGION_2_ENEMIES.size()]
+			var enemy: Enemy = spawner.spawn(data)
 			spawned += 1
 			if enemy == null:
 				break

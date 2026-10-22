@@ -322,6 +322,10 @@ func _handle_debug_input(event: InputEvent) -> void:
 ## Replaces this battle's stats with upgraded copies. Base .tres resources stay untouched.
 func _apply_upgrades() -> void:
 	_player.apply_stats(UpgradeApplier.build_player_stats(_player.stats, _progress, UPGRADE_CATALOG))
+	var gate_hurtbox: HurtboxComponent = _gate.get_node("Hurtbox")
+	gate_hurtbox.damage_multiplier = UpgradeApplier.build_gate_damage_multiplier(_progress, UPGRADE_CATALOG)
+	gate_hurtbox.fire_damage_multiplier = UpgradeApplier.build_fire_damage_multiplier(_progress, UPGRADE_CATALOG)
+	(_player.get_node("Hurtbox") as HurtboxComponent).fire_damage_multiplier = gate_hurtbox.fire_damage_multiplier
 	var upgraded_slots: Array[AllyData] = []
 	for data: AllyData in ALLY_ROSTER.get_unlocked(_progress):
 		upgraded_slots.append(UpgradeApplier.build_ally_data(data, _progress, UPGRADE_CATALOG))
@@ -430,7 +434,8 @@ func _on_ultimate_not_ready(ratio: float) -> void:
 	_hud.show_message("Ultimate charging - %d%%" % floori(ratio * 100.0))
 
 
-func _on_ally_summoned(_ally: Ally, _slot: int) -> void:
+func _on_ally_summoned(ally: Ally, _slot: int) -> void:
+	(ally.get_node("Hurtbox") as HurtboxComponent).fire_damage_multiplier = UpgradeApplier.build_fire_damage_multiplier(_progress, UPGRADE_CATALOG)
 	AudioManager.play(&"summon")
 
 

@@ -63,3 +63,12 @@ static func build_spirit_max(base_max: float, progress: PlayerProgress, catalog:
 
 static func build_spirit_regen(base_regen: float, progress: PlayerProgress, catalog: UpgradeCatalog) -> float:
 	return base_regen + get_bonus(progress, catalog, UpgradeData.Target.SPIRIT_ENERGY, UpgradeData.Stat.REGEN)
+
+
+## Armour covers all gate hits. Fire protection stacks multiplicatively with it.
+static func build_gate_damage_multiplier(progress: PlayerProgress, catalog: UpgradeCatalog) -> float:
+	return 1.0 - clampf(get_bonus(progress, catalog, UpgradeData.Target.GATE, UpgradeData.Stat.ARMOUR) / 100.0, 0.0, 0.3)
+
+
+static func build_fire_damage_multiplier(progress: PlayerProgress, catalog: UpgradeCatalog) -> float:
+	return 1.0 - clampf(get_bonus(progress, catalog, UpgradeData.Target.ARMY, UpgradeData.Stat.FIRE_RESISTANCE) / 100.0, 0.0, 0.4)

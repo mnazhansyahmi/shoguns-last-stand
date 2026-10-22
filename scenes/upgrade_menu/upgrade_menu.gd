@@ -243,13 +243,19 @@ func _refresh() -> void:
 
 ## An upgrade for an ally the player has not unlocked yet can be seen but not bought.
 func is_locked(upgrade: UpgradeData) -> bool:
-	if upgrade == null or upgrade.target != UpgradeData.Target.ALLY:
+	if upgrade == null:
+		return false
+	if not upgrade.is_available(_progress):
+		return true
+	if upgrade.target != UpgradeData.Target.ALLY:
 		return false
 	var data: AllyData = ALLY_ROSTER.find(upgrade.ally_id)
 	return data != null and not ALLY_ROSTER.is_unlocked(data, _progress)
 
 
 func _unlock_text(upgrade: UpgradeData) -> String:
+	if not upgrade.is_available(_progress):
+		return SkillHints.locked_text(upgrade.required_stage(_progress.get_upgrade_level(upgrade.id)))
 	var data: AllyData = ALLY_ROSTER.find(upgrade.ally_id)
 	return SkillHints.locked_text(data.unlock_stage_id) if data != null else "Locked"
 

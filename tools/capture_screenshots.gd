@@ -649,6 +649,8 @@ func _capture_crowd() -> void:
 			enemy.global_position.x = 760.0 + 80.0 * float(i % 12) + (i / 12) * 40.0
 			spawned += 1
 	await _frames(170)
+	# The staged crowd starts immediately; remove the opening briefing for the art review.
+	(field.get_node("Hud").get_node("%BriefingLabel") as Label).hide()
 	await _capture("crowd_a")
 	await _frames(120)
 	await _capture("crowd_b")
@@ -910,6 +912,13 @@ func _capture_upgrades() -> void:
 	for pair: Array in [["samurai_max_health", 3], ["samurai_damage", 5], ["ashigaru_health", 2], ["spirit_regen", 1],
 			["samurai_dash_cooldown", 2], ["army_command", 1], ["spirit_capacity", 4]]:
 		progress.set_upgrade_level(pair[0], pair[1])
+	if _stage_number >= 6:
+		progress.gold = 14000
+		progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4", "stage_5"]
+		var catalog: UpgradeCatalog = load("res://data/upgrades/upgrade_catalog.tres")
+		for upgrade: UpgradeData in catalog.upgrades:
+			if upgrade.region_1_cap > 0:
+				progress.set_upgrade_level(upgrade.id, upgrade.region_1_cap)
 	SaveManager.new(DATA_DIR + "/upgrade_save.json").save_progress(progress)
 	var menu: Node = load("res://scenes/upgrade_menu/upgrade_menu.tscn").instantiate()
 	menu.set("save_path", DATA_DIR + "/upgrade_save.json")
@@ -927,6 +936,10 @@ func _capture_upgrades() -> void:
 			(menu.get_node("%Scroll") as ScrollContainer).scroll_vertical = 100000
 			await _frames(8)
 			await _capture("upgrades_tab2_locked")
+		if tab == UpgradeTabs.Tab.ARMY_SPIRIT:
+			(menu.get_node("%Scroll") as ScrollContainer).scroll_vertical = 100000
+			await _frames(8)
+			await _capture("upgrades_defences")
 	menu.free()
 
 

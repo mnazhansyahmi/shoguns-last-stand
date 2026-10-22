@@ -351,6 +351,13 @@ func _release_all() -> void:
 
 func _run_curve(max_attempts: int) -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
+	var full_cost: int = 0
+	var total_levels: int = 0
+	for upgrade: UpgradeData in CATALOG.upgrades:
+		total_levels += upgrade.max_level
+		for level: int in upgrade.max_level:
+			full_cost += upgrade.get_cost(level)
+	print("Full catalog: %d levels, %d gold. Policy: cheapest available; one replay per stage." % [total_levels, full_cost])
 	print("stage    | try | result  | gate | deaths | gold earned | upgrades bought | levels owned | gold left")
 	for stage: StageData in StageProgression.all_stages():
 		var attempts: int = 0
@@ -363,6 +370,8 @@ func _run_curve(max_attempts: int) -> void:
 			print("%-8s | %3d | %-7s | %3.0f%% | %6d | %11d | %15d | %12d | %d" % [stage.stage_id, attempts,
 					"WIN" if result["victory"] else ("TIMEOUT" if result["timeout"] else "LOSS"),
 					result["gate_hp"] * 100.0, result["player_deaths"], result["gold"], bought, _owned(progress), progress.gold])
+			if _owned(progress) == total_levels:
+				print("  FULL SET owned at %s attempt %d" % [stage.stage_id, attempts])
 			if result["victory"]:
 				if replayed:
 					break
@@ -378,7 +387,7 @@ func _buy_cheapest(progress: PlayerProgress) -> int:
 		var cheapest: UpgradeData = null
 		for upgrade: UpgradeData in CATALOG.upgrades:
 			var level: int = progress.get_upgrade_level(upgrade.id)
-			if upgrade.is_maxed(level):
+			if upgrade.is_maxed(level) or not upgrade.is_available(progress):
 				continue
 			if cheapest == null or upgrade.get_cost(level) < cheapest.get_cost(progress.get_upgrade_level(cheapest.id)):
 				cheapest = upgrade

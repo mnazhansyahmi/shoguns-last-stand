@@ -176,7 +176,8 @@ func test_region_economy_curve() -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
 	var total_levels: int = 0
 	for upgrade: UpgradeData in CATALOG.upgrades:
-		total_levels += upgrade.max_level
+		if upgrade.unlock_stage_id.is_empty():
+			total_levels += upgrade.region_1_cap if upgrade.region_1_cap > 0 else upgrade.max_level
 	var owned_after: Array[int] = []
 	var first_clear_purchases: int = -1
 	for stage: StageData in region.stages:
@@ -201,7 +202,7 @@ func _buy_cheapest(progress: PlayerProgress) -> int:
 		var cheapest: UpgradeData = null
 		for upgrade: UpgradeData in CATALOG.upgrades:
 			var level: int = progress.get_upgrade_level(upgrade.id)
-			if not upgrade.is_maxed(level) and (cheapest == null or upgrade.get_cost(level) < cheapest.get_cost(progress.get_upgrade_level(cheapest.id))):
+			if not upgrade.is_maxed(level) and upgrade.is_available(progress) and (cheapest == null or upgrade.get_cost(level) < cheapest.get_cost(progress.get_upgrade_level(cheapest.id))):
 				cheapest = upgrade
 		if cheapest == null or UpgradeShop.purchase(progress, cheapest) != UpgradeShop.Result.OK:
 			return bought

@@ -16,6 +16,9 @@ enum Filter { ACCEPT, BLOCK, IGNORE }
 var hit_filter: Callable
 ## The last receive_hit() was stopped by hit_filter (Filter.BLOCK).
 var last_hit_blocked: bool = false
+## Upgrade mitigation is applied once here, for every hostile damage path.
+var damage_multiplier: float = 1.0
+var fire_damage_multiplier: float = 1.0
 
 var _enabled: bool = true
 
@@ -60,7 +63,10 @@ func receive_hit(hitbox: HitboxComponent) -> bool:
 			last_hit_blocked = verdict == Filter.BLOCK
 			return false
 	var direction_x: float = hitbox.get_knockback_direction_x(global_position.x)
-	var hit: HitData = HitData.new(hitbox.damage, Vector2(direction_x * hitbox.knockback, 0.0), hitbox.get_source())
+	var damage: float = hitbox.damage * clampf(damage_multiplier, 0.0, 1.0)
+	if hitbox.fire:
+		damage *= clampf(fire_damage_multiplier, 0.0, 1.0)
+	var hit: HitData = HitData.new(damage, Vector2(direction_x * hitbox.knockback, 0.0), hitbox.get_source())
 	hit.heavy = hitbox.heavy
 	hit.spirit = hitbox.spirit
 	var applied: float = health_component.take_damage(hit.damage, hit.source)

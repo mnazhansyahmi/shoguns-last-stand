@@ -1,8 +1,8 @@
 extends "res://tests/test_case.gd"
 ## Region 2's enemies: the Spectral Archer (stays at range, shoots allies first), the Shield Bearer (blocks frontal hits
 ## until a heavy blow or a hit from behind), the Flying Spirit (only arrows and the Onmyoji's fire reach it) and the stage
-## 10 boss, The Burning General (the Daimyo's body on fire, pillars of fire and a wall of flame, three phases). Each reuses
-## an existing painted body with a tint and a prop.
+## 10 boss, The Burning General (pillars of fire and a wall of flame, three phases).
+## Each has its own painted atlas and retains the shared animation contracts.
 
 const ENEMY_SCENE: PackedScene = preload("res://scenes/enemies/enemy.tscn")
 const BOSS_SCENE: PackedScene = preload("res://scenes/enemies/boss.tscn")

@@ -12,6 +12,8 @@ signal hit_blocked(hurtbox: HurtboxComponent)
 @export var reaches_air: bool = false
 ## Breaks a Shield Bearer's shield like a heavy blow, without a heavy blow's hit-stop and shake (the Hatamoto's naginata).
 @export var breaks_shields: bool = false
+## Burning General pillars and walls of flame; ordinary arrows and cursed waves are not fire.
+@export var fire: bool = false
 ## Node credited as the damage source. Defaults to the parent.
 @export var source: Node
 
