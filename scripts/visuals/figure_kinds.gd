@@ -230,9 +230,9 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.lift = 6.0
 			# Painted shoulder sockets sit on the outer deltoids of his broad chest.
 			s.shoulder_front = Vector2(16.0, -38.0)
-			s.shoulder_back = Vector2(-16.0, -38.0)
-			s.upper_arm = 19.0
-			s.fore_arm = 19.0
+			s.shoulder_back = Vector2(-10.0, -38.0)
+			s.upper_arm = 22.0
+			s.fore_arm = 22.0
 			s.arm_w = Vector2(12.0, 10.0)
 			s.fore_w = Vector2(10.0, 9.0)
 			s.hand_r = 6.0
@@ -691,19 +691,19 @@ static func _oni(state: StringName) -> FigurePose:
 	var p: FigurePose
 	match state:
 		&"run":
-			p = FigurePose.make(0.18, 2.0, Vector2(15.0, -16.0), 2.1)
+			p = FigurePose.make(0.18, 2.0, Vector2(24.0, -26.0), 2.1)
 		&"windup", &"heavy_windup":
 			# The club is raised in front of the horn, standing up from the fist well clear of the head
 			# (a test checks it); the slam then comes down in an arc in front of the body.
-			p = FigurePose.make(-0.14, 2.0, Vector2(22.0, -68.0), -1.7)
+			p = FigurePose.make(-0.14, 2.0, Vector2(28.0, -58.0), -1.7)
 		&"strike":
-			p = FigurePose.make(0.32, 7.0, Vector2(30.0, -6.0), 1.2).with_offset(3.0)
+			p = FigurePose.make(0.32, 7.0, Vector2(30.0, -16.0), 0.55).with_offset(3.0)
 		&"hurt":
-			p = FigurePose.make(-0.12, 1.0, Vector2(18.0, -18.0), 0.7).with_head(-0.2)
+			p = FigurePose.make(-0.12, 1.0, Vector2(26.0, -24.0), 0.7).with_head(-0.2)
 		&"dead":
-			p = FigurePose.make(0.0, 0.0, Vector2(16.0, -10.0), 0.8)
+			p = FigurePose.make(0.0, 0.0, Vector2(24.0, -12.0), 0.8)
 		_:
-			p = FigurePose.make(0.15, 3.0, Vector2(21.0, -17.0), 1.05).with_spread(1.1)
+			p = FigurePose.make(0.15, 3.0, Vector2(27.0, -24.0), 1.05).with_spread(1.1)
 	p.pivot = Vector2(10.0, -43.0)
 	return p
 
@@ -810,7 +810,7 @@ static func _daimyo(state: StringName, heavy: bool) -> FigurePose:
 		&"hurt":
 			p = FigurePose.make(-0.2, 3.0, Vector2(12.0, -22.0), 0.3).with_head(-0.25).with_offset(-3.0)
 		&"dead":
-			p = FigurePose.make(0.0, 0.0, Vector2(14.0, -5.0), 1.5).with_head(-0.2)
+			p = FigurePose.make(0.0, 0.0, Vector2(14.0, -8.0), 1.5).with_head(-0.2)
 		_:
 			# The blade carried low in front, the point well clear of the ground (a test checks it), shoulders hunched.
 			p = FigurePose.make(0.1, 2.0, Vector2(12.0, -22.0), 0.2).with_spread(1.2)

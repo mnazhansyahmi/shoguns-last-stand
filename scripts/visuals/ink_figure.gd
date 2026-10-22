@@ -260,8 +260,9 @@ func refresh() -> void:
 	if not is_nan(spec.back_hand_on_weapon.x) and not bow_hands:
 		back_hand = weapon_local * spec.back_hand_on_weapon
 	elif bow_hands:
-		var nock: Vector2 = weapon_local * Vector2(FigurePainter.bow_nock_x(pose.bow_draw), 0.0)
-		back_hand = pose.back_grip.lerp(nock, clampf(pose.bow_draw * 3.0, 0.0, 1.0))
+		var drawn: float = float(FigurePainter.bow_step(pose.bow_draw)) / float(FigurePainter.BOW_STEPS)
+		var nock: Vector2 = weapon_local * Vector2(FigurePainter.bow_nock_x(drawn), 0.0)
+		back_hand = nock if FigureKinds.animation_kind(kind) == Kind.YUMI_ARCHER else pose.back_grip.lerp(nock, clampf(pose.bow_draw * 3.0, 0.0, 1.0))
 		back_hand = back_hand.lerp(Vector2(-12.0, -30.0), pose.release)
 	else:
 		back_hand = pose.back_grip

@@ -277,7 +277,11 @@ static func shoulder_patch(kind: InkFigure.Kind, back: bool) -> Array:
 		var spec: FigureKinds.Spec = FigureKinds.spec(kind)
 		var center: Vector2 = torso_frame.affine_inverse() * spec.shoulder_front
 		var radius: float = spec.arm_w.x * 1.35 * CAP_RADIUS
-		_patches[key] = _ellipse_patch(kind, center, Vector2(radius / torso_frame.x.length(), radius / torso_frame.y.length()), center, false)
+		# Broad deltoids and armour sit outside the torso's painted edge. Sample solid
+		# chest paint there rather than a transparent shoulder-edge pixel.
+		var sample: Vector2 = source_region.size * Vector2(0.72, 0.34) if kind in [InkFigure.Kind.ONI_BRUTE,
+			InkFigure.Kind.FALLEN_DAIMYO, InkFigure.Kind.BURNING_GENERAL] else center
+		_patches[key] = _ellipse_patch(kind, center, Vector2(radius / torso_frame.x.length(), radius / torso_frame.y.length()), sample, false)
 	return _patches[key]
 
 

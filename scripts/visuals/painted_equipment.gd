@@ -62,11 +62,12 @@ static func draw_bow(ci: CanvasItem, figure: InkFigure) -> void:
 	FigurePainter.bow(figure.pose.bow_draw, figure.kind).draw(ci)
 	var step: int = FigurePainter.bow_step(figure.pose.bow_draw)
 	var drawn: float = float(step) / float(FigurePainter.BOW_STEPS)
+	var lengths: Vector2 = FigurePainter.bow_lengths(figure.kind)
 	for side: int in 2:
 		var points: PackedVector2Array = PackedVector2Array()
 		for i: int in 9:
 			var t: float = float(i) / 8.0
-			points.append(Vector2(FigurePainter._bow_bend(t, drawn), t * (-FigurePainter.BOW_UPPER if side == 0 else FigurePainter.BOW_LOWER)))
+			points.append(Vector2(FigurePainter._bow_bend(t, drawn), t * (-lengths.x if side == 0 else lengths.y)))
 		_draw_wood(ci, points, FigurePainter.BOW_LIMB_WIDTH.x - 0.8, FigurePainter.BOW_LIMB_WIDTH.y - 0.6)
 	if figure.kind == InkFigure.Kind.SAMURAI:
 		# The yumi's grip wrap, in the painted red of his sash.

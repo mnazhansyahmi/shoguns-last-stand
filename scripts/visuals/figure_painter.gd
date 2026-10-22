@@ -76,6 +76,8 @@ static func ground_contacts(kind: InkFigure.Kind) -> GroundContacts:
 static func weapon_points(kind: InkFigure.Kind) -> PackedVector2Array:
 	if not _weapon_points.has(kind):
 		var batch: InkBatch = part(kind, &"weapon")
+		if FigureKinds.animation_kind(kind) == InkFigure.Kind.YUMI_ARCHER:
+			batch = bow(0.0, kind)
 		# Only hull vertices can be lowest after a rigid rotation. Interior armour/weapon detail
 		# must not turn every figure refresh into hundreds of redundant ground queries.
 		_weapon_points[kind] = Geometry2D.convex_hull(_original_vertices(batch)) if batch != null else PackedVector2Array()
@@ -176,8 +178,8 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			order.append_array(_FRONT_ARM)
 		InkFigure.Kind.YUMI_ARCHER:
 			order.append_array([&"hem", &"tails", &"quiver"])
-			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
-			order.append_array([&"torso", &"head", &"bow"])
+			order.append_array(_BACK_LIMBS + _FRONT_LEG)
+			order.append_array([&"torso", &"head"] + _BACK_ARM + [&"bow", &"grip_b"])
 			order.append_array(_FRONT_ARM)
 		InkFigure.Kind.HOLLOW_SOLDIER:
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
@@ -222,6 +224,11 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 	if RosterSpriteArt.ARMHOLES.has(kind):
 		# The painted front arm's open sleeve end is covered by a cap of the torso's own shoulder, under the forearm.
 		order.insert(order.find(&"upper_f") + 1, &"shoulder_f")
+	if kind in [InkFigure.Kind.ONI_BRUTE, InkFigure.Kind.FALLEN_DAIMYO]:
+		# The upper arm is behind the jaw/helmet; the capped shoulder and gripping
+		# fist stay visible. Raising the club cannot paint an arm over his face.
+		order.erase(&"upper_f")
+		order.insert(order.find(&"head"), &"upper_f")
 	return order
 
 
@@ -348,6 +355,11 @@ static func _add_glow(merged: Dictionary, part_name: StringName, point: Vector2,
 ## x of the bow string's nock point in bow space for a draw amount (0 = rest).
 static func bow_nock_x(draw_amount: float) -> float:
 	return lerpf(_bow_bend(1.0, draw_amount), -30.0, clampf(draw_amount, 0.0, 1.0))
+
+
+static func bow_lengths(kind: InkFigure.Kind) -> Vector2:
+	# The archers grip the visual centre; the hero retains his asymmetric yumi.
+	return Vector2(49.0, 49.0) if FigureKinds.animation_kind(kind) == InkFigure.Kind.YUMI_ARCHER else Vector2(BOW_UPPER, BOW_LOWER)
 
 
 ## The bow (limbs, string, nocked arrow) at a draw amount, cached per draw step. The samurai's yumi has a
@@ -807,10 +819,11 @@ static func _bow(draw_amount: float, samurai: bool = false) -> InkBatch:
 	var batch: InkBatch = InkBatch.new()
 	var upper: PackedVector2Array = PackedVector2Array()
 	var lower: PackedVector2Array = PackedVector2Array()
+	var lengths: Vector2 = bow_lengths(InkFigure.Kind.SAMURAI if samurai else InkFigure.Kind.YUMI_ARCHER)
 	for i: int in 9:
 		var t: float = float(i) / 8.0
-		upper.append(Vector2(_bow_bend(t, drawn), -t * BOW_UPPER))
-		lower.append(Vector2(_bow_bend(t, drawn), t * BOW_LOWER))
+		upper.append(Vector2(_bow_bend(t, drawn), -t * lengths.x))
+		lower.append(Vector2(_bow_bend(t, drawn), t * lengths.y))
 	var nock: Vector2 = Vector2(bow_nock_x(drawn), 0.0)
 	# String first so the limbs cover its ends: a slim hemp cord, not an ink line.
 	batch.stroke(PackedVector2Array([upper[8], nock, lower[8]]), 1.1, 1.1, InkPalette.PARCHMENT_DIM.darkened(0.25))
