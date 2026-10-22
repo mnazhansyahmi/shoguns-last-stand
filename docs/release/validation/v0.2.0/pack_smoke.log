@@ -1,0 +1,52 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 617.42 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5060 Laptop GPU
+
+VALIDATION MODE: exported PCK in editor runtime; release executable UI checked separately
+PASS public playtest export feature
+PASS packaged version is 0.2.0
+PASS public saves separate from editor saves
+PASS developer tests/tools excluded
+PASS internal asset provenance excluded
+PASS fresh isolated save writes
+PASS isolated settings write
+PASS fresh profile shows Start
+PASS render menu
+PASS required music attribution survives export
+PASS packaged music menu
+PASS packaged music stage_select
+PASS packaged music battle
+PASS packaged music boss
+PASS upgrade purchase succeeds
+PASS upgrade survives save reload
+PASS render upgrades
+PASS both regions and ten campaign stages load from the PCK
+PASS pre-battle briefing pauses combat
+PASS render briefing
+PASS briefing dismissal starts combat
+PASS player movement works in release
+PASS summoning works with real Spirit Energy
+PASS render battle
+PASS pause works
+PASS resume works
+PASS packaged enemy spawning runs
+PASS victory route opens results
+PASS battle HUD clears behind result
+PASS victory and unlock persist
+PASS render victory
+PASS render stages_region1
+PASS render stages_region2
+PASS returning Region 1 save unlocks Burning Village
+PASS returning save retains purchased upgrade
+PASS Region 2 defences load and remain progress gated
+PASS Region 2 defence upgrades purchase after progression
+PASS Region 2 enemy briefing loads painted cards
+PASS render briefing_region2
+PASS exported Region 2 enemy spawns: spectral_archer
+PASS exported Region 2 enemy spawns: shield_bearer
+PASS exported Region 2 enemy spawns: flying_spirit
+PASS exported Region 2 enemy spawns: burning_general
+PASS render battle_region2
+PASS enemy briefing reopens from pause
+PASS pause briefing returns to paused game
+PASS no engine/script errors during release smoke
+RELEASE SMOKE: 47 passed, 0 failed

@@ -3,15 +3,17 @@
 A side-view samurai action and gate-defence game made with Godot 4.7.2 and typed
 GDScript. Fight the undead, summon allies and buy upgrades between battles.
 
-## v0.1.0 public playtest
+## v0.2.0 public playtest
 
 - Windows x64 release; the player does not need Godot.
-- Five campaign stages in Bamboo Outskirts, ending with The Fallen Daimyo.
+- Ten campaign stages in Bamboo Outskirts and Burning Village, with two bosses.
+- Spectral Archer, Shield Bearer and Flying Spirit; pre-battle counter-tip cards.
 - Katana combo, heavy strike, dash, Spirit Slash, Bow, War Cry and Ultimate.
 - Six unlockable allies, charge/hold commands, persistent upgrades and settings.
-- Painted ink characters, procedural dusk scenery, music and recorded effects.
+- Painted ink characters and worlds, animated village fires, music and recorded effects.
+- Progress-gated upgrade tiers, Gate Armour and Fire Resistance; existing saves preserved.
 - Keyboard, mouse-click summon portraits, controller mappings and optional touch UI.
-- 449 regression tests at release preparation; see [release validation](docs/release/README.md).
+- See [release validation](docs/release/README.md) for checks on the exported build.
 
 Controller mappings are implemented; physical-controller hardware testing remains
 pending. iOS, browser and other platform builds are not part of this release.
@@ -42,7 +44,7 @@ Use Godot 4.7.2, Python 3 and PowerShell 7:
 
 ```powershell
 python tools/fetch_windows_templates.py
-./tools/build_windows_playtest.ps1
+./tools/build_windows_playtest.ps1 -Version 0.2.0
 ```
 
 The downloader retrieves Windows x64 members of the official template archive
@@ -76,4 +78,4 @@ or click a portrait. Pause/back: Esc. Full keyboard/gamepad/touch help is in Set
 - [Credits](docs/CREDITS.md) and [asset provenance/licences](docs/ASSET_LICENSES.md)
 - [Playtest visual review](docs/game_feel/README.md)
 
-Development used AI-assisted coding and AI-generated character/foreground artwork.
+Development used AI-assisted coding and AI-generated character/environment artwork.

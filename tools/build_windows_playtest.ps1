@@ -1,9 +1,16 @@
 param(
     [ValidatePattern('^\d+\.\d+\.\d+$')]
-    [string]$Version = '0.1.0'
+    [string]$Version = '0.2.0'
 )
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
+$projectConfig = Get-Content -LiteralPath (Join-Path $projectRoot 'project.godot') -Raw
+$exportConfig = Get-Content -LiteralPath (Join-Path $projectRoot 'export_presets.cfg') -Raw
+if (-not $projectConfig.Contains('config/version="' + $Version + '"') -or
+    -not $exportConfig.Contains('application/product_version="' + $Version + '"') -or
+    -not $exportConfig.Contains('application/file_version="' + $Version + '.0"')) {
+    throw 'Project/export version does not match the requested release version.'
+}
 $releaseFolder = Join-Path $projectRoot 'builds/windows_playtest'
 $artifactFolder = Join-Path $projectRoot 'builds/releases'
 $validationFolder = Join-Path $projectRoot 'builds/release_validation'

@@ -1,0 +1,30 @@
+{
+  "zip": "ShogunsLastStand-0.2.0-windows-x64.zip",
+  "bytes": 141114532,
+  "sha256": "eb97b34f458295a9720742476528727c8c42cdc3c980ba5b5092c249e58227db",
+  "crc_passed": true,
+  "only_expected_player_files": true,
+  "extracted_matches_export": true,
+  "files": {
+    "ShogunsLastStand/CREDITS.txt": {
+      "bytes": 120,
+      "sha256": "60c6a80e1bac33eaa8ea7d823b9c2f0d33ea87377dd804beee5e0f9c36e59e82"
+    },
+    "ShogunsLastStand/GODOT_LICENSES.txt": {
+      "bytes": 105907,
+      "sha256": "e3c37fb53578e9112c20b918650b74a8219eab26df0f67420baebc794613fac4"
+    },
+    "ShogunsLastStand/README.txt": {
+      "bytes": 3189,
+      "sha256": "56d7f41e88ac6482ee34baa01040e24ef3d00f5c82428eec3bfe3829df118cd0"
+    },
+    "ShogunsLastStand/ShogunsLastStand.exe": {
+      "bytes": 109314560,
+      "sha256": "21b5249490e5c8afac54e040eea5cdc64f5cb1267e0695343f5437c92d3796ca"
+    },
+    "ShogunsLastStand/ShogunsLastStand.pck": {
+      "bytes": 103025956,
+      "sha256": "0379427740e5fdbc21c73c03601d0ecb639fb9b54d452ee28092328499bfa8e8"
+    }
+  }
+}

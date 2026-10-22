@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Shogun's Last Stand"
 config/description="2D side-scrolling samurai defense game."
-config/version="0.1.0"
+config/version="0.2.0"
 config/icon="res://assets/art/samurai/hud_bust.png"
 config/use_custom_user_dir.public_playtest=true
 config/custom_user_dir_name.public_playtest="ShogunsLastStand"
