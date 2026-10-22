@@ -45,6 +45,8 @@ var gait_enabled: bool = false
 var upright: bool = false
 ## Presentation-only equipment choice; combat figures show the stowed yumi by default.
 var show_stowed_bow: bool = true
+var weapon_behind_body: bool = false
+var _weapon_rest_index: int = -1
 var stride: float = 0.0
 var stride_phase: float = 0.0
 var bob: float = 0.0
@@ -310,6 +312,12 @@ func refresh() -> void:
 	var to_figure: Transform2D = global_transform.affine_inverse() if not _dynamic_parts.is_empty() else Transform2D.IDENTITY
 	for i: int in _active_parts.size():
 		var part: FigurePart = _active_parts[i]
+		if part.part_name == &"weapon":
+			if weapon_behind_body:
+				var torso: Node = get_node("torso")
+				if part.get_index() > torso.get_index(): move_child(part, torso.get_index())
+			elif _weapon_rest_index >= 0 and part.get_index() != _weapon_rest_index:
+				move_child(part, _weapon_rest_index)
 		var frame: Transform2D = _slot_xf[_part_slots[i]]
 		# Repaint may be 30 Hz, but the root stays attached to the moving bone
 		# every frame. Cached local ribbon vertices follow this pinned origin.
@@ -664,6 +672,7 @@ func _build_parts() -> void:
 		elif part_name in [&"bow", &"yumi_back"]:
 			part.material = Atmosphere.painted_rim_material()
 		add_child(part)
+		if part.part_name == &"weapon": _weapon_rest_index = part.get_index()
 		if kind == Kind.FLYING_SPIRIT:
 			part.visible = false
 		_parts.append(part)

@@ -813,7 +813,7 @@ static func _daimyo(state: StringName, heavy: bool) -> FigurePose:
 			p = FigurePose.make(0.0, 0.0, Vector2(14.0, -8.0), 1.5).with_head(-0.2)
 		_:
 			# The blade carried low in front, the point well clear of the ground (a test checks it), shoulders hunched.
-			p = FigurePose.make(0.06, 2.0, Vector2(12.0, -20.0), -0.24).with_spread(1.3)
+			p = BossSwordMotion.key_pose(&"recover", BossAttackData.Kind.SWEEP)
 	p.pivot = Vector2(8.0, -29.0)
 	return p
 

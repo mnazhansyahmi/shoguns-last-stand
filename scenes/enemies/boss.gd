@@ -249,6 +249,7 @@ func _begin_attack(attack: BossAttackData) -> void:
 	_cooldowns[attack.id] = attack.cooldown / _speed_factor()
 	_repeats_left = _repeat_count(attack)
 	_change_state(State.ATTACK)
+	_aim()
 	_start_windup(1.0)
 
 
@@ -261,7 +262,6 @@ func _start_windup(length_factor: float) -> void:
 	_step = Step.WINDUP
 	_step_time = 0.0
 	_step_length = _current.windup * length_factor / _speed_factor()
-	_aim()
 	_clear_telegraphs()
 	match _current.kind:
 		BossAttackData.Kind.SWEEP:
@@ -288,6 +288,7 @@ func _start_windup(length_factor: float) -> void:
 			_pillar_xs = _pillar_positions(_current)
 			for x: float in _pillar_xs:
 				_telegraph(AttackTelegraph.Shape.ELLIPSE, Vector2(x, global_position.y - 2.0), Vector2(_current.pillar_size.x * 1.2, 46.0))
+	_visual.play_boss_attack_stage(_current.kind, &"windup", _step_length)
 
 
 func _process_attack(delta: float) -> void:
@@ -303,7 +304,7 @@ func _process_attack(delta: float) -> void:
 				_step = Step.RECOVER
 				_step_time = 0.0
 				_step_length = _current.recovery / _speed_factor()
-				_visual.play_state(&"idle")
+				_visual.play_boss_attack_stage(_current.kind, &"recover", _step_length)
 		Step.AIR:
 			if (_step_time > 0.25 and is_on_floor()) or _step_time > LEAP_AIR_TIME * 3.0:
 				_land()
@@ -330,12 +331,12 @@ func _fire() -> void:
 	match _current.kind:
 		BossAttackData.Kind.SWEEP:
 			_activate_hitbox(_current, true)
-			_visual.play_state(&"strike")
+			_sword_strike()
 			AudioManager.play(&"sword_swing", 0.7)
 			_begin_active()
 		BossAttackData.Kind.SLAM:
 			_activate_hitbox(_current, false)
-			_visual.play_state(&"strike")
+			_sword_strike()
 			_spawn_ring(_current.hitbox_size.x * 0.5)
 			_impact_feedback(8.0)
 			_begin_active()
@@ -343,7 +344,7 @@ func _fire() -> void:
 			_launch_leap()
 		BossAttackData.Kind.WAVE:
 			_spawn_wave()
-			_visual.play_state(&"strike")
+			_sword_strike()
 			AudioManager.play(&"magic_burst", 0.7)
 			_begin_active()
 		BossAttackData.Kind.SUMMON:
@@ -354,7 +355,7 @@ func _fire() -> void:
 			_begin_active()
 		BossAttackData.Kind.ERUPTION:
 			_spawn_pillars()
-			_visual.play_state(&"strike")
+			_sword_strike()
 			_impact_feedback(7.0)
 			AudioManager.play(&"explosion", 0.8)
 			_begin_active()
@@ -366,6 +367,10 @@ func _begin_active() -> void:
 	_step_length = maxf(_current.active_time / _speed_factor(), 0.12)
 
 
+func _sword_strike() -> void:
+	_visual.play_boss_attack_stage(_current.kind, &"strike", maxf(_current.active_time / _speed_factor(), 0.16))
+
+
 func _finish_attack() -> void:
 	_current = null
 	_gap_left = get_phase_data().attack_gap
@@ -374,6 +379,7 @@ func _finish_attack() -> void:
 
 ## Ends everything in progress (a phase change, or death).
 func _cancel_attack() -> void:
+	_visual.end_boss_attack()
 	_hitbox.deactivate()
 	_clear_telegraphs()
 	_current = null
@@ -404,14 +410,14 @@ func _launch_leap() -> void:
 	velocity.x = (_leap_x - global_position.x) / air_time
 	_step = Step.AIR
 	_step_time = 0.0
-	_visual.play_state(&"heavy_windup")
+	_visual.play_boss_attack_stage(_current.kind, &"air", air_time)
 	AudioManager.play(&"dash", 0.6)
 
 
 func _land() -> void:
 	velocity.x = 0.0
 	_activate_hitbox(_current, false)
-	_visual.play_state(&"strike")
+	_sword_strike()
 	_spawn_ring(_current.hitbox_size.x * 0.5)
 	_impact_feedback(10.0)
 	_begin_active()
