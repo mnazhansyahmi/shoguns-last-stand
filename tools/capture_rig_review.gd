@@ -7,6 +7,7 @@ const STATES: Array[StringName] = [&"idle", &"run", &"windup", &"heavy_windup", 
 
 
 func _initialize() -> void:
+	seed(1337)
 	DisplayServer.window_set_size(Vector2i(1280, 720))
 	_run.call_deferred()
 

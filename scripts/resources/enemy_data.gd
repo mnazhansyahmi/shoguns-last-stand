@@ -13,6 +13,9 @@ enum TargetKind { PLAYER, ALLY, GATE }
 @export_range(0.0, 1.0) var knockback_resistance: float = 0.0
 ## If false the enemy keeps attacking when hit (super armor). Damage still applies.
 @export var interruptible: bool = true
+## Light/ally hits deal damage without flinching or pushing. Player heavy/spirit
+## attacks (including the heavy Ultimate) still interrupt this enemy.
+@export var light_hit_armour: bool = false
 @export var hurt_duration: float = 0.3
 
 @export_group("Rewards")

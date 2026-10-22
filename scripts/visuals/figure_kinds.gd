@@ -691,7 +691,7 @@ static func _oni(state: StringName) -> FigurePose:
 	var p: FigurePose
 	match state:
 		&"run":
-			p = FigurePose.make(0.18, 2.0, Vector2(24.0, -26.0), 2.1)
+			p = FigurePose.make(0.18, 2.0, Vector2(24.0, -26.0), 0.9)
 		&"windup", &"heavy_windup":
 			# The club is raised in front of the horn, standing up from the fist well clear of the head
 			# (a test checks it); the slam then comes down in an arc in front of the body.

@@ -254,8 +254,23 @@ func refresh() -> void:
 	weapon_xf = torso_xf * weapon_local
 	_rest_weapon_on_ground()
 	weapon_local = torso_xf.affine_inverse() * weapon_xf
+	if kind == Kind.ONI_BRUTE or FigureKinds.animation_kind(kind) == Kind.FALLEN_DAIMYO:
+		# During transitions and ground clearance, the two grip targets must remain
+		# inside both arm reach discs. Move the held weapon, never stretch a bone.
+		for pass_index: int in 3:
+			var fitted: Vector2 = weapon_local.origin
+			var reach: float = spec.upper_arm + spec.fore_arm - 0.1
+			fitted = spec.shoulder_front + (fitted - spec.shoulder_front).limit_length(reach)
+			if not is_nan(spec.back_hand_on_weapon.x):
+				var far_center: Vector2 = spec.shoulder_back - weapon_local.basis_xform(spec.back_hand_on_weapon)
+				fitted = far_center + (fitted - far_center).limit_length(reach)
+			if fitted.distance_squared_to(weapon_local.origin) < 0.000001: break
+			weapon_local.origin = fitted
+			weapon_xf = torso_xf * weapon_local
+			_rest_weapon_on_ground()
+			weapon_local = torso_xf.affine_inverse() * weapon_xf
 
-	front_hand = pose.grip
+	front_hand = weapon_local.origin
 	var bow_hands: bool = FigureKinds.animation_kind(kind) == Kind.YUMI_ARCHER or (spec.has_back_bow and pose.sheathed > 0.5)
 	if not is_nan(spec.back_hand_on_weapon.x) and not bow_hands:
 		back_hand = weapon_local * spec.back_hand_on_weapon

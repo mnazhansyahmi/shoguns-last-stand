@@ -33,6 +33,22 @@ func test_heavy_shoulder_caps_sample_opaque_paint_at_the_joint() -> void:
 		assert_true(center.distance_to(FigureKinds.spec(kind).shoulder_front) < 0.01, "cap is centred on the shoulder")
 
 
+func test_heavy_arms_remain_reachable_through_complete_motion_transitions() -> void:
+	for kind: InkFigure.Kind in HEAVIES:
+		var visual: UnitVisual = UnitVisual.new()
+		visual.figure_kind = kind
+		add_to_tree(visual)
+		visual.set_process(false)
+		for state: StringName in [&"run", &"windup", &"strike", &"run", &"heavy_windup", &"hurt", &"dead"]:
+			visual.play_state(state)
+			for frame: int in 45:
+				visual._process(1.0 / 60.0)
+				var figure: InkFigure = visual.get_figure()
+				var reach: float = figure.spec.upper_arm + figure.spec.fore_arm
+				assert_true(figure.spec.shoulder_front.distance_to(figure.front_hand) <= reach + 0.01, "front grip remains reachable during " + str(state))
+				assert_true(figure.spec.shoulder_back.distance_to(figure.back_hand) <= reach + 0.01, "back grip remains reachable during " + str(state))
+
+
 func test_archers_grip_the_visual_bow_middle_and_quantized_string_nock() -> void:
 	for kind: InkFigure.Kind in [InkFigure.Kind.YUMI_ARCHER, InkFigure.Kind.SPECTRAL_ARCHER]:
 		var figure: InkFigure = InkFigure.new()

@@ -365,6 +365,8 @@ func _target_x(target: Node2D) -> float:
 
 func _on_hit_received(hit: HitData) -> void:
 	_visual.flash_hit()
+	if data.light_hit_armour and not _pierces_light_hit_armour(hit):
+		return
 	velocity.x = hit.knockback.x * (1.0 - data.knockback_resistance)
 	if _health.is_dead() or not data.interruptible:
 		return
@@ -372,6 +374,11 @@ func _on_hit_received(hit: HitData) -> void:
 	_attack_cooldown_left = maxf(_attack_cooldown_left, INTERRUPT_ATTACK_DELAY)
 	_change_state(State.HURT)
 	_visual.play_state(&"hurt")
+
+
+func _pierces_light_hit_armour(hit: HitData) -> bool:
+	# Ally heavies remain armour-safe. The Ultimate already marks its sweep heavy.
+	return is_instance_valid(hit.source) and hit.source is Player and (hit.heavy or hit.spirit)
 
 
 func _on_died() -> void:
