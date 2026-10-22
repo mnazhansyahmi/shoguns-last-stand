@@ -22,8 +22,6 @@ var sub_caption: String = "":
 
 var _glow: float = 0.0
 var _target: float = 0.0
-## The slash sound is only played once the menu has been up a moment (the first focus when it opens is silent).
-var _armed: bool = false
 
 
 func _ready() -> void:
@@ -32,11 +30,6 @@ func _ready() -> void:
 	mouse_exited.connect(_refresh_active)
 	focus_entered.connect(_refresh_active)
 	focus_exited.connect(_refresh_active)
-	get_tree().create_timer(0.35).timeout.connect(_arm)
-
-
-func _arm() -> void:
-	_armed = true
 
 
 ## 0 = at rest, 1 = focused/hovered highlight fully visible.
@@ -51,10 +44,7 @@ func is_active() -> bool:
 
 func _refresh_active() -> void:
 	var active: bool = not disabled and (is_hovered() or has_focus())
-	var was_active: bool = _target > 0.5
 	_target = 1.0 if active else 0.0
-	if active and not was_active and _armed:
-		AudioManager.play(&"menu_hover", 1.3)
 	set_process(true)
 
 

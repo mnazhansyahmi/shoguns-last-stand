@@ -84,3 +84,18 @@ ungated curve: 829). Three is the retry limit, not three complete campaigns.
 - [Economy curve](part_3/economy.log).
 - Full suite: **499 passed**, including the prepared settings changes.
   [Tests](part_3/tests_final.log).
+
+## 4. Cleaner settings
+
+Audio, Display and Gameplay have separate tabs. Audio holds music/SFX; Display
+holds UI scale, motion, shake and blood; Gameplay holds touch, handedness,
+vibration, Controls and Reset Progress. Reset still requires its confirmation.
+Keyboard/gamepad focus and Controls return select the correct page. Targets
+remain at least 124 logical pixels (the existing 44 pt minimum at UI scale).
+
+Hover/focus is silent. A press plays one short click, limited to 0.10 s, reduced
+from -6 to -16 dB. The old hover library event is removed.
+
+- Full suite: **499 passed**. [Tests](part_4/tests_final.log).
+- [Audio](part_4/settings_audio.png), [Display](part_4/settings_display.png),
+  [Gameplay](part_4/settings_gameplay.png).

@@ -75,6 +75,22 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if _only == "settings-tabs":
+		var menu: Node = MAIN_MENU.instantiate()
+		menu.set("save_path", DATA_DIR + "/save.json")
+		menu.set("settings_path", DATA_DIR + "/settings.cfg")
+		root.add_child(menu)
+		await _frames(30)
+		var panel: SettingsPanel = menu.get_node("%SettingsPanel")
+		panel.open(GameSettings.new())
+		for tab: int in 3:
+			panel.select_tab(tab)
+			await _frames(10)
+			await _capture("settings_" + SettingsPanel.TAB_NAMES[tab].to_lower())
+		menu.free()
+		await AudioManager.shutdown_audio(self)
+		quit(0)
+		return
 	if _only == "results":
 		await _capture_results()
 		quit(0)

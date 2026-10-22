@@ -150,10 +150,10 @@ func test_hover_or_focus_brightens_the_border_and_fades_in_the_glow() -> void:
 	assert_almost_eq(button.get_glow(), 0.0, "the glow is gone")
 
 
-func test_the_katana_slash_plays_on_hover_but_not_when_the_menu_opens() -> void:
-	var entry: SfxEntry = (load("res://data/audio/sfx_library.tres") as SfxLibrary).find(&"menu_hover")
-	assert_true(entry != null and entry.stream != null, "the hover sound is in the library with a generated fallback")
-	assert_true(entry.volume_db <= -10.0 and entry.max_length > 0.0 and entry.max_length <= 0.8, "soft and short")
+func test_hover_and_focus_are_silent_and_press_plays_one_soft_click() -> void:
+	var entry: SfxEntry = (load("res://data/audio/sfx_library.tres") as SfxLibrary).find(&"button_click")
+	assert_true(entry != null and entry.stream != null, "press click has a fallback")
+	assert_true(entry.volume_db <= -16.0 and entry.max_length > 0.0 and entry.max_length <= 0.1, "quieter and short")
 	for path: String in entry.override_paths:
 		assert_true(ResourceLoader.exists(path), "%s exists" % path)
 	var audio: AudioManager = AudioManager.instance
@@ -165,9 +165,14 @@ func test_the_katana_slash_plays_on_hover_but_not_when_the_menu_opens() -> void:
 	button.grab_focus()
 	assert_eq(audio.play_count, before, "focus in the first moments is silent (the menu grabs it itself)")
 	button.release_focus()
-	button._armed = true
 	button.grab_focus()
-	assert_eq(audio.last_played, &"menu_hover", "once the menu has been up a moment, hovering slashes")
+	button.mouse_entered.emit()
+	button.mouse_exited.emit()
+	assert_eq(audio.play_count, before, "hover and keyboard focus remain silent")
+	OS.delay_msec(40)
+	button.pressed.emit()
+	assert_eq(audio.play_count, before + 1, "one press plays exactly one sound")
+	assert_eq(audio.last_played, &"button_click", "press uses the soft click")
 
 
 func test_the_buttons_come_in_one_after_another() -> void:
