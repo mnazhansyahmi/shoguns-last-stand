@@ -75,6 +75,8 @@ func _initialize() -> void:
 	var settings: GameSettings = GameSettings.new()
 	settings.touch_mode = GameSettings.TouchMode.ALWAYS if _touch else GameSettings.TouchMode.OFF
 	SettingsStore.new(DATA_DIR + "/settings.cfg").save_settings(settings)
+	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+	DisplayServer.window_set_position(Vector2i.ZERO)
 	DisplayServer.window_set_size(size)
 	Engine.max_fps = 60
 	_run.call_deferred()

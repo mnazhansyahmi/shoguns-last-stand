@@ -1,23 +1,30 @@
 class_name LivingMenuPainting
 extends Node2D
-## One opaque scene; the samurai, stone and environment share the same paint/light.
-const ART: Texture2D = preload("res://assets/art/world/menu_scene.png")
-const COLUMNS: int = 128
-const ROWS: int = 72
+## Static inpainted scene and clean alpha character. Only Character has a shader.
+const ART: Texture2D = preload("res://assets/art/world/menu_background.png")
+const CHARACTER: Texture2D = preload("res://assets/art/world/menu_character.png")
+const CHARACTER_SCALE: Vector2 = Vector2(0.895, 0.895)
+const CHARACTER_OFFSET: Vector2 = Vector2(145.0, 0.0)
+const COLUMNS: int = 160
+const ROWS: int = 96
 var reduced_motion: bool = false
 var _paint: ShaderMaterial
-static var _vertices: PackedVector2Array = PackedVector2Array()
-static var _uvs: PackedVector2Array = PackedVector2Array()
-static var _weights: PackedColorArray = PackedColorArray()
-static var _indices: PackedInt32Array = PackedInt32Array()
+var _character: MeshInstance2D
+static var _mesh: ArrayMesh
 
 
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	_build_mesh()
+	_character = MeshInstance2D.new()
+	_character.name = "Character"
+	_character.mesh = _character_mesh()
+	_character.texture = CHARACTER
+	_character.position = CHARACTER_OFFSET
+	_character.scale = CHARACTER_SCALE
 	_paint = ShaderMaterial.new()
 	_paint.shader = preload("res://scripts/visuals/shaders/living_menu.gdshader")
-	material = _paint
+	_character.material = _paint
+	add_child(_character)
 	set_time(0.0)
 
 
@@ -28,27 +35,39 @@ func set_time(seconds: float) -> void:
 
 
 static func motion_weights(uv: Vector2) -> Color:
-	var hair: float = smoothstep(0.84, 0.88, uv.x) * (1.0 - smoothstep(0.13, 0.18, uv.y))
-	var sash: float = smoothstep(0.88, 0.94, uv.x) * smoothstep(0.38, 0.42, uv.y) * (1.0 - smoothstep(0.53, 0.58, uv.y))
-	var hem: float = smoothstep(0.87, 0.92, uv.x) * smoothstep(0.58, 0.63, uv.y) * (1.0 - smoothstep(0.70, 0.74, uv.y))
+	var hair: float = smoothstep(0.83, 0.89, uv.x) * (1.0 - smoothstep(0.16, 0.21, uv.y))
+	var sash: float = smoothstep(0.89, 0.95, uv.x) * smoothstep(0.42, 0.47, uv.y) * (1.0 - smoothstep(0.59, 0.65, uv.y))
+	var hem: float = smoothstep(0.87, 0.93, uv.x) * smoothstep(0.65, 0.70, uv.y) * (1.0 - smoothstep(0.79, 0.84, uv.y))
 	return Color(hair, sash, hem, 1)
 
 
-static func _build_mesh() -> void:
-	if not _vertices.is_empty(): return
+static func _character_mesh() -> ArrayMesh:
+	if _mesh != null: return _mesh
+	var vertices: PackedVector2Array = PackedVector2Array()
+	var uvs: PackedVector2Array = PackedVector2Array()
+	var weights: PackedColorArray = PackedColorArray()
+	var indices: PackedInt32Array = PackedInt32Array()
 	for y: int in ROWS + 1:
 		for x: int in COLUMNS + 1:
 			var uv: Vector2 = Vector2(float(x) / COLUMNS, float(y) / ROWS)
-			_vertices.append(uv * ART.get_size())
-			_uvs.append(uv)
-			_weights.append(motion_weights(uv))
+			vertices.append(uv * CHARACTER.get_size())
+			uvs.append(uv)
+			weights.append(motion_weights(uv))
 	for y: int in ROWS:
 		for x: int in COLUMNS:
 			var a: int = y * (COLUMNS + 1) + x
 			var b: int = a + COLUMNS + 1
-			_indices.append_array(PackedInt32Array([a, a + 1, b, a + 1, b + 1, b]))
+			indices.append_array(PackedInt32Array([a, a + 1, b, a + 1, b + 1, b]))
+	var arrays: Array = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_COLOR] = weights
+	arrays[Mesh.ARRAY_INDEX] = indices
+	_mesh = ArrayMesh.new()
+	_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return _mesh
 
 
 func _draw() -> void:
-	RenderingServer.canvas_item_add_triangle_array(get_canvas_item(), _indices, _vertices,
-		_weights, _uvs, PackedInt32Array(), PackedFloat32Array(), ART.get_rid())
+	draw_texture(ART, Vector2.ZERO)

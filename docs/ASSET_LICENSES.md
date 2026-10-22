@@ -1,5 +1,16 @@
 # Asset licences
 
+## Isolated menu motion — 2026-10-22
+
+Original edits of the project's generated `menu_scene.png`, using OpenAI built-in
+**image_gen**. No third-party image source. Native 1672×941 canvases; alpha
+preserved on the cutout. Runtime removes only sub-byte alpha dust.
+
+| Image | Use | Date | Prompt |
+| --- | --- | --- | --- |
+| `assets/art/world/menu_background.png` | Stationary landscape, character removed and background repainted | 2026-10-22 | [Prompt](../assets/art/world/menu_background.png.prompt.txt) |
+| `assets/art/world/menu_character.png` | Isolated painted samurai, shader motion confined to alpha | 2026-10-22 | [Prompt](../assets/art/world/menu_character.png.prompt.txt) |
+
 ## Sharp world layers — 2026-10-22
 
 - `assets/art/world/sharp/village_smoke.png`: painted transparent rising smoke,

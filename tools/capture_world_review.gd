@@ -5,6 +5,10 @@ var _mode: String = "boss"
 
 
 func _initialize() -> void:
+	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+	DisplayServer.window_set_position(Vector2i.ZERO)
+	DisplayServer.window_set_size(Vector2i(1920, 1080))
+	Engine.max_fps = 60
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("--out="): _out = arg.trim_prefix("--out=")
 		if arg.begins_with("--mode="): _mode = arg.trim_prefix("--mode=")
@@ -20,13 +24,29 @@ func _run() -> void:
 		menu.set("save_path", "user://world_review/menu_save.json")
 		menu.set("settings_path", "user://world_review/menu_settings.cfg")
 		root.add_child(menu)
-		await _frames(30)
-		await _save("menu_t0")
-		await _frames(120)
-		await _save("menu_t2")
-		GameSettings.reduced_decorative_motion = true
-		await _frames(30)
-		await _save("menu_reduced_motion")
+		await _frames(180) # Let the menu button entrance finish before comparing pixels.
+		var art: Control = menu.get_node("TitleArt") as Control
+		art.set_process(false)
+		var painting: LivingMenuPainting = art.get_node("ScenePainting") as LivingMenuPainting
+		for seconds: float in [0.0, 1.0, 2.0, 4.0, 11.3, 14.0]:
+			painting.set_time(seconds)
+			await _frames(2)
+			await _save("menu_t%03d" % roundi(seconds * 10))
+		painting.reduced_motion = true
+		for seconds: float in [0.0, 2.0]:
+			painting.set_time(seconds)
+			await _frames(2)
+			await _save("menu_reduced_t%03d" % roundi(seconds * 10))
+		painting._character.hide()
+		await _frames(2)
+		await _save("menu_background_only")
+		var metadata: Dictionary = {"scene_position": [painting.position.x, painting.position.y],
+			"logical_size": [root.get_visible_rect().size.x, root.get_visible_rect().size.y],
+			"scene_scale": painting.scale.x, "character_offset": [LivingMenuPainting.CHARACTER_OFFSET.x, LivingMenuPainting.CHARACTER_OFFSET.y],
+			"character_scale": [LivingMenuPainting.CHARACTER_SCALE.x, LivingMenuPainting.CHARACTER_SCALE.y]}
+		var file: FileAccess = FileAccess.open(_out.path_join("menu_transform.json"), FileAccess.WRITE)
+		file.store_string(JSON.stringify(metadata, "\t"))
+		file.close()
 		menu.free()
 		GameSettings.reduced_decorative_motion = false
 		await AudioManager.shutdown_audio(self)

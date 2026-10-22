@@ -391,15 +391,15 @@ func test_title_samurai_stands_against_the_moon() -> void:
 	assert_true(portrait.has_point(moon), "moon and samurai share the composed focal region")
 	assert_true(portrait.position.y < moon.y and portrait.position.y + portrait.size.y * 0.22 > moon.y,
 			"the moon stays behind the portrait's head")
-	assert_true(LivingMenuPainting.ART != null and painting.get_child_count() == 0,
-			"the menu uses one complete painted scene without limb nodes")
+	assert_true(LivingMenuPainting.ART != null and painting.get_child_count() == 1 and painting.material == null,
+			"the inpainted scene is static, with one separate alpha character and no limb nodes")
 	assert_true(painting.scale.x > 0.0 and is_equal_approx(painting.scale.x, painting.scale.y),
 			"the painting keeps its anatomical right-hand sword without reflection or distortion")
 	var scene: Image = LivingMenuPainting.ART.get_image()
 	for sole: Vector2 in art.call(&"get_foot_contacts"):
 		var pixel: Vector2 = (sole - painting.position) / painting.scale
 		assert_true(scene.get_pixelv(Vector2i(pixel)).a > 0.99, "sole and stone belong to the same opaque scene")
-	assert_true(not art.has_node("Samurai"), "there is no composited character cutout over the landscape")
+	assert_true(painting.has_node("Character"), "character cutout alone owns the motion shader")
 	var fog: CanvasItem = menu.get_node("Backdrop/FrontFog")
 	assert_true(not fog.visible, "front fog is off behind the menu so it never covers buttons")
 

@@ -59,3 +59,28 @@ All three runs meet this task's ≤9.5 ms Region 2 budget. The probe now reports
 that explicit budget; Region 1 retains its existing 8 ms target.
 [Village fire render](part2/region2_crowd_a.png) and
 [100% crop](part2/region2_crowd_a_100pct.png).
+
+## Part 3 — character-only menu motion
+
+The character was extracted with image_gen; the landscape behind him was
+repainted. The background and menu wash have no motion shader, camera drift or
+moving cloud/leaf overlay. One alpha character mesh carries breathing, a small
+weight shift, independently delayed hair/sash/hem sway, a rare slight head turn
+and an occasional blade glint. Soles are pinned; the character keeps its source
+aspect ratio. Reduced motion scales decorative movement to 15%.
+
+Import/boot clean; **513/513 tests passed**. Fixed-time renderer captures:
+[0 s](part3/menu_t000.png), [1 s](part3/menu_t010.png),
+[2 s](part3/menu_t020.png), [4 s](part3/menu_t040.png),
+[blade glint](part3/menu_t113.png), [head turn](part3/menu_t140.png),
+[reduced](part3/menu_reduced_t020.png),
+[inpainted background alone](part3/menu_background_only.png).
+
+Read-only pixel check compares the frames against the source alpha transformed
+to screen coordinates, allowing 20 px around moving tips/filtering. **Zero
+changed background pixels** in all five comparisons. Reduced-motion pixel
+difference sum is 1,300,921 versus 6,621,453 normally (~20%). Exact results in
+`part3_pixel_check.json`; reproduce with `tools/check_menu_motion.py`.
+
+The initial decorated Windows capture window was clamped to 1920×1061; the
+capture tools now use borderless windows so final images are true 1920×1080.

@@ -1,0 +1,26 @@
+{
+  "menu_t010": {
+    "changed_character_pixels": 228269,
+    "changed_background_pixels": 0
+  },
+  "menu_t020": {
+    "changed_character_pixels": 225029,
+    "changed_background_pixels": 0
+  },
+  "menu_t040": {
+    "changed_character_pixels": 228024,
+    "changed_background_pixels": 0
+  },
+  "menu_t113": {
+    "changed_character_pixels": 226121,
+    "changed_background_pixels": 0
+  },
+  "menu_t140": {
+    "changed_character_pixels": 229570,
+    "changed_background_pixels": 0
+  },
+  "motion_pixel_difference_sum": {
+    "normal": 6621453,
+    "reduced": 1300921
+  }
+}
