@@ -135,3 +135,43 @@ func test_next_wave_waits_for_clear_and_break() -> void:
 	assert_eq(started, [1], "wave 2 waits for the break")
 	director.tick(0.6)
 	assert_eq(started, [1, 2], "wave 2 starts after the break")
+
+
+func test_a_wave_left_without_living_enemies_completes_after_the_grace() -> void:
+	var director: WaveDirector = _make_director(_make_stage([1, 1]))
+	var cleared: Array[int] = []
+	director.wave_cleared.connect(func(number: int) -> void: cleared.append(number))
+	director.start()
+	_spawn_whole_wave(director)
+	# A stale entry: tracked, but no enemy behind it (its signals never arrived).
+	var ghost: Node = Node.new()
+	var ghost_id: int = ghost.get_instance_id()
+	ghost.free()
+	(director.get("_tracked") as Dictionary)[ghost_id] = true
+	_living_enemies()[0].get_node("HealthComponent").take_damage(1000.0)
+	assert_eq(cleared, [] as Array[int], "the stale entry holds the wave")
+	director.tick(WaveDirector.EMPTY_WAVE_GRACE - 1.0)
+	assert_eq(cleared, [] as Array[int], "not before the grace runs out")
+	director.tick(1.5)
+	assert_eq(cleared, [1], "then the empty wave is completed")
+	assert_true(director.is_in_break(), "and the next wave is on its way")
+
+
+func test_a_wave_where_nobody_deals_damage_is_reported() -> void:
+	var director: WaveDirector = _make_director(_make_stage([2]))
+	var reports: Array[String] = []
+	director.stall_detected.connect(func(report: String) -> void: reports.append(report))
+	director.start()
+	_spawn_whole_wave(director)
+	director.note_damage()
+	director.tick(WaveDirector.STALL_WARNING_TIME - 5.0)
+	director.note_damage()
+	director.tick(WaveDirector.STALL_WARNING_TIME - 5.0)
+	assert_eq(reports.size(), 0, "a hit restarts the watch")
+	director.tick(6.0)
+	assert_eq(reports.size(), 1, "30 s without damage is reported")
+	assert_true(reports[0].contains("wave 1/1") and reports[0].contains("2 alive") and reports[0].contains("Hollow Soldier at x "),
+			"with the wave and its enemies: %s" % reports[0])
+	director.tick(60.0)
+	assert_eq(reports.size(), 1, "once per quiet spell")
+	assert_true(not director.is_complete(), "a warning only: the wave goes on")

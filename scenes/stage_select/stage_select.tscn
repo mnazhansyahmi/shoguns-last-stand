@@ -131,6 +131,15 @@ theme_override_font_sizes/font_size = 28
 text = "Clear the stage before it first."
 autowrap_mode = 3
 
+[node name="DetailFoes" type="Label" parent="Margin/VBox/Body/SidePanel/DetailBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"DimLabel"
+theme_override_font_sizes/font_size = 22
+text = "New - Foe: how to beat it"
+autowrap_mode = 3
+
 [node name="Spacer" type="Control" parent="Margin/VBox/Body/SidePanel/DetailBox"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -153,3 +162,13 @@ custom_minimum_size = Vector2(320, 124)
 layout_mode = 2
 theme_override_font_sizes/font_size = 38
 text = "Main Menu"
+
+[node name="FooterSpacer" type="Control" parent="Margin/VBox/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="RegionTabs" type="HBoxContainer" parent="Margin/VBox/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 16

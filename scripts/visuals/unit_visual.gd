@@ -1,5 +1,6 @@
 class_name UnitVisual
 extends Node2D
+signal heavy_step(world_position: Vector2)
 ## Animation interface for units, drawn by a child InkFigure ("Figure").
 ## Gameplay only calls set_facing / play_state / flash_hit / set_blinking / set_tint, so the art
 ## can change without touching combat logic. Every frame the live pose blends toward the pose of
@@ -43,6 +44,9 @@ const BLEND_SETTLE: float = 14.0
 @export var figure_kind: InkFigure.Kind = InkFigure.Kind.SAMURAI
 ## Figure height in pixels.
 @export var figure_height: float = 110.0
+## Battle scenes opt in to a modest enlargement. Collision shapes, attack
+## reach and UI icon fixtures keep their authored sizes.
+@export var presentation_scale: float = 1.0
 ## Draw a ring in the figure's accent on the ground under it (the player, so it reads in a crowd).
 @export var ground_marker: bool = false
 
@@ -72,6 +76,10 @@ var _blinking: bool = false
 var _blink_clock: float = 0.0
 var _dissolve_spawned: bool = false
 var _afterimages_left: int = 0
+var _boss_motion: BossSwordMotion = BossSwordMotion.new()
+var _boss_trail: SlashTrail
+var _boss_bases: PackedVector2Array = PackedVector2Array()
+var _boss_tips: PackedVector2Array = PackedVector2Array()
 ## Seconds of blending left before the pose has settled on its target (see BLEND_SETTLE).
 var _blend_left: float = 0.0
 
@@ -143,6 +151,7 @@ func configure(kind: InkFigure.Kind, height: float) -> float:
 	if vary:
 		height *= size_variation
 	_figure.height = height
+	_figure.scale = Vector2.ONE * get_presentation_scale() * (1.0 + 0.035 * float(_figure.rage - 1))
 	_figure.kind = kind
 	_apply_crowd_look()
 	_figure.ground_marker = Color(InkPalette.SAMURAI_RED, 0.85) if ground_marker else Color(0.0, 0.0, 0.0, 0.0)
@@ -153,11 +162,16 @@ func configure(kind: InkFigure.Kind, height: float) -> float:
 	_spring.stop()
 	_pose.copy_from(_target)
 	_apply()
-	return _figure.get_head_top_y()
+	return _figure.get_head_top_y() * _figure.scale.y
 
 
 func get_figure() -> InkFigure:
 	return _figure
+
+
+func get_presentation_scale() -> float:
+	# These are already tall enough to fill the touch battle's usable height.
+	return 1.0 if figure_kind in [InkFigure.Kind.FALLEN_DAIMYO, InkFigure.Kind.BURNING_GENERAL] else presentation_scale
 
 
 func get_state() -> StringName:
@@ -173,6 +187,7 @@ func set_facing(direction: int) -> void:
 func play_state(state: StringName) -> void:
 	if state == _state:
 		return
+	if state in [&"dead", &"hurt", &"run", &"spawn"]: end_boss_attack()
 	if not STATES.has(state):
 		push_warning("UnitVisual: unknown state '%s'." % state)
 		return
@@ -209,7 +224,7 @@ func play_state(state: StringName) -> void:
 	_feel = FigureKinds.feel(figure_kind, state, _heavy)
 	if state == &"strike":
 		_last_strike_time = _time
-		_spawn_slash(swing_from, _target)
+		if not _boss_motion.active: _spawn_slash(swing_from, _target)
 	if not _figure.spec.springy and (state == &"hurt" or state == &"strike" or state == &"dash"):
 		# Snap most of the way so the change reads on the very next frame.
 		_pose.blend_toward(_target, 0.55)
@@ -221,10 +236,26 @@ func play_ultimate_strike() -> void:
 	play_state(&"strike")
 
 
+func play_boss_attack_stage(kind: BossAttackData.Kind, stage: StringName, duration: float) -> void:
+	_boss_motion.begin(stage, kind, duration, _pose)
+	_spring.stop()
+	var state: StringName = &"strike" if stage == &"strike" else &"idle" if stage == &"recover" else &"heavy_windup" if kind in [BossAttackData.Kind.SLAM, BossAttackData.Kind.LEAP] else &"windup" if kind == BossAttackData.Kind.SWEEP else &"cast"
+	play_state(state)
+	if stage == &"windup":
+		_boss_bases.clear()
+		_boss_tips.clear()
+
+
+func end_boss_attack() -> void:
+	if _boss_motion.active:
+		_boss_motion.active = false
+		_spring.stop()
+
+
 ## A boss's phase (1..3): its lights burn brighter and it grows a little (the visual change of a phase).
 func set_rage(level: int) -> void:
 	_figure.rage = clampi(level, 1, 3)
-	_figure.scale = Vector2.ONE * (1.0 + 0.035 * float(_figure.rage - 1))
+	_figure.scale = Vector2.ONE * get_presentation_scale() * (1.0 + 0.035 * float(_figure.rage - 1))
 
 
 ## Brief, partial lightening so damage is visible without losing the silhouette.
@@ -271,7 +302,9 @@ func set_tint(color: Color) -> void:
 func _process(delta: float) -> void:
 	_time += delta
 	_state_time += delta
-	if _figure != null and _figure.spec.springy:
+	if _boss_motion.active:
+		_boss_motion.step(_pose, delta)
+	elif _figure != null and _figure.spec.springy:
 		if _state == &"shoot" and _figure.spec.has_back_bow:
 			# The Bow is keyframed on the clock of the shot, not sprung.
 			_pose.copy_from(FigureKinds.samurai_shoot(_state_time))
@@ -283,7 +316,29 @@ func _process(delta: float) -> void:
 		_pose.blend_toward(_target, 1.0 - exp(-_blend_rate() * delta))
 	_update_motion(delta)
 	if is_on_screen():
+		_figure.weapon_behind_body = _boss_motion.active and _pose.blade < -1.8
 		_apply()
+		_tick_boss_trail()
+
+
+func _tick_boss_trail() -> void:
+	if not _boss_motion.active: return
+	var cutting: bool = _boss_motion.stage == &"strike" or (_boss_motion.stage in [&"windup", &"air"] and _boss_motion._kind != BossAttackData.Kind.SUMMON and _boss_motion._elapsed > _boss_motion._duration - 0.12)
+	if not cutting: return
+	var base: Vector2 = _figure.get_weapon_point(_figure.spec.trail_span.x)
+	var tip: Vector2 = _figure.get_weapon_point(_figure.spec.trail_span.y)
+	if not _boss_tips.is_empty() and _boss_tips[-1].distance_to(tip) < 1.0: return
+	_boss_bases.append(base)
+	_boss_tips.append(tip)
+	if _boss_tips.size() > 10:
+		_boss_tips.remove_at(0)
+		_boss_bases.remove_at(0)
+	if not is_instance_valid(_boss_trail) or _boss_trail.is_queued_for_deletion():
+		_boss_trail = SlashTrail.new()
+		add_child(_boss_trail)
+	_boss_trail.setup(_boss_bases, _boss_tips, _figure.spec.trail_core, _figure.spec.accent, true)
+	_boss_trail.age = 0.0
+	_boss_trail.queue_redraw()
 
 
 ## True when the figure is on screen or near it (off-screen figures skip posing).
@@ -334,10 +389,17 @@ func _update_motion(delta: float) -> void:
 	var settle: float = 1.0 - exp(-10.0 * delta)
 	fig.stride = lerpf(fig.stride, 1.0 if running else 0.0, settle)
 	fig.trail = lerpf(fig.trail, 1.0 if running or _state == &"dash" else 0.0, 1.0 - exp(-4.0 * delta))
-	var locomotion: bool = running or _state == &"idle" or _state == &""
+	var locomotion: bool = (running or _state == &"idle" or _state == &"") and not _boss_motion.active
 	if locomotion:
 		var frame: Transform2D = fig.global_transform * Transform2D(0.0, Vector2.ONE * fig.get_unit_scale(), 0.0, Vector2.ZERO)
+		var heavy: bool = figure_kind in [InkFigure.Kind.FALLEN_DAIMYO, InkFigure.Kind.BURNING_GENERAL]
+		var front_planted: bool = fig.gait.planted[0]
+		var back_planted: bool = fig.gait.planted[1]
 		fig.gait.step(frame, fig.spec, delta)
+		if heavy and running:
+			for side: int in 2:
+				if fig.gait.planted[side] and not (front_planted if side == 0 else back_planted):
+					heavy_step.emit(frame * fig.gait.targets[side])
 		fig.stride_phase = fig.gait.phase * TAU
 		fig.bob = fig.gait.bob
 	else:
@@ -397,7 +459,7 @@ func _apply() -> void:
 	var live: FigurePose = _figure.pose
 	live.copy_from(_pose)
 	var calm: float = 1.0 - _figure.stride
-	if _state == &"idle" or _state == &"run":
+	if (_state == &"idle" or _state == &"run") and not _boss_motion.active:
 		_apply_idle(live, calm)
 		_apply_event(live)
 	if _state == &"run":

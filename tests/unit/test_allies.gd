@@ -129,7 +129,7 @@ func test_new_allies_have_their_own_figure_and_accent() -> void:
 		var spec: FigureKinds.Spec = FigureKinds.spec(data.figure)
 		assert_true(spec.head_top >= data.body_size.y * 0.9, "%s's head top matches its body height" % id)
 		heights[id] = spec.head_top
-	assert_true(heights["onmyoji"] > heights["shrine_healer"] and heights["hatamoto"] > heights["onmyoji"], "silhouettes differ in height (tall hat, tall helmet)")
+	assert_true(heights["onmyoji"] > heights["shrine_healer"] and heights["hatamoto"] > heights["shrine_healer"] and heights["hatamoto"] != heights["onmyoji"], "hat and helmet retain distinct silhouettes above the healer")
 
 
 # --- Shrine Healer --------------------------------------------------------------

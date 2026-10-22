@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scenes/main_menu/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="2_settings"]
 [ext_resource type="PackedScene" path="res://scenes/backdrops/bamboo_outskirts.tscn" id="3_backdrop"]
-[ext_resource type="Script" path="res://scenes/main_menu/title_art.gd" id="4_art"]
+[ext_resource type="Script" path="res://scenes/main_menu/living_title_art.gd" id="4_art"]
 [ext_resource type="Script" path="res://scripts/ui/brush_stroke.gd" id="5_stroke"]
 [ext_resource type="Script" path="res://scripts/ui/ink_menu_button.gd" id="6_button"]
 

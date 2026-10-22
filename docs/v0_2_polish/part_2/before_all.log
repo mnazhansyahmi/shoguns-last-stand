@@ -1,0 +1,42 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+stage_1 | mode=bot | upgrades=none | wins 3/3 | gate left avg 100% | time avg  82s | player deaths avg 1.0 | allies summoned 12.0, lost 6.0
+    WIN  gate 100%   84s  deaths 1  allies lost 6/12
+    WIN  gate 100%   80s  deaths 1  allies lost 6/12
+    WIN  gate 100%   83s  deaths 1  allies lost 6/12
+stage_2 | mode=bot | upgrades=none | wins 3/3 | gate left avg 100% | time avg 111s | player deaths avg 1.0 | allies summoned 14.0, lost 7.0
+    WIN  gate 100%  112s  deaths 1  allies lost 7/14
+    WIN  gate 100%  115s  deaths 1  allies lost 7/14
+    WIN  gate 100%  108s  deaths 1  allies lost 7/14
+stage_3 | mode=bot | upgrades=none | wins 3/3 | gate left avg 100% | time avg 161s | player deaths avg 3.0 | allies summoned 25.7, lost 23.0
+    WIN  gate 100%  156s  deaths 3  allies lost 22/24
+    WIN  gate 100%  164s  deaths 3  allies lost 23/26
+    WIN  gate 100%  163s  deaths 3  allies lost 24/27
+stage_4 | mode=bot | upgrades=none | wins 3/3 | gate left avg 100% | time avg 259s | player deaths avg 5.7 | allies summoned 41.3, lost 39.3
+    WIN  gate 100%  258s  deaths 6  allies lost 39/41
+    WIN  gate 100%  268s  deaths 6  allies lost 42/44
+    WIN  gate 100%  252s  deaths 5  allies lost 37/39
+stage_5 | mode=bot | upgrades=none | wins 2/3 | gate left avg  51% | time avg 340s | player deaths avg 11.3 | allies summoned 56.3, lost 55.7
+    LOSS gate   0%  337s  deaths 11  allies lost 55/56
+    WIN  gate  70%  335s  deaths 11  allies lost 55/55
+    WIN  gate  85%  348s  deaths 12  allies lost 57/58
+stage_6 | mode=bot | upgrades=none | wins 3/3 | gate left avg 100% | time avg 298s | player deaths avg 7.3 | allies summoned 49.0, lost 47.0
+    WIN  gate 100%  309s  deaths 8  allies lost 49/51
+    WIN  gate 100%  292s  deaths 7  allies lost 46/48
+    WIN  gate 100%  293s  deaths 7  allies lost 46/48
+stage_7 | mode=bot | upgrades=none | wins 3/3 | gate left avg 100% | time avg 307s | player deaths avg 11.0 | allies summoned 51.0, lost 48.7
+    WIN  gate 100%  306s  deaths 11  allies lost 49/51
+    WIN  gate 100%  312s  deaths 11  allies lost 49/52
+    WIN  gate 100%  304s  deaths 11  allies lost 48/50
+stage_8 | mode=bot | upgrades=none | wins 3/3 | gate left avg 100% | time avg 338s | player deaths avg 9.7 | allies summoned 50.3, lost 48.3
+    WIN  gate 100%  308s  deaths 7  allies lost 34/36
+    WIN  gate 100%  356s  deaths 11  allies lost 56/58
+    WIN  gate 100%  350s  deaths 11  allies lost 55/57
+stage_9 | mode=bot | upgrades=none | wins 3/3 | gate left avg 100% | time avg 423s | player deaths avg 13.0 | allies summoned 70.0, lost 68.3
+    WIN  gate 100%  437s  deaths 14  allies lost 71/72
+    WIN  gate 100%  409s  deaths 12  allies lost 66/68
+    WIN  gate 100%  424s  deaths 13  allies lost 68/70
+stage_10 | mode=bot | upgrades=none | wins 1/3 | gate left avg  23% | time avg 485s | player deaths avg 19.7 | allies summoned 80.0, lost 79.3
+    WIN  gate  69%  487s  deaths 20  allies lost 80/81
+    LOSS gate   0%  480s  deaths 19  allies lost 78/78
+    LOSS gate   0%  487s  deaths 20  allies lost 80/81

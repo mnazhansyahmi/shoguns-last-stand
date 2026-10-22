@@ -8,8 +8,9 @@ extends RefCounted
 ## The reed layers carry each vertex's sway weight in the colour alpha for reed_sway.gdshader.
 
 ## New layers are appended so the numbers saved in scenes stay valid.
+## FIRES is the burning village's flame glow (nothing in the bamboo scenery).
 enum Layer { SKY, MOON, DISTANT_MOUNTAINS, MOUNTAINS, MIST_HIGH, HILLS, BAMBOO_FAR, MIST_LOW,
-		BAMBOO_NEAR, GROUND, FRONT_FOG, CLOUDS_HIGH, CLOUDS_LOW, RAYS, REEDS_BACK, REEDS_FRONT }
+		BAMBOO_NEAR, GROUND, FRONT_FOG, CLOUDS_HIGH, CLOUDS_LOW, RAYS, REEDS_BACK, REEDS_FRONT, FIRES }
 
 const GROUND_Y: float = 880.0
 const LEFT: float = -900.0
@@ -29,6 +30,10 @@ static func paint(ci: CanvasItem, layer: Layer, seed_value: int, theme: Atmosphe
 	# Shapes collect into one batch (one draw call); it is flushed before soft washes that
 	# must draw on top of shapes already added, to keep the layering.
 	var b: InkBatch = InkBatch.new()
+	# Region 2 paints its village in place of the hills and bamboo (BurningVillagePainter).
+	if t.scenery == AtmosphereTheme.Scenery.BURNING_VILLAGE and BurningVillagePainter.paint(ci, b, layer, rng, t):
+		b.flush(ci)
+		return
 	match layer:
 		Layer.SKY:
 			_sky(ci, b, t)

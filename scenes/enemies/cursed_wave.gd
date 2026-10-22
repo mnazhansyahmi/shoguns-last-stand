@@ -8,6 +8,8 @@ const MAX_LIFETIME: float = 4.0
 const FADE_DISTANCE: float = 160.0
 const BODY: Vector2 = Vector2(54.0, 130.0)
 
+## A wall of flame (the Burning General) instead of the cursed crescent: the same wave, fire colours. Set before adding.
+var fire: bool = false
 var _direction: float = -1.0
 var _damage: float = 30.0
 var _speed: float = 460.0
@@ -38,6 +40,7 @@ func _ready() -> void:
 	_hitbox = HitboxComponent.new()
 	_hitbox.name = "Hitbox"
 	_hitbox.faction = Faction.Type.ENEMIES
+	_hitbox.fire = fire
 	add_child(_hitbox)
 	var shape_node: CollisionShape2D = CollisionShape2D.new()
 	var rect: RectangleShape2D = RectangleShape2D.new()
@@ -86,12 +89,14 @@ func _draw() -> void:
 	var reversed: PackedVector2Array = inner.duplicate()
 	reversed.reverse()
 	ring.append_array(reversed)
-	batch.fill(ring, Color(InkPalette.INK, 0.9 * strength))
+	var body: Color = InkPalette.ONI_EMBER if fire else InkPalette.INK
+	var accent: Color = InkPalette.HATAMOTO_ORANGE if fire else InkPalette.DAIMYO_CURSE
+	batch.fill(ring, Color(body, 0.9 * strength))
 	var edge: PackedVector2Array = outer.duplicate()
-	batch.stroke(edge, 7.0, 3.0, Color(InkPalette.DAIMYO_CURSE, (0.7 + 0.25 * pulse) * strength))
+	batch.stroke(edge, 7.0, 3.0, Color(accent, (0.7 + 0.25 * pulse) * strength))
 	batch.stroke(edge, 2.6, 1.2, Color(InkPalette.PAPER, 0.8 * strength))
 	# Trailing wisps along the ground.
 	for k: int in 3:
 		var from: Vector2 = Vector2(-10.0 - 26.0 * float(k), -6.0 - 22.0 * float(k))
-		batch.stroke(PackedVector2Array([from, from + Vector2(-60.0, 8.0)]), 5.0, 1.0, Color(InkPalette.DAIMYO_CURSE, (0.3 - 0.07 * float(k)) * strength))
+		batch.stroke(PackedVector2Array([from, from + Vector2(-60.0, 8.0)]), 5.0, 1.0, Color(accent, (0.3 - 0.07 * float(k)) * strength))
 	batch.draw(self)

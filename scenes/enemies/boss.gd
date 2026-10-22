@@ -39,6 +39,8 @@ var _telegraphs: Array[AttackTelegraph] = []
 var _minions: Array[Enemy] = []
 var _leap_x: float = 0.0
 var _summon_xs: PackedFloat32Array = PackedFloat32Array()
+## Where the pillars of an ERUPTION will burst (chosen at the wind-up, under the warnings).
+var _pillar_xs: PackedFloat32Array = PackedFloat32Array()
 
 
 func _ready() -> void:
@@ -53,7 +55,17 @@ func _ready() -> void:
 	_health_bar.stagger = false
 	_health_bar.visible = false
 	_visual.set_rage(1)
+	_visual.heavy_step.connect(_on_heavy_step)
 	boss_health_changed.emit(_health.current_health, _health.max_health)
+
+
+func _on_heavy_step(at: Vector2) -> void:
+	if is_dead() or not _visual.is_on_screen(): return
+	var dust: BossFootDust = BossFootDust.new()
+	get_parent().add_child(dust)
+	dust.global_position = at
+	AudioManager.play(&"boss_footstep", 0.72)
+	if is_instance_valid(BattleFeedback.active): BattleFeedback.active.shake(1.8, 0.09)
 
 
 func get_health() -> HealthComponent:
@@ -237,6 +249,7 @@ func _begin_attack(attack: BossAttackData) -> void:
 	_cooldowns[attack.id] = attack.cooldown / _speed_factor()
 	_repeats_left = _repeat_count(attack)
 	_change_state(State.ATTACK)
+	_aim()
 	_start_windup(1.0)
 
 
@@ -249,7 +262,6 @@ func _start_windup(length_factor: float) -> void:
 	_step = Step.WINDUP
 	_step_time = 0.0
 	_step_length = _current.windup * length_factor / _speed_factor()
-	_aim()
 	_clear_telegraphs()
 	match _current.kind:
 		BossAttackData.Kind.SWEEP:
@@ -271,6 +283,12 @@ func _start_windup(length_factor: float) -> void:
 			_summon_xs = _summon_positions(_current)
 			for x: float in _summon_xs:
 				_telegraph(AttackTelegraph.Shape.ELLIPSE, Vector2(x, global_position.y - 2.0), Vector2(110.0, 40.0))
+		BossAttackData.Kind.ERUPTION:
+			_visual.play_state(&"cast")
+			_pillar_xs = _pillar_positions(_current)
+			for x: float in _pillar_xs:
+				_telegraph(AttackTelegraph.Shape.ELLIPSE, Vector2(x, global_position.y - 2.0), Vector2(_current.pillar_size.x * 1.2, 46.0))
+	_visual.play_boss_attack_stage(_current.kind, &"windup", _step_length)
 
 
 func _process_attack(delta: float) -> void:
@@ -286,7 +304,7 @@ func _process_attack(delta: float) -> void:
 				_step = Step.RECOVER
 				_step_time = 0.0
 				_step_length = _current.recovery / _speed_factor()
-				_visual.play_state(&"idle")
+				_visual.play_boss_attack_stage(_current.kind, &"recover", _step_length)
 		Step.AIR:
 			if (_step_time > 0.25 and is_on_floor()) or _step_time > LEAP_AIR_TIME * 3.0:
 				_land()
@@ -302,15 +320,23 @@ func _process_attack(delta: float) -> void:
 ## The wind-up is over: the attack lands.
 func _fire() -> void:
 	_clear_telegraphs()
+	if data.figure == InkFigure.Kind.BURNING_GENERAL:
+		var blaze: PaintedFireBurst = PaintedFireBurst.new()
+		blaze.trail = true
+		blaze.span = Vector2(380, 125)
+		blaze.duration = 0.55
+		get_parent().add_child(blaze)
+		blaze.global_position = global_position + Vector2(facing * 120.0, -70.0)
+		blaze.scale.x = facing
 	match _current.kind:
 		BossAttackData.Kind.SWEEP:
 			_activate_hitbox(_current, true)
-			_visual.play_state(&"strike")
+			_sword_strike()
 			AudioManager.play(&"sword_swing", 0.7)
 			_begin_active()
 		BossAttackData.Kind.SLAM:
 			_activate_hitbox(_current, false)
-			_visual.play_state(&"strike")
+			_sword_strike()
 			_spawn_ring(_current.hitbox_size.x * 0.5)
 			_impact_feedback(8.0)
 			_begin_active()
@@ -318,7 +344,7 @@ func _fire() -> void:
 			_launch_leap()
 		BossAttackData.Kind.WAVE:
 			_spawn_wave()
-			_visual.play_state(&"strike")
+			_sword_strike()
 			AudioManager.play(&"magic_burst", 0.7)
 			_begin_active()
 		BossAttackData.Kind.SUMMON:
@@ -327,12 +353,22 @@ func _fire() -> void:
 			minions_requested.emit(_current.summon_enemy, _summon_xs)
 			_spawn_ring(300.0)
 			_begin_active()
+		BossAttackData.Kind.ERUPTION:
+			_spawn_pillars()
+			_sword_strike()
+			_impact_feedback(7.0)
+			AudioManager.play(&"explosion", 0.8)
+			_begin_active()
 
 
 func _begin_active() -> void:
 	_step = Step.ACTIVE
 	_step_time = 0.0
 	_step_length = maxf(_current.active_time / _speed_factor(), 0.12)
+
+
+func _sword_strike() -> void:
+	_visual.play_boss_attack_stage(_current.kind, &"strike", maxf(_current.active_time / _speed_factor(), 0.16))
 
 
 func _finish_attack() -> void:
@@ -343,6 +379,7 @@ func _finish_attack() -> void:
 
 ## Ends everything in progress (a phase change, or death).
 func _cancel_attack() -> void:
+	_visual.end_boss_attack()
 	_hitbox.deactivate()
 	_clear_telegraphs()
 	_current = null
@@ -373,14 +410,14 @@ func _launch_leap() -> void:
 	velocity.x = (_leap_x - global_position.x) / air_time
 	_step = Step.AIR
 	_step_time = 0.0
-	_visual.play_state(&"heavy_windup")
+	_visual.play_boss_attack_stage(_current.kind, &"air", air_time)
 	AudioManager.play(&"dash", 0.6)
 
 
 func _land() -> void:
 	velocity.x = 0.0
 	_activate_hitbox(_current, false)
-	_visual.play_state(&"strike")
+	_sword_strike()
 	_spawn_ring(_current.hitbox_size.x * 0.5)
 	_impact_feedback(10.0)
 	_begin_active()
@@ -391,7 +428,26 @@ func _spawn_wave() -> void:
 	var damage: float = data.attack_damage * _current.damage_multiplier * get_phase_data().damage_multiplier
 	wave.setup(facing, damage, _current.projectile_speed * _speed_factor(), _current.projectile_range, _current.knockback, self,
 			global_position + Vector2(facing * 90.0, 0.0))
+	wave.fire = _current.fire
 	get_parent().add_child(wave)
+
+
+## The pillars of fire, centred on the target (or ahead of him without one), spread pillar_spacing apart.
+func _pillar_positions(attack: BossAttackData) -> PackedFloat32Array:
+	var centre: float = _target_x(_target) if _has_valid_target() else global_position.x + facing * 300.0
+	var xs: PackedFloat32Array = PackedFloat32Array()
+	for i: int in attack.pillar_count:
+		xs.append(centre + (float(i) - float(attack.pillar_count - 1) * 0.5) * attack.pillar_spacing)
+	return xs
+
+
+func _spawn_pillars() -> void:
+	var damage: float = data.attack_damage * _current.damage_multiplier * get_phase_data().damage_multiplier
+	for x: float in _pillar_xs:
+		var pillar: FirePillar = FirePillar.new()
+		pillar.setup(damage, _current.knockback, _current.pillar_size, maxf(_current.active_time / _speed_factor(), 0.15), self)
+		get_parent().add_child(pillar)
+		pillar.global_position = Vector2(x, global_position.y)
 
 
 ## Where summoned soldiers will rise: both sides of him, close to the ground warning rings.

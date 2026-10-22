@@ -10,6 +10,7 @@ var gold: int = 0
 var xp: int = 0
 var upgrade_levels: Dictionary = {}
 var stages_cleared: Array[String] = []
+var seen_enemy_ids: Array[String] = []
 var battles_played: int = 0
 var victories: int = 0
 var defeats: int = 0
@@ -71,6 +72,7 @@ func to_dict() -> Dictionary:
 		"level": get_level(),
 		"upgrades": upgrade_levels.duplicate(),
 		"stages_cleared": Array(stages_cleared),
+		"seen_enemies": Array(seen_enemy_ids),
 		"last_stage": last_stage_id,
 		"stats": {
 			"battles": battles_played,
@@ -87,6 +89,7 @@ func duplicate_progress() -> PlayerProgress:
 	copy.xp = xp
 	copy.upgrade_levels = upgrade_levels.duplicate()
 	copy.stages_cleared = stages_cleared.duplicate()
+	copy.seen_enemy_ids = seen_enemy_ids.duplicate()
 	copy.battles_played = battles_played
 	copy.victories = victories
 	copy.defeats = defeats

@@ -21,6 +21,9 @@ extends Camera2D
 var target: Node2D
 
 var _base_y: float = 540.0
+var _screen_lift: float = 0.0
+var _boss_header: float = 0.0
+var _boss_envelope: float = 0.0
 
 
 func _ready() -> void:
@@ -31,18 +34,32 @@ func _ready() -> void:
 
 ## Recomputes the resting height (call when the viewport size changes).
 func update_base() -> void:
-	_base_y = ground_y - (ground_screen_fraction - 0.5) * get_viewport_rect().size.y / battle_zoom
-	position.y = _base_y
+	var view: Vector2 = get_viewport_rect().size
+	var fitted_zoom: float = battle_zoom
+	if _boss_envelope > 0:
+		var room: float = ground_screen_fraction * view.y - _screen_lift - _boss_header - 24.0
+		fitted_zoom = minf(battle_zoom, maxf(room / _boss_envelope, 0.15))
+	zoom = Vector2.ONE * fitted_zoom
+	_base_y = ground_y - (ground_screen_fraction - 0.5) * view.y / fitted_zoom
+	position.y = _base_y + _screen_lift / fitted_zoom
+
+
+## Reserve the top header above the boss body and its highest leap.
+func set_boss_headroom(header_bottom: float, envelope: float) -> void:
+	_boss_header = header_bottom
+	_boss_envelope = envelope
+	update_base()
 
 
 ## Screen y of the ground line before any lift.
 func get_ground_screen_y() -> float:
-	return (ground_y - _base_y) * battle_zoom + get_viewport_rect().size.y * 0.5
+	return ground_screen_fraction * get_viewport_rect().size.y
 
 
 ## Moves the view down by `screen_lift` screen pixels (the world goes up by that much).
 func set_lift(screen_lift: float) -> void:
-	position.y = _base_y + screen_lift / battle_zoom
+	_screen_lift = screen_lift
+	update_base()
 
 
 ## Current lift in world units.
@@ -52,7 +69,7 @@ func get_lift() -> float:
 
 ## World size the screen shows.
 func get_view_size() -> Vector2:
-	return get_viewport_rect().size / battle_zoom
+	return get_viewport_rect().size / zoom.x
 
 
 ## World rect the screen shows right now (includes screen shake).

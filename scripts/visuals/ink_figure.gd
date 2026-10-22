@@ -8,7 +8,8 @@ extends Node2D
 ## Soldier's hem are repainted. Feet are at the origin and the figure faces +x; the parent
 ## mirrors it for facing left. Glowing spots are additive child parts that fade by alpha.
 
-enum Kind { SAMURAI, ASHIGARU, YUMI_ARCHER, HOLLOW_SOLDIER, ONI_BRUTE, SHRINE_HEALER, SPEAR_GUARDIAN, ONMYOJI, HATAMOTO, FALLEN_DAIMYO }
+enum Kind { SAMURAI, ASHIGARU, YUMI_ARCHER, HOLLOW_SOLDIER, ONI_BRUTE, SHRINE_HEALER, SPEAR_GUARDIAN, ONMYOJI, HATAMOTO, FALLEN_DAIMYO,
+	SPECTRAL_ARCHER, SHIELD_BEARER, FLYING_SPIRIT, BURNING_GENERAL }
 
 ## Figure units per figure height (all proportions are authored at height 100).
 const UNIT: float = 100.0
@@ -44,6 +45,8 @@ var gait_enabled: bool = false
 var upright: bool = false
 ## Presentation-only equipment choice; combat figures show the stowed yumi by default.
 var show_stowed_bow: bool = true
+var weapon_behind_body: bool = false
+var _weapon_rest_index: int = -1
 var stride: float = 0.0
 var stride_phase: float = 0.0
 var bob: float = 0.0
@@ -94,6 +97,9 @@ var secondary: SecondaryMotion
 var _secondary_clock: float = 0.0
 var _cloth_redraw_frame: int = -1
 var _parts: Array[FigurePart] = []
+## Parts hidden permanently by the painted roster keep their nodes for tools,
+## but never need a transform update or a redraw.
+var _active_parts: Array[FigurePart] = []
 var _part_slots: PackedInt32Array = PackedInt32Array()
 var _dynamic_parts: Array[FigurePart] = []
 var _fall_glows: Array[FigurePart] = []
@@ -120,6 +126,7 @@ var _upper_front: Transform2D
 var _fore_front: Transform2D
 var _upper_back: Transform2D
 var _fore_back: Transform2D
+var _onryo_paint: Sprite2D
 
 
 func _ready() -> void:
@@ -148,7 +155,7 @@ func set_kind(value: Kind) -> void:
 	gait.reset()
 	_arm_front_key = Vector2(INF, INF)
 	_arm_back_key = Vector2(INF, INF)
-	secondary = SecondaryMotion.new(spec.loose_armour) if spec.cloth or spec.loose_armour else null
+	secondary = SecondaryMotion.new(spec.loose_armour) if (spec.cloth or spec.loose_armour) and value != Kind.FLYING_SPIRIT else null
 	pose.copy_from(FigureKinds.pose(value, &"idle"))
 	if is_inside_tree():
 		_build_parts()
@@ -253,14 +260,30 @@ func refresh() -> void:
 	weapon_xf = torso_xf * weapon_local
 	_rest_weapon_on_ground()
 	weapon_local = torso_xf.affine_inverse() * weapon_xf
+	var bow_hands: bool = FigureKinds.animation_kind(kind) == Kind.YUMI_ARCHER or (spec.has_back_bow and pose.sheathed > 0.5)
+	if not bow_hands and kind != Kind.FLYING_SPIRIT:
+		# During transitions and ground clearance, the two grip targets must remain
+		# inside both arm reach discs. Move the held weapon, never stretch a bone.
+		for pass_index: int in 3:
+			var fitted: Vector2 = weapon_local.origin
+			var reach: float = spec.upper_arm + spec.fore_arm - 0.1
+			fitted = spec.shoulder_front + (fitted - spec.shoulder_front).limit_length(reach)
+			if not is_nan(spec.back_hand_on_weapon.x):
+				var far_center: Vector2 = spec.shoulder_back - weapon_local.basis_xform(spec.back_hand_on_weapon)
+				fitted = far_center + (fitted - far_center).limit_length(reach)
+			if fitted.distance_squared_to(weapon_local.origin) < 0.000001: break
+			weapon_local.origin = fitted
+			weapon_xf = torso_xf * weapon_local
+			_rest_weapon_on_ground()
+			weapon_local = torso_xf.affine_inverse() * weapon_xf
 
-	front_hand = pose.grip
-	var bow_hands: bool = kind == Kind.YUMI_ARCHER or (spec.has_back_bow and pose.sheathed > 0.5)
+	front_hand = weapon_local.origin
 	if not is_nan(spec.back_hand_on_weapon.x) and not bow_hands:
 		back_hand = weapon_local * spec.back_hand_on_weapon
 	elif bow_hands:
-		var nock: Vector2 = weapon_local * Vector2(FigurePainter.bow_nock_x(pose.bow_draw), 0.0)
-		back_hand = pose.back_grip.lerp(nock, clampf(pose.bow_draw * 3.0, 0.0, 1.0))
+		var drawn: float = float(FigurePainter.bow_step(pose.bow_draw)) / float(FigurePainter.BOW_STEPS)
+		var nock: Vector2 = weapon_local * Vector2(FigurePainter.bow_nock_x(drawn), 0.0)
+		back_hand = nock if FigureKinds.animation_kind(kind) == Kind.YUMI_ARCHER else pose.back_grip.lerp(nock, clampf(pose.bow_draw * 3.0, 0.0, 1.0))
 		back_hand = back_hand.lerp(Vector2(-12.0, -30.0), pose.release)
 	else:
 		back_hand = pose.back_grip
@@ -278,29 +301,45 @@ func refresh() -> void:
 		_fore_back = _segment_xf(Transform2D.IDENTITY, back_elbow, back_hand, spec.fore_arm)
 
 	_step_secondary()
+	if is_instance_valid(_onryo_paint):
+		var ghost_scale: float = height / float(_onryo_paint.texture.get_height())
+		_onryo_paint.scale = Vector2.ONE * ghost_scale
+		_onryo_paint.position.y = -sin(clock * 2.1) * 5.0 * (0.15 if GameSettings.reduced_decorative_motion else 1.0)
+		(_onryo_paint.material as ShaderMaterial).set_shader_parameter("motion", 0.15 if GameSettings.reduced_decorative_motion else 1.0)
 	if _parts.is_empty():
 		return
 	_update_slots()
 	var to_figure: Transform2D = global_transform.affine_inverse() if not _dynamic_parts.is_empty() else Transform2D.IDENTITY
-	for i: int in _parts.size():
-		_parts[i].transform = _slot_xf[_part_slots[i]]
+	for i: int in _active_parts.size():
+		var part: FigurePart = _active_parts[i]
+		if part.part_name == &"weapon":
+			if weapon_behind_body:
+				var torso: Node = get_node("torso")
+				if part.get_index() > torso.get_index(): move_child(part, torso.get_index())
+			elif _weapon_rest_index >= 0 and part.get_index() != _weapon_rest_index:
+				move_child(part, _weapon_rest_index)
+		var frame: Transform2D = _slot_xf[_part_slots[i]]
 		# Repaint may be 30 Hz, but the root stays attached to the moving bone
 		# every frame. Cached local ribbon vertices follow this pinned origin.
 		if secondary != null:
 			var chain: ClothChain
-			match _parts[i].part_name:
+			match part.part_name:
 				&"tails":
 					if not secondary.scarf.is_empty(): chain = secondary.scarf[0]
 				&"sleeve_f": chain = secondary.sleeve_front
 				&"sleeve_b": chain = secondary.sleeve_back
 			if chain != null and not chain.points.is_empty():
-				_parts[i].position = to_figure * chain.points[0]
-		if secondary != null and kind == Kind.SHRINE_HEALER and _parts[i].part_name == &"mane":
+				frame.origin = to_figure * chain.points[0]
+		if secondary != null and kind == Kind.SHRINE_HEALER and part.part_name == &"mane":
 			var tie: Vector2 = Vector2(-6.0, -10.0)
-			_parts[i].transform *= Transform2D(0.0, tie) * Transform2D(secondary.ornament.value * 1.5, Vector2.ZERO) * Transform2D(0.0, -tie)
-		if secondary != null and kind == Kind.HATAMOTO and _parts[i].part_name in [&"banner", &"hem"]:
+			frame *= Transform2D(0.0, tie) * Transform2D(secondary.ornament.value * 1.5, Vector2.ZERO) * Transform2D(0.0, -tie)
+		if secondary != null and kind == Kind.HATAMOTO and part.part_name in [&"banner", &"hem"]:
 			var pole: Vector2 = Vector2(-11.0, -12.0)
-			_parts[i].transform *= Transform2D(0.0, pole) * Transform2D(secondary.ornament.value * 0.3, Vector2.ZERO) * Transform2D(0.0, -pole)
+			frame *= Transform2D(0.0, pole) * Transform2D(secondary.ornament.value * 0.3, Vector2.ZERO) * Transform2D(0.0, -pole)
+		# One final transform avoids invalidating the cloth's global transform
+		# twice, and an unchanged frame need not invalidate its whole subtree.
+		if part.transform != frame:
+			part.transform = frame
 	# Ally ornaments need less repaint work than body poses. Physics and anchors
 	# still advance at the full rate; the player's hair remains full-rate too.
 	var cloth_frame: int = int(clock * 30.0)
@@ -322,7 +361,7 @@ func refresh() -> void:
 			_weapon_part.visible = not drawing
 		if _back_bow_part != null:
 			_back_bow_part.visible = show_stowed_bow and pose.bow_out < 0.5
-	if _hem_part != null:
+	if _hem_part != null and _hem_part.art == null and _hem_part.visible:
 		var own_hem: bool = kind == Kind.HOLLOW_SOLDIER
 		var key: int = FigurePainter.hem_key(self) if own_hem else FigureTatters.key(self)
 		if key != _hem_key:
@@ -501,6 +540,8 @@ static func _segment_xf(space: Transform2D, a: Vector2, b: Vector2, length: floa
 
 ## The figure node itself draws only the ground shadow, once (it doesn't follow the pose).
 func _draw() -> void:
+	if kind == Kind.FLYING_SPIRIT:
+		return # A ground shadow must not travel up with its airborne figure pivot.
 	var shadow: InkBatch = FigurePainter.part(kind, &"shadow")
 	if shadow != null:
 		var s: float = get_unit_scale()
@@ -510,13 +551,17 @@ func _draw() -> void:
 
 ## (Re)creates the part nodes for the current kind, back to front.
 func _build_parts() -> void:
+	if is_instance_valid(_onryo_paint):
+		_onryo_paint.free()
+		_onryo_paint = null
 	# Anisotropic mip sampling preserves folds on the non-uniform torso/limb
 	# frames without the crawling fine grain of unfiltered minification.
-	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC if kind == Kind.SAMURAI else CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	queue_redraw()
 	for part: FigurePart in _parts:
 		part.free()
 	_parts.clear()
+	_active_parts.clear()
 	_part_slots.resize(0)
 	_dynamic_parts.clear()
 	_cloth_redraw_frame = -1
@@ -582,6 +627,10 @@ func _build_parts() -> void:
 			part.art = RosterSpriteArt.texture(kind, part_name)
 			part.art_frame = RosterSpriteArt.frame(kind, part_name)
 			part.material = Atmosphere.painted_rim_material()
+			if part_name == &"hem":
+				# Keep its painted silhouette for geometry checks. The artwork draws
+				# directly; rebuilding an invisible procedural hem cannot change it.
+				part.batch = FigurePainter.part(kind, part_name)
 		elif RosterSpriteArt.NAMES.has(kind) and part.dynamic:
 			part.material = Atmosphere.painted_rim_material()
 		if RosterSpriteArt.NAMES.has(kind) and part_name == &"mane":
@@ -607,6 +656,7 @@ func _build_parts() -> void:
 		elif kind == Kind.SAMURAI and part_name == &"hem":
 			# A flat ink coat-tail behind his painted skirt, which has its own torn hem.
 			part.visible = false
+			part.batch = FigureTatters.batch(kind, 0)
 		if part_name == &"grip_b" and by_name.has(&"fore_b"):
 			# The back hand's fingers over the hilt it grips: the fist end of the back forearm's layer, drawn again.
 			var fore: FigurePart = by_name[&"fore_b"]
@@ -622,9 +672,28 @@ func _build_parts() -> void:
 		elif part_name in [&"bow", &"yumi_back"]:
 			part.material = Atmosphere.painted_rim_material()
 		add_child(part)
+		if part.part_name == &"weapon": _weapon_rest_index = part.get_index()
+		if kind == Kind.FLYING_SPIRIT:
+			part.visible = false
 		_parts.append(part)
-		_part_slots.append(FigurePainter.SLOTS[part_name])
+		var permanent_hidden: bool = kind == Kind.FLYING_SPIRIT or (RosterSpriteArt.NAMES.has(kind) and part_name in [&"mane", &"pauldron_front", &"pauldron_back"]) or (kind == Kind.SAMURAI and part_name == &"hem")
+		if not permanent_hidden:
+			_active_parts.append(part)
+			_part_slots.append(FigurePainter.SLOTS[part_name])
+		elif part.dynamic:
+			_dynamic_parts.erase(part)
 		by_name[part_name] = part
+	if kind == Kind.FLYING_SPIRIT:
+		_onryo_paint = Sprite2D.new()
+		_onryo_paint.name = "OnryoPainting"
+		_onryo_paint.texture = preload("res://assets/art/roster/onryo_full.png")
+		_onryo_paint.centered = false
+		_onryo_paint.offset = -_onryo_paint.texture.get_size() * Vector2(0.62, 0.97)
+		var paint: ShaderMaterial = ShaderMaterial.new()
+		paint.shader = preload("res://scripts/visuals/shaders/onryo.gdshader")
+		paint.set_shader_parameter("phase", flicker_phase)
+		_onryo_paint.material = paint
+		add_child(_onryo_paint)
 	_apply_bare_head()
 	for definition: Dictionary in FigurePainter.glows(kind):
 		var glow: FigurePart = FigurePart.new()

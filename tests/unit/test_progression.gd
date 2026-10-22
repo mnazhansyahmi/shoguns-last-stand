@@ -141,17 +141,18 @@ func _upgraded_progress() -> PlayerProgress:
 	return progress
 
 
-func test_spirit_capacity_adds_25_energy_per_level_for_four_levels() -> void:
+func test_spirit_capacity_preserves_original_tiers_and_adds_region_two_levels() -> void:
 	var upgrade: UpgradeData = CATALOG.find("spirit_capacity")
 	assert_true(upgrade != null, "the shop has a Spirit Capacity upgrade")
 	if upgrade == null:
 		return
 	assert_eq(upgrade.display_name, "Spirit Capacity", "named Spirit Capacity")
 	assert_eq(upgrade.target, UpgradeData.Target.SPIRIT_ENERGY, "it upgrades the Spirit Energy")
-	assert_eq(upgrade.max_level, 4, "four levels")
+	assert_eq(upgrade.region_1_cap, 4, "four original levels")
+	assert_eq(upgrade.max_level, 6, "two additional Region 2 levels")
 	assert_almost_eq(upgrade.amount_per_level, 25.0, "+25 a level")
 	assert_true(upgrade.describe_bonus(2).contains("50"), "the shop shows the total (%s)" % upgrade.describe_bonus(2))
-	assert_true(upgrade.get_cost(0) > 0 and upgrade.get_cost(3) > upgrade.get_cost(0) and upgrade.get_cost(4) == -1, "it costs more each level and stops at four")
+	assert_true(upgrade.get_cost(0) > 0 and upgrade.get_cost(3) > upgrade.get_cost(0) and upgrade.get_cost(6) == -1, "it costs more each level and stops at six")
 	var energy: SpiritEnergy = track(SpiritEnergy.new()) as SpiritEnergy
 	assert_almost_eq(energy.max_energy, 200.0, "the pool starts at 200 (it was 150)")
 	for level: int in range(0, 5):
@@ -160,7 +161,7 @@ func test_spirit_capacity_adds_25_energy_per_level_for_four_levels() -> void:
 		assert_almost_eq(UpgradeApplier.build_spirit_max(200.0, progress, CATALOG), 200.0 + 25.0 * level, "%d levels: %d" % [level, 200 + 25 * level])
 	var beyond: PlayerProgress = PlayerProgress.new()
 	beyond.set_upgrade_level("spirit_capacity", 40)
-	assert_almost_eq(UpgradeApplier.build_spirit_max(200.0, beyond, CATALOG), 300.0, "never past level 4")
+	assert_almost_eq(UpgradeApplier.build_spirit_max(200.0, beyond, CATALOG), 350.0, "never past level 6")
 
 
 func test_the_battle_uses_the_upgraded_spirit_pool() -> void:

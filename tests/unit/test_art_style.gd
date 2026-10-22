@@ -385,21 +385,21 @@ func test_title_samurai_stands_against_the_moon() -> void:
 	menu.set("settings_path", "user://test_saves/title_settings.cfg")
 	add_to_tree(menu)
 	var art: Control = menu.get_node("TitleArt")
-	var samurai: PortraitMotion = art.get_node("Samurai") as PortraitMotion
+	var painting: LivingMenuPainting = art.get_node("ScenePainting") as LivingMenuPainting
 	var moon: Vector2 = art.call(&"get_moon_position")
 	var portrait: Rect2 = art.call(&"get_portrait_rect")
-	assert_true(absf(samurai.position.x - moon.x) < 40.0, "samurai stands under the moon")
+	assert_true(portrait.has_point(moon), "moon and samurai share the composed focal region")
 	assert_true(portrait.position.y < moon.y and portrait.position.y + portrait.size.y * 0.22 > moon.y,
 			"the moon stays behind the portrait's head")
-	assert_true(PortraitMotion.ART != null and samurai.get_child_count() == 0,
-			"the menu uses one full-body painted illustration without limb nodes")
-	assert_true(samurai.scale.x > 0.0 and is_equal_approx(samurai.scale.x, samurai.scale.y),
+	assert_true(LivingMenuPainting.ART != null and painting.get_child_count() == 1 and painting.material == null,
+			"the inpainted scene is static, with one separate alpha character and no limb nodes")
+	assert_true(painting.scale.x > 0.0 and is_equal_approx(painting.scale.x, painting.scale.y),
 			"the painting keeps its anatomical right-hand sword without reflection or distortion")
-	var constants: Dictionary = art.get_script().get_script_constant_map()
-	var rock: Image = (constants["ROCK"] as Texture2D).get_image()
+	var scene: Image = LivingMenuPainting.ART.get_image()
 	for sole: Vector2 in art.call(&"get_foot_contacts"):
-		var pixel: Vector2 = (sole - (art.call(&"get_ledge_position") as Vector2)) / float(constants["ROCK_SCALE"]) + (constants["ROCK_ANCHOR"] as Vector2)
-		assert_true(rock.get_pixelv(Vector2i(pixel)).a > 0.9, "each sandal touches opaque painted stone, not transparent sky")
+		var pixel: Vector2 = (sole - painting.position) / painting.scale
+		assert_true(scene.get_pixelv(Vector2i(pixel)).a > 0.99, "sole and stone belong to the same opaque scene")
+	assert_true(painting.has_node("Character"), "character cutout alone owns the motion shader")
 	var fog: CanvasItem = menu.get_node("Backdrop/FrontFog")
 	assert_true(not fog.visible, "front fog is off behind the menu so it never covers buttons")
 

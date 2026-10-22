@@ -131,3 +131,26 @@ func test_settings_controls_page_opens_returns_and_has_real_gamepad_bindings() -
 		assert_true(has_pad, "%s has the gamepad binding documented in Controls" % action)
 	panel.close()
 	assert_true(not panel.is_open() and not panel.is_controls_open(), "closing dismisses both pages")
+
+
+func test_settings_tabs_group_controls_and_keep_touch_targets() -> void:
+	var panel: SettingsPanel = add_to_tree(load("res://scenes/ui/settings_panel.tscn").instantiate()) as SettingsPanel
+	panel.open(GameSettings.new())
+	var expected: Array[Array] = [["MusicSlider", "SfxSlider"], ["UiScaleSlider", "ShakeToggle", "BloodToggle"],
+		["TouchAutoButton", "LeftHandedToggle", "VibrationToggle", "ResetButton"]]
+	for tab: int in 3:
+		panel.select_tab(tab)
+		assert_eq(int(panel.get_selected_tab()), tab, "native tab selects its own page")
+		for page: int in 3:
+			for control: String in expected[page]:
+				var widget: Control = panel.get_node("%" + control)
+				assert_eq(widget.is_visible_in_tree(), page == tab, control + " appears only on its tab")
+				assert_true(widget.custom_minimum_size.y >= 124, control + " retains the 44pt target")
+	panel.show_controls()
+	panel.show_controls(false)
+	assert_eq(panel.get_selected_tab(), SettingsPanel.Tab.GAMEPLAY, "Controls Back returns to Gameplay")
+	var settings: GameSettings = GameSettings.new()
+	panel.open(settings)
+	panel.select_tab(SettingsPanel.Tab.DISPLAY)
+	(panel.get_node("%BloodToggle") as Button).button_pressed = not settings.blood
+	assert_true(not settings.blood, "display toggles still update the live settings object")

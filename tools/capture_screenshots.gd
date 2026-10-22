@@ -8,6 +8,12 @@ extends SceneTree
 const MAIN_MENU: PackedScene = preload("res://scenes/main_menu/main_menu.tscn")
 const STAGE_SELECT: PackedScene = preload("res://scenes/stage_select/stage_select.tscn")
 const BATTLEFIELD: PackedScene = preload("res://scenes/battlefield/battlefield.tscn")
+
+
+func _staged_field() -> Node:
+	var field: Node = BATTLEFIELD.instantiate()
+	field.set("enemy_briefing_enabled", false)
+	return field
 const HOLLOW: EnemyData = preload("res://data/enemies/hollow_soldier.tres")
 const ONI: EnemyData = preload("res://data/enemies/oni_brute.tres")
 const DATA_DIR: String = "user://screenshots"
@@ -31,7 +37,7 @@ var _fireball: bool = false
 var _cooldowns: bool = false
 ## --black: the kind sheet (--only=kind:<name>) in pure black, to check the silhouette.
 var _black: bool = false
-## --stage=N: play the staged battle on that Region 1 stage (its own sky theme).
+## --stage=N: play the staged battle on that campaign stage (1-10, its own sky theme).
 var _stage_number: int = 1
 
 
@@ -69,12 +75,30 @@ func _initialize() -> void:
 	var settings: GameSettings = GameSettings.new()
 	settings.touch_mode = GameSettings.TouchMode.ALWAYS if _touch else GameSettings.TouchMode.OFF
 	SettingsStore.new(DATA_DIR + "/settings.cfg").save_settings(settings)
+	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+	DisplayServer.window_set_position(Vector2i.ZERO)
 	DisplayServer.window_set_size(size)
 	Engine.max_fps = 60
 	_run.call_deferred()
 
 
 func _run() -> void:
+	if _only == "settings-tabs":
+		var menu: Node = MAIN_MENU.instantiate()
+		menu.set("save_path", DATA_DIR + "/save.json")
+		menu.set("settings_path", DATA_DIR + "/settings.cfg")
+		root.add_child(menu)
+		await _frames(30)
+		var panel: SettingsPanel = menu.get_node("%SettingsPanel")
+		panel.open(GameSettings.new())
+		for tab: int in 3:
+			panel.select_tab(tab)
+			await _frames(10)
+			await _capture("settings_" + SettingsPanel.TAB_NAMES[tab].to_lower())
+		menu.free()
+		await AudioManager.shutdown_audio(self)
+		quit(0)
+		return
 	if _only == "results":
 		await _capture_results()
 		quit(0)
@@ -216,9 +240,9 @@ func _capture_battle() -> void:
 	if not _locked:
 		progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
-	var region: RegionData = StageProgression.default_region()
-	SceneRoutes.battle_stage = region.stages[clampi(_stage_number, 1, region.stages.size()) - 1]
-	var field: Node = BATTLEFIELD.instantiate()
+	var stages: Array[StageData] = StageProgression.all_stages()
+	SceneRoutes.battle_stage = stages[clampi(_stage_number, 1, stages.size()) - 1]
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -303,7 +327,7 @@ func _capture_results() -> void:
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	SceneRoutes.battle_stage = StageProgression.default_region().stages[4]
-	var field: Node = BATTLEFIELD.instantiate()
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -347,7 +371,7 @@ func _capture_hud() -> void:
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	SceneRoutes.battle_stage = StageProgression.default_region().stages[clampi(_stage_number, 1, 5) - 1]
-	var field: Node = BATTLEFIELD.instantiate()
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -460,7 +484,7 @@ func _capture_boss() -> void:
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	SceneRoutes.battle_stage = StageProgression.default_region().stages[4]
-	var field: Node = BATTLEFIELD.instantiate()
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -525,9 +549,9 @@ func _capture_playtest() -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
-	var region: RegionData = StageProgression.default_region()
-	SceneRoutes.battle_stage = region.stages[clampi(_stage_number, 1, region.stages.size()) - 1]
-	var field: Node = BATTLEFIELD.instantiate()
+	var stages: Array[StageData] = StageProgression.all_stages()
+	SceneRoutes.battle_stage = stages[clampi(_stage_number, 1, stages.size()) - 1]
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -614,9 +638,9 @@ func _capture_crowd() -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
-	var region: RegionData = StageProgression.default_region()
-	SceneRoutes.battle_stage = region.stages[clampi(_stage_number, 1, region.stages.size()) - 1]
-	var field: Node = BATTLEFIELD.instantiate()
+	var stages: Array[StageData] = StageProgression.all_stages()
+	SceneRoutes.battle_stage = stages[clampi(_stage_number, 1, stages.size()) - 1]
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -636,12 +660,21 @@ func _capture_crowd() -> void:
 			await _frames(4)
 	player.global_position.x = 760.0
 	var spawned: int = 0
+	var village_foes: Array[EnemyData] = []
+	if _stage_number >= 6:
+		for enemy_name: String in ["spectral_archer", "shield_bearer", "flying_spirit", "burning_general"]:
+			village_foes.append(load("res://data/enemies/%s.tres" % enemy_name) as EnemyData)
 	for i: int in 22:
-		var enemy: Enemy = spawner.spawn(ONI if i % 11 == 5 else HOLLOW)
+		var enemy_data: EnemyData = ONI if i % 11 == 5 else HOLLOW
+		if not village_foes.is_empty():
+			enemy_data = village_foes[i % 3] if i > 0 else village_foes[3]
+		var enemy: Enemy = spawner.spawn(enemy_data)
 		if enemy != null:
 			enemy.global_position.x = 760.0 + 80.0 * float(i % 12) + (i / 12) * 40.0
 			spawned += 1
 	await _frames(170)
+	# The staged crowd starts immediately; remove the opening briefing for the art review.
+	(field.get_node("Hud").get_node("%BriefingLabel") as Label).hide()
 	await _capture("crowd_a")
 	await _frames(120)
 	await _capture("crowd_b")
@@ -903,6 +936,13 @@ func _capture_upgrades() -> void:
 	for pair: Array in [["samurai_max_health", 3], ["samurai_damage", 5], ["ashigaru_health", 2], ["spirit_regen", 1],
 			["samurai_dash_cooldown", 2], ["army_command", 1], ["spirit_capacity", 4]]:
 		progress.set_upgrade_level(pair[0], pair[1])
+	if _stage_number >= 6:
+		progress.gold = 14000
+		progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4", "stage_5"]
+		var catalog: UpgradeCatalog = load("res://data/upgrades/upgrade_catalog.tres")
+		for upgrade: UpgradeData in catalog.upgrades:
+			if upgrade.region_1_cap > 0:
+				progress.set_upgrade_level(upgrade.id, upgrade.region_1_cap)
 	SaveManager.new(DATA_DIR + "/upgrade_save.json").save_progress(progress)
 	var menu: Node = load("res://scenes/upgrade_menu/upgrade_menu.tscn").instantiate()
 	menu.set("save_path", DATA_DIR + "/upgrade_save.json")
@@ -920,6 +960,10 @@ func _capture_upgrades() -> void:
 			(menu.get_node("%Scroll") as ScrollContainer).scroll_vertical = 100000
 			await _frames(8)
 			await _capture("upgrades_tab2_locked")
+		if tab == UpgradeTabs.Tab.ARMY_SPIRIT:
+			(menu.get_node("%Scroll") as ScrollContainer).scroll_vertical = 100000
+			await _frames(8)
+			await _capture("upgrades_defences")
 	menu.free()
 
 
@@ -943,6 +987,15 @@ func _capture_stage_select() -> void:
 	await _frames(12)
 	await _capture("stages_open")
 	select.free()
+	# The Burning Village tab with Region 1 cleared.
+	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "stage_6"] as Array[String]
+	SaveManager.new(DATA_DIR + "/stages_save.json").save_progress(progress)
+	var village: Node = load("res://scenes/stage_select/stage_select.tscn").instantiate()
+	village.set("save_path", DATA_DIR + "/stages_save.json")
+	root.add_child(village)
+	await _frames(20)
+	await _capture("stages_village")
+	village.free()
 
 
 ## The main menu on a fresh save (mid-entrance, then at rest) and on a save with two stages cleared, with a button
@@ -1143,6 +1196,15 @@ func _capture(shot_name: String) -> void:
 	var path: String = _out_dir.path_join(_tag + shot_name + ".png")
 	var error: Error = image.save_png(path)
 	print("%s -> %s (%s)" % [shot_name, ProjectSettings.globalize_path(path), error_string(error)])
+	if shot_name.begins_with("crowd_"):
+		var grayscale: Image = image.duplicate() as Image
+		grayscale.convert(Image.FORMAT_L8)
+		grayscale.save_png(_out_dir.path_join(_tag + shot_name + "_grayscale.png"))
+		# A true 100% pixel crop, without resampling or a different camera zoom.
+		var crop_size: Vector2i = Vector2i(640, 440).min(image.get_size())
+		var crop_at: Vector2i = Vector2i(image.get_width() / 2 - crop_size.x / 2,
+			mini(roundi(image.get_height() * 0.52), image.get_height() - crop_size.y))
+		image.get_region(Rect2i(crop_at, crop_size)).save_png(_out_dir.path_join(_tag + shot_name + "_100pct.png"))
 
 
 func _capture_icons() -> void:
@@ -1186,7 +1248,7 @@ func _capture_healing() -> void:
 	progress.stages_cleared = ["stage_1", "stage_2"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	SceneRoutes.battle_stage = StageProgression.default_region().stages[2]
-	var field: Node = BATTLEFIELD.instantiate()
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)

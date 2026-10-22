@@ -6,6 +6,11 @@ extends SceneTree
 ## script error aborts the test function silently and would otherwise look like a pass.
 
 const TEST_SCRIPTS: Array[String] = [
+	"res://tests/unit/test_boss_sword_motion.gd",
+	"res://tests/unit/test_painted_world.gd",
+	"res://tests/unit/test_readable_enemies.gd",
+	"res://tests/unit/test_enemy_briefing.gd",
+	"res://tests/unit/test_living_menu.gd",
 	"res://tests/unit/test_health_component.gd",
 	"res://tests/unit/test_combat_components.gd",
 	"res://tests/unit/test_summoning.gd",
@@ -45,6 +50,12 @@ const TEST_SCRIPTS: Array[String] = [
 	"res://tests/unit/test_stage_cards.gd",
 	"res://tests/unit/test_motion_smoother.gd",
 	"res://tests/unit/test_battle_hud.gd",
+	"res://tests/unit/test_region_2.gd",
+	"res://tests/unit/test_region_2_enemies.gd",
+	"res://tests/unit/test_region_2_art.gd",
+	"res://tests/unit/test_region_2_upgrades.gd",
+	"res://tests/unit/test_heavy_arms_and_bows.gd",
+	"res://tests/unit/test_oni_armour.gd",
 ]
 
 

@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/enemy_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/resources/attack_profile.gd" id="2_attack"]
+
+[sub_resource type="Resource" id="Resource_attack"]
+script = ExtResource("2_attack")
+damage_multiplier = 1.0
+windup = 0.55
+active_time = 0.15
+recovery = 0.6
+cooldown = 0.8
+knockback = 120.0
+hitbox_offset = Vector2(40, -55)
+hitbox_size = Vector2(80, 110)
+lunge_speed = 0.0
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Flying Spirit"
+max_health = 95.0
+attack_damage = 18.0
+move_speed = 100.0
+knockback_resistance = 0.2
+interruptible = true
+hurt_duration = 0.25
+gold_reward = 10
+xp_reward = 15
+aggro_range = 320.0
+attack_range = 70.0
+target_priorities = Array[int]([1, 0, 2])
+spawn_duration = 0.5
+attack = SubResource("Resource_attack")
+flying = true
+hover_height = 80.0
+body_size = Vector2(48, 130)
+figure = 12
+prop = 3
+counter_hint = "Floats out of reach. Only the Bow, Yumi Archers and the Onmyoji hit it"

@@ -39,6 +39,7 @@ const SKILL_ICONS: Array[Array] = [
 @onready var _pause_button: Button = %PauseButton
 @onready var _banner_label: Label = %BannerLabel
 @onready var _status_label: Label = %StatusLabel
+@onready var _briefing_label: Label = %BriefingLabel
 @onready var _message_label: Label = %MessageLabel
 @onready var _summon_label: Label = %SummonLabel
 @onready var _hint_label: Label = %HintLabel
@@ -49,7 +50,7 @@ var _summon_bar: HBoxContainer
 var _summon_buttons: Array[TouchActionButton] = []
 var _safe_rect: Rect2 = Rect2()
 ## The boss's bar with his name, under the wave text at the top of the screen (hidden without a boss).
-var _boss_bar: FillBar
+var _boss_bar: BossHealthBar
 ## The round skill icons by id ("dash", "heavy", "slash", "bow", "war_cry", "stance").
 var _skill_icons: Dictionary = {}
 ## "CHARGE" or "HOLD".
@@ -58,9 +59,11 @@ var _gate_indicator: EdgeIndicator
 var _enemy_indicator: EdgeIndicator
 var _banner_tween: Tween
 var _message_tween: Tween
+var _briefing_tween: Tween
 var _touch_mode: bool = false
 var _tutorial_hint_allowed: bool = false
 var _ui_scale: float = 1.0
+var _layout_size: Vector2 = Vector2(1920, 1080)
 
 
 func _ready() -> void:
@@ -93,16 +96,16 @@ func _ready() -> void:
 	_ultimate_ring.set_key_hint(SkillHints.key_label(&"ultimate"))
 	set_skills_unlocked(false, false)
 	set_stance(_stance_name)
-	_boss_bar = FillBar.new()
+	_boss_bar = BossHealthBar.new()
 	_boss_bar.name = "BossBar"
-	_boss_bar.custom_minimum_size = Vector2(780.0, 50.0)
+	_boss_bar.custom_minimum_size = Vector2.ZERO
 	_boss_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_boss_bar.fill_color = Color(InkPalette.DAIMYO_CURSE.darkened(0.25), 1.0)
+	_boss_bar.fill_color = Color(0.48, 0.035, 0.025)
 	_boss_bar.font_size = 28
 	# Ticks at one third and two thirds mark where the phases change.
 	_boss_bar.segments = 3
 	_boss_bar.visible = false
-	_wave_box.add_child(_boss_bar)
+	add_child(_boss_bar)
 	_pause_button.pressed.connect(pause_requested.emit)
 	_top_left.resized.connect(_update_pivots)
 	_wave_box.resized.connect(_update_pivots)
@@ -146,8 +149,68 @@ func get_stance_name() -> String:
 ## Shows the boss bar with the boss's name.
 func show_boss(boss_name: String) -> void:
 	_boss_bar.caption = boss_name
+	_boss_bar.title = "LORD OF THE BURNING VILLAGE" if boss_name.contains("Burning") else "LORD OF THE BROKEN OATH"
+	_boss_bar.reset_health()
 	_boss_bar.visible = true
+	_layout_top_clusters()
 	_boss_bar.queue_redraw()
+	_place_boss_bar()
+
+
+func show_boss_entrance(boss_name: String, title: String = "LORD OF THE BURNING VILLAGE") -> void:
+	var card: PanelContainer = PanelContainer.new()
+	card.name = "BossEntrance"
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.09, 0.035, 0.025, 0.92)
+	style.border_color = Color(0.9, 0.39, 0.12)
+	style.set_border_width_all(2)
+	style.content_margin_left = 40
+	style.content_margin_right = 40
+	style.content_margin_top = 18
+	style.content_margin_bottom = 18
+	card.add_theme_stylebox_override("panel", style)
+	var label: Label = Label.new()
+	label.text = title + "\n" + boss_name
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 56)
+	card.add_child(label)
+	add_child(card)
+	card.position = Vector2((get_viewport().get_visible_rect().size.x - 1100) * 0.5, 310)
+	card.size.x = 1100
+	var tween: Tween = create_tween()
+	tween.tween_interval(2.0)
+	tween.tween_property(card, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(card.queue_free)
+
+
+func _place_boss_bar() -> void:
+	if _boss_bar == null: return
+	var safe: Rect2 = _safe_rect if _safe_rect.has_area() else Rect2(Vector2.ZERO, _layout_size)
+	_boss_bar.scale = Vector2.ONE
+	_boss_bar.size = Vector2(minf(560.0, safe.size.x * 0.29), 90.0)
+	_boss_bar.position = Vector2(safe.get_center().x - _boss_bar.size.x * 0.5, block_bottom(_wave_box) + 8.0)
+
+
+func _layout_top_clusters() -> void:
+	if _boss_bar == null: return
+	var wave_scale: float = minf(_ui_scale, 1.0) if _boss_bar.visible else _ui_scale
+	var left_scale: float = _ui_scale
+	if _boss_bar.visible:
+		var safe: Rect2 = _safe_rect if _safe_rect.has_area() else Rect2(Vector2.ZERO, _layout_size)
+		var middle: float = minf(560.0, safe.size.x * 0.29)
+		var available: float = (safe.size.x - middle) * 0.5 - SCREEN_MARGIN.x - 20
+		left_scale = minf(left_scale, available / maxf(_top_left.get_combined_minimum_size().x, 1.0))
+	_top_left.scale = Vector2.ONE * left_scale
+	_wave_box.scale = Vector2.ONE * wave_scale
+
+
+func get_boss_header_bottom() -> float:
+	return _boss_bar.position.y + _boss_bar.size.y + 8.0 if _boss_bar.visible else 0.0
+
+
+func set_boss_phase(phase: int) -> void:
+	_boss_bar.set_phase(phase)
 
 
 func set_boss_health(current: float, maximum: float) -> void:
@@ -156,6 +219,7 @@ func set_boss_health(current: float, maximum: float) -> void:
 
 func hide_boss() -> void:
 	_boss_bar.visible = false
+	_layout_top_clusters()
 
 
 func is_boss_bar_visible() -> bool:
@@ -261,6 +325,8 @@ func set_touch_mode(enabled: bool) -> void:
 
 ## Keeps HUD content inside the safe area and scales the corner clusters around their corners.
 func apply_layout(safe_rect: Rect2, viewport_size: Vector2, ui_scale: float) -> void:
+	_layout_size = viewport_size
+	_safe_rect = safe_rect
 	_ui_scale = TouchLayout.clamp_scale(ui_scale)
 	_margin.add_theme_constant_override("margin_left", roundi(safe_rect.position.x + SCREEN_MARGIN.x))
 	_margin.add_theme_constant_override("margin_top", roundi(safe_rect.position.y + SCREEN_MARGIN.y))
@@ -268,6 +334,7 @@ func apply_layout(safe_rect: Rect2, viewport_size: Vector2, ui_scale: float) -> 
 	_margin.add_theme_constant_override("margin_bottom", roundi(viewport_size.y - safe_rect.end.y + SCREEN_MARGIN.y))
 	for control: Control in [_top_left, _wave_box, _pause_button]:
 		control.scale = Vector2(_ui_scale, _ui_scale)
+	_layout_top_clusters()
 	_place_indicators(safe_rect)
 	_refresh_bottom()
 	_update_pivots()
@@ -302,7 +369,7 @@ func get_enemy_indicator() -> EdgeIndicator:
 ## a frame after its content changes (and a scaled control's own rect ignores its scale).
 func block_bottom(control: Control) -> float:
 	var height: float = maxf(control.size.y, control.get_combined_minimum_size().y)
-	return _safe_rect.position.y + SCREEN_MARGIN.y + height * _ui_scale
+	return _safe_rect.position.y + SCREEN_MARGIN.y + height * control.scale.y
 
 
 ## Tabs sit at the screen edges just below the top HUD (the vitals, pause button), above
@@ -326,7 +393,7 @@ func _place_indicators(safe_rect: Rect2) -> void:
 func get_keep_out_rects() -> Array[Rect2]:
 	var rects: Array[Rect2] = []
 	for control: Control in [_top_left, _wave_box, _pause_button, get_node_or_null("Margin/BottomBox") as Control,
-			_gate_indicator, _enemy_indicator]:
+			_gate_indicator, _enemy_indicator, _boss_bar]:
 		if control != null and control.is_visible_in_tree():
 			rects.append(control.get_global_transform() * Rect2(Vector2.ZERO, control.size))
 	return rects
@@ -339,6 +406,18 @@ func get_pause_button_rect() -> Rect2:
 ## Big centered text that fades out after `duration` seconds.
 func show_banner(text: String, duration: float = 2.0) -> void:
 	_banner_tween = _show_fading(_banner_label, text, duration, _banner_tween)
+
+
+## The pre-battle info in the middle of the screen before wave 1: the foes coming and how to beat the new ones
+## (StageBriefing.battle_text). Fades out after `duration`.
+func show_briefing(text: String, duration: float) -> void:
+	if text.is_empty():
+		return
+	_briefing_tween = _show_fading(_briefing_label, text, duration, _briefing_tween)
+
+
+func get_briefing_text() -> String:
+	return _briefing_label.text if _briefing_label.visible else ""
 
 
 ## Small message above the summon area (e.g. why a summon failed).
@@ -375,9 +454,11 @@ func _refresh_bottom() -> void:
 
 
 func _update_pivots() -> void:
+	_layout_top_clusters()
 	_top_left.pivot_offset = Vector2.ZERO
 	_wave_box.pivot_offset = Vector2(_wave_box.size.x * 0.5, 0.0)
 	_pause_button.pivot_offset = Vector2(_pause_button.size.x, 0.0)
+	_place_boss_bar()
 	# The top-left cluster grows/shrinks (ability row in keyboard mode): keep the tabs below it.
 	if _safe_rect.size != Vector2.ZERO:
 		_place_indicators(_safe_rect)

@@ -11,6 +11,15 @@ const STEP: float = 1.0 / 120.0
 const RUN_SPEED: float = 210.0
 ## A jump in position bigger than this in one step is a teleport: cloth snaps instead of whipping.
 const TELEPORT: float = 160.0
+const TAIL_SPECS: Dictionary = {
+	InkFigure.Kind.SAMURAI: [[8, 7], 4.6],
+	InkFigure.Kind.ASHIGARU: [[5, 4], 2.8],
+	InkFigure.Kind.YUMI_ARCHER: [[5, 4], 3.6],
+	InkFigure.Kind.SHRINE_HEALER: [[5, 4], 3.2],
+	InkFigure.Kind.SPEAR_GUARDIAN: [[3, 3], 3.0],
+	InkFigure.Kind.ONMYOJI: [[5, 4], 4.0],
+}
+const DEFAULT_TAIL_SPEC: Array = [[4, 3], 4.0]
 
 
 ## A damped spring on one number.
@@ -100,12 +109,15 @@ func tail_rest(fig: InkFigure, tail: int) -> PackedVector2Array:
 	rest.append(anchor)
 	var phase: float = float(tail) * 1.9
 	var frequency: float = _cloth_response(fig.kind).x
+	var frame: Transform2D = fig.global_transform
+	var trail: float = fig.trail
+	var time: float = fig.clock
+	var amount: float = 0.15 if GameSettings.reduced_decorative_motion else 1.0
 	for i: int in range(1, count + 1):
 		var k: float = float(i)
-		var stream: Vector2 = Vector2(-k * (0.85 + 0.35 * fig.trail), k * (0.62 - 0.45 * fig.trail) + float(tail) * k * 0.22)
-		var amount: float = 0.15 if GameSettings.reduced_decorative_motion else 1.0
-		var wave: float = sin(fig.clock * (frequency + fig.trail * 4.0) - k * 0.9 + phase) * k * 0.7 * (0.85 + fig.trail) * amount
-		rest.append(anchor + fig.global_transform.basis_xform((stream * segment + Vector2(0.0, wave)) * s))
+		var stream: Vector2 = Vector2(-k * (0.85 + 0.35 * trail), k * (0.62 - 0.45 * trail) + float(tail) * k * 0.22)
+		var wave: float = sin(time * (frequency + trail * 4.0) - k * 0.9 + phase) * k * 0.7 * (0.85 + trail) * amount
+		rest.append(anchor + frame.basis_xform((stream * segment + Vector2(0.0, wave)) * s))
 	return rest
 
 
@@ -143,15 +155,7 @@ func _tail_anchor(fig: InkFigure) -> Vector2:
 
 ## [segment counts per tail, link length in figure units].
 func _tail_spec(kind: InkFigure.Kind) -> Array:
-	if kind == InkFigure.Kind.SAMURAI:
-		return [[8, 7], 4.6]
-	match kind:
-		InkFigure.Kind.ASHIGARU: return [[5, 4], 2.8]
-		InkFigure.Kind.YUMI_ARCHER: return [[5, 4], 3.6]
-		InkFigure.Kind.SHRINE_HEALER: return [[5, 4], 3.2]
-		InkFigure.Kind.SPEAR_GUARDIAN: return [[3, 3], 3.0]
-		InkFigure.Kind.ONMYOJI: return [[5, 4], 4.0]
-		_: return [[4, 3], 4.0]
+	return TAIL_SPECS.get(kind, DEFAULT_TAIL_SPEC)
 
 
 ## Frequency, restoring pull and damping reflect each ally's cloth weight.

@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/enemy_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/resources/attack_profile.gd" id="2_attack"]
+
+[sub_resource type="Resource" id="Resource_attack"]
+script = ExtResource("2_attack")
+damage_multiplier = 1.0
+windup = 0.75
+active_time = 0.1
+recovery = 0.5
+cooldown = 1.4
+knockback = 60.0
+hitbox_offset = Vector2(55, -60)
+hitbox_size = Vector2(70, 70)
+lunge_speed = 0.0
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Spectral Archer"
+max_health = 110.0
+attack_damage = 20.0
+move_speed = 85.0
+knockback_resistance = 0.0
+interruptible = true
+hurt_duration = 0.3
+gold_reward = 9
+xp_reward = 14
+aggro_range = 560.0
+attack_range = 440.0
+target_priorities = Array[int]([1, 0, 2])
+spawn_duration = 0.5
+attack = SubResource("Resource_attack")
+ranged = true
+projectile_speed = 650.0
+projectile_range = 620.0
+keep_distance = 200.0
+body_size = Vector2(46, 110)
+figure = 10
+prop = 0
+counter_hint = "Shoots your allies from afar. Close in with the samurai, or answer with the Bow and Yumi Archers"

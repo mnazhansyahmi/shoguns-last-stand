@@ -11,7 +11,7 @@ static func tab_for(upgrade: UpgradeData) -> Tab:
 	match upgrade.target:
 		UpgradeData.Target.ALLY:
 			return Tab.ALLIES
-		UpgradeData.Target.ARMY, UpgradeData.Target.SPIRIT_ENERGY:
+		UpgradeData.Target.ARMY, UpgradeData.Target.SPIRIT_ENERGY, UpgradeData.Target.GATE:
 			return Tab.ARMY_SPIRIT
 	match upgrade.stat:
 		UpgradeData.Stat.DASH_COOLDOWN, UpgradeData.Stat.SLASH_COOLDOWN, UpgradeData.Stat.ULTIMATE_CHARGE, UpgradeData.Stat.BOW_DAMAGE, UpgradeData.Stat.WAR_CRY_DURATION:
@@ -23,6 +23,10 @@ static func tab_for(upgrade: UpgradeData) -> Tab:
 ## every ally's).
 static func icon_for(upgrade: UpgradeData) -> int:
 	match upgrade.stat:
+		UpgradeData.Stat.ARMOUR:
+			return UpgradeIcon.Kind.STANCE_HOLD
+		UpgradeData.Stat.FIRE_RESISTANCE:
+			return UpgradeIcon.Kind.WAR_CRY
 		UpgradeData.Stat.DASH_COOLDOWN:
 			return UpgradeIcon.Kind.DASH
 		UpgradeData.Stat.SLASH_COOLDOWN:

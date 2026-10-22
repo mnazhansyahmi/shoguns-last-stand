@@ -1,5 +1,68 @@
 # Asset licences
 
+## Painted boss health frame — 2026-10-23
+
+- File: `assets/art/boss_bar_frame.png`.
+- Tool: OpenAI built-in imagegen; original generated game UI art, no third-party source.
+- Use: BossHealthBar ornamental frame and blank name plate. Live fill and text are runtime UI.
+- Prompt: Use case: stylized-concept. Asset type: transparent painted boss health bar frame for a Japanese ink fantasy action game. Paint ONE very wide horizontal ornamental frame, aspect ratio 6:1, straight-on flat UI asset, no perspective. Blackened iron and worn antique gold, carved Japanese cloud scrolls and small oni-mask terminals at both ends, restrained ember-red accents, brush-painted metal with rough sumi edges matching detailed ink-painted samurai characters. A thin long rectangular health window runs from 10% to 90% of width at vertical 60% to 78%; this entire window is truly transparent and empty so a live health fill can show through. Above it a broad dark charcoal nameplate from 22% to 78% of width at vertical 20% to 53%, blank with no writing, gives space for runtime title and boss name. Ornament is elegant, readable at 780 pixels wide, generous transparent padding 5% around perimeter, no solid background, no text, no numbers, no letters, no health fill, no extra objects. Deliver clean alpha PNG.
+
+
+## Isolated menu motion — 2026-10-22
+
+Original edits of the project's generated `menu_scene.png`, using OpenAI built-in
+**image_gen**. No third-party image source. Native 1672×941 canvases; alpha
+preserved on the cutout. Runtime removes only sub-byte alpha dust.
+
+| Image | Use | Date | Prompt |
+| --- | --- | --- | --- |
+| `assets/art/world/menu_background.png` | Stationary landscape, character removed and background repainted | 2026-10-22 | [Prompt](../assets/art/world/menu_background.png.prompt.txt) |
+| `assets/art/world/menu_character.png` | Isolated painted samurai, shader motion confined to alpha | 2026-10-22 | [Prompt](../assets/art/world/menu_character.png.prompt.txt) |
+
+## Sharp world layers — 2026-10-22
+
+- `assets/art/world/sharp/village_smoke.png`: painted transparent rising smoke,
+  generated 2026-10-22 with built-in OpenAI **image_gen**, original artwork.
+  [Exact prompt](../assets/art/world/sharp/village_smoke.png.prompt.txt).
+
+Tool: OpenAI built-in **image_gen**, original artwork for this project. Each
+texture is a separately generated painting, not an enlarged atlas crop. Native
+files are 2172×724 (sky/mountains/scenery) or 1536×1024 (earth/grass).
+Runtime tiles preserve aspect ratio and meet or exceed 1 texel per screen pixel
+at 1920×1080 and 1.5× camera zoom. Generated alpha is preserved; Godot fixes
+transparent borders and generates mipmaps. Exact prompts:
+
+| Image | Use | Date | Prompt |
+| --- | --- | --- | --- |
+| `assets/art/world/sharp/bamboo_sky.png` | Sunset sky | 2026-10-22 | [Prompt](../assets/art/world/sharp/bamboo_sky.png.prompt.txt) |
+| `assets/art/world/sharp/bamboo_mountains.png` | Shrine and ridges | 2026-10-22 | [Prompt](../assets/art/world/sharp/bamboo_mountains.png.prompt.txt) |
+| `assets/art/world/sharp/bamboo_scenery.png` | Bamboo and shrine scenery | 2026-10-22 | [Prompt](../assets/art/world/sharp/bamboo_scenery.png.prompt.txt) |
+| `assets/art/world/sharp/bamboo_ground.png` | Continuous earth band | 2026-10-22 | [Prompt](../assets/art/world/sharp/bamboo_ground.png.prompt.txt) |
+| `assets/art/world/sharp/bamboo_grass.png` | Reeds and leaves | 2026-10-22 | [Prompt](../assets/art/world/sharp/bamboo_grass.png.prompt.txt) |
+| `assets/art/world/sharp/village_sky.png` | Red smoky sky | 2026-10-22 | [Prompt](../assets/art/world/sharp/village_sky.png.prompt.txt) |
+| `assets/art/world/sharp/village_mountains.png` | Distant burning castle | 2026-10-22 | [Prompt](../assets/art/world/sharp/village_mountains.png.prompt.txt) |
+| `assets/art/world/sharp/village_scenery.png` | Ruined houses and fences | 2026-10-22 | [Prompt](../assets/art/world/sharp/village_scenery.png.prompt.txt) |
+| `assets/art/world/sharp/village_ground.png` | Continuous scorched earth band | 2026-10-22 | [Prompt](../assets/art/world/sharp/village_ground.png.prompt.txt) |
+| `assets/art/world/sharp/village_grass.png` | Charred reeds and debris | 2026-10-22 | [Prompt](../assets/art/world/sharp/village_grass.png.prompt.txt) |
+
+## Painted world assets — 2026-10-22
+
+Original AI-generated artwork, made with the OpenAI built-in **image_gen** tool
+for this project. No third-party source artwork was copied. Exact generation
+prompts are stored alongside each asset and linked below. Atlas source cells
+are sampled directly in Godot; generated alpha is preserved.
+
+| Image | Use | Date | Exact prompt |
+| --- | --- | --- | --- |
+| `assets/art/world/bamboo_parallax.png` | Bamboo sky, shrine mountains, forest, earth, foreground | 2026-10-22 | [Prompt](../assets/art/world/bamboo_parallax.png.prompt.txt) |
+| `assets/art/world/village_parallax.png` | Red sky, smoky mountains, ruined houses, scorched earth, burnt grass | 2026-10-22 | [Prompt](../assets/art/world/village_parallax.png.prompt.txt) |
+| `assets/art/world/gates.png` | Both regional gates, intact/damaged/destroyed atlas | 2026-10-22 | [Prompt](../assets/art/world/gates.png.prompt.txt) |
+| `assets/art/world/portals.png` | Cursed torii and burning rift atlas | 2026-10-22 | [Prompt](../assets/art/world/portals.png.prompt.txt) |
+| `assets/art/world/fire.png` | Painted fire textures animated by shader | 2026-10-22 | [Prompt](../assets/art/world/fire.png.prompt.txt) |
+| `assets/art/roster/onryo_full.png` | Full floating onryo, torso/robes/hair in one coherent painting | 2026-10-22 | [Prompt](../assets/art/roster/onryo_full.png.prompt.txt) |
+| `assets/art/world/menu_scene.png` | Unified painted menu: samurai, rock, sky, moon, mountains and bamboo | 2026-10-22 | [Prompt](../assets/art/world/menu_scene.png.prompt.txt) |
+
+
 The full list of third-party assets in the game: where each came from, its licence, and where the game uses it.
 This file is a record for the project. It is NOT shown in the game and NOT included in exports.
 
@@ -195,3 +258,32 @@ Fine crisp ink/watercolour contours, sculpted skin planes and cloth folds matchi
 - Exact prompt (also embedded in the PNG and stored in `title_rock_prompt.json`):
 
 > Create one production game environment asset: a dark PAINTED ROCK OUTCROP isolated on genuine transparent alpha. The attached samurai image is MATERIAL AND PALETTE REFERENCE ONLY; do not include the samurai, any people, swords or clothing. This rock will sit beneath the feet of that painted character in a sunset bamboo forest. Fine ink and watercolour brush texture, dimensional angular slate planes, deep plum charcoal shadows, muted dusty rose and warm ochre light from the UPPER LEFT, subtle warm edge light on top, sparse dry moss. Match the illustrated material without photorealism. A broad rock shelf at the TOP, flat walkable crest from x=32% to x=70% at y=12%, with its right end only slightly higher than the left; enough clear space for two planted sandals. The stone descends steeply to the lower LEFT and lower RIGHT, widening toward the bottom. Three-quarter front view; broad front face visible below the flat standing shelf. Darker as it descends, fine irregular cracks and broad shadow planes, no white highlight outline, no grass hiding the standing surface. Rock fills canvas to BOTTOM and RIGHT edges for screen bleed, left edge is an irregular real rock contour with transparent background. Wide 3:2 canvas composition, all top ledge inside frame with transparent margin above it. No ground scenery, sky, moon, buildings, background haze, text or frame. Do not paint a second ledge, peak or tower on the standing shelf.
+
+
+## Region 2 painted enemy atlases — 2026-10-22
+
+Original generated art, OpenAI built-in image_gen, 2026-10-22 (Asia/Kuala_Lumpur). References: existing project Hollow Soldier and Fallen Daimyo for material and layout. No third-party stock inputs or extra attribution requirement. Generated alpha preserved; atlas registration only reads pixels. Exact prompts also recorded in assets/art/roster/region_2_provenance.json.
+
+### spectral_archer
+
+File: `assets/art/roster/spectral_archer.png`. Tool: OpenAI built-in image_gen. Date: 2026-10-22.
+
+> Use case: stylized-concept. Production 2D game character cutout ATLAS, detailed Japanese ink/watercolour painting matching the reference materials and brushwork. Genuine transparent alpha, no background, no ground, no text, no labels, no grid, no watermark. STRICT FOUR BY FOUR layout of 16 independent isolated painted parts with wide empty gutters. Same layout as reference: row1 head in right-facing three-quarter profile, headless torso with ivory collar and neck base, waist skirt, accessory; row2 front upper arm, front forearm with CLOSED gripping fist at RIGHT end, front thigh, front shin; row3 back upper arm, back forearm with CLOSED gripping fist at RIGHT end, back thigh, back shin; row4 front sandal foot sideview pointing RIGHT with flat sole, back sandal foot likewise, flowing cloth, weapon pointing RIGHT with grip on LEFT. Limb bones are HORIZONTAL, proximal joint LEFT at 12% length and distal joint RIGHT at 88%, clean overlapping capped joints, no empty sleeve holes, anatomy consistent. All parts completely inside their own cell and separated by transparent gutters. Broad readable charcoal values, sculpted cloth and armour planes, refined crisp painted contours. No assembled figure, no duplicated bodies. Character: SPECTRAL ARCHER, supernatural undead yumi archer with pale gaunt face, eerie cyan eyes, narrow straw hood or ragged cowl, translucent ghostly ivory and blue-grey layered cloth over worn dark leather armour, subtle icy spirit edges. Spectral translucent fabric remains readable with substantial alpha in main body. Accessory cell row1col4 a compact quiver; row4col4 one carved asymmetrical longbow placed horizontally, dark wood with cyan binding, no sword. Hands and feet natural emaciated human proportions. Entire kit distinct from reference soldier.
+
+### shield_bearer
+
+File: `assets/art/roster/shield_bearer.png`. Tool: OpenAI built-in image_gen. Date: 2026-10-22.
+
+> Use case: stylized-concept. Production 2D game character cutout ATLAS, detailed Japanese ink/watercolour painting matching the reference materials and brushwork. Genuine transparent alpha, no background, no ground, no text, no labels, no grid, no watermark. STRICT FOUR BY FOUR layout of 16 independent isolated painted parts with wide empty gutters. Same layout as reference: row1 head in right-facing three-quarter profile, headless torso with ivory collar and neck base, waist skirt, accessory; row2 front upper arm, front forearm with CLOSED gripping fist at RIGHT end, front thigh, front shin; row3 back upper arm, back forearm with CLOSED gripping fist at RIGHT end, back thigh, back shin; row4 front sandal foot sideview pointing RIGHT with flat sole, back sandal foot likewise, flowing cloth, weapon pointing RIGHT with grip on LEFT. Limb bones are HORIZONTAL, proximal joint LEFT at 12% length and distal joint RIGHT at 88%, clean overlapping capped joints, no empty sleeve holes, anatomy consistent. All parts completely inside their own cell and separated by transparent gutters. Broad readable charcoal values, sculpted cloth and armour planes, refined crisp painted contours. No assembled figure, no duplicated bodies. Character: SHIELD BEARER, stocky undead infantry in heavy dark lacquered armour with muted ochre lacing, battered iron helmet, decayed ash skin and narrow amber eyes. Broad shoulders, substantial wrapped legs and sturdy flat sandals. Row1col4 MUST be a heavy tall rectangular Japanese WOODEN TATE SHIELD, weathered brown planks, iron bands and pale simple crest, no arm attached. Row4col4 short iron katana horizontal with visible wrapped grip LEFT. Massive shield and broad torso distinguish it from slender soldier.
+
+### flying_spirit
+
+File: `assets/art/roster/flying_spirit.png`. Tool: OpenAI built-in image_gen. Date: 2026-10-22.
+
+> Use case: stylized-concept. Production 2D game character cutout ATLAS, detailed Japanese ink/watercolour painting matching the reference materials and brushwork. Genuine transparent alpha, no background, no ground, no text, no labels, no grid, no watermark. STRICT FOUR BY FOUR layout of 16 independent isolated painted parts with wide empty gutters. Same layout as reference: row1 head in right-facing three-quarter profile, headless torso with ivory collar and neck base, waist skirt, accessory; row2 front upper arm, front forearm with CLOSED gripping fist at RIGHT end, front thigh, front shin; row3 back upper arm, back forearm with CLOSED gripping fist at RIGHT end, back thigh, back shin; row4 front sandal foot sideview pointing RIGHT with flat sole, back sandal foot likewise, flowing cloth, weapon pointing RIGHT with grip on LEFT. Limb bones are HORIZONTAL, proximal joint LEFT at 12% length and distal joint RIGHT at 88%, clean overlapping capped joints, no empty sleeve holes, anatomy consistent. All parts completely inside their own cell and separated by transparent gutters. Broad readable charcoal values, sculpted cloth and armour planes, refined crisp painted contours. No assembled figure, no duplicated bodies. Character: FLYING SPIRIT, floating onryo woman ghost, pale sorrowful face, long dishevelled black hair, hollow cyan eyes, tattered ivory funeral kimono stained with charcoal ink. NO LEGS, NO FEET, NO SANDALS, NO WEAPON, no solid lower anatomy. Override the nominal limb/foot/weapon cells: thigh/shin/feet cells contain separated wispy translucent cloth ribbons and ink-smoke tendrils only, horizontal with opaque attachment LEFT tapering RIGHT; row4col4 longest ink tail. Row1col3 is one flowing long lower robe, narrowing into trailing smoky ink with no legs. Row1col4 long hanging hair ribbon. Row2/3 arm cells are long loose sleeves with pale hands at RIGHT end. Ghostly lower edges dissolve into transparency, clear body mass and face still readable.
+
+### burning_general
+
+File: `assets/art/roster/burning_general.png`. Tool: OpenAI built-in image_gen. Date: 2026-10-22.
+
+> Use case: stylized-concept. Production 2D game character cutout ATLAS, detailed Japanese ink/watercolour painting matching the reference materials and brushwork. Genuine transparent alpha, no background, no ground, no text, no labels, no grid, no watermark. STRICT FOUR BY FOUR layout of 16 independent isolated painted parts with wide empty gutters. Same layout as reference: row1 head in right-facing three-quarter profile, headless torso with ivory collar and neck base, waist skirt, accessory; row2 front upper arm, front forearm with CLOSED gripping fist at RIGHT end, front thigh, front shin; row3 back upper arm, back forearm with CLOSED gripping fist at RIGHT end, back thigh, back shin; row4 front sandal foot sideview pointing RIGHT with flat sole, back sandal foot likewise, flowing cloth, weapon pointing RIGHT with grip on LEFT. Limb bones are HORIZONTAL, proximal joint LEFT at 12% length and distal joint RIGHT at 88%, clean overlapping capped joints, no empty sleeve holes, anatomy consistent. All parts completely inside their own cell and separated by transparent gutters. Broad readable charcoal values, sculpted cloth and armour planes, refined crisp painted contours. No assembled figure, no duplicated bodies. Character: BURNING GENERAL boss, imposing ancient undead warlord in CHARRED layered samurai armour, scorched black iron plates and soot, restrained orange ember cracks, deep crimson burned lacing, horned kabuto, intimidating skull-like face with orange burning eyes. Heavy plated upper arms, thick armoured thighs and greaves, sturdy flat war sandals. Row1col4 a ragged burnt cloak. Row4col4 a BIG ODACHI sword pointing RIGHT, long charred steel blade with thin ember edge, long two-handed dark wrapped hilt LEFT with full grip visible, no hand baked on weapon. Fire embers restrained and attached to armour, no detached particle debris. Rich charcoal and warm iron highlights, not golden armour.

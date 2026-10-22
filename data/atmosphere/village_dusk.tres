@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="AtmosphereTheme" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/atmosphere_theme.gd" id="1_theme"]
+
+[resource]
+script = ExtResource("1_theme")
+theme_id = "village_dusk"
+display_name = "Village at Dusk"
+scenery = 1
+sky_top = Color(0.1686, 0.1333, 0.2510, 1)
+sky_mid = Color(0.5412, 0.2275, 0.2275, 1)
+sky_low = Color(0.8784, 0.4784, 0.2275, 1)
+sky_horizon = Color(0.9569, 0.6902, 0.4000, 1)
+sun_core = Color(1.0000, 0.8471, 0.5647, 1)
+sun_halo = Color(1.0000, 0.6039, 0.2902, 1)
+cloud_lit = Color(1.0000, 0.5961, 0.3137, 1)
+cloud_shadow = Color(0.3529, 0.1882, 0.2510, 1)
+mountain_far = Color(0.7529, 0.5412, 0.5176, 1)
+mountain_mid = Color(0.6588, 0.4549, 0.4706, 1)
+mist = Color(0.9098, 0.6902, 0.5647, 1)
+ground_top = Color(0.7686, 0.5961, 0.4941, 1)
+ground_bottom = Color(0.1647, 0.1176, 0.1490, 1)
+bamboo_far = Color(0.6902, 0.5176, 0.4706, 1)
+bamboo_near = Color(0.2275, 0.1647, 0.1882, 1)
+ray_color = Color(1.0000, 0.6902, 0.3765, 1)
+rim_color = Color(1.0000, 0.7059, 0.4078, 1)
+reed_stalk = Color(0.8157, 0.6039, 0.3843, 1)
+reed_plume = Color(0.9490, 0.8157, 0.6275, 1)
+petal_color = Color(0.9412, 0.7216, 0.6275, 1)
+fire_core = Color(1.0000, 0.8784, 0.5412, 1)
+fire_glow = Color(1.0000, 0.4784, 0.1647, 1)
+smoke = Color(0.2902, 0.2118, 0.2510, 1)
+leaf_colors = PackedColorArray(0.8235, 0.2902, 0.1176, 1, 0.9098, 0.4392, 0.1647, 1, 0.7216, 0.2275, 0.1020, 1)
+sun_radius = 88.0
+eclipse = false
+cloud_alpha = 0.8
+wind_base = 0.45
+wind_gust = 0.5
+petal_share = 0.05
+fire_intensity = 0.35
+ember_share = 0.45

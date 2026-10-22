@@ -176,12 +176,14 @@ func test_region_economy_curve() -> void:
 	var progress: PlayerProgress = PlayerProgress.new()
 	var total_levels: int = 0
 	for upgrade: UpgradeData in CATALOG.upgrades:
-		total_levels += upgrade.max_level
+		if upgrade.unlock_stage_id.is_empty():
+			total_levels += upgrade.region_1_cap if upgrade.region_1_cap > 0 else upgrade.max_level
 	var owned_after: Array[int] = []
 	var first_clear_purchases: int = -1
 	for stage: StageData in region.stages:
 		for multiplier: float in [1.0, stage.replay_gold_multiplier]:
 			progress.gold += floori(stage.get_full_clear_gold() * multiplier)
+			if not progress.is_stage_cleared(stage.stage_id): progress.stages_cleared.append(stage.stage_id)
 			var bought: int = _buy_cheapest(progress)
 			if first_clear_purchases < 0:
 				first_clear_purchases = bought
@@ -201,7 +203,7 @@ func _buy_cheapest(progress: PlayerProgress) -> int:
 		var cheapest: UpgradeData = null
 		for upgrade: UpgradeData in CATALOG.upgrades:
 			var level: int = progress.get_upgrade_level(upgrade.id)
-			if not upgrade.is_maxed(level) and (cheapest == null or upgrade.get_cost(level) < cheapest.get_cost(progress.get_upgrade_level(cheapest.id))):
+			if not upgrade.is_maxed(level) and upgrade.is_available(progress) and (cheapest == null or upgrade.get_cost(level) < cheapest.get_cost(progress.get_upgrade_level(cheapest.id))):
 				cheapest = upgrade
 		if cheapest == null or UpgradeShop.purchase(progress, cheapest) != UpgradeShop.Result.OK:
 			return bought
@@ -255,6 +257,20 @@ func test_overlapping_numbers_stack_upward_with_spacing() -> void:
 				"number %d sits above number %d with a gap (%.0f px)" % [i + 1, i, numbers[i - 1].global_position.y - numbers[i].global_position.y])
 	var far: DamageNumber = feedback.spawn_damage_number(Vector2(1500.0, 500.0), _hit(9.0, false, false), true, add_to_tree(Node2D.new()))
 	assert_almost_eq(far.global_position.y, 500.0, "a number far from the others is not moved", 0.01)
+
+
+func test_combat_labels_wrap_inside_all_screen_edges_and_do_not_overlap() -> void:
+	var feedback: BattleFeedback = _feedback()
+	for edge: Vector2 in [Vector2(-100, -100), Vector2(4000, -100), Vector2(-100, 4000), Vector2(4000, 4000)]:
+		for child: Node in feedback.numbers_parent.get_children(): child.free()
+		var numbers: Array[DamageNumber] = []
+		for i: int in 6: numbers.append(feedback.spawn_text_number(edge, "Shield broken", Color.WHITE))
+		for frame: int in 20:
+			for number: DamageNumber in numbers: number._process(1.0 / 60.0)
+		for i: int in numbers.size():
+			var bounds: Rect2 = numbers[i].get_screen_bounds()
+			assert_true(numbers[i].get_viewport_rect().grow(-15).encloses(bounds), "long label and its outline remain inside the screen")
+			for j: int in i: assert_true(not bounds.intersects(numbers[j].get_screen_bounds()), "edge labels wrap without overlaps")
 
 
 func test_at_most_six_numbers_are_on_screen() -> void:

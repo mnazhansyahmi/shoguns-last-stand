@@ -64,6 +64,8 @@ func _runs(figure: InkFigure) -> Array[Vector2]:
 
 func test_every_kind_stands_on_two_visible_legs() -> void:
 	for kind: int in InkFigure.Kind.values():
+		if kind == InkFigure.Kind.FLYING_SPIRIT:
+			continue # Legless flight is asserted separately in test_region_2_art.
 		var visual: UnitVisual = UnitVisual.new()
 		visual.figure_kind = kind as InkFigure.Kind
 		visual.figure_height = _height(kind as InkFigure.Kind)

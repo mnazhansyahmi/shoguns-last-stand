@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="StageData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="1_stage"]
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="2_wave"]
+[ext_resource type="Resource" path="res://data/atmosphere/burning_keep.tres" id="atmo"]
+[ext_resource type="Resource" path="res://data/stages/stage_10/wave_1.tres" id="w1"]
+[ext_resource type="Resource" path="res://data/stages/stage_10/wave_2.tres" id="w2"]
+[ext_resource type="Resource" path="res://data/stages/stage_10/wave_3.tres" id="w3"]
+[ext_resource type="Resource" path="res://data/stages/stage_10/wave_4.tres" id="w4"]
+[ext_resource type="Resource" path="res://data/stages/stage_10/wave_5.tres" id="w5"]
+
+[resource]
+script = ExtResource("1_stage")
+stage_id = "stage_10"
+display_name = "The Burning Keep"
+waves = Array[ExtResource("2_wave")]([ExtResource("w1"), ExtResource("w2"), ExtResource("w3"), ExtResource("w4"), ExtResource("w5")])
+first_wave_delay = 4.0
+break_duration = 7.0
+clear_gold_bonus = 2000
+clear_xp_bonus = 320
+defeat_reward_ratio = 0.5
+replay_gold_multiplier = 0.5
+atmosphere = ExtResource("atmo")
+description = "The headman's keep at the heart of the fire. Hold the gate against the whole host, then face The Burning General."
+tagline = "The Burning General"

@@ -75,10 +75,18 @@ static func ground_contacts(kind: InkFigure.Kind) -> GroundContacts:
 ## The vertices of a kind's weapon in weapon space (empty if it carries none).
 static func weapon_points(kind: InkFigure.Kind) -> PackedVector2Array:
 	if not _weapon_points.has(kind):
+		var points: PackedVector2Array = PackedVector2Array()
+		if PaintedEquipment.WEAPONS.has(kind):
+			points.append_array(PaintedEquipment.weapon_bounds(kind))
+		if kind in [InkFigure.Kind.SHIELD_BEARER, InkFigure.Kind.BURNING_GENERAL]:
+			points.append_array(RosterSpriteArt.bounds(kind, &"weapon"))
 		var batch: InkBatch = part(kind, &"weapon")
+		if FigureKinds.animation_kind(kind) == InkFigure.Kind.YUMI_ARCHER:
+			batch = bow(0.0, kind)
 		# Only hull vertices can be lowest after a rigid rotation. Interior armour/weapon detail
 		# must not turn every figure refresh into hundreds of redundant ground queries.
-		_weapon_points[kind] = Geometry2D.convex_hull(_original_vertices(batch)) if batch != null else PackedVector2Array()
+		if batch != null: points.append_array(_original_vertices(batch))
+		_weapon_points[kind] = Geometry2D.convex_hull(points)
 	return _weapon_points[kind]
 
 
@@ -146,6 +154,15 @@ const _FRONT_ARM: Array[StringName] = [&"upper_f", &"fore_f"]
 
 ## Draw order of a kind's parts, back to front.
 static func layout(kind: InkFigure.Kind) -> Array[StringName]:
+	if FigureKinds.animation_kind(kind) != kind:
+		var inherited: Array[StringName] = layout(FigureKinds.animation_kind(kind))
+		if kind == InkFigure.Kind.FLYING_SPIRIT:
+			for name: StringName in _BACK_LIMBS + _FRONT_LEG + [&"weapon", &"grip_b"]:
+				inherited.erase(name)
+		elif kind == InkFigure.Kind.SHIELD_BEARER:
+			inherited.erase(&"shield") # The breakable tate follows the actual back hand.
+			inherited.erase(&"grip_b")
+		return inherited
 	# The ground shadow is drawn by the InkFigure node itself (one canvas item fewer per figure).
 	var order: Array[StringName] = []
 	match kind:
@@ -167,8 +184,8 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 			order.append_array(_FRONT_ARM)
 		InkFigure.Kind.YUMI_ARCHER:
 			order.append_array([&"hem", &"tails", &"quiver"])
-			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
-			order.append_array([&"torso", &"head", &"bow"])
+			order.append_array(_BACK_LIMBS + _FRONT_LEG)
+			order.append_array([&"torso", &"head"] + _BACK_ARM + [&"bow", &"grip_b"])
 			order.append_array(_FRONT_ARM)
 		InkFigure.Kind.HOLLOW_SOLDIER:
 			order.append_array(_BACK_LIMBS + _BACK_ARM + _FRONT_LEG)
@@ -213,11 +230,18 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 	if RosterSpriteArt.ARMHOLES.has(kind):
 		# The painted front arm's open sleeve end is covered by a cap of the torso's own shoulder, under the forearm.
 		order.insert(order.find(&"upper_f") + 1, &"shoulder_f")
+	if kind in [InkFigure.Kind.ONI_BRUTE, InkFigure.Kind.FALLEN_DAIMYO]:
+		# The upper arm is behind the jaw/helmet; the capped shoulder and gripping
+		# fist stay visible. Raising the club cannot paint an arm over his face.
+		order.erase(&"upper_f")
+		order.insert(order.find(&"head"), &"upper_f")
 	return order
 
 
 ## True for the six allies, who wear the lighter blue-slate ink (InkPalette.ALLY_INK).
 static func is_ally_tone(kind: InkFigure.Kind) -> bool:
+	if FigureKinds.animation_kind(kind) != kind:
+		return false
 	return kind != InkFigure.Kind.SAMURAI and kind != InkFigure.Kind.HOLLOW_SOLDIER and kind != InkFigure.Kind.ONI_BRUTE \
 			and kind != InkFigure.Kind.FALLEN_DAIMYO
 
@@ -339,6 +363,11 @@ static func bow_nock_x(draw_amount: float) -> float:
 	return lerpf(_bow_bend(1.0, draw_amount), -30.0, clampf(draw_amount, 0.0, 1.0))
 
 
+static func bow_lengths(kind: InkFigure.Kind) -> Vector2:
+	# The archers grip the visual centre; the hero retains his asymmetric yumi.
+	return Vector2(49.0, 49.0) if FigureKinds.animation_kind(kind) == InkFigure.Kind.YUMI_ARCHER else Vector2(BOW_UPPER, BOW_LOWER)
+
+
 ## The bow (limbs, string, nocked arrow) at a draw amount, cached per draw step. The samurai's yumi has a
 ## red grip wrap and red fletching; the archer's fletching is teal.
 static func bow(draw_amount: float, kind: InkFigure.Kind = InkFigure.Kind.YUMI_ARCHER) -> InkBatch:
@@ -408,8 +437,12 @@ static func _paint_cloth_tails(fig: InkFigure, ci: CanvasItem, color: Color, wid
 	var s: float = fig.get_unit_scale()
 	var to_local: Transform2D = ci.global_transform.affine_inverse()
 	if RosterSpriteArt.NAMES.has(fig.kind):
+		var ribbons: Array[PackedVector2Array] = []
 		for chain: ClothChain in fig.secondary.scarf:
-			RosterSpriteArt.paint_tail(fig.kind, ci, to_local * chain.points, width * s * 1.4)
+			ribbons.append(SamuraiSpriteArt.smooth_ribbon(to_local * chain.points))
+		if not ribbons.is_empty():
+			SamuraiSpriteArt.paint_ribbons(ci, ribbons, width * s * 1.4, true,
+				RosterSpriteArt.region(fig.kind, 14), RosterSpriteArt.atlas(fig.kind))
 		return
 	var batch: InkBatch = InkBatch.new()
 	for tail: int in 2:
@@ -462,7 +495,7 @@ static func _build(kind: InkFigure.Kind) -> Dictionary:
 	var shadow: InkBatch = InkBatch.new()
 	shadow.ellipse(Vector2.ZERO, Vector2(spec.shadow_width, 3.2), Color(InkPalette.INK, InkFigure.SHADOW_ALPHA))
 	parts[&"shadow"] = shadow
-	match kind:
+	match FigureKinds.animation_kind(kind):
 		InkFigure.Kind.SAMURAI:
 			_build_samurai(parts)
 		InkFigure.Kind.ASHIGARU:
@@ -476,7 +509,7 @@ static func _build(kind: InkFigure.Kind) -> Dictionary:
 		InkFigure.Kind.FALLEN_DAIMYO:
 			DaimyoFigurePainter.build(parts)
 		_:
-			AllyFigurePainter.build(kind, parts)
+			AllyFigurePainter.build(FigureKinds.animation_kind(kind), parts)
 	if RosterSpriteArt.NAMES.has(kind):
 		RosterSpriteArt.build_body(kind, parts)
 	if parts.has(&"fore_b") and layout(kind).has(&"grip_b"):
@@ -796,10 +829,11 @@ static func _bow(draw_amount: float, samurai: bool = false) -> InkBatch:
 	var batch: InkBatch = InkBatch.new()
 	var upper: PackedVector2Array = PackedVector2Array()
 	var lower: PackedVector2Array = PackedVector2Array()
+	var lengths: Vector2 = bow_lengths(InkFigure.Kind.SAMURAI if samurai else InkFigure.Kind.YUMI_ARCHER)
 	for i: int in 9:
 		var t: float = float(i) / 8.0
-		upper.append(Vector2(_bow_bend(t, drawn), -t * BOW_UPPER))
-		lower.append(Vector2(_bow_bend(t, drawn), t * BOW_LOWER))
+		upper.append(Vector2(_bow_bend(t, drawn), -t * lengths.x))
+		lower.append(Vector2(_bow_bend(t, drawn), t * lengths.y))
 	var nock: Vector2 = Vector2(bow_nock_x(drawn), 0.0)
 	# String first so the limbs cover its ends: a slim hemp cord, not an ink line.
 	batch.stroke(PackedVector2Array([upper[8], nock, lower[8]]), 1.1, 1.1, InkPalette.PARCHMENT_DIM.darkened(0.25))

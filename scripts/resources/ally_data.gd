@@ -50,11 +50,18 @@ enum Role { FIGHTER, HEALER, MAGE }
 ## Enemies within this horizontal distance of the ally pick it as their target before other
 ## allies (a tank's taunt). 0 = no taunt.
 @export var taunt_range: float = 0.0
+## Its blows break a Shield Bearer's shield like the samurai's heavy attack (the counter to shields).
+@export var breaks_shields: bool = false
 
 @export_group("Visuals")
 ## Collision and hurtbox size; the figure is drawn at this height.
 @export var body_size: Vector2 = Vector2(42.0, 100.0)
 @export var figure: InkFigure.Kind = InkFigure.Kind.ASHIGARU
+
+
+## Archers' arrows and the mage's fire reach flying enemies; blades and spears do not.
+func can_hit_air() -> bool:
+	return is_ranged or role == Role.MAGE
 
 
 ## Ranged-style allies (archers, healers, mages) may stand behind others and keep their distance.

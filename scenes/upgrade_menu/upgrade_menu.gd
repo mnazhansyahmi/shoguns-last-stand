@@ -221,7 +221,7 @@ func _refresh() -> void:
 		(row["pips"] as LevelPips).set_levels(current, upgrade.max_level)
 		level_label.text = "%d/%d" % [mini(current, upgrade.max_level), upgrade.max_level]
 		if is_locked(upgrade):
-			effect_label.text = _unlock_text(upgrade)
+			effect_label.text = (upgrade.describe_bonus(current) + "\n" if current > 0 else "") + _unlock_text(upgrade)
 			button.text = "Locked"
 			button.disabled = true
 			button.theme_type_variation = &""
@@ -243,13 +243,19 @@ func _refresh() -> void:
 
 ## An upgrade for an ally the player has not unlocked yet can be seen but not bought.
 func is_locked(upgrade: UpgradeData) -> bool:
-	if upgrade == null or upgrade.target != UpgradeData.Target.ALLY:
+	if upgrade == null:
+		return false
+	if not upgrade.is_available(_progress):
+		return true
+	if upgrade.target != UpgradeData.Target.ALLY:
 		return false
 	var data: AllyData = ALLY_ROSTER.find(upgrade.ally_id)
 	return data != null and not ALLY_ROSTER.is_unlocked(data, _progress)
 
 
 func _unlock_text(upgrade: UpgradeData) -> String:
+	if not upgrade.is_available(_progress):
+		return SkillHints.locked_text(upgrade.required_stage(_progress.get_upgrade_level(upgrade.id))) + " to unlock"
 	var data: AllyData = ALLY_ROSTER.find(upgrade.ally_id)
 	return SkillHints.locked_text(data.unlock_stage_id) if data != null else "Locked"
 
@@ -257,7 +263,7 @@ func _unlock_text(upgrade: UpgradeData) -> String:
 func _on_buy_pressed(upgrade: UpgradeData) -> UpgradeShop.Result:
 	if is_locked(upgrade):
 		_message_label.text = "%s is not unlocked yet (%s)." % [upgrade.display_name, _unlock_text(upgrade)]
-		return UpgradeShop.Result.INVALID_UPGRADE
+		return UpgradeShop.Result.LOCKED if not upgrade.is_available(_progress) else UpgradeShop.Result.INVALID_UPGRADE
 	var before: PlayerProgress = _progress.duplicate_progress()
 	var level: int = _progress.get_upgrade_level(upgrade.id) if upgrade != null else 0
 	var result: UpgradeShop.Result = UpgradeShop.purchase(_progress, upgrade)

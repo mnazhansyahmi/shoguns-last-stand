@@ -12,6 +12,8 @@ signal progress_reset
 @export var save_path: String = SaveManager.DEFAULT_PATH
 
 const TOUCH_MODE_NAMES: PackedStringArray = ["Auto", "Always", "Off"]
+enum Tab { AUDIO, DISPLAY, GAMEPLAY }
+const TAB_NAMES: PackedStringArray = ["Audio", "Display", "Gameplay"]
 
 @onready var _music_slider: HSlider = %MusicSlider
 @onready var _music_value: Label = %MusicValue
@@ -34,6 +36,9 @@ var _syncing: bool = false
 var _controls_page: CenterContainer
 var _controls_button: Button
 var _motion_toggle: Button
+var _pages: Array[VBoxContainer] = []
+var _tab_buttons: Array[Button] = []
+var _tab: Tab = Tab.AUDIO
 
 
 func _ready() -> void:
@@ -71,10 +76,12 @@ func _ready() -> void:
 	for button: Button in [_reset_dialog.get_ok_button(), _reset_dialog.get_cancel_button()]:
 		button.custom_minimum_size = Vector2(240.0, 124.0)
 		button.add_theme_font_size_override("font_size", 32)
+	_build_tabs()
 
 
 func open(settings: GameSettings) -> void:
 	show_controls(false)
+	select_tab(Tab.AUDIO)
 	_settings = settings if settings != null else GameSettings.new()
 	_syncing = true
 	_music_slider.value = _settings.music_volume
@@ -200,15 +207,129 @@ func _build_controls_page() -> void:
 
 
 func show_controls(enabled: bool = true) -> void:
+	var returning: bool = _controls_page.visible and not enabled
 	$Center.visible = not enabled
 	_controls_page.visible = enabled
+	if returning: select_tab(Tab.GAMEPLAY)
 	if visible:
 		if enabled:
 			var guide: ControlsGuide = _controls_page.get_child(0).get_child(0).get_child(0) as ControlsGuide
 			(guide.get_child(guide.get_child_count() - 1) as Button).grab_focus()
 		else:
-			_controls_button.grab_focus()
+			if _tab == Tab.GAMEPLAY: _controls_button.grab_focus()
+			elif not _tab_buttons.is_empty(): _tab_buttons[_tab].grab_focus()
 
 
 func is_controls_open() -> bool:
 	return visible and _controls_page.visible
+
+
+func _build_tabs() -> void:
+	var content: VBoxContainer = $Center/Panel/Margin/VBox
+	content.add_theme_constant_override("separation", 0)
+	var tabs: HBoxContainer = HBoxContainer.new()
+	tabs.name = "Tabs"
+	tabs.add_theme_constant_override("separation", 0)
+	content.add_child(tabs)
+	content.move_child(tabs, 1)
+	var pages: VBoxContainer = VBoxContainer.new()
+	pages.name = "Pages"
+	pages.custom_minimum_size.y = 400.0
+	var shell: PanelContainer = PanelContainer.new()
+	shell.name = "TabContent"
+	var panel_style: StyleBoxFlat = StyleBoxFlat.new()
+	panel_style.bg_color = Color("242128")
+	panel_style.border_color = Color("746141")
+	panel_style.set_border_width_all(1)
+	panel_style.border_width_top = 0
+	panel_style.set_content_margin_all(24)
+	shell.add_theme_stylebox_override("panel", panel_style)
+	content.add_child(shell)
+	content.move_child(shell, 2)
+	shell.add_child(pages)
+	var group: ButtonGroup = ButtonGroup.new()
+	for index: int in TAB_NAMES.size():
+		var button: Button = Button.new()
+		button.text = TAB_NAMES[index]
+		button.name = TAB_NAMES[index] + "Tab"
+		button.toggle_mode = true
+		button.button_group = group
+		button.theme_type_variation = &"ToggleButton"
+		var resting: StyleBoxFlat = StyleBoxFlat.new()
+		resting.bg_color = Color("151319")
+		resting.border_color = Color("746141")
+		resting.set_border_width_all(1)
+		var selected: StyleBoxFlat = resting.duplicate() as StyleBoxFlat
+		selected.bg_color = panel_style.bg_color
+		selected.border_width_bottom = 0
+		button.add_theme_stylebox_override("normal", resting)
+		button.add_theme_stylebox_override("hover", resting)
+		button.add_theme_stylebox_override("pressed", selected)
+		button.add_theme_stylebox_override("hover_pressed", selected)
+		button.draw.connect(func() -> void:
+			if button.button_pressed:
+				button.draw_line(Vector2(30, button.size.y - 9), Vector2(button.size.x - 30, button.size.y - 9), Color("deb85b"), 4))
+		button.custom_minimum_size = Vector2(300, 124)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_font_size_override("font_size", 34)
+		button.pressed.connect(select_tab.bind(index))
+		button.focus_entered.connect(select_tab.bind(index))
+		tabs.add_child(button)
+		_tab_buttons.append(button)
+		var page: VBoxContainer = VBoxContainer.new()
+		page.name = TAB_NAMES[index] + "Page"
+		page.add_theme_constant_override("separation", 16)
+		pages.add_child(page)
+		var section: Label = Label.new()
+		section.name = "SectionTitle"
+		section.text = TAB_NAMES[index] + " settings"
+		section.add_theme_font_size_override("font_size", 34)
+		section.modulate = Color("deb85b")
+		page.add_child(section)
+		_pages.append(page)
+	var audio_grid: GridContainer = content.get_node("Sliders")
+	audio_grid.reparent(_pages[Tab.AUDIO])
+	var display_grid: GridContainer = GridContainer.new()
+	display_grid.columns = 3
+	display_grid.add_theme_constant_override("h_separation", 28)
+	_pages[Tab.DISPLAY].add_child(display_grid)
+	for node_name: String in ["UiScaleLabel", "UiScaleSlider", "UiScaleValue"]:
+		audio_grid.get_node(NodePath(node_name)).reparent(display_grid)
+	var effects: HBoxContainer = HBoxContainer.new()
+	effects.add_theme_constant_override("separation", 16)
+	_pages[Tab.DISPLAY].add_child(effects)
+	for button: Button in [_motion_toggle, _shake_toggle, _blood_toggle]: button.reparent(effects)
+	var input_toggles: HBoxContainer = HBoxContainer.new()
+	input_toggles.add_theme_constant_override("separation", 16)
+	_pages[Tab.GAMEPLAY].add_child(input_toggles)
+	for button: Button in [_left_handed_toggle, _vibration_toggle]: button.reparent(input_toggles)
+	content.get_node("TouchRow").reparent(_pages[Tab.GAMEPLAY])
+	var gameplay_actions: HBoxContainer = HBoxContainer.new()
+	gameplay_actions.add_theme_constant_override("separation", 16)
+	_pages[Tab.GAMEPLAY].add_child(gameplay_actions)
+	for button: Button in [_controls_button, _reset_button]:
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.reparent(gameplay_actions)
+	content.get_node("Toggles").queue_free()
+	select_tab(Tab.AUDIO)
+
+
+func select_tab(index: int) -> void:
+	_tab = clampi(index, 0, TAB_NAMES.size() - 1) as Tab
+	for page: int in _pages.size():
+		_pages[page].visible = page == int(_tab)
+		_tab_buttons[page].set_pressed_no_signal(page == int(_tab))
+		_tab_buttons[page].queue_redraw()
+
+
+func get_selected_tab() -> Tab:
+	return _tab
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not visible or is_controls_open(): return
+	var direction: int = 1 if event.is_action_pressed("ui_page_down") else (-1 if event.is_action_pressed("ui_page_up") else 0)
+	if direction == 0: return
+	select_tab((int(_tab) + direction + TAB_NAMES.size()) % TAB_NAMES.size())
+	_tab_buttons[_tab].grab_focus()
+	get_viewport().set_input_as_handled()

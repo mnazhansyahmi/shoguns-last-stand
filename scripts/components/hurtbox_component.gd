@@ -4,9 +4,21 @@ extends Area2D
 
 signal hit_received(hit: HitData)
 
+## What hit_filter says about a hit: take it, stop it (a shield: the hitbox counts it as its hit and stops trying), or let
+## it pass through untouched (a flying enemy and a blade that cannot reach it).
+enum Filter { ACCEPT, BLOCK, IGNORE }
+
 @export var faction: Faction.Type = Faction.Type.DEFENDERS
 ## Falls back to a sibling named "HealthComponent" when unassigned.
 @export var health_component: HealthComponent
+
+## Optional owner check, called with the HitboxComponent before damage: returns a Filter. Unset = accept every hit.
+var hit_filter: Callable
+## The last receive_hit() was stopped by hit_filter (Filter.BLOCK).
+var last_hit_blocked: bool = false
+## Upgrade mitigation is applied once here, for every hostile damage path.
+var damage_multiplier: float = 1.0
+var fire_damage_multiplier: float = 1.0
 
 var _enabled: bool = true
 
@@ -38,14 +50,23 @@ func get_target_id() -> int:
 
 ## Validates faction, liveness and invulnerability, then applies damage.
 func receive_hit(hitbox: HitboxComponent) -> bool:
+	last_hit_blocked = false
 	if not _enabled or hitbox == null:
 		return false
 	if not Faction.are_hostile(hitbox.faction, faction):
 		return false
 	if health_component == null or health_component.is_dead() or health_component.is_invulnerable():
 		return false
+	if hit_filter.is_valid():
+		var verdict: Filter = hit_filter.call(hitbox)
+		if verdict != Filter.ACCEPT:
+			last_hit_blocked = verdict == Filter.BLOCK
+			return false
 	var direction_x: float = hitbox.get_knockback_direction_x(global_position.x)
-	var hit: HitData = HitData.new(hitbox.damage, Vector2(direction_x * hitbox.knockback, 0.0), hitbox.get_source())
+	var damage: float = hitbox.damage * clampf(damage_multiplier, 0.0, 1.0)
+	if hitbox.fire:
+		damage *= clampf(fire_damage_multiplier, 0.0, 1.0)
+	var hit: HitData = HitData.new(damage, Vector2(direction_x * hitbox.knockback, 0.0), hitbox.get_source())
 	hit.heavy = hitbox.heavy
 	hit.spirit = hitbox.spirit
 	var applied: float = health_component.take_damage(hit.damage, hit.source)

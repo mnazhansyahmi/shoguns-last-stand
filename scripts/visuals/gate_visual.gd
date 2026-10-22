@@ -20,6 +20,8 @@ var _static: InkBatch
 var _details: InkBatch
 var _detail_stage: int = -1
 var _detail_destroyed: bool = false
+var _burning: bool = false
+var _painted_fires: Array[PaintedFlame] = []
 
 
 func _ready() -> void:
@@ -28,6 +30,21 @@ func _ready() -> void:
 	_glow_layer.material = InkFigure.additive_material()
 	add_child(_glow_layer)
 	_glow_layer.draw.connect(_draw_lantern_glow)
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	for side: int in [-1, 1]:
+		var flame: PaintedFlame = PaintedFlame.new()
+		flame.position = Vector2(side * 150.0, -270)
+		flame.flame_size = Vector2(80, 140)
+		flame.phase = side * 2.0
+		add_child(flame)
+		_painted_fires.append(flame)
+	apply_region(PaintedWorld.burning())
+
+
+func apply_region(burning: bool) -> void:
+	_burning = burning
+	for flame: PaintedFlame in _painted_fires: flame.visible = burning and not _destroyed
+	queue_redraw()
 
 
 func _process(delta: float) -> void:
@@ -59,6 +76,7 @@ func get_damage() -> float:
 func set_destroyed() -> void:
 	_destroyed = true
 	modulate = DESTROYED_TINT
+	for flame: PaintedFlame in _painted_fires: flame.hide()
 	queue_redraw()
 
 
@@ -72,6 +90,19 @@ func set_tint(color: Color) -> void:
 
 
 func _draw() -> void:
+	self_modulate = Color.WHITE.lerp(FLASH_MODULATE, _flash) if _flash > 0.0 else Color.WHITE
+	var stage: int = 2 if _destroyed else (1 if _damage >= 0.33 else 0)
+	var cell: Vector2 = PaintedWorld.GATES.get_size() / Vector2(3, 2)
+	var src: Rect2 = Rect2(Vector2(stage, 1 if _burning else 0) * cell, cell)
+	# Each source cell's painted contact is at 88% height; register that to y=0.
+	draw_texture_rect_region(PaintedWorld.GATES, Rect2(-240, -422.4, 480, 480), src)
+	if _damage >= 0.66 and not _destroyed:
+		var cracks: InkBatch = InkBatch.new()
+		_draw_cracks(cracks)
+		cracks.draw(self)
+
+
+func _draw_legacy() -> void:
 	# The gate's shapes are built once; cracks and lanterns only when the damage stage or the
 	# destroyed state changes. The hit flash is a self_modulate, so it costs no rebuild.
 	if _static == null:

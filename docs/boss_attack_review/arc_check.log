@@ -1,0 +1,3 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Boss sword regression: 66 complete attacks/combos, max 17.961 degrees per 60-Hz frame (limit 24).

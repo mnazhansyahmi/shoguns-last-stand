@@ -171,6 +171,10 @@ func _progress_from_document(document: Variant) -> PlayerProgress:
 		if not progress.stages_cleared.has(stage_id):
 			progress.stages_cleared.append(stage_id)
 
+	var seen: Variant = data.get("seen_enemies", [])
+	if typeof(seen) == TYPE_ARRAY:
+		for id: Variant in seen:
+			if typeof(id) == TYPE_STRING and not progress.seen_enemy_ids.has(id): progress.seen_enemy_ids.append(id)
 	var last_stage: Variant = data.get("last_stage", "")
 	if typeof(last_stage) == TYPE_STRING:
 		progress.last_stage_id = last_stage

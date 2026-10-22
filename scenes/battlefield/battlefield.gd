@@ -10,6 +10,10 @@ const UPGRADE_CATALOG: UpgradeCatalog = preload("res://data/upgrades/upgrade_cat
 ## Every ally; the ones whose stage has been cleared fill the summon slots in this order.
 const ALLY_ROSTER: AllyRoster = preload("res://data/allies/roster.tres")
 const DEBUG_HOLLOW_SOLDIER: EnemyData = preload("res://data/enemies/hollow_soldier.tres")
+@export var enemy_briefing_enabled: bool = true
+var _enemy_briefing: EnemyBriefing
+var _briefing_from_pause: bool = false
+var _briefing_input_guard: int = 0
 const DEBUG_ONI_BRUTE: EnemyData = preload("res://data/enemies/oni_brute.tres")
 const PLAYER_RESPAWN_DELAY: float = 5.0
 const SUMMON_ACTIONS: Array[StringName] = [&"summon_1", &"summon_2", &"summon_3", &"summon_4", &"summon_5", &"summon_6"]
@@ -39,6 +43,7 @@ const GATE_ALERT_MSEC: int = 3000
 @onready var _result_screen: ResultScreen = $ResultScreen
 
 var _is_game_over: bool = false
+var _boss_view_envelope: float = 0.0
 var _respawn_time_left: float = -1.0
 var _save_manager: SaveManager
 var _progress: PlayerProgress
@@ -70,6 +75,10 @@ func _ready() -> void:
 	if _wave_director.stage != null:
 		# The stage's own sky, light and falling leaves.
 		_backdrop.apply_theme(_wave_director.stage.atmosphere)
+		var burning: bool = PaintedWorld.burning(_wave_director.stage.atmosphere)
+		(_gate.get_node("Visual") as GateVisual).apply_region(burning)
+		for node: Node in $World.find_children("*", "", true, false):
+			if node is SpawnPortalVisual: (node as SpawnPortalVisual).apply_region(burning)
 		_was_cleared_before = _progress.is_stage_cleared(_wave_director.stage.stage_id)
 
 	_player.health_changed.connect(_hud.set_player_health)
@@ -101,10 +110,14 @@ func _ready() -> void:
 	_pause_menu.set_save_path(save_path)
 	_pause_menu.progress_reset.connect(_on_progress_reset)
 	_pause_menu.resume_requested.connect(_resume)
-	_pause_menu.restart_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.BATTLEFIELD))
-	_pause_menu.main_menu_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.MAIN_MENU))
+	_pause_menu.restart_requested.connect(_leave_battle.bind(SceneRoutes.BATTLEFIELD))
+	_pause_menu.main_menu_requested.connect(_leave_battle.bind(SceneRoutes.MAIN_MENU))
 	_pause_menu.settings_changed.connect(_on_settings_changed)
 	_pause_menu.settings_closed.connect(_on_settings_closed)
+	_pause_menu.briefing_requested.connect(_open_enemy_briefing.bind(true))
+	_enemy_briefing = EnemyBriefing.new()
+	add_child(_enemy_briefing)
+	_enemy_briefing.dismissed.connect(_close_enemy_briefing)
 	_result_screen.retry_requested.connect(_on_retry_requested)
 	_result_screen.next_stage_requested.connect(_on_next_stage_requested)
 	_result_screen.upgrades_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.UPGRADE_MENU))
@@ -119,6 +132,9 @@ func _ready() -> void:
 	_hud.set_remaining(0)
 	_hud.set_tutorial_hint(_wave_director.stage.stage_id if _wave_director.stage != null else "", _was_cleared_before)
 	_hud.hide_status()
+	# Interactive play waits for the briefing; noninteractive simulations opt out.
+	if enemy_briefing_enabled and DisplayServer.get_name() != "headless" and _wave_director.stage != null:
+		_open_enemy_briefing(false)
 	_apply_settings()
 	for warning: String in [_save_manager.last_warning, _settings_store.last_warning]:
 		if not warning.is_empty():
@@ -133,6 +149,9 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if _briefing_input_guard > 0:
+		_briefing_input_guard -= 1
+		return
 	if Input.is_action_just_pressed("pause"):
 		_on_pause_pressed()
 	if not get_tree().paused and not _is_game_over:
@@ -193,6 +212,9 @@ func _unhandled_input(event: InputEvent) -> void:
 # --- Pause and settings -----------------------------------------------------
 
 func _on_pause_pressed() -> void:
+	if _enemy_briefing != null and _enemy_briefing.visible:
+		_enemy_briefing.dismiss()
+		return
 	if _is_game_over:
 		SceneRoutes.go_to(get_tree(), SceneRoutes.MAIN_MENU)
 	elif _pause_menu.is_settings_open():
@@ -215,6 +237,28 @@ func _resume() -> void:
 	get_tree().paused = false
 
 
+func _open_enemy_briefing(from_pause: bool = false) -> void:
+	if _wave_director.stage == null: return
+	_briefing_from_pause = from_pause
+	get_tree().paused = true
+	_touch.release_all()
+	_hud.release_summons()
+	_pause_menu.close()
+	_enemy_briefing.open(_wave_director.stage, _progress, not from_pause)
+	if not from_pause and _save_manager.save_progress(_progress) != OK:
+		_hud.show_message("Could not save enemy discoveries.", 3.0)
+
+
+func _close_enemy_briefing() -> void:
+	_briefing_input_guard = 2
+	if _briefing_from_pause:
+		_pause_menu.open(_settings)
+	else:
+		# Consume the dismissal frame before combat polling can see the key.
+		await get_tree().process_frame
+		if is_inside_tree(): get_tree().paused = false
+
+
 func _on_settings_changed(settings: GameSettings) -> void:
 	_settings = settings
 	_apply_settings()
@@ -231,6 +275,7 @@ func _on_settings_closed(settings: GameSettings) -> void:
 func _apply_settings() -> void:
 	_settings.apply_audio()
 	_feedback.configure(_settings)
+	(_hud.get_boss_bar() as BossHealthBar).shake_enabled = _settings.screen_shake
 	var show_touch: bool = _settings.should_show_touch_controls(GameSettings.detect_touchscreen())
 	_touch.set_active(show_touch and not _is_game_over)
 	_hud.set_touch_mode(show_touch)
@@ -245,6 +290,7 @@ func _apply_layout() -> void:
 	_hud.apply_layout(safe_rect, viewport_size, _settings.ui_scale)
 	_camera.update_base()
 	_update_camera_lift(viewport_size, safe_rect)
+	_camera.set_boss_headroom(_hud.get_boss_header_bottom(), _boss_view_envelope)
 
 
 ## With touch controls on screen, move the camera down (the world up) so the ground, the
@@ -319,6 +365,10 @@ func _handle_debug_input(event: InputEvent) -> void:
 ## Replaces this battle's stats with upgraded copies. Base .tres resources stay untouched.
 func _apply_upgrades() -> void:
 	_player.apply_stats(UpgradeApplier.build_player_stats(_player.stats, _progress, UPGRADE_CATALOG))
+	var gate_hurtbox: HurtboxComponent = _gate.get_node("Hurtbox")
+	gate_hurtbox.damage_multiplier = UpgradeApplier.build_gate_damage_multiplier(_progress, UPGRADE_CATALOG)
+	gate_hurtbox.fire_damage_multiplier = UpgradeApplier.build_fire_damage_multiplier(_progress, UPGRADE_CATALOG)
+	(_player.get_node("Hurtbox") as HurtboxComponent).fire_damage_multiplier = gate_hurtbox.fire_damage_multiplier
 	var upgraded_slots: Array[AllyData] = []
 	for data: AllyData in ALLY_ROSTER.get_unlocked(_progress):
 		upgraded_slots.append(UpgradeApplier.build_ally_data(data, _progress, UPGRADE_CATALOG))
@@ -400,13 +450,15 @@ func _on_retry_requested() -> void:
 
 
 func _on_next_stage_requested() -> void:
-	var next: StageData = StageProgression.next_stage(StageProgression.default_region(), _wave_director.stage)
+	var next: StageData = StageProgression.next_stage(StageProgression.region_of(_wave_director.stage), _wave_director.stage)
 	if next != null:
 		SceneRoutes.go_to_battle(get_tree(), next)
 
 
-## Fighting charges the Ultimate: damage the samurai deals (allies count less) and damage he takes.
+## Fighting charges the Ultimate: damage the samurai deals (allies count less) and damage he takes. Any hit also tells
+## the WaveDirector the fight is going (its stall watch).
 func _on_hit_reported(victim: Node, hit: HitData) -> void:
+	_wave_director.note_damage()
 	if victim is Enemy:
 		if is_instance_valid(hit.source) and hit.source is Player:
 			_ultimate_meter.add_damage_dealt(hit.damage)
@@ -425,7 +477,8 @@ func _on_ultimate_not_ready(ratio: float) -> void:
 	_hud.show_message("Ultimate charging - %d%%" % floori(ratio * 100.0))
 
 
-func _on_ally_summoned(_ally: Ally, _slot: int) -> void:
+func _on_ally_summoned(ally: Ally, _slot: int) -> void:
+	(ally.get_node("Hurtbox") as HurtboxComponent).fire_damage_multiplier = UpgradeApplier.build_fire_damage_multiplier(_progress, UPGRADE_CATALOG)
 	AudioManager.play(&"summon")
 
 
@@ -478,6 +531,23 @@ func _on_enemy_spawned(enemy: Enemy) -> void:
 	var boss: Boss = enemy as Boss
 	if boss != null:
 		_hud.show_boss(boss.data.display_name)
+		var leap_height: float = float(ProjectSettings.get_setting("physics/2d/default_gravity", 980.0)) * Boss.LEAP_AIR_TIME * Boss.LEAP_AIR_TIME / 8.0
+		_boss_view_envelope = boss.data.body_size.y * 1.2 + leap_height
+		_apply_layout()
+		var burning: bool = boss.data.figure == InkFigure.Kind.BURNING_GENERAL
+		_hud.show_boss_entrance(boss.data.display_name, "LORD OF THE BURNING VILLAGE" if burning else "LORD OF THE BROKEN OATH")
+		_feedback.shake(13.0, 0.65)
+		AudioManager.play(&"boss_entrance", 0.65)
+		if boss.data.figure == InkFigure.Kind.BURNING_GENERAL:
+			var burst: PaintedFireBurst = PaintedFireBurst.new()
+			burst.span = Vector2(480, 380)
+			boss.get_parent().add_child(burst)
+			burst.global_position = boss.global_position
+		else:
+			var smoke: InkSplash = InkSplash.new()
+			smoke.setup(InkSplash.Style.PORTAL_SMOKE, 180.0)
+			boss.get_parent().add_child(smoke)
+			smoke.global_position = boss.global_position
 		boss.boss_health_changed.connect(_hud.set_boss_health)
 		_hud.set_boss_health(boss.get_health().current_health, boss.get_health().max_health)
 		boss.phase_changed.connect(_on_boss_phase_changed)
@@ -487,7 +557,8 @@ func _on_enemy_spawned(enemy: Enemy) -> void:
 		AudioManager.play_music(&"boss")
 
 
-func _on_boss_phase_changed(_phase: int, banner: String) -> void:
+func _on_boss_phase_changed(phase: int, banner: String) -> void:
+	_hud.set_boss_phase(phase)
 	if not banner.is_empty():
 		_hud.show_banner(banner)
 
@@ -503,6 +574,8 @@ func _on_boss_minions_requested(enemy_data: EnemyData, positions: PackedFloat32A
 
 func _on_boss_defeated(_enemy: Enemy) -> void:
 	_hud.hide_boss()
+	_boss_view_envelope = 0.0
+	_apply_layout()
 
 
 ## Every enemy killed (wave or debug) is worth its reward.
@@ -528,6 +601,7 @@ func _end_battle(victory: bool) -> void:
 	_is_game_over = true
 	_respawn_time_left = -1.0
 	_wave_director.stop()
+	_ultimate.cancel_cinematic()
 	_feedback.end_hit_stop()
 	AudioManager.play(&"victory" if victory else &"defeat")
 	_touch.set_active(false)
@@ -546,11 +620,23 @@ func _end_battle(victory: bool) -> void:
 	var save_error: Error = _save_manager.save_progress(_progress)
 	var next_name: String = ""
 	if victory and not _was_cleared_before:
-		var next: StageData = StageProgression.next_stage(StageProgression.default_region(), stage)
+		var next: StageData = StageProgression.next_stage(StageProgression.region_of(stage), stage)
 		if next != null:
 			next_name = next.display_name
 	_result_screen.show_result(reward, _progress, levels_gained, save_error, next_name, new_allies)
 	get_tree().paused = true
+
+
+## Leave a battle still being fought (pause menu Restart or Main Menu). The battle ends first: freeing the scene frees
+## its enemies, and the WaveDirector would count the last wave's enemies leaving as a clear and save a victory.
+func _leave_battle(path: String) -> void:
+	_abandon_battle()
+	SceneRoutes.go_to(get_tree(), path)
+
+
+func _abandon_battle() -> void:
+	_is_game_over = true
+	_wave_director.stop()
 
 
 ## Leave the battle after resetting so its old progress cannot be written back by a later result.

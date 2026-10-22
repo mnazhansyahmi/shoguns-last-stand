@@ -12,10 +12,19 @@ extends Node2D
 @export var theme: AtmosphereTheme
 
 var _rays: CanvasItem
+## The burning village's flame glow (empty in the bamboo scenery); it flickers.
+var _fires: CanvasItem
+var _fire_fields: Array[VillageFireField] = []
 
 
 func _ready() -> void:
 	_rays = get_node_or_null("Rays") as CanvasItem
+	_fires = get_node_or_null("Fires") as CanvasItem
+	if _fires != null:
+		for parent: Node in [_fires, get_node("Ground")]:
+			var field: VillageFireField = VillageFireField.new()
+			parent.add_child(field)
+			_fire_fields.append(field)
 	apply_theme(theme)
 	if front_fog:
 		return
@@ -38,6 +47,11 @@ func set_keep_out(rects: Array[Rect2]) -> void:
 func apply_theme(new_theme: AtmosphereTheme) -> void:
 	theme = new_theme
 	Atmosphere.set_theme(new_theme)
+	for index: int in _fire_fields.size():
+		var field: VillageFireField = _fire_fields[index]
+		field.visible = PaintedWorld.burning(Atmosphere.current())
+		field.set_process(field.visible)
+		if field.visible: field.configure(Atmosphere.current().theme_id, index == 1)
 	for child: Node in get_children():
 		var layer: BackdropLayer = child as BackdropLayer
 		if layer != null:
@@ -52,3 +66,4 @@ func _process(delta: float) -> void:
 	if _rays != null:
 		# The beams brighten and fade slowly, and a little more in a gust.
 		_rays.modulate.a = clampf(0.72 + 0.28 * sin(Atmosphere.time * 0.42) + (Atmosphere.wind_strength() - 0.4) * 0.4, 0.3, 1.0)
+	# Each retained fire batch has independent GPU phases, never a shared pulse.

@@ -15,6 +15,7 @@ static var _atlas: Texture2D
 static var _textures: Dictionary = {}
 static var _frames: Dictionary = {}
 static var _wood: Rect2
+static var _weapon_bounds: Dictionary = {}
 
 
 static func atlas() -> Texture2D:
@@ -23,6 +24,8 @@ static func atlas() -> Texture2D:
 
 
 static func cell(kind: InkFigure.Kind, name: StringName) -> int:
+	if FigureKinds.animation_kind(kind) != kind:
+		return -1 # New enemies own their painted weapons/props, not the Region 1 equipment atlas.
 	if name == &"weapon": return WEAPONS.get(kind, -1)
 	if name == &"shield": return 8
 	if name == &"quiver": return 10
@@ -44,6 +47,9 @@ static func texture(kind: InkFigure.Kind, name: StringName) -> AtlasTexture:
 static func frame(kind: InkFigure.Kind, name: StringName) -> Transform2D:
 	var key: String = "%d:%s" % [kind, name]
 	if not _frames.has(key):
+		if name == &"weapon" and WeaponRegistration.POINTS.has(kind):
+			_frames[key] = WeaponRegistration.frame(kind, EquipmentAtlasRegions.REGIONS[cell(kind, name)])
+			return _frames[key]
 		var points: PackedVector2Array = FigurePainter._original_vertices(FigurePainter.part(kind, name))
 		var target: Rect2 = Rect2(points[0], Vector2.ZERO)
 		for point: Vector2 in points: target = target.expand(point)
@@ -54,17 +60,25 @@ static func frame(kind: InkFigure.Kind, name: StringName) -> Transform2D:
 	return _frames[key]
 
 
+static func weapon_bounds(kind: InkFigure.Kind) -> PackedVector2Array:
+	if not _weapon_bounds.has(kind):
+		_weapon_bounds[kind] = SamuraiSpriteArt.alpha_bounds(atlas().get_image(),
+			EquipmentAtlasRegions.REGIONS[cell(kind, &"weapon")], frame(kind, &"weapon"))
+	return _weapon_bounds[kind]
+
+
 static func draw_bow(ci: CanvasItem, figure: InkFigure) -> void:
 	# Only the surfaces change: string, nock, arrow and draw animation keep their exact positions and gameplay
 	# release timing. The ink limbs underneath are a little wider, so they read as the wood's ink outline.
 	FigurePainter.bow(figure.pose.bow_draw, figure.kind).draw(ci)
 	var step: int = FigurePainter.bow_step(figure.pose.bow_draw)
 	var drawn: float = float(step) / float(FigurePainter.BOW_STEPS)
+	var lengths: Vector2 = FigurePainter.bow_lengths(figure.kind)
 	for side: int in 2:
 		var points: PackedVector2Array = PackedVector2Array()
 		for i: int in 9:
 			var t: float = float(i) / 8.0
-			points.append(Vector2(FigurePainter._bow_bend(t, drawn), t * (-FigurePainter.BOW_UPPER if side == 0 else FigurePainter.BOW_LOWER)))
+			points.append(Vector2(FigurePainter._bow_bend(t, drawn), t * (-lengths.x if side == 0 else lengths.y)))
 		_draw_wood(ci, points, FigurePainter.BOW_LIMB_WIDTH.x - 0.8, FigurePainter.BOW_LIMB_WIDTH.y - 0.6)
 	if figure.kind == InkFigure.Kind.SAMURAI:
 		# The yumi's grip wrap, in the painted red of his sash.

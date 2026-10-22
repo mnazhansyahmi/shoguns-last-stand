@@ -67,15 +67,16 @@ func test_the_ally_cap_starts_at_six_and_grows_one_per_stage_to_eleven() -> void
 	assert_eq(UpgradeApplier.build_ally_cap(PlayerProgress.new(), CATALOG), 6, "a new player has six")
 
 
-func test_the_command_upgrade_adds_one_ally_per_level_up_to_three() -> void:
+func test_the_command_upgrade_adds_one_ally_per_level_up_to_four() -> void:
 	var command: UpgradeData = CATALOG.find("army_command")
 	assert_true(command != null, "the catalog has the Command upgrade")
-	assert_eq(command.max_level, 3, "three levels")
+	assert_eq(command.region_1_cap, 3, "three original levels")
+	assert_eq(command.max_level, 4, "one additional Region 2 level")
 	assert_eq(command.target, UpgradeData.Target.ARMY, "it is an army upgrade")
 	for level: int in 4:
 		assert_eq(UpgradeApplier.build_ally_cap(_progress(0, level), CATALOG), 6 + level, "level %d" % level)
 	assert_eq(UpgradeApplier.build_ally_cap(_progress(5, 3), CATALOG), 14, "eleven from the stages and three from Command")
-	assert_eq(UpgradeApplier.build_ally_cap(_progress(5, 9), CATALOG), 14, "levels past the maximum add nothing")
+	assert_eq(UpgradeApplier.build_ally_cap(_progress(5, 9), CATALOG), 15, "levels past the new maximum add nothing")
 	assert_eq(command.describe_bonus(2), "+2 allies on the field", "the shop says what it does")
 
 

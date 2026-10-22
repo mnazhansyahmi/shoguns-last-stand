@@ -9,7 +9,7 @@ signal health_changed(current: float, maximum: float)
 signal projectile_fired(projectile: Node2D)
 ## The Ultimate began: the blade is going up.
 signal ultimate_started
-## The Ultimate's sweep lands now (origin = the samurai, facing = -1 or 1).
+## The raised blade releases into the Ultimate's dash (origin and facing).
 signal ultimate_released(origin: Vector2, facing: int)
 ## The War Cry goes out now (the battlefield buffs the allies near `origin`).
 signal war_cry_released(origin: Vector2)
@@ -47,6 +47,7 @@ var bow_unlocked: bool = false
 var war_cry_unlocked: bool = false
 ## False: the player ignores the keys and buttons (tests drive him through use_skill() and the like).
 var read_input: bool = true
+var ultimate_cinematic: bool = false
 
 var _state: State = State.IDLE
 var _state_time: float = 0.0
@@ -97,6 +98,9 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if ultimate_cinematic:
+		velocity = Vector2.ZERO
+		return
 	_state_time += delta
 	if not is_on_floor():
 		velocity.y += _gravity * delta
@@ -179,8 +183,8 @@ func can_use_ultimate() -> bool:
 	return _state != State.DEAD and _state != State.ULTIMATE and not _health.is_dead()
 
 
-## Raises the blade; after `stats.ultimate_windup` the sweep lands (ultimate_released) and he
-## recovers. He cannot be hurt for the whole move. Returns false if he cannot use it now.
+## Raises the blade, then emits ultimate_released. UltimateSkill may hold control
+## for its dash and impact; a standalone player follows the normal recovery.
 func start_ultimate() -> bool:
 	if not can_use_ultimate():
 		return false
@@ -389,7 +393,15 @@ func _process_ultimate(delta: float) -> void:
 		_ultimate_released = true
 		_visual.play_ultimate_strike()
 		ultimate_released.emit(global_position, facing)
+	if ultimate_cinematic: return
 	if _ultimate_released and _state_time >= stats.ultimate_windup + stats.ultimate_recovery:
+		_change_state(State.IDLE)
+		_visual.play_state(&"idle")
+
+
+func finish_ultimate_cinematic() -> void:
+	ultimate_cinematic = false
+	if _state == State.ULTIMATE:
 		_change_state(State.IDLE)
 		_visual.play_state(&"idle")
 

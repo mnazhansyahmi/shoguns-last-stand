@@ -11,16 +11,26 @@ extends SceneTree
 ## --frames=N measures N frames instead of MEASURE_FRAMES (a longer run averages out the
 ## machine's own noise).
 ## --touch also measures the touch UI, with the same combat, timing and frame budget.
+## --region2 uses the Burning Village backdrop and its four painted enemy types.
+## Attribution only: --no-props, --no-aura, --no-wisps, --no-secondary,
+## --no-embers, --no-fire-layer. These deliberately alter the picture, never the default.
 ## Uses its own save/settings under user://perf, never the player's.
 
 const BATTLEFIELD: PackedScene = preload("res://scenes/battlefield/battlefield.tscn")
 const HOLLOW: EnemyData = preload("res://data/enemies/hollow_soldier.tres")
 const ONI: EnemyData = preload("res://data/enemies/oni_brute.tres")
+const REGION_2_ENEMIES: Array[EnemyData] = [
+	preload("res://data/enemies/spectral_archer.tres"),
+	preload("res://data/enemies/shield_bearer.tres"),
+	preload("res://data/enemies/flying_spirit.tres"),
+]
+const GENERAL: EnemyData = preload("res://data/enemies/burning_general.tres")
 const DATA_DIR: String = "user://perf"
 const ENEMIES: int = 30
 const WARMUP_FRAMES: int = 120
 const MEASURE_FRAMES: int = 900
 const FRAME_BUDGET_MS: float = 8.0
+const REGION_2_FRAME_BUDGET_MS: float = 9.5
 
 var _flags: PackedStringArray = PackedStringArray()
 
@@ -35,7 +45,13 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	# Keep successive samples independent of earlier probe saves and purchased upgrades.
+	SaveManager.new(DATA_DIR + "/save.json").save_progress(PlayerProgress.new())
+	SettingsStore.new(DATA_DIR + "/settings.cfg").save_settings(GameSettings.new())
+	if _flags.has("--region2"):
+		SceneRoutes.battle_stage = load("res://data/stages/stage_8.tres") as StageData
 	var field: Node = BATTLEFIELD.instantiate()
+	field.set("enemy_briefing_enabled", false)
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -48,6 +64,16 @@ func _run() -> void:
 	var energy: SpiritEnergy = field.get_node("World/SpiritEnergy")
 	var summoner: SummonManager = field.get_node("World/SummonManager")
 	var player: Node2D = field.get_node("World/Player")
+	for node: Node in field.find_children("*", "UnitVisual", true, false):
+		_configure_visual_probe(node as UnitVisual)
+	summoner.ally_summoned.connect(func(ally: Ally, _slot: int) -> void:
+		_configure_visual_probe(ally.get_node("Visual") as UnitVisual))
+	if _flags.has("--no-embers"):
+		for node: Node in field.find_children("*", "AtmosphereLeaves", true, false):
+			(node as CanvasItem).hide()
+			node.set_process(false)
+	if _flags.has("--no-fire-layer"):
+		(field.get_node("World/Backdrop/Fires") as CanvasItem).hide()
 	player.global_position.x = 1150.0
 	if _flags.has("--no-backdrop"):
 		(field.get_node("World/Backdrop") as CanvasItem).visible = false
@@ -75,16 +101,15 @@ func _run() -> void:
 		if frame % 20 == 0:
 			summoner.request_summon((frame / 20) % 2)
 		while spawner.get_alive_count() < ENEMIES:
-			var enemy: Enemy = spawner.spawn(ONI if spawned % 10 == 0 else HOLLOW)
+			var data: EnemyData = ONI if spawned % 10 == 0 else HOLLOW
+			if _flags.has("--region2"):
+				data = GENERAL if spawned % 30 == 0 else REGION_2_ENEMIES[spawned % REGION_2_ENEMIES.size()]
+			var enemy: Enemy = spawner.spawn(data)
 			spawned += 1
 			if enemy == null:
 				break
+			_configure_visual_probe(enemy.get_node("Visual") as UnitVisual)
 			enemy.global_position.x -= float(spawned % 12) * 40.0
-		if _flags.has("--hide-figures") or _flags.has("--freeze-visuals"):
-			for node: Node in field.find_children("*", "UnitVisual", true, false):
-				var visual: UnitVisual = node as UnitVisual
-				visual.get_figure().visible = not _flags.has("--hide-figures")
-				visual.set_process(not _flags.has("--freeze-visuals"))
 		await process_frame
 		var now: int = Time.get_ticks_usec()
 		if _flags.has("--trace") and frame % 250 == 0:
@@ -104,8 +129,9 @@ func _run() -> void:
 			spawner.get_alive_count(), summoner.get_ally_count(), sorted.size()])
 	print("frame ms: avg %.2f  p95 %.2f  max %.2f | render cpu avg %.2f  gpu avg %.2f" % [total / count,
 			sorted[int(count * 0.95)], sorted[sorted.size() - 1], render_cpu / count, render_gpu / count])
-	var within_budget: bool = total / count < FRAME_BUDGET_MS
-	print("%s: average frame budget < %.2f ms" % ["PASS" if within_budget else "FAIL", FRAME_BUDGET_MS])
+	var budget: float = REGION_2_FRAME_BUDGET_MS if _flags.has("--region2") else FRAME_BUDGET_MS
+	var within_budget: bool = total / count <= budget
+	print("%s: average frame budget <= %.2f ms" % ["PASS" if within_budget else "FAIL", budget])
 	field.free()
 	await AudioManager.shutdown_audio(self)
 	quit(0 if within_budget else 1)
@@ -121,3 +147,17 @@ func _print_trace(field: Node, frame: int, frame_ms: float) -> void:
 			int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)),
 			field.get_node("World/Allies").get_child_count(), field.get_node("World/Stains").get_child_count(),
 			field.get_node("World/Effects").get_child_count(), field.get_node("World/HitEffects").get_child_count(), str(states)])
+
+
+func _configure_visual_probe(visual: UnitVisual) -> void:
+	if _flags.has("--hide-figures"): visual.get_figure().hide()
+	if _flags.has("--freeze-visuals"): visual.set_process(false)
+	if _flags.has("--no-secondary"): visual.get_figure().secondary = null
+	if not (_flags.has("--no-props") or _flags.has("--no-aura") or _flags.has("--no-wisps")): return
+	for child: Node in visual.get_children():
+		var prop: EnemyProp = child as EnemyProp
+		if prop == null: continue
+		if _flags.has("--no-props") or (_flags.has("--no-aura") and prop.kind == EnemyProp.Kind.FIRE_AURA) \
+				or (_flags.has("--no-wisps") and prop.kind == EnemyProp.Kind.WISP):
+			prop.hide()
+			prop.set_process(false)

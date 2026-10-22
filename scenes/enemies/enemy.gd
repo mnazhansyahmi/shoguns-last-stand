@@ -21,6 +21,11 @@ const FRICTION: float = 1800.0
 const CORPSE_TIME: float = 0.8
 const LOSE_TARGET_FACTOR: float = 1.5
 const INTERRUPT_ATTACK_DELAY: float = 0.3
+const ARROW_SCENE: PackedScene = preload("res://scenes/allies/arrow.tscn")
+## The Spectral Archer's arrows are pale and ghostly.
+const SPECTRAL_ARROW_TINT: Color = Color(0.75, 0.95, 1.25, 0.9)
+## A blocked hit still nudges the Shield Bearer back this fast.
+const BLOCK_PUSH: float = 90.0
 
 @export var data: EnemyData
 
@@ -47,6 +52,10 @@ var _scan_timer: float = 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity", 980.0)
 ## How much room this soldier keeps from the one in front (random: a crowd is never evenly spaced).
 var _spacing_scale: float = 1.0
+## The bow, shield, wisp or fire drawn with the figure (EnemyData.prop), or null.
+var _prop: EnemyProp
+## A Shield Bearer's shield is still whole.
+var _shield_up: bool = false
 
 
 ## Call before adding to the tree.
@@ -64,6 +73,10 @@ func _ready() -> void:
 		push_error("Enemy '%s': EnemyData '%s' has no attack, using defaults." % [name, data.display_name])
 		_attack = AttackProfile.new()
 	_apply_data()
+	_apply_look()
+	if data.shielded or data.flying:
+		_shield_up = data.shielded
+		_hurtbox.hit_filter = _filter_hit
 	MotionSmoother.attach(self, [_visual, _health_bar] as Array[Node2D])
 	_health.health_changed.connect(_on_health_changed)
 	_health.died.connect(_on_died)
@@ -137,6 +150,16 @@ func get_half_width() -> float:
 	return data.body_size.x * 0.5 if data != null else 20.0
 
 
+## Floats above the ground: only arrows and the Onmyoji's fire reach it.
+func is_flying() -> bool:
+	return data != null and data.flying
+
+
+## A Shield Bearer whose shield still stands.
+func is_shield_up() -> bool:
+	return _shield_up
+
+
 ## Picks the nearest valid target of the highest-priority kind within aggro range.
 func select_target() -> Node2D:
 	for kind: EnemyData.TargetKind in data.target_priorities:
@@ -208,6 +231,10 @@ func _process_acquire_target(delta: float) -> void:
 		return
 	var direction: int = -1 if dx < 0.0 else 1
 	if absf(dx) <= data.attack_range:
+		# A ranged enemy steps back from a target that came too close while it nocks the next arrow.
+		if data.keep_distance > 0.0 and absf(dx) < data.keep_distance and _attack_cooldown_left > 0.0:
+			_walk(-direction, delta)
+			return
 		_set_facing(direction)
 		_brake(delta)
 		_visual.play_state(&"idle")
@@ -229,6 +256,10 @@ func _process_attack(delta: float) -> void:
 		AttackPhase.WINDUP:
 			if _state_time >= _attack.windup:
 				_attack_phase = AttackPhase.ACTIVE
+				if data.ranged:
+					_fire_arrow()
+					_visual.play_state(&"strike")
+					return
 				_hitbox_shape.position = Vector2(_attack.hitbox_offset.x * facing, _attack.hitbox_offset.y)
 				_hitbox.knockback_direction_x = facing
 				_hitbox.activate(data.attack_damage * _attack.damage_multiplier, _attack.knockback, _attack.active_time, _attack.heavy)
@@ -239,6 +270,21 @@ func _process_attack(delta: float) -> void:
 		AttackPhase.ACTIVE:
 			if _state_time >= _attack.windup + _attack.active_time:
 				_change_state(State.RECOVER)
+
+
+## The Spectral Archer's shot: a pale arrow on the enemies' side, from chest height toward where it faces.
+func _fire_arrow() -> void:
+	var arrow: Arrow = ARROW_SCENE.instantiate() as Arrow
+	if arrow == null:
+		push_error("Enemy: arrow scene did not instantiate an Arrow.")
+		return
+	arrow.faction = Faction.Type.ENEMIES
+	var start: Vector2 = global_position + Vector2(facing * 24.0, -data.body_size.y * 0.6)
+	arrow.setup(facing, data.attack_damage * _attack.damage_multiplier, data.projectile_speed, data.projectile_range,
+			_attack.knockback, self, start)
+	arrow.modulate = SPECTRAL_ARROW_TINT
+	get_parent().add_child(arrow)
+	AudioManager.play(&"spirit_whoosh", 1.4)
 
 
 func _resume() -> void:
@@ -270,7 +316,9 @@ func _is_blocked_by_other_enemy(direction: int) -> bool:
 		if node == self:
 			continue
 		var other: Enemy = node as Enemy
-		if other == null or other.is_dead():
+		# Flyers pass over the marching line (and it under them). Fighters walk past an archer standing to shoot, so a
+		# Spectral Archer out of the allies' reach never holds up the rest of the wave behind it.
+		if other == null or other.is_dead() or other.is_flying() != is_flying() or (other.data.ranged and not data.ranged):
 			continue
 		var dx: float = other.global_position.x - global_position.x
 		var spacing: float = (my_half + other.get_half_width()) * 0.85 * _spacing_scale
@@ -317,6 +365,8 @@ func _target_x(target: Node2D) -> float:
 
 func _on_hit_received(hit: HitData) -> void:
 	_visual.flash_hit()
+	if data.light_hit_armour and not _pierces_light_hit_armour(hit):
+		return
 	velocity.x = hit.knockback.x * (1.0 - data.knockback_resistance)
 	if _health.is_dead() or not data.interruptible:
 		return
@@ -326,9 +376,16 @@ func _on_hit_received(hit: HitData) -> void:
 	_visual.play_state(&"hurt")
 
 
+func _pierces_light_hit_armour(hit: HitData) -> bool:
+	# Ally heavies remain armour-safe. The Ultimate already marks its sweep heavy.
+	return is_instance_valid(hit.source) and hit.source is Player and (hit.heavy or hit.spirit)
+
+
 func _on_died() -> void:
 	_hitbox.deactivate()
 	_hurtbox.set_enabled(false)
+	if _prop != null:
+		_prop.fade_out()
 	remove_from_group("enemies")
 	set_deferred("collision_layer", 0)
 	_health_bar.visible = false
@@ -356,7 +413,60 @@ func _set_facing(direction: int) -> void:
 	_visual.set_facing(direction)
 
 
+# --- Shields and flight ---------------------------------------------------------
+
+## The hurtbox's hit_filter for shielded and flying enemies (HurtboxComponent.Filter).
+## A flyer lets every hit that cannot reach the air pass under it. A raised shield stops non-heavy hits from in front
+## (the hit pushes it back the way it faces); a heavy hit breaks the shield and lands; a hit from behind always lands.
+func _filter_hit(hitbox: HitboxComponent) -> HurtboxComponent.Filter:
+	if data.flying and not hitbox.reaches_air:
+		return HurtboxComponent.Filter.IGNORE
+	if not _shield_up:
+		return HurtboxComponent.Filter.ACCEPT
+	if hitbox.heavy or hitbox.breaks_shields:
+		_break_shield()
+		return HurtboxComponent.Filter.ACCEPT
+	var push: float = hitbox.get_knockback_direction_x(global_position.x)
+	if signf(push) == float(facing):
+		return HurtboxComponent.Filter.ACCEPT
+	_on_blocked(push)
+	return HurtboxComponent.Filter.BLOCK
+
+
+func _on_blocked(push: float) -> void:
+	velocity.x = push * BLOCK_PUSH * (1.0 - data.knockback_resistance)
+	AudioManager.play(&"stone_hit", 1.35)
+	if is_instance_valid(BattleFeedback.active):
+		BattleFeedback.active.spawn_text_number(global_position + Vector2(0.0, -data.body_size.y), "Blocked", InkPalette.STEEL)
+
+
+func _break_shield() -> void:
+	_shield_up = false
+	if _prop != null:
+		_prop.break_shield()
+	AudioManager.play(&"heavy_hit", 1.2)
+	if is_instance_valid(BattleFeedback.active):
+		BattleFeedback.active.spawn_text_number(global_position + Vector2(0.0, -data.body_size.y - 20.0), "Shield broken", InkPalette.GOLD_BRIGHT)
+
+
 # --- Visuals from data ----------------------------------------------------
+
+## The tint and the prop (bow, shield, wisp, fire) of an enemy that reuses another's body; a flyer's hurtbox and health
+## bar are lifted to where it floats.
+func _apply_look() -> void:
+	if data.tint != Color.WHITE:
+		var crowd: Color = UnitVisual.CROWD_TINTS[_visual.crowd_look] if _visual.vary else Color.WHITE
+		_visual.set_tint(crowd * data.tint)
+	if data.prop != EnemyProp.Kind.NONE:
+		_prop = EnemyProp.new()
+		_prop.setup(data.prop, _visual, data.body_size.y, data.hover_height)
+		_visual.add_child(_prop)
+	if data.flying:
+		if data.figure == InkFigure.Kind.FLYING_SPIRIT:
+			_visual.get_figure().position.y = -data.hover_height
+		_hurtbox_shape.position.y -= data.hover_height
+		_health_bar.set_base_position(Vector2(0.0, -data.hover_height + _visual.get_figure().get_head_top_y() * _visual.get_presentation_scale() - 12.0))
+
 
 func _apply_data() -> void:
 	# Every soldier gets its own phase, size (+-6%), speed (+-10%) and personal space; the Hollow Soldiers, who come

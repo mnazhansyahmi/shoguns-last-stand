@@ -64,6 +64,8 @@ func test_every_ally_and_enemy_has_its_own_cached_painted_body() -> void:
 		figure.kind = kind
 		add_to_tree(figure)
 		for name: StringName in [&"head", &"torso", &"thigh_f", &"shin_f", &"foot_f", &"upper_f", &"fore_f"]:
+			if kind == InkFigure.Kind.FLYING_SPIRIT and name in [&"thigh_f", &"shin_f", &"foot_f"]:
+				continue # Its atlas has ink ribbons in those cells, never rendered legs.
 			var part: FigurePart = figure.get_node(NodePath(name)) as FigurePart
 			assert_true(part.art != null, "%s %s uses painted art" % [kind, name])
 			assert_true(part.art == RosterSpriteArt.texture(kind, name), "instances share each registered layer")

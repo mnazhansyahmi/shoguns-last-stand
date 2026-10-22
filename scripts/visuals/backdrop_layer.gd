@@ -29,13 +29,25 @@ var theme: AtmosphereTheme
 
 var _drift: float = 0.0
 var _sway_material: ShaderMaterial
+var _atmosphere_material: ShaderMaterial
 
 
 func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	if sway:
 		_sway_material = ShaderMaterial.new()
-		_sway_material.shader = load("res://scripts/visuals/shaders/reed_sway.gdshader") as Shader
+		_sway_material.shader = load("res://scripts/visuals/shaders/painted_grass.gdshader") as Shader
 		material = _sway_material
+	elif layer == BambooOutskirtsPainter.Layer.GROUND:
+		var ground: ShaderMaterial = ShaderMaterial.new()
+		ground.shader = preload("res://scripts/visuals/shaders/ground_blend.gdshader")
+		material = ground
+		_atmosphere_material = ground
+	elif layer in [BambooOutskirtsPainter.Layer.SKY, BambooOutskirtsPainter.Layer.MOUNTAINS, BambooOutskirtsPainter.Layer.BAMBOO_FAR]:
+		_atmosphere_material = ShaderMaterial.new()
+		_atmosphere_material.shader = preload("res://scripts/visuals/shaders/world_atmosphere.gdshader")
+		_atmosphere_material.set_shader_parameter("depth_kind", 0.0 if layer == BambooOutskirtsPainter.Layer.SKY else (1.0 if layer == BambooOutskirtsPainter.Layer.MOUNTAINS else 2.0))
+		material = _atmosphere_material
 	elif additive:
 		var blend: CanvasItemMaterial = CanvasItemMaterial.new()
 		blend.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
@@ -46,6 +58,9 @@ func _ready() -> void:
 ## Repaints this layer with a new theme.
 func apply_theme(new_theme: AtmosphereTheme) -> void:
 	theme = new_theme
+	var burning: bool = PaintedWorld.burning(new_theme)
+	if _atmosphere_material != null: _atmosphere_material.set_shader_parameter("village", burning)
+	if _sway_material != null: _sway_material.set_shader_parameter("village", burning)
 	queue_redraw()
 
 
@@ -53,6 +68,7 @@ func _process(delta: float) -> void:
 	if _sway_material != null:
 		_sway_material.set_shader_parameter("wind", Atmosphere.wind_strength())
 		_sway_material.set_shader_parameter("time", Atmosphere.time)
+		_sway_material.set_shader_parameter("motion", 0.15 if GameSettings.reduced_decorative_motion else 1.0)
 	if drift_speed != 0.0:
 		_drift = fposmod(_drift + drift_speed * delta, tile_width)
 	var viewport: Viewport = get_viewport()
@@ -87,6 +103,7 @@ static func layer_transform(center: Vector2, reference: Vector2, layer_depth: fl
 
 
 func _draw() -> void:
+	if PaintedWorld.paint(self, layer, theme if theme != null else Atmosphere.current()): return
 	if drift_speed == 0.0:
 		BambooOutskirtsPainter.paint(self, layer, seed_value, theme)
 		return

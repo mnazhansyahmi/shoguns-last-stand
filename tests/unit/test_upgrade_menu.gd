@@ -44,7 +44,7 @@ func test_each_tab_shows_only_its_upgrades() -> void:
 		UpgradeTabs.Tab.SKILLS: ["samurai_dash_cooldown", "samurai_slash_cooldown", "samurai_ultimate_charge", "samurai_bow_damage", "samurai_war_cry_duration"],
 		UpgradeTabs.Tab.ALLIES: ["ashigaru_health", "ashigaru_damage", "archer_damage", "healer_blessing", "guardian_health",
 				"onmyoji_damage", "hatamoto_damage"],
-		UpgradeTabs.Tab.ARMY_SPIRIT: ["spirit_regen", "spirit_capacity", "army_command"],
+		UpgradeTabs.Tab.ARMY_SPIRIT: ["spirit_regen", "spirit_capacity", "army_command", "gate_armour", "army_fire_resistance"],
 	}
 	assert_eq(menu.call("get_tab"), UpgradeTabs.Tab.SAMURAI, "it opens on the Samurai tab")
 	for tab: int in expected:
@@ -58,7 +58,7 @@ func test_each_tab_shows_only_its_upgrades() -> void:
 
 
 func test_cards_show_pips_levels_effects_and_costs() -> void:
-	var menu: Control = _menu(500, {"samurai_max_health": 3, "samurai_damage": 5})
+	var menu: Control = _menu(500, {"samurai_max_health": 3, "samurai_damage": CATALOG.find("samurai_damage").max_level}, ["stage_1", "stage_2", "stage_3", "stage_4", "stage_5"])
 	var health: UpgradeData = CATALOG.find("samurai_max_health")
 	var card: Dictionary = menu.call("get_card", "samurai_max_health")
 	assert_eq((card["level"] as Label).text, "3/%d" % health.max_level, "the level shows as 3/max")
@@ -72,6 +72,19 @@ func test_cards_show_pips_levels_effects_and_costs() -> void:
 	var maxed: Dictionary = menu.call("get_card", "samurai_damage")
 	assert_eq((maxed["button"] as Button).text, "MAX", "a maxed upgrade shows MAX")
 	assert_true((maxed["button"] as Button).disabled, "and cannot be bought")
+
+
+func test_region_two_cards_show_unlock_requirements_and_new_prices() -> void:
+	var locked: Control = _menu(14000, {"samurai_max_health": 5})
+	for id: String in ["samurai_max_health", "gate_armour", "army_fire_resistance"]:
+		var card: Dictionary = locked.call("get_card", id)
+		assert_true((card["button"] as Button).disabled, "%s cannot buy before Region 2" % id)
+		assert_true((card["effect"] as Label).text.contains("Clear stage 6 to unlock"), "%s explains exact stage 6 requirement" % id)
+	var open: Control = _menu(14000, {"samurai_max_health": 5}, ["stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "stage_6"])
+	for id: String in ["samurai_max_health", "gate_armour", "army_fire_resistance"]:
+		var card: Dictionary = open.call("get_card", id)
+		assert_true(not (card["button"] as Button).disabled, "%s unlocked on Region 2 entry" % id)
+		assert_eq((card["button"] as Button).text, "%d g" % CATALOG.find(id).get_cost(5 if id == "samurai_max_health" else 0), "%s shows correct next-tier cost" % id)
 
 
 func test_an_unaffordable_cost_is_red_and_tapping_says_why() -> void:

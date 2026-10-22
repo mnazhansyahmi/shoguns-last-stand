@@ -5,7 +5,8 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 NAMES = {1: 'ashigaru', 2: 'yumi_archer', 3: 'hollow_soldier', 4: 'oni_brute',
-         5: 'shrine_healer', 6: 'spear_guardian', 7: 'onmyoji', 8: 'hatamoto', 9: 'fallen_daimyo'}
+         5: 'shrine_healer', 6: 'spear_guardian', 7: 'onmyoji', 8: 'hatamoto', 9: 'fallen_daimyo',
+         10: 'spectral_archer', 11: 'shield_bearer', 12: 'flying_spirit', 13: 'burning_general'}
 
 
 def components(path):
@@ -60,6 +61,13 @@ def register():
             cell = row * 4 + column
             if cell not in selected:
                 selected[cell] = box
+        # The onryo's last two ink ribbons meet at their alpha fringe. Register
+        # their authored cell boundary; these are accessories, never legs/feet.
+        if name == 'flying_spirit' and 14 in selected and 15 not in selected:
+            x, y, right, bottom = selected[14]
+            seam = round(width * 0.75)
+            selected[14] = [x, y, seam, bottom]
+            selected[15] = [seam, y, right, bottom]
         if len(selected) != 16:
             raise ValueError(f'{name}: expected 16 independent components, got {len(selected)}: {selected}')
         lines.append(f'\t{kind}: [ # {name}')
