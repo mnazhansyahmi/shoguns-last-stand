@@ -1,0 +1,13 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+stage    | try | result  | gate | deaths | gold earned | upgrades bought | levels owned | gold left
+stage_1  |   1 | WIN     | 100% |      1 |         340 |               6 |            6 | 40
+stage_1  |   2 | WIN     | 100% |      1 |         170 |               3 |            9 | 10
+stage_2  |   1 | WIN     | 100% |      1 |         468 |               6 |           15 | 38
+stage_2  |   2 | WIN     | 100% |      0 |         234 |               3 |           18 | 12
+stage_3  |   1 | WIN     | 100% |      3 |         724 |               7 |           25 | 26
+stage_3  |   2 | WIN     | 100% |      3 |         362 |               3 |           28 | 58
+stage_4  |   1 | WIN     | 100% |      5 |        1162 |               9 |           37 | 5
+stage_4  |   2 | WIN     | 100% |      5 |         581 |               3 |           40 | 111
+stage_5  |   1 | WIN     |  82% |     10 |        1940 |              11 |           51 | 66
+stage_5  |   2 | WIN     | 100% |      5 |         979 |               5 |           56 | 30

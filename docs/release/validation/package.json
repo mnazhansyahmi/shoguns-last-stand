@@ -1,0 +1,17 @@
+{
+  "zip": "ShogunsLastStand-0.1.0-windows-x64.zip",
+  "bytes": 88712468,
+  "sha256": "7371bc8bae86773eb37c93293253631f4a203ec3172c12f9e0500e16ce4ba0c5",
+  "entries": [
+    "ShogunsLastStand/CREDITS.txt",
+    "ShogunsLastStand/GODOT_LICENSES.txt",
+    "ShogunsLastStand/README.txt",
+    "ShogunsLastStand/ShogunsLastStand.exe",
+    "ShogunsLastStand/ShogunsLastStand.pck"
+  ],
+  "crc_check": "passed",
+  "matches_tested_binaries": {
+    "ShogunsLastStand.exe": "cbdb093fcd7a8b94dcc2d636690c194ea81d8f2b5cde827a3349c1363467e05c",
+    "ShogunsLastStand.pck": "d949488d002ae895b5179b87b259d297fbe4eae565839ce8072086031202ff97"
+  }
+}
