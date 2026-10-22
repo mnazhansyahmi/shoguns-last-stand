@@ -12,6 +12,12 @@ var points: PackedVector2Array = PackedVector2Array()
 var previous: PackedVector2Array = PackedVector2Array()
 ## Length of one link in world pixels.
 var link: float = 5.0
+var _delta: float = -1.0
+var _stiffness: float = -1.0
+var _damping: float = -1.0
+var _substeps: int = 1
+var _keep: float = 1.0
+var _pulls: PackedFloat64Array = PackedFloat64Array()
 
 
 func _init(count: int, link_length: float) -> void:
@@ -30,27 +36,37 @@ func reset(rest: PackedVector2Array) -> void:
 ## Advances the chain by `delta`. `rest` holds the target shape in world space (point 0 is the
 ## anchor). `stiffness` is the pull toward the rest shape (1/s^2) and `damping` the velocity loss (1/s).
 func step(delta: float, rest: PackedVector2Array, stiffness: float, damping: float) -> void:
-	var count: int = maxi(1, ceili(delta / STEP - 0.001))
-	var h: float = delta / float(count)
-	var keep: float = exp(-damping * h)
-	for n: int in count:
-		points[0] = rest[0]
-		previous[0] = rest[0]
+	if delta != _delta or stiffness != _stiffness or damping != _damping or _pulls.size() != points.size():
+		_delta = delta
+		_stiffness = stiffness
+		_damping = damping
+		_substeps = maxi(1, ceili(delta / STEP - 0.001))
+		var h: float = delta / float(_substeps)
+		_keep = exp(-damping * h)
+		_pulls.resize(points.size())
 		for i: int in range(1, points.size()):
-			var here: Vector2 = points[i]
-			var velocity: Vector2 = (here - previous[i]) * keep
-			previous[i] = here
+			_pulls[i] = stiffness * (1.0 + 3.0 / float(i)) * h * h
+	# Packed arrays are shared references. Keep local aliases for the inner
+	# loops while preserving the existing in-place update semantics.
+	var current: PackedVector2Array = points
+	var old: PackedVector2Array = previous
+	for n: int in _substeps:
+		current[0] = rest[0]
+		old[0] = rest[0]
+		for i: int in range(1, current.size()):
+			var here: Vector2 = current[i]
+			var velocity: Vector2 = (here - old[i]) * _keep
+			old[i] = here
 			# Stiffer near the root, so the cloth leaves the body in the rest direction and whips at the tip.
-			var pull: float = stiffness * (1.0 + 3.0 / float(i)) * h * h
-			points[i] = here + velocity + (rest[i] - here) * pull
+			current[i] = here + velocity + (rest[i] - here) * _pulls[i]
 		# Keep every link its length, root to tip.
-		for i: int in range(1, points.size()):
-			var offset: Vector2 = points[i] - points[i - 1]
+		for i: int in range(1, current.size()):
+			var offset: Vector2 = current[i] - current[i - 1]
 			var length: float = offset.length()
 			if length > 0.0001:
-				points[i] = points[i - 1] + offset * (link / length)
+				current[i] = current[i - 1] + offset * (link / length)
 			else:
-				points[i] = points[i - 1] + Vector2(0.0, link)
+				current[i] = current[i - 1] + Vector2(0.0, link)
 
 
 ## The chain's points in another space (e.g. a figure's local pixels).

@@ -34,6 +34,8 @@ const HAIR_SPINE_POINTS: int = 8
 static var _textures: Dictionary = {}
 static var _frames: Dictionary = {}
 static var _ribbon_indices: Dictionary = {}
+static var _ribbon_uvs: Dictionary = {}
+static var _ribbon_groups: Dictionary = {}
 static var _bounds: Dictionary = {}
 static var _source_image: Image
 static var _images: Dictionary = {}
@@ -79,22 +81,11 @@ static func paint_cloth(ci: CanvasItem, points: PackedVector2Array, width: float
 		source_region: Rect2 = Rect2(), atlas: Texture2D = FLOW, end_width: float = -1.0) -> void:
 	if points.size() < 2:
 		return
-	var vertices: PackedVector2Array = PackedVector2Array()
-	var uvs: PackedVector2Array = PackedVector2Array()
 	var region: Rect2 = SASH_REGION if sash else SLEEVE_REGION
 	if source_region.has_area():
 		region = source_region
-	var atlas_size: Vector2 = atlas.get_size()
-	for side: int in 2:
-		for step: int in points.size():
-			var i: int = step if side == 0 else points.size() - 1 - step
-			var t: float = float(i) / float(points.size() - 1)
-			var tangent: Vector2 = points[mini(i + 1, points.size() - 1)] - points[maxi(0, i - 1)]
-			var normal: Vector2 = tangent.normalized().orthogonal()
-			var across: float = width if end_width < 0.0 else lerpf(width, end_width, t)
-			vertices.append(points[i] + normal * across * (0.5 if side == 0 else -0.5))
-			var uv: Vector2 = Vector2(1.0 - t, float(side)) if sash else Vector2(float(side), t)
-			uvs.append((region.position + uv * region.size) / atlas_size)
+	var vertices: PackedVector2Array = cloth_vertices(points, width, end_width)
+	var uvs: PackedVector2Array = cloth_uvs(points.size(), sash, region, atlas.get_size())
 	# A cloth chain can curl across itself. Explicit strip triangles remain valid
 	# where polygon ear-clipping cannot triangulate a self-crossing outline.
 	var count: int = points.size()
@@ -107,6 +98,65 @@ static func paint_cloth(ci: CanvasItem, points: PackedVector2Array, width: float
 	var indices: PackedInt32Array = _ribbon_indices[count]
 	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), indices, vertices,
 			PackedColorArray([Color.WHITE]), uvs, PackedInt32Array(), PackedFloat32Array(), atlas.get_rid())
+
+
+## Both edges share their tangent and taper. Preserve the old winding and
+## arithmetic so curling ribbons retain exactly the same silhouette.
+static func cloth_vertices(points: PackedVector2Array, width: float, end_width: float = -1.0) -> PackedVector2Array:
+	var count: int = points.size()
+	var vertices: PackedVector2Array = PackedVector2Array()
+	vertices.resize(count * 2)
+	for i: int in count:
+		var t: float = float(i) / float(count - 1)
+		var tangent: Vector2 = points[mini(i + 1, count - 1)] - points[maxi(0, i - 1)]
+		var normal: Vector2 = tangent.normalized().orthogonal()
+		var across: float = width if end_width < 0.0 else lerpf(width, end_width, t)
+		vertices[i] = points[i] + normal * across * 0.5
+		vertices[count * 2 - 1 - i] = points[i] + normal * across * -0.5
+	return vertices
+
+
+## UVs depend on the authored strip, never on the simulation or current width.
+static func cloth_uvs(count: int, sash: bool, region: Rect2, atlas_size: Vector2) -> PackedVector2Array:
+	var key: Array = [count, sash, region, atlas_size]
+	if not _ribbon_uvs.has(key):
+		var uvs: PackedVector2Array = PackedVector2Array()
+		uvs.resize(count * 2)
+		for i: int in count:
+			var t: float = float(i) / float(count - 1)
+			var front: Vector2 = Vector2(1.0 - t, 0.0) if sash else Vector2(0.0, t)
+			var back: Vector2 = Vector2(1.0 - t, 1.0) if sash else Vector2(1.0, t)
+			uvs[i] = (region.position + front * region.size) / atlas_size
+			uvs[count * 2 - 1 - i] = (region.position + back * region.size) / atlas_size
+		_ribbon_uvs[key] = uvs
+	return _ribbon_uvs[key]
+
+
+## Tails share one atlas/material and have no intervening artwork. Submit their
+## triangles together in the original order; only vertices change with motion.
+static func paint_ribbons(ci: CanvasItem, ribbons: Array[PackedVector2Array], width: float,
+		sash: bool, region: Rect2, atlas: Texture2D) -> void:
+	var counts: Array[int] = []
+	var vertices: PackedVector2Array = PackedVector2Array()
+	for ribbon: PackedVector2Array in ribbons:
+		counts.append(ribbon.size())
+		vertices.append_array(cloth_vertices(ribbon, width))
+	var key: Array = [counts, sash, region, atlas.get_size()]
+	if not _ribbon_groups.has(key):
+		var indices: PackedInt32Array = PackedInt32Array()
+		var uvs: PackedVector2Array = PackedVector2Array()
+		var start: int = 0
+		for count: int in counts:
+			uvs.append_array(cloth_uvs(count, sash, region, atlas.get_size()))
+			for i: int in count - 1:
+				var opposite: int = count * 2 - 1 - i
+				indices.append_array(PackedInt32Array([start + i, start + i + 1, start + opposite,
+					start + i + 1, start + opposite - 1, start + opposite]))
+			start += count * 2
+		_ribbon_groups[key] = [indices, uvs]
+	var mesh: Array = _ribbon_groups[key]
+	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), mesh[0], vertices,
+		PackedColorArray([Color.WHITE]), mesh[1], PackedInt32Array(), PackedFloat32Array(), atlas.get_rid())
 
 
 ## The layer drawn through its own painted outline (the largest alpha shape in its region, grown a little to keep its

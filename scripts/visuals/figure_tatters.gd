@@ -12,6 +12,7 @@ const WIND_LEVELS: int = 3
 
 ## Kind -> { key -> InkBatch }.
 static var _cache: Dictionary = {}
+static var _definitions: Dictionary = {}
 
 
 ## How one kind's tatters look.
@@ -35,6 +36,12 @@ class Def:
 
 ## The tatters of a kind, or null for a kind without any.
 static func def(kind: InkFigure.Kind) -> Def:
+	if not _definitions.has(kind):
+		_definitions[kind] = _make_def(kind)
+	return _definitions[kind]
+
+
+static func _make_def(kind: InkFigure.Kind) -> Def:
 	if FigureKinds.animation_kind(kind) != kind:
 		return def(FigureKinds.animation_kind(kind))
 	var d: Def = Def.new()

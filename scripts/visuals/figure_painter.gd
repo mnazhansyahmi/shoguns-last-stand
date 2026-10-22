@@ -431,8 +431,12 @@ static func _paint_cloth_tails(fig: InkFigure, ci: CanvasItem, color: Color, wid
 	var s: float = fig.get_unit_scale()
 	var to_local: Transform2D = ci.global_transform.affine_inverse()
 	if RosterSpriteArt.NAMES.has(fig.kind):
+		var ribbons: Array[PackedVector2Array] = []
 		for chain: ClothChain in fig.secondary.scarf:
-			RosterSpriteArt.paint_tail(fig.kind, ci, to_local * chain.points, width * s * 1.4)
+			ribbons.append(SamuraiSpriteArt.smooth_ribbon(to_local * chain.points))
+		if not ribbons.is_empty():
+			SamuraiSpriteArt.paint_ribbons(ci, ribbons, width * s * 1.4, true,
+				RosterSpriteArt.region(fig.kind, 14), RosterSpriteArt.atlas(fig.kind))
 		return
 	var batch: InkBatch = InkBatch.new()
 	for tail: int in 2:

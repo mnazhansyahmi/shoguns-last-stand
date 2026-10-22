@@ -1,0 +1,14 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+HOLLOW_SOLDIER secondary=true | 0.016 ms per pose | 14 parts
+HOLLOW_SOLDIER secondary=false | 0.016 ms per pose | 14 parts
+ONI_BRUTE secondary=true | 0.017 ms per pose | 17 parts
+ONI_BRUTE secondary=false | 0.017 ms per pose | 17 parts
+SPECTRAL_ARCHER secondary=true | 0.039 ms per pose | 18 parts
+SPECTRAL_ARCHER secondary=false | 0.017 ms per pose | 18 parts
+SHIELD_BEARER secondary=true | 0.038 ms per pose | 18 parts
+SHIELD_BEARER secondary=false | 0.017 ms per pose | 18 parts
+FLYING_SPIRIT secondary=true | 0.043 ms per pose | 11 parts
+FLYING_SPIRIT secondary=false | 0.015 ms per pose | 11 parts
+BURNING_GENERAL secondary=true | 0.026 ms per pose | 18 parts
+BURNING_GENERAL secondary=false | 0.025 ms per pose | 18 parts

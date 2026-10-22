@@ -95,6 +95,9 @@ var secondary: SecondaryMotion
 var _secondary_clock: float = 0.0
 var _cloth_redraw_frame: int = -1
 var _parts: Array[FigurePart] = []
+## Parts hidden permanently by the painted roster keep their nodes for tools,
+## but never need a transform update or a redraw.
+var _active_parts: Array[FigurePart] = []
 var _part_slots: PackedInt32Array = PackedInt32Array()
 var _dynamic_parts: Array[FigurePart] = []
 var _fall_glows: Array[FigurePart] = []
@@ -299,25 +302,30 @@ func refresh() -> void:
 		return
 	_update_slots()
 	var to_figure: Transform2D = global_transform.affine_inverse() if not _dynamic_parts.is_empty() else Transform2D.IDENTITY
-	for i: int in _parts.size():
-		_parts[i].transform = _slot_xf[_part_slots[i]]
+	for i: int in _active_parts.size():
+		var part: FigurePart = _active_parts[i]
+		var frame: Transform2D = _slot_xf[_part_slots[i]]
 		# Repaint may be 30 Hz, but the root stays attached to the moving bone
 		# every frame. Cached local ribbon vertices follow this pinned origin.
 		if secondary != null:
 			var chain: ClothChain
-			match _parts[i].part_name:
+			match part.part_name:
 				&"tails":
 					if not secondary.scarf.is_empty(): chain = secondary.scarf[0]
 				&"sleeve_f": chain = secondary.sleeve_front
 				&"sleeve_b": chain = secondary.sleeve_back
 			if chain != null and not chain.points.is_empty():
-				_parts[i].position = to_figure * chain.points[0]
-		if secondary != null and kind == Kind.SHRINE_HEALER and _parts[i].part_name == &"mane":
+				frame.origin = to_figure * chain.points[0]
+		if secondary != null and kind == Kind.SHRINE_HEALER and part.part_name == &"mane":
 			var tie: Vector2 = Vector2(-6.0, -10.0)
-			_parts[i].transform *= Transform2D(0.0, tie) * Transform2D(secondary.ornament.value * 1.5, Vector2.ZERO) * Transform2D(0.0, -tie)
-		if secondary != null and kind == Kind.HATAMOTO and _parts[i].part_name in [&"banner", &"hem"]:
+			frame *= Transform2D(0.0, tie) * Transform2D(secondary.ornament.value * 1.5, Vector2.ZERO) * Transform2D(0.0, -tie)
+		if secondary != null and kind == Kind.HATAMOTO and part.part_name in [&"banner", &"hem"]:
 			var pole: Vector2 = Vector2(-11.0, -12.0)
-			_parts[i].transform *= Transform2D(0.0, pole) * Transform2D(secondary.ornament.value * 0.3, Vector2.ZERO) * Transform2D(0.0, -pole)
+			frame *= Transform2D(0.0, pole) * Transform2D(secondary.ornament.value * 0.3, Vector2.ZERO) * Transform2D(0.0, -pole)
+		# One final transform avoids invalidating the cloth's global transform
+		# twice, and an unchanged frame need not invalidate its whole subtree.
+		if part.transform != frame:
+			part.transform = frame
 	# Ally ornaments need less repaint work than body poses. Physics and anchors
 	# still advance at the full rate; the player's hair remains full-rate too.
 	var cloth_frame: int = int(clock * 30.0)
@@ -339,7 +347,7 @@ func refresh() -> void:
 			_weapon_part.visible = not drawing
 		if _back_bow_part != null:
 			_back_bow_part.visible = show_stowed_bow and pose.bow_out < 0.5
-	if _hem_part != null:
+	if _hem_part != null and _hem_part.art == null and _hem_part.visible:
 		var own_hem: bool = kind == Kind.HOLLOW_SOLDIER
 		var key: int = FigurePainter.hem_key(self) if own_hem else FigureTatters.key(self)
 		if key != _hem_key:
@@ -536,6 +544,7 @@ func _build_parts() -> void:
 	for part: FigurePart in _parts:
 		part.free()
 	_parts.clear()
+	_active_parts.clear()
 	_part_slots.resize(0)
 	_dynamic_parts.clear()
 	_cloth_redraw_frame = -1
@@ -601,6 +610,10 @@ func _build_parts() -> void:
 			part.art = RosterSpriteArt.texture(kind, part_name)
 			part.art_frame = RosterSpriteArt.frame(kind, part_name)
 			part.material = Atmosphere.painted_rim_material()
+			if part_name == &"hem":
+				# Keep its painted silhouette for geometry checks. The artwork draws
+				# directly; rebuilding an invisible procedural hem cannot change it.
+				part.batch = FigurePainter.part(kind, part_name)
 		elif RosterSpriteArt.NAMES.has(kind) and part.dynamic:
 			part.material = Atmosphere.painted_rim_material()
 		if RosterSpriteArt.NAMES.has(kind) and part_name == &"mane":
@@ -626,6 +639,7 @@ func _build_parts() -> void:
 		elif kind == Kind.SAMURAI and part_name == &"hem":
 			# A flat ink coat-tail behind his painted skirt, which has its own torn hem.
 			part.visible = false
+			part.batch = FigureTatters.batch(kind, 0)
 		if part_name == &"grip_b" and by_name.has(&"fore_b"):
 			# The back hand's fingers over the hilt it grips: the fist end of the back forearm's layer, drawn again.
 			var fore: FigurePart = by_name[&"fore_b"]
@@ -642,7 +656,12 @@ func _build_parts() -> void:
 			part.material = Atmosphere.painted_rim_material()
 		add_child(part)
 		_parts.append(part)
-		_part_slots.append(FigurePainter.SLOTS[part_name])
+		var permanent_hidden: bool = (RosterSpriteArt.NAMES.has(kind) and part_name in [&"mane", &"pauldron_front", &"pauldron_back"]) or (kind == Kind.SAMURAI and part_name == &"hem")
+		if not permanent_hidden:
+			_active_parts.append(part)
+			_part_slots.append(FigurePainter.SLOTS[part_name])
+		elif part.dynamic:
+			_dynamic_parts.erase(part)
 		by_name[part_name] = part
 	_apply_bare_head()
 	for definition: Dictionary in FigurePainter.glows(kind):

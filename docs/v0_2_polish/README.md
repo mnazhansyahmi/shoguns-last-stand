@@ -99,3 +99,118 @@ from -6 to -16 dB. The old hover library event is removed.
 - Full suite: **499 passed**. [Tests](part_4/tests_final.log).
 - [Audio](part_4/settings_audio.png), [Display](part_4/settings_display.png),
   [Gameplay](part_4/settings_gameplay.png).
+
+## 5. Region 2 performance
+
+The extra cost is primarily the live cloth on the Spectral Archer, Shield
+Bearer and Flying Spirit, followed by figure transforms and their dynamic
+draws. The burning backdrop is already retained static art with bounded ember
+counts; hiding it saved much less than disabling secondary animation. The
+General's aura was also a smaller contributor. Diagnostic flags deliberately
+alter the picture and are **never** used for the final measurements.
+
+Retained changes:
+
+- Reuse cloth integration coefficients while their inputs match, and use local
+  packed-array aliases with the original in-place update semantics.
+- Cache immutable tail/tatter definitions and stop refreshing procedural hems
+  hidden behind painted artwork.
+- Cache ribbon texture coordinates, calculate both edges with one tangent,
+  and batch the two painted tails into one ordered triangle submission.
+- Assign each active part's final transform once; permanently hidden old
+  mane/pauldron layers keep their tool nodes without per-frame work.
+- Copy poses directly instead of interpolating all fields and re-solving the
+  grip arc just to copy its endpoint.
+
+The simulation rate, cloth repaint rate, particles, artwork, fire and visible
+effects are unchanged. Full cloth trajectory tests compare variable timesteps,
+turns, stiffness/damping changes and caller aliases against the previous solver.
+Ribbon tests compare curled/degenerate and tapered geometry with the previous
+builder. The 40-pose rendered comparison has **0 changed pixels**.
+
+- **501 tests passed**, 0 failed. [Tests](part_5/tests.log).
+- [Import](part_5/import.log), [boot](part_5/boot.log),
+  [pixel comparison](part_5/pixel_check.log).
+- Motion sheet [before](part_5/motion_before.png),
+  [after](part_5/motion_after.png): Oni, Daimyo, General and both archers.
+- Staged battles: [Region 1, stage 3](part_5/region_1.png),
+  [Region 2, stage 8](part_5/region_2.png). The latter deliberately includes a
+  General for art review, rather than showing the normal stage 8 wave roster.
+
+### Attribution and bounded optimization trials
+
+Initial 600-frame diagnostic averages (ms; exploratory, not paired final results):
+
+| Diagnostic | Average |
+| --- | ---: |
+| No secondary cloth simulation | 8.10 |
+| No props | 10.57 |
+| No General aura | 10.74 |
+| No backdrop | 10.55 |
+| No ember leaves | 11.38 |
+| No fire layer | 11.18 |
+| Frozen figures | 5.43 |
+| Hidden figures | 8.08 |
+
+The preliminary full runs were 10.95 / 10.81 / 10.85 ms. These diagnostics
+overlapped headless balance work and include machine noise; the small differences
+between backdrop/prop variants are not reliable savings estimates. The large
+cloth/frozen-figure deltas guided the isolated CPU probe. In sequential CPU-only
+pose probes, Spectral Archer changed 0.049 -> 0.039 ms, Shield Bearer
+0.049 -> 0.038 ms, Flying Spirit 0.058 -> 0.043 ms. These exclude rendering
+and are not interchangeable with frame times.
+
+| Cumulative trial | Hypothesis | Single full-probe average (ms) |
+| --- | --- | ---: |
+| 1 | Cloth coefficients/definitions; skip invisible hem work | 10.99 |
+| 2 | Shared ribbon UVs and edge calculations | 10.77 |
+| 3 | One final active-part transform | 11.13 |
+| 4 | Direct pose copy | 10.88 |
+| 5 | Batch each pair of tails | 10.84 |
+
+Individual trials do not establish a gain beyond machine noise. The final
+comparison below uses three alternating baseline/optimized pairs with no
+headless tests or simulators running. The frozen baseline is a plain local
+project snapshot made after Parts 1-4; both sides use the same probe script,
+fresh probe-only saves/settings, fixed 60 Hz simulation, uncapped rendering,
+120 warmup + 900 measured frames, exactly 30 enemies, and up to six allies.
+Godot 4.7.2 Compatibility / NVIDIA RTX 5060 Laptop GPU, driver 617.42.
+
+Reproduce the final current-build probe:
+
+```text
+godot_console --fixed-fps 60 --path . -s res://tools/perf_battle.gd -- --region2
+```
+
+Region 2's requested average gate is **8.5 ms**; Region 1 retains its 8 ms gate.
+These are local editor/debug runs, not release-build performance claims.
+
+### Final paired Region 2 results
+
+| Pair | Before average | After average | Before p95 | After p95 |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 11.42 ms | 10.45 ms | 14.11 ms | 13.29 ms |
+| 2 | 11.63 ms | 10.86 ms | 14.48 ms | 13.34 ms |
+| 3 | 11.73 ms | 10.95 ms | 14.85 ms | 13.82 ms |
+| Mean | **11.59 ms** | **10.75 ms** | **14.48 ms** | **13.48 ms** |
+
+The paired average improves by **0.84 ms / 7.2%**. Worst frame across these
+runs: 30.68 -> 26.77 ms. Render CPU averages 2.89 -> 2.71 ms; GPU averages
+0.82 -> 0.78 ms. **The 8.5 ms target remains unmet: 0/3 optimized runs pass.**
+Further work needs a larger animation/rendering change; five safe optimization
+trials were checked without reducing visual quality or hiding effects.
+
+Raw paired logs: before [1](part_5/final_before_1.log),
+[2](part_5/final_before_2.log), [3](part_5/final_before_3.log);
+after [1](part_5/final_after_1.log), [2](part_5/final_after_2.log),
+[3](part_5/final_after_3.log).
+
+The one-pair Region 1 check measured **7.94 -> 7.89 ms average**, p95
+10.53 -> 10.40 ms. Both pass its 8 ms average gate; this single pair does not
+establish a meaningful Region 1 speedup. [Before](part_5/final_region_1_before.log),
+[after](part_5/final_region_1_after.log).
+
+All work remains local on `v0.2`; released `main` remains `cc72a35`.
+Nothing was published or uploaded, and `tools/make_region_1.py` was never run.
+Stopped after the five requested commits. Outstanding: Region 2's 8.5 ms
+performance target and the harder stage 10 zero-upgrade stress result.

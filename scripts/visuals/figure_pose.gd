@@ -113,7 +113,22 @@ func blend_toward(target: FigurePose, weight: float) -> void:
 
 
 func copy_from(other: FigurePose) -> void:
-	blend_toward(other, 1.0)
+	# Copying a pose does not need interpolation or the arc's trigonometry.
+	lean = other.lean
+	crouch = other.crouch
+	offset_x = other.offset_x
+	grip = other.grip
+	blade = other.blade
+	back_grip = other.back_grip
+	head_tilt = other.head_tilt
+	glow = other.glow
+	bow_draw = other.bow_draw
+	release = other.release
+	spread = other.spread
+	hip_shift = other.hip_shift
+	lunge = other.lunge
+	sheathed = other.sheathed
+	bow_out = other.bow_out
 	pivot = other.pivot
 
 
