@@ -27,6 +27,9 @@ enum Stat { MAX_HEALTH, DAMAGE, REGEN, ALLY_CAP, DASH_COOLDOWN, SLASH_COOLDOWN, 
 @export var region_2_cost_growth: float = 1.35
 ## For wholly new upgrades. Existing tiers do not acquire this requirement.
 @export var unlock_stage_id: String = ""
+## Clear milestones for successive Region 2 tiers. Empty extended tiers default
+## to stages 6 and 9; wholly new upgrades may specify all four milestones.
+@export var region_2_unlock_stages: PackedInt32Array = PackedInt32Array()
 ## Shown in menus, e.g. "+%s HP". Receives the formatted bonus.
 @export var effect_format: String = "+%s"
 
@@ -46,16 +49,42 @@ func get_cost(current_level: int) -> int:
 
 
 func required_stage(current_level: int) -> String:
-	if region_1_cap > 0 and current_level >= region_1_cap:
-		return "stage_5"
-	return unlock_stage_id
+	var old_cap: int = original_cap()
+	if current_level < old_cap:
+		var next: int = current_level + 1
+		if next <= 2: return ""
+		return "stage_%d" % (2 if next == 3 else (4 if next == 4 else 5))
+	var milestones: PackedInt32Array = region_2_unlock_stages
+	if milestones.is_empty():
+		if region_1_cap == 0: return unlock_stage_id
+		milestones = PackedInt32Array([6, 9])
+	return "stage_%d" % milestones[mini(current_level - old_cap, milestones.size() - 1)]
+
+
+func original_cap() -> int:
+	if not unlock_stage_id.is_empty(): return 0
+	return region_1_cap if region_1_cap > 0 else max_level
+
+
+## Purchase cap only: never used to clamp owned bonuses or rewrite a save.
+func available_max_level(progress: PlayerProgress) -> int:
+	if progress == null: return 0
+	var cleared: Dictionary = {}
+	for stage: String in progress.stages_cleared: cleared[stage] = true
+	var allowed: int = 0
+	for level: int in max_level:
+		var requirement: String = required_stage(level)
+		var count: int = int(requirement.trim_prefix("stage_")) if not requirement.is_empty() else 0
+		if cleared.size() < count: break
+		allowed = level + 1
+	return allowed
 
 
 func is_available(progress: PlayerProgress) -> bool:
 	if progress == null:
 		return false
-	var requirement: String = required_stage(progress.get_upgrade_level(id))
-	return requirement.is_empty() or progress.is_stage_cleared(requirement)
+	var owned: int = progress.get_upgrade_level(id)
+	return is_maxed(owned) or owned < available_max_level(progress)
 
 
 func get_total_bonus(level: int) -> float:

@@ -252,7 +252,8 @@ amount_per_level = 7.5
 max_level = 4
 base_cost = 225
 cost_growth = 1.35
-unlock_stage_id = "stage_5"
+unlock_stage_id = "stage_6"
+region_2_unlock_stages = PackedInt32Array(6, 7, 8, 10)
 effect_format = "Gate takes -%s%% damage"
 
 [sub_resource type="Resource" id="Resource_fire_resistance"]
@@ -265,7 +266,8 @@ amount_per_level = 10.0
 max_level = 4
 base_cost = 225
 cost_growth = 1.35
-unlock_stage_id = "stage_5"
+unlock_stage_id = "stage_6"
+region_2_unlock_stages = PackedInt32Array(6, 7, 8, 10)
 effect_format = "Hero, allies and gate take -%s%% fire damage"
 
 [resource]

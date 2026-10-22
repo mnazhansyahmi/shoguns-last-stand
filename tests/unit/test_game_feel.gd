@@ -183,6 +183,7 @@ func test_region_economy_curve() -> void:
 	for stage: StageData in region.stages:
 		for multiplier: float in [1.0, stage.replay_gold_multiplier]:
 			progress.gold += floori(stage.get_full_clear_gold() * multiplier)
+			if not progress.is_stage_cleared(stage.stage_id): progress.stages_cleared.append(stage.stage_id)
 			var bought: int = _buy_cheapest(progress)
 			if first_clear_purchases < 0:
 				first_clear_purchases = bought

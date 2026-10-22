@@ -53,3 +53,34 @@ expects progression; these three stress samples do not establish human balance.
   **499 passed**, including the subsequently prepared settings and cap tests.
   [Armor tests](part_2/tests.log), [integration tests](part_2/tests_final.log).
 - [Final heavy/archer motion sheet](part_2/motion_after.png).
+
+## 3. Progress-gated upgrades
+
+Original tiers cap at level 2 with 0-1 stages cleared, 3 with 2-3, 4 with 4,
+and the full original cap with 5. Existing Region 2 extensions open at stages
+6 and 9. Gate Armour and Fire Resistance open one level at stages 6, 7, 8 and
+10. Cards explain the next required clear. Older saves retain all purchased
+levels and their effective bonuses, even above the current purchase cap.
+
+The full catalog remains **112 levels / 26,240 gold**. The real bot economy curve
+buys the cheapest available upgrade after each battle, clears every stage then
+replays it once, and carries the same save forward. All **20 battles won**;
+the full set finishes on the stage 10 replay with **820 gold** left (previous
+ungated curve: 829). Three is the retry limit, not three complete campaigns.
+
+| After stage replay | Levels owned | Gold left |
+| --- | --- | --- |
+| 1 | 8 | 30 |
+| 2 | 16 | 92 |
+| 3 | 25 | 43 |
+| 4 | 38 | 71 |
+| 5 | 56 | 30 |
+| 6 | 69 | 33 |
+| 7 | 81 | 56 |
+| 8 | 92 | 102 |
+| 9 | 102 | 183 |
+| 10 | 112 | 820 |
+
+- [Economy curve](part_3/economy.log).
+- Full suite: **499 passed**, including the prepared settings changes.
+  [Tests](part_3/tests_final.log).

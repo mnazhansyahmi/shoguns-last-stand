@@ -35,12 +35,12 @@ func test_region_two_purchases_require_clearing_region_one() -> void:
 		assert_eq(UpgradeShop.purchase(progress, upgrade), UpgradeShop.Result.LOCKED, "%s locked before stage 5" % id)
 		assert_eq(progress.gold, 100000, "locked purchase never spends gold")
 		assert_eq(progress.get_upgrade_level(id), start, "locked purchase never adds a level")
-	progress.stages_cleared.append("stage_5")
+	for number: int in range(1, 7): progress.stages_cleared.append("stage_%d" % number)
 	for id: String in ["samurai_max_health", "gate_armour", "army_fire_resistance"]:
 		var upgrade: UpgradeData = CATALOG.find(id)
 		var before: int = progress.gold
 		var level: int = progress.get_upgrade_level(id)
-		assert_eq(UpgradeShop.purchase(progress, upgrade), UpgradeShop.Result.OK, "%s unlocks with Region 2" % id)
+		assert_eq(UpgradeShop.purchase(progress, upgrade), UpgradeShop.Result.OK, "%s unlocks after stage 6" % id)
 		assert_eq(progress.gold, before - upgrade.get_cost(level), "only the new tier's price is charged")
 
 
@@ -135,3 +135,46 @@ func test_only_burning_general_fire_attacks_are_tagged_as_fire() -> void:
 	curse.setup(-1.0, 30, 200, 1000, 100, null, Vector2.ZERO)
 	add_to_tree(curse)
 	assert_true(not (curse.get_node("Hitbox") as HitboxComponent).fire, "Daimyo curse remains ordinary damage")
+
+
+func test_region_one_purchase_caps_follow_unique_stages_cleared() -> void:
+	var progress: PlayerProgress = PlayerProgress.new()
+	var health: UpgradeData = CATALOG.find("samurai_max_health")
+	var expected: Array[int] = [2, 2, 3, 3, 4, 5]
+	for count: int in expected.size():
+		assert_eq(health.available_max_level(progress), expected[count], "%d clears caps original levels correctly" % count)
+		progress.gold = 100000
+		progress.set_upgrade_level(health.id, expected[count])
+		assert_eq(UpgradeShop.purchase(progress, health), UpgradeShop.Result.LOCKED, "gold cannot bypass the next cap")
+		assert_eq(progress.gold, 100000, "blocked level never charges gold")
+		progress.stages_cleared.append("stage_%d" % (count + 1))
+	progress.stages_cleared = ["stage_1", "stage_1"]
+	assert_eq(health.available_max_level(progress), 2, "replays cannot count as additional clears")
+
+
+func test_region_two_tiers_and_defences_open_in_steps_through_stage_ten() -> void:
+	var progress: PlayerProgress = PlayerProgress.new()
+	var health: UpgradeData = CATALOG.find("samurai_max_health")
+	var armour: UpgradeData = CATALOG.find("gate_armour")
+	var resistance: UpgradeData = CATALOG.find("army_fire_resistance")
+	var health_caps: Array[int] = [5, 6, 6, 6, 7, 7]
+	var defence_caps: Array[int] = [0, 1, 2, 3, 3, 4]
+	for number: int in range(1, 6): progress.stages_cleared.append("stage_%d" % number)
+	for offset: int in 6:
+		assert_eq(health.available_max_level(progress), health_caps[offset], "existing extra tiers progress through Region 2")
+		assert_eq(armour.available_max_level(progress), defence_caps[offset], "gate armour milestone")
+		assert_eq(resistance.available_max_level(progress), defence_caps[offset], "fire resistance milestone")
+		progress.stages_cleared.append("stage_%d" % (offset + 6))
+
+
+func test_legacy_levels_above_purchase_cap_keep_their_bonus_and_save() -> void:
+	var progress: PlayerProgress = PlayerProgress.new()
+	progress.set_upgrade_level("samurai_max_health", 5)
+	progress.set_upgrade_level("gate_armour", 4)
+	progress.gold = 14000
+	var stats: PlayerStats = UpgradeApplier.build_player_stats(PlayerStats.new(), progress, CATALOG)
+	assert_almost_eq(stats.max_health, PlayerStats.new().max_health + 100, "five old HP levels remain effective despite early cap")
+	assert_almost_eq(UpgradeApplier.build_gate_damage_multiplier(progress, CATALOG), 0.7, "already owned defence remains effective")
+	assert_eq(UpgradeShop.purchase(progress, CATALOG.find("samurai_max_health")), UpgradeShop.Result.LOCKED, "only the next purchase is gated")
+	assert_eq(progress.get_upgrade_level("samurai_max_health"), 5, "owned levels never decrease")
+	assert_eq(progress.gold, 14000, "save gold is untouched")
