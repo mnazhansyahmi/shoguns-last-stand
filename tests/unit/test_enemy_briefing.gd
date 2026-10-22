@@ -49,3 +49,25 @@ func test_settings_tabs_are_joined_to_their_titled_content_panel() -> void:
 		assert_true(panel._pages[index].get_node("SectionTitle") is Label, "section title is visible above settings")
 		var style: StyleBoxFlat = panel._tab_buttons[index].get_theme_stylebox("pressed") as StyleBoxFlat
 		assert_eq(style.border_width_bottom, 0, "selected tab joins panel rather than looking like a toggle")
+
+
+func test_briefing_freezes_the_world_and_pause_review_returns_to_pause() -> void:
+	var tree: SceneTree = tree_root.get_tree()
+	var field: Node = load("res://scenes/battlefield/battlefield.tscn").instantiate()
+	field.set("save_path", SAVE)
+	field.set("settings_path", "user://test_saves/briefing_settings.cfg")
+	field.set("enemy_briefing_enabled", false)
+	add_to_tree(field)
+	field.call("_open_enemy_briefing", false)
+	assert_true(tree.paused, "opening intelligence stops combat before wave 1")
+	var briefing: EnemyBriefing = field.get("_enemy_briefing") as EnemyBriefing
+	for i: int in 3: await tree.process_frame
+	assert_eq((field.get_node("World/EnemySpawner") as EnemySpawner).get_alive_count(), 0, "no enemies spawn while reading")
+	briefing.dismiss()
+	for i: int in 3: await tree.process_frame
+	assert_true(not tree.paused, "first briefing resumes after consuming dismissal frame")
+	field.call("_pause")
+	field.call("_open_enemy_briefing", true)
+	briefing.dismiss()
+	assert_true(tree.paused and (field.get_node("PauseMenu") as PauseMenu).is_open(), "review returns to Pause instead of resuming combat")
+	tree.paused = false

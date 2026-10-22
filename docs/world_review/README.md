@@ -69,3 +69,63 @@ retain their separate style, targets and behavior; reset confirmation remains.
 Full suite: **509 passed, 0 failed**. [Tests](part_3/tests_3.log).
 [Briefing](part_3/enemy_briefing.png), [Audio](part_3/settings_audio.png),
 [Display](part_3/settings_display.png), [Gameplay](part_3/settings_gameplay.png).
+
+## 4. Living main menu
+
+The title screen now uses **one complete painted scene**: sky, moon, mountains,
+shrine, bamboo, rock and samurai were generated together. The old separate
+portrait/rock/backdrop stack is not rendered. A shared texture mesh moves only
+free hair, sash and robe tips; face, hands, sword grip, calves, soles and stone
+stay rigid. Slow clouds, moon-light shimmer, scene drift, leaves and petals add
+life. Drift moves the figure and his rock together, preserving their contact.
+Reduced motion lowers all these movements to 15%, matching the existing setting.
+The interface stays fixed over the gently drifting scene.
+
+Full suite: **512 passed, 0 failed**. [Tests](part_4/tests_4.log),
+[import](part_4/import_4.log), [boot](part_4/boot_4.log).
+This includes a full-field check that briefing freezes the world, consumes the
+dismissal frame and returns a pause-menu review to Pause. Older text/portrait
+composition assertions were updated to check the new card/one-scene contracts.
+
+Menu renders at different actual animation times:
+[initial](part_4/menu_t0.png), [two seconds later](part_4/menu_t2.png),
+[reduced motion](part_4/menu_reduced_motion.png).
+All seven generated source images, their exact prompts, tool and date are
+recorded in [ASSET_LICENSES.md](../ASSET_LICENSES.md).
+
+## Final renders and performance
+
+- [Bamboo Outskirts battle](final/region_1.png)
+- [Burning Village battle](final/region_2.png)
+- [General entrance](final/boss_entrance.png) and [General/onryo battle](final/boss_battle.png)
+- [Enemy briefing](final/enemy_briefing.png)
+- Settings: [Audio](final/settings_audio.png), [Display](final/settings_display.png), [Gameplay](final/settings_gameplay.png)
+- [Unified living menu](part_4/menu_t2.png)
+
+Final Region 2 probe, same machine/renderer, 30 living enemies and six allies,
+120 warmup + 900 measured frames per run. All simulators/tests/renders had exited
+before benchmarking. Each run resets probe-only save/settings files.
+
+| Build | Three averages (ms) | Mean average | Mean run p95 | Worst frame |
+| --- | --- | ---: | ---: | ---: |
+| Frozen original world | 10.33 / 10.15 / 10.24 | **10.24 ms** | 12.56 ms | 28.91 ms |
+| Full painted-world build | 9.07 / 9.12 / 9.06 | **9.08 ms** | 11.80 ms | 24.35 ms |
+
+The final mean is **1.16 ms / 11.3% faster** than today's baseline. All **3/3**
+runs meet the requested **10.75 ms ceiling**. Removing the Flying Spirit's hidden
+segmented cloth simulation helps offset the larger General and new fire/haze.
+These measurements cover the entire build, not just background drawing.
+
+The probe retains the earlier **8.5 ms** gate, so its raw logs say FAIL for that
+older, stricter goal; that goal remains unmet. The current 10.75 ms requirement
+is met. Local editor/debug results are not release-build performance guarantees.
+Final raw logs: [1](final/final_perf_1.log), [2](final/final_perf_2.log),
+[3](final/final_perf_3.log). Baseline logs are under Part 1.
+
+```text
+godot_console --fixed-fps 60 --path . -s res://tools/perf_battle.gd -- --region2
+```
+
+All four requested parts are committed locally on `v0.2`. No publishing or
+uploads occurred. `tools/make_region_1.py` was never run. The pre-existing
+`project.godot` edit is preserved outside the commits. Work stopped after Part 4.

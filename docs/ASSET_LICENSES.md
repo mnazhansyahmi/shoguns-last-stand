@@ -15,6 +15,7 @@ are sampled directly in Godot; generated alpha is preserved.
 | `assets/art/world/portals.png` | Cursed torii and burning rift atlas | 2026-10-22 | [Prompt](../assets/art/world/portals.png.prompt.txt) |
 | `assets/art/world/fire.png` | Painted fire textures animated by shader | 2026-10-22 | [Prompt](../assets/art/world/fire.png.prompt.txt) |
 | `assets/art/roster/onryo_full.png` | Full floating onryo, torso/robes/hair in one coherent painting | 2026-10-22 | [Prompt](../assets/art/roster/onryo_full.png.prompt.txt) |
+| `assets/art/world/menu_scene.png` | Unified painted menu: samurai, rock, sky, moon, mountains and bamboo | 2026-10-22 | [Prompt](../assets/art/world/menu_scene.png.prompt.txt) |
 
 
 The full list of third-party assets in the game: where each came from, its licence, and where the game uses it.

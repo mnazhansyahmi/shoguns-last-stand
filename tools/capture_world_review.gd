@@ -15,6 +15,23 @@ func _initialize() -> void:
 func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(_out)
 	DirAccess.make_dir_recursive_absolute("user://world_review")
+	if _mode == "menu":
+		var menu: Node = load("res://scenes/main_menu/main_menu.tscn").instantiate()
+		menu.set("save_path", "user://world_review/menu_save.json")
+		menu.set("settings_path", "user://world_review/menu_settings.cfg")
+		root.add_child(menu)
+		await _frames(30)
+		await _save("menu_t0")
+		await _frames(120)
+		await _save("menu_t2")
+		GameSettings.reduced_decorative_motion = true
+		await _frames(30)
+		await _save("menu_reduced_motion")
+		menu.free()
+		GameSettings.reduced_decorative_motion = false
+		await AudioManager.shutdown_audio(self)
+		quit()
+		return
 	var progress: PlayerProgress = PlayerProgress.new()
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "stage_6", "stage_7"] as Array[String]
 	SaveManager.new("user://world_review/save.json").save_progress(progress)
