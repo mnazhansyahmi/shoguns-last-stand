@@ -1,7 +1,7 @@
 class_name StagePreview
 extends Control
-## The picture on a stage card: the real Bamboo Outskirts backdrop layers (sky, sun or eclipse, clouds, mountains, mist,
-## hills, bamboo, ground) painted with the stage's own AtmosphereTheme, scaled to cover the control and clipped to it.
+## The picture on a stage card uses the same native painted textures and tile
+## placement as the battle. Fog retains its stage colors. No vector land preview.
 ## It is drawn once and kept, so it costs nothing while the card is on screen. It never touches the global
 ## atmosphere (the painter takes the theme as a parameter).
 
@@ -20,6 +20,7 @@ var theme_to_paint: AtmosphereTheme
 
 
 func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	clip_contents = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resized.connect(queue_redraw)
@@ -44,5 +45,13 @@ func _draw() -> void:
 	var fit: Transform2D = cover_transform(size)
 	draw_set_transform(fit.origin, 0.0, Vector2(fit.x.x, fit.y.y))
 	for layer: BambooOutskirtsPainter.Layer in LAYERS:
-		BambooOutskirtsPainter.paint(self, layer, SEED, theme_to_paint)
+		if not PaintedWorld.paint(self, layer, theme_to_paint, fit):
+			BambooOutskirtsPainter.paint(self, layer, SEED, theme_to_paint)
+		if layer == BambooOutskirtsPainter.Layer.FIRES and PaintedWorld.burning(theme_to_paint):
+			# Freeze the same stage-specific roof layout into the retained preview.
+			for site: Dictionary in VillageFireField.layout(theme_to_paint.theme_id):
+				var flame_size: Vector2 = site.size
+				draw_texture_rect_region(PaintedWorld.FIRE,
+					Rect2(site.position - Vector2(flame_size.x * 0.5, flame_size.y), flame_size),
+					PaintedWorld.source(PaintedWorld.FIRE, PaintedWorld.FIRE_CELLS[site.cell]))
 	draw_set_transform(Vector2.ZERO)

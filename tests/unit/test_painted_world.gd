@@ -55,3 +55,33 @@ func test_village_fires_attach_to_architecture_and_vary_by_stage() -> void:
 	assert_eq(sizes.size(), a.size(), "fire sizes vary")
 	for site: Dictionary in VillageFireField.layout("burning_market", true):
 		assert_true(site.position.y >= 880 and site.size.y <= 55, "ground fires stay small and at ground depth")
+
+
+func test_battle_unit_presentation_grows_without_scaling_collision_or_ui_icons() -> void:
+	for path: String in ["res://scenes/player/player.tscn", "res://scenes/allies/ally.tscn", "res://scenes/enemies/enemy.tscn"]:
+		var unit: Node2D = load(path).instantiate() as Node2D
+		var body: Vector2 = Vector2(44, 110)
+		if unit is Ally:
+			var data: AllyData = load("res://data/allies/ashigaru.tres") as AllyData
+			(unit as Ally).setup(data, 300)
+			body = data.body_size
+		elif unit is Enemy:
+			var data: EnemyData = load("res://data/enemies/hollow_soldier.tres") as EnemyData
+			(unit as Enemy).setup(data)
+			body = data.body_size
+		add_to_tree(unit)
+		var visual: UnitVisual = unit.get_node("Visual") as UnitVisual
+		assert_almost_eq(visual.get_figure().scale.y, 1.08, "battle painting is eight percent larger")
+		assert_eq(unit.scale, Vector2.ONE, "gameplay root keeps its scale")
+		assert_eq(((unit.get_node("CollisionShape2D") as CollisionShape2D).shape as RectangleShape2D).size, body, "body collision retains the data size")
+		assert_eq(((unit.get_node("Hurtbox/CollisionShape2D") as CollisionShape2D).shape as RectangleShape2D).size, body, "hurtbox retains the data size")
+		assert_true(visual.get_figure().to_global(Vector2.ZERO).is_equal_approx(visual.global_position), "enlargement is anchored at the feet")
+		visual.set_facing(-1)
+		assert_almost_eq(visual.get_figure().scale.x, 1.08, "facing changes preserve presentation size")
+		visual.set_rage(3)
+		assert_almost_eq(visual.get_figure().scale.y, 1.08 * 1.07, "boss rage keeps the presentation multiplier")
+	var icon: UnitVisual = add_to_tree(UnitVisual.new()) as UnitVisual
+	assert_eq(icon.get_figure().scale, Vector2.ONE, "UI figure fixtures retain their established size")
+	icon.presentation_scale = 1.08
+	icon.configure(InkFigure.Kind.BURNING_GENERAL, 310)
+	assert_eq(icon.get_figure().scale, Vector2.ONE, "the already-large bosses keep their touch-safe authored size")

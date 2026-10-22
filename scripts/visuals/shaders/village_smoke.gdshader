@@ -6,7 +6,12 @@ void fragment() {
 	vec2 p = UV;
 	float free_tip = 1.0 - p.y;
 	p.x += sin(TIME * 0.4 + phase + p.y * 8.0) * 0.035 * free_tip * motion;
-	p.y += sin(TIME * 0.6 + phase + p.y * 9.0) * 0.025 * free_tip * motion;
-	COLOR = texture(TEXTURE, clamp(p, vec2(0.002), vec2(0.998)));
+	// Two overlapping upward flows cross-fade before either wraps, so the
+	// plume rises continuously rather than oscillating up and down.
+	float flow = fract(TIME * 0.09 * motion + phase / 6.283185);
+	vec2 a = p + vec2(0.0, flow * 0.18 * free_tip);
+	vec2 b = p + vec2(0.0, fract(flow + 0.5) * 0.18 * free_tip);
+	COLOR = mix(texture(TEXTURE, clamp(a, vec2(0.002), vec2(0.998))),
+		texture(TEXTURE, clamp(b, vec2(0.002), vec2(0.998))), abs(0.5 - flow) * 2.0);
 	COLOR.a *= 0.48 + sin(TIME * 0.7 + phase) * 0.07 * motion;
 }

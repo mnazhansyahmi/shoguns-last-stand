@@ -43,6 +43,9 @@ const BLEND_SETTLE: float = 14.0
 @export var figure_kind: InkFigure.Kind = InkFigure.Kind.SAMURAI
 ## Figure height in pixels.
 @export var figure_height: float = 110.0
+## Battle scenes opt in to a modest enlargement. Collision shapes, attack
+## reach and UI icon fixtures keep their authored sizes.
+@export var presentation_scale: float = 1.0
 ## Draw a ring in the figure's accent on the ground under it (the player, so it reads in a crowd).
 @export var ground_marker: bool = false
 
@@ -143,6 +146,7 @@ func configure(kind: InkFigure.Kind, height: float) -> float:
 	if vary:
 		height *= size_variation
 	_figure.height = height
+	_figure.scale = Vector2.ONE * get_presentation_scale() * (1.0 + 0.035 * float(_figure.rage - 1))
 	_figure.kind = kind
 	_apply_crowd_look()
 	_figure.ground_marker = Color(InkPalette.SAMURAI_RED, 0.85) if ground_marker else Color(0.0, 0.0, 0.0, 0.0)
@@ -153,11 +157,16 @@ func configure(kind: InkFigure.Kind, height: float) -> float:
 	_spring.stop()
 	_pose.copy_from(_target)
 	_apply()
-	return _figure.get_head_top_y()
+	return _figure.get_head_top_y() * _figure.scale.y
 
 
 func get_figure() -> InkFigure:
 	return _figure
+
+
+func get_presentation_scale() -> float:
+	# These are already tall enough to fill the touch battle's usable height.
+	return 1.0 if figure_kind in [InkFigure.Kind.FALLEN_DAIMYO, InkFigure.Kind.BURNING_GENERAL] else presentation_scale
 
 
 func get_state() -> StringName:
@@ -224,7 +233,7 @@ func play_ultimate_strike() -> void:
 ## A boss's phase (1..3): its lights burn brighter and it grows a little (the visual change of a phase).
 func set_rage(level: int) -> void:
 	_figure.rage = clampi(level, 1, 3)
-	_figure.scale = Vector2.ONE * (1.0 + 0.035 * float(_figure.rage - 1))
+	_figure.scale = Vector2.ONE * get_presentation_scale() * (1.0 + 0.035 * float(_figure.rage - 1))
 
 
 ## Brief, partial lightening so damage is visible without losing the silhouette.

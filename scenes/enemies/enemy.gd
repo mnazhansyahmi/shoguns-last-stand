@@ -465,7 +465,7 @@ func _apply_look() -> void:
 		if data.figure == InkFigure.Kind.FLYING_SPIRIT:
 			_visual.get_figure().position.y = -data.hover_height
 		_hurtbox_shape.position.y -= data.hover_height
-		_health_bar.set_base_position(Vector2(0.0, -data.hover_height - data.body_size.y - 12.0))
+		_health_bar.set_base_position(Vector2(0.0, -data.hover_height + _visual.get_figure().get_head_top_y() * _visual.get_presentation_scale() - 12.0))
 
 
 func _apply_data() -> void:

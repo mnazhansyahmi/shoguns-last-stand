@@ -19,6 +19,7 @@ script = ExtResource("1_enemy")
 script = ExtResource("2_visual")
 figure_kind = 3
 figure_height = 110.0
+presentation_scale = 1.08
 
 [node name="Figure" type="Node2D" parent="Visual"]
 script = ExtResource("20_figure")

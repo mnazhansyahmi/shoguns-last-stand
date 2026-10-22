@@ -59,7 +59,7 @@ static func tile_rect(index: int, tile: int, theme: AtmosphereTheme = null) -> R
 	return Rect2(Vector2(origin + tile * size.x, bottom - size.y), size)
 
 
-static func _tiles(ci: CanvasItem, index: int, theme: AtmosphereTheme, tint: Color = Color.WHITE, y_offset: float = 0.0) -> void:
+static func _tiles(ci: CanvasItem, index: int, theme: AtmosphereTheme, tint: Color = Color.WHITE, y_offset: float = 0.0, drawing: Transform2D = Transform2D.IDENTITY) -> void:
 	var tex: Texture2D = textures(theme)[index]
 	var exemplar: Rect2 = tile_rect(index, 0, theme)
 	var start: int = floori((LEFT - exemplar.position.x) / exemplar.size.x)
@@ -68,30 +68,32 @@ static func _tiles(ci: CanvasItem, index: int, theme: AtmosphereTheme, tint: Col
 		var rect: Rect2 = tile_rect(index, tile, theme)
 		if rect.end.x < LEFT or rect.position.x > RIGHT: continue
 		rect.position.y += y_offset
+		ci.draw_set_transform_matrix(drawing)
 		# Mirror adjacent edges rather than stretch or cross-fade sharp details.
 		if posmod(tile, 2) == 1:
-			ci.draw_set_transform(Vector2(rect.end.x, 0), 0.0, Vector2(-1, 1))
+			ci.draw_set_transform_matrix(drawing * Transform2D(0.0, Vector2(-1, 1), 0.0, Vector2(rect.end.x, 0)))
 			rect.position.x = 0.0
 		ci.draw_texture_rect(tex, rect, false, tint)
-		ci.draw_set_transform(Vector2.ZERO)
+		ci.draw_set_transform_matrix(drawing)
 
 
 ## Returns false only for the retained atmosphere overlays (mist, rays, clouds).
-static func paint(ci: CanvasItem, layer: BambooOutskirtsPainter.Layer, theme: AtmosphereTheme) -> bool:
+static func paint(ci: CanvasItem, layer: BambooOutskirtsPainter.Layer, theme: AtmosphereTheme, drawing: Transform2D = Transform2D.IDENTITY) -> bool:
+	ci.draw_set_transform_matrix(drawing)
 	match layer:
 		BambooOutskirtsPainter.Layer.SKY:
 			ci.draw_rect(Rect2(LEFT, -1200, RIGHT - LEFT, 3000), Color("6b4741") if burning(theme) else Color("bd9d80"))
-			_tiles(ci, 0, theme)
+			_tiles(ci, 0, theme, Color.WHITE, 0.0, drawing)
 		BambooOutskirtsPainter.Layer.MOUNTAINS:
-			_tiles(ci, 1, theme)
+			_tiles(ci, 1, theme, Color.WHITE, 0.0, drawing)
 		BambooOutskirtsPainter.Layer.BAMBOO_FAR:
-			_tiles(ci, 2, theme, Color(0.9, 0.9, 0.9))
+			_tiles(ci, 2, theme, Color(0.9, 0.9, 0.9), 0.0, drawing)
 		BambooOutskirtsPainter.Layer.GROUND:
-			_tiles(ci, 3, theme)
+			_tiles(ci, 3, theme, Color.WHITE, 0.0, drawing)
 		BambooOutskirtsPainter.Layer.REEDS_FRONT:
-			_tiles(ci, 4, theme, Color(0.8, 0.8, 0.8, 0.85))
+			_tiles(ci, 4, theme, Color(0.8, 0.8, 0.8, 0.85), 0.0, drawing)
 		BambooOutskirtsPainter.Layer.REEDS_BACK:
-			_tiles(ci, 4, theme, Color(0.9, 0.9, 0.9, 0.45), -100.0)
+			_tiles(ci, 4, theme, Color(0.9, 0.9, 0.9, 0.45), -100.0, drawing)
 		BambooOutskirtsPainter.Layer.FIRES:
 			return true # Separate painted shader sprites retain their draw commands.
 		BambooOutskirtsPainter.Layer.MOON, BambooOutskirtsPainter.Layer.DISTANT_MOUNTAINS, \

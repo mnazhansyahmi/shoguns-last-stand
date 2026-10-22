@@ -548,7 +548,7 @@ func _build_parts() -> void:
 		_onryo_paint = null
 	# Anisotropic mip sampling preserves folds on the non-uniform torso/limb
 	# frames without the crawling fine grain of unfiltered minification.
-	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC if kind == Kind.SAMURAI else CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	queue_redraw()
 	for part: FigurePart in _parts:
 		part.free()

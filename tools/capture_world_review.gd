@@ -2,6 +2,7 @@ extends SceneTree
 ## Local, isolated visual fixtures for the world/boss/briefing work.
 var _out: String = "res://builds/world_review/part_2"
 var _mode: String = "boss"
+var _stage: int = 10
 
 
 func _initialize() -> void:
@@ -12,6 +13,7 @@ func _initialize() -> void:
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("--out="): _out = arg.trim_prefix("--out=")
 		if arg.begins_with("--mode="): _mode = arg.trim_prefix("--mode=")
+		if arg.begins_with("--stage="): _stage = int(arg.trim_prefix("--stage="))
 	seed(1337)
 	_run.call_deferred()
 
@@ -56,7 +58,7 @@ func _run() -> void:
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "stage_6", "stage_7"] as Array[String]
 	SaveManager.new("user://world_review/save.json").save_progress(progress)
 	SettingsStore.new("user://world_review/settings.cfg").save_settings(GameSettings.new())
-	SceneRoutes.battle_stage = load("res://data/stages/stage_10.tres") as StageData
+	SceneRoutes.battle_stage = load("res://data/stages/stage_%d.tres" % _stage) as StageData
 	var field: Node = load("res://scenes/battlefield/battlefield.tscn").instantiate()
 	field.set("save_path", "user://world_review/save.json")
 	field.set("enemy_briefing_enabled", false)
@@ -68,6 +70,18 @@ func _run() -> void:
 	var player: Node2D = field.get_node("World/Player") as Node2D
 	player.position.x = 900
 	await _frames(30)
+	if _mode == "world":
+		# Inspect both camera bounds without a staged crowd obscuring the paint.
+		for x: float in [200.0, 1900.0]:
+			player.position.x = x
+			(field.get_node("Camera2D") as BattleCamera).snap()
+			await _frames(30)
+			await _save("world_stage%d_%s" % [_stage, "left" if x < 1000 else "right"])
+		field.free()
+		SceneRoutes.battle_stage = null
+		await AudioManager.shutdown_audio(self)
+		quit()
+		return
 	if _mode == "briefing":
 		field.call("_open_enemy_briefing", false)
 		await _frames(3)
@@ -101,4 +115,7 @@ func _frames(count: int) -> void:
 
 func _save(name: String) -> void:
 	var path: String = _out.path_join(name + ".png")
-	print(name, ": ", root.get_texture().get_image().save_png(path))
+	var image: Image = root.get_texture().get_image()
+	print(name, ": ", image.save_png(path))
+	if name.begins_with("world_stage"):
+		image.get_region(Rect2i(640, 300, 640, 440)).save_png(_out.path_join(name + "_100pct.png"))
