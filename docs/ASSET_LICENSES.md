@@ -2,6 +2,10 @@
 
 ## Sharp world layers — 2026-10-22
 
+- `assets/art/world/sharp/village_smoke.png`: painted transparent rising smoke,
+  generated 2026-10-22 with built-in OpenAI **image_gen**, original artwork.
+  [Exact prompt](../assets/art/world/sharp/village_smoke.png.prompt.txt).
+
 Tool: OpenAI built-in **image_gen**, original artwork for this project. Each
 texture is a separately generated painting, not an enlarged atlas crop. Native
 files are 2172×724 (sky/mountains/scenery) or 1536×1024 (earth/grass).

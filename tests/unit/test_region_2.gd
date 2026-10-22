@@ -203,9 +203,15 @@ func test_embers_rise_and_glow_layer_flickers() -> void:
 	var backdrop: RegionBackdrop = add_to_tree(load("res://scenes/backdrops/bamboo_outskirts.tscn").instantiate()) as RegionBackdrop
 	var fires: BackdropLayer = backdrop.get_node("Fires") as BackdropLayer
 	assert_true(fires.additive and fires.depth == (backdrop.get_node("BambooFar") as BackdropLayer).depth, "the glow sits at the houses' depth, additive")
-	var alphas: Dictionary = {}
+	backdrop.apply_theme(_village().stages[4].atmosphere)
 	for frame: int in 20:
 		Atmosphere.time += 0.05
 		backdrop._process(0.0)
-		alphas[snappedf(fires.modulate.a, 0.01)] = true
-	assert_true(alphas.size() > 3, "the fire glow flickers")
+	assert_almost_eq(fires.modulate.a, 1.0, "no shared alpha pulse synchronizes all fires")
+	for field: VillageFireField in backdrop._fire_fields:
+		var glow: MeshInstance2D = field.get_node("Glow") as MeshInstance2D
+		assert_true(glow.mesh != null and glow.material is ShaderMaterial, "warm flickering light is retained in a GPU batch")
+		field.set_process(false)
+		var mesh_before: Mesh = glow.mesh
+		field._process(1.0)
+		assert_true(glow.mesh == mesh_before, "flicker never rebuilds geometry on the CPU")
