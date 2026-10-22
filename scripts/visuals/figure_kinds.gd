@@ -385,22 +385,22 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.run_speed = 65.0
 			s.accent = InkPalette.DAIMYO_CURSE
 			# A boss: heavy and slow to breathe, the odachi held in two hands, nothing springs loose.
-			s.hip_y = 46.0
-			s.thigh = 23.0
-			s.shin = 23.0
-			s.thigh_w = Vector2(11.0, 9.5)
-			s.shin_w = Vector2(9.5, 7.5)
-			s.foot = 11.0
-			s.stance = Vector2(8.0, -8.0)
+			s.hip_y = 50.0
+			s.thigh = 25.0
+			s.shin = 25.0
+			s.thigh_w = Vector2(16.0, 13.0)
+			s.shin_w = Vector2(13.0, 10.0)
+			s.foot = 13.0
+			s.stance = Vector2(10.0, -10.0)
 			s.stride_len = 11.0
-			s.shoulder_front = Vector2(7.0, -32.0)
-			s.shoulder_back = Vector2(-6.0, -32.0)
-			s.upper_arm = 13.5
-			s.fore_arm = 13.5
+			s.shoulder_front = Vector2(8.0, -29.0)
+			s.shoulder_back = Vector2(-7.0, -29.0)
+			s.upper_arm = 16.0
+			s.fore_arm = 16.0
 			s.arm_w = Vector2(8.5, 7.0)
 			s.fore_w = Vector2(7.0, 6.0)
 			s.hand_r = 4.0
-			s.neck = Vector2(3.0, -35.0)
+			s.neck = Vector2(3.0, -32.0)
 			s.head_top = 118.0
 			s.back_hand_on_weapon = Vector2(-16.0, 0.0)
 			s.cadence = 7.5
@@ -795,26 +795,26 @@ static func _daimyo(state: StringName, heavy: bool) -> FigurePose:
 	var p: FigurePose
 	match state:
 		&"run":
-			p = FigurePose.make(0.2, 3.0, Vector2(13.0, -22.0), 0.0).with_spread(1.1)
+			p = FigurePose.make(0.13, 3.0, Vector2(13.0, -20.0), -0.28).with_spread(1.2)
 		&"windup":
-			p = FigurePose.make(-0.2, 8.0, Vector2(2.0, -26.0), -2.1).with_head(-0.12).with_spread(1.6)
+			p = FigurePose.make(-0.18, 6.0, Vector2(5.0, -31.0), -2.0).with_head(-0.12).with_spread(1.55)
 		&"heavy_windup":
 			p = FigurePose.make(-0.28, 9.0, Vector2(15.0, -46.0), -1.4).with_head(-0.16).with_spread(1.7)
 		&"cast":
 			p = FigurePose.make(-0.12, 4.0, Vector2(13.0, -42.0), -1.52).with_head(-0.22).with_glow(1.0).with_spread(1.45)
 		&"strike":
 			if heavy:
-				p = FigurePose.make(0.42, 11.0, Vector2(26.0, -32.0), -0.1).with_offset(5.0).with_spread(1.8)
+				p = FigurePose.make(0.34, 10.0, Vector2(25.0, -27.0), 0.25).with_offset(5.0).with_spread(1.65)
 			else:
-				p = FigurePose.make(0.3, 6.0, Vector2(28.0, -25.0), -0.05).with_offset(5.0).with_spread(1.7)
+				p = FigurePose.make(0.24, 6.0, Vector2(27.0, -23.0), 0.14).with_offset(5.0).with_spread(1.55)
 		&"hurt":
 			p = FigurePose.make(-0.2, 3.0, Vector2(12.0, -22.0), 0.3).with_head(-0.25).with_offset(-3.0)
 		&"dead":
 			p = FigurePose.make(0.0, 0.0, Vector2(14.0, -8.0), 1.5).with_head(-0.2)
 		_:
 			# The blade carried low in front, the point well clear of the ground (a test checks it), shoulders hunched.
-			p = FigurePose.make(0.1, 2.0, Vector2(12.0, -22.0), 0.2).with_spread(1.2)
-	p.pivot = Vector2(7.0, -32.0)
+			p = FigurePose.make(0.06, 2.0, Vector2(12.0, -20.0), -0.24).with_spread(1.3)
+	p.pivot = Vector2(8.0, -29.0)
 	return p
 
 
@@ -822,13 +822,15 @@ static func _daimyo(state: StringName, heavy: bool) -> FigurePose:
 ## blade never swings past its pose and into the ground.
 static func _daimyo_feel(state: StringName) -> PoseSpring.Feel:
 	match state:
+		&"windup", &"heavy_windup", &"cast":
+			return PoseSpring.Feel.make(Vector2(11.0, 0.95), Vector2(15.0, 0.94), Vector2(16.0, 0.93))
 		&"strike":
-			return PoseSpring.Feel.make(Vector2(30.0, 0.92), Vector2(42.0, 0.9), Vector2(46.0, 0.88))
+			return PoseSpring.Feel.make(Vector2(24.0, 0.92), Vector2(34.0, 0.9), Vector2(36.0, 0.88))
 		&"hurt":
 			return PoseSpring.Feel.make(Vector2(34.0, 0.9), Vector2(40.0, 0.9), Vector2(40.0, 0.9))
 		&"dead":
 			return PoseSpring.Feel.make(Vector2(9.0, 1.0), Vector2(9.0, 1.0), Vector2(9.0, 1.0))
-	return PoseSpring.Feel.make(Vector2(14.0, 0.95), Vector2(18.0, 0.92), Vector2(20.0, 0.9))
+	return PoseSpring.Feel.make(Vector2(10.0, 0.95), Vector2(13.0, 0.94), Vector2(14.0, 0.93))
 
 
 static func _hatamoto_feel(state: StringName) -> PoseSpring.Feel:

@@ -153,7 +153,7 @@ func show_boss(boss_name: String) -> void:
 	_place_boss_bar()
 
 
-func show_boss_entrance(boss_name: String) -> void:
+func show_boss_entrance(boss_name: String, title: String = "LORD OF THE BURNING VILLAGE") -> void:
 	var card: PanelContainer = PanelContainer.new()
 	card.name = "BossEntrance"
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -167,7 +167,7 @@ func show_boss_entrance(boss_name: String) -> void:
 	style.content_margin_bottom = 18
 	card.add_theme_stylebox_override("panel", style)
 	var label: Label = Label.new()
-	label.text = "LORD OF THE BURNING VILLAGE\n" + boss_name
+	label.text = title + "\n" + boss_name
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 56)
 	card.add_child(label)

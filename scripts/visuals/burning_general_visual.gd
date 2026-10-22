@@ -1,6 +1,6 @@
 class_name BurningGeneralVisual
 extends Node2D
-## Three attached painted flames, bounded embers and a small local heat pass.
+## Shoulder and blade fire, bounded embers and a small local heat pass.
 var visual: UnitVisual
 var body_height: float = 310.0
 var _flames: Array[PaintedFlame] = []
@@ -9,10 +9,10 @@ var _haze: Sprite2D
 
 
 func _ready() -> void:
-	for i: int in 3:
+	for i: int in 4:
 		var flame: PaintedFlame = PaintedFlame.new()
 		flame.cell = 2 if i < 2 else 0
-		flame.flame_size = Vector2(65, 105) if i < 2 else Vector2(40, 145)
+		flame.flame_size = Vector2(58, 88) if i < 2 else Vector2(34, 100)
 		flame.phase = i * 2.1
 		add_child(flame)
 		_flames.append(flame)
@@ -57,5 +57,6 @@ func _process(_delta: float) -> void:
 	var fig: InkFigure = visual.get_figure()
 	for i: int in 2:
 		_flames[i].position = fig.transform * (fig.torso_xf * (fig.spec.shoulder_front if i == 0 else fig.spec.shoulder_back))
-	_flames[2].position = fig.transform * (fig.weapon_xf * Vector2(28, 0))
-	_flames[2].rotation = fig.weapon_xf.get_rotation() + PI * 0.5
+	for i: int in range(2, 4):
+		_flames[i].position = fig.transform * (fig.weapon_xf * Vector2(32 + (i - 2) * 46, 0))
+		_flames[i].rotation = fig.weapon_xf.get_rotation() + PI * 0.5

@@ -55,7 +55,17 @@ func _ready() -> void:
 	_health_bar.stagger = false
 	_health_bar.visible = false
 	_visual.set_rage(1)
+	_visual.heavy_step.connect(_on_heavy_step)
 	boss_health_changed.emit(_health.current_health, _health.max_health)
+
+
+func _on_heavy_step(at: Vector2) -> void:
+	if is_dead() or not _visual.is_on_screen(): return
+	var dust: BossFootDust = BossFootDust.new()
+	get_parent().add_child(dust)
+	dust.global_position = at
+	AudioManager.play(&"boss_footstep", 0.72)
+	if is_instance_valid(BattleFeedback.active): BattleFeedback.active.shake(1.8, 0.09)
 
 
 func get_health() -> HealthComponent:

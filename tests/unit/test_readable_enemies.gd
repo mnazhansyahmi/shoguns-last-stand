@@ -23,8 +23,31 @@ func test_general_is_taller_than_oni_and_has_bounded_attached_fire() -> void:
 	add_to_tree(boss)
 	var aura: BurningGeneralVisual = (boss.get("_prop") as EnemyProp)._painted_aura
 	assert_true(aura != null, "painted boss aura exists")
-	assert_eq(aura._flames.size(), 3, "shoulder/weapon flames have a fixed count")
+	assert_eq(aura._flames.size(), 4, "two shoulder and two blade flames have a fixed count")
 	assert_eq(aura._embers.amount, 16, "embers are bounded")
+
+
+func test_boss_legs_support_the_body_and_contact_steps_are_distance_driven() -> void:
+	for kind: InkFigure.Kind in [InkFigure.Kind.FALLEN_DAIMYO, InkFigure.Kind.BURNING_GENERAL]:
+		var visual: UnitVisual = UnitVisual.new()
+		visual.figure_kind = kind
+		add_to_tree(visual)
+		visual.set_process(false)
+		var spec: FigureKinds.Spec = visual.get_figure().spec
+		assert_true(spec.hip_y >= 50 and spec.shin_w.x >= 13, "long, armoured legs support the boss")
+		var steps: Array[Vector2] = []
+		visual.heavy_step.connect(func(at: Vector2) -> void: steps.append(at))
+		visual.play_state(&"run")
+		for frame: int in 180:
+			visual.position.x += 1.1
+			visual._process(1.0 / 60.0)
+		assert_true(steps.size() >= 3 and steps.size() < 15, "walking emits bounded contact steps")
+		for at: Vector2 in steps: assert_almost_eq(at.y, 0.0, "dust roots at the planted sole")
+		visual.play_state(&"idle")
+		for frame: int in 60: visual._process(1.0 / 60.0)
+		var count: int = steps.size()
+		for frame: int in 60: visual._process(1.0 / 60.0)
+		assert_eq(steps.size(), count, "stopped bosses do not emit timed footsteps")
 
 
 func test_boss_bar_never_intersects_player_bars_at_large_ui_scales() -> void:

@@ -1,5 +1,6 @@
 class_name UnitVisual
 extends Node2D
+signal heavy_step(world_position: Vector2)
 ## Animation interface for units, drawn by a child InkFigure ("Figure").
 ## Gameplay only calls set_facing / play_state / flash_hit / set_blinking / set_tint, so the art
 ## can change without touching combat logic. Every frame the live pose blends toward the pose of
@@ -346,7 +347,14 @@ func _update_motion(delta: float) -> void:
 	var locomotion: bool = running or _state == &"idle" or _state == &""
 	if locomotion:
 		var frame: Transform2D = fig.global_transform * Transform2D(0.0, Vector2.ONE * fig.get_unit_scale(), 0.0, Vector2.ZERO)
+		var heavy: bool = figure_kind in [InkFigure.Kind.FALLEN_DAIMYO, InkFigure.Kind.BURNING_GENERAL]
+		var front_planted: bool = fig.gait.planted[0]
+		var back_planted: bool = fig.gait.planted[1]
 		fig.gait.step(frame, fig.spec, delta)
+		if heavy and running:
+			for side: int in 2:
+				if fig.gait.planted[side] and not (front_planted if side == 0 else back_planted):
+					heavy_step.emit(frame * fig.gait.targets[side])
 		fig.stride_phase = fig.gait.phase * TAU
 		fig.bob = fig.gait.bob
 	else:

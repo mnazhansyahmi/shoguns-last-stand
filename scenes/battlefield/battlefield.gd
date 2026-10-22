@@ -528,13 +528,20 @@ func _on_enemy_spawned(enemy: Enemy) -> void:
 	var boss: Boss = enemy as Boss
 	if boss != null:
 		_hud.show_boss(boss.data.display_name)
+		var burning: bool = boss.data.figure == InkFigure.Kind.BURNING_GENERAL
+		_hud.show_boss_entrance(boss.data.display_name, "LORD OF THE BURNING VILLAGE" if burning else "LORD OF THE BROKEN OATH")
+		_feedback.shake(13.0, 0.65)
+		AudioManager.play(&"boss_entrance", 0.65)
 		if boss.data.figure == InkFigure.Kind.BURNING_GENERAL:
-			_hud.show_boss_entrance(boss.data.display_name)
 			var burst: PaintedFireBurst = PaintedFireBurst.new()
 			burst.span = Vector2(480, 380)
 			boss.get_parent().add_child(burst)
 			burst.global_position = boss.global_position
-			_feedback.shake(13.0, 0.65)
+		else:
+			var smoke: InkSplash = InkSplash.new()
+			smoke.setup(InkSplash.Style.PORTAL_SMOKE, 180.0)
+			boss.get_parent().add_child(smoke)
+			smoke.global_position = boss.global_position
 		boss.boss_health_changed.connect(_hud.set_boss_health)
 		_hud.set_boss_health(boss.get_health().current_health, boss.get_health().max_health)
 		boss.phase_changed.connect(_on_boss_phase_changed)

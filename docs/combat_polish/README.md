@@ -47,3 +47,20 @@ Ground clearance includes both painted alpha and the procedural rig envelope.
 transition reach tests. Import, boot and all thirteen rendered sheets are clean.
 [All wielders, eight poses each](part2/) · [Before sheets](grips_before/).
 No new raster assets were generated for this part.
+
+## Part 3 — Boss polish
+
+Both bosses have longer, wider armoured legs and feet, a shorter/narrower torso,
+longer reachable arms and a broader planted stance. Odachi poses retain two
+registered fists. Slower spring preparation, a faster weighted strike and damped
+recovery replace abrupt snaps. Ground-contact signals drive short dust puffs,
+quiet heavy steps and a small camera response; stationary bosses emit none.
+The General carries four bounded painted fire patches across shoulders/blade.
+Both bosses receive a title entrance, shake, a low musical cue using the existing
+Ultimate-ready chord and the boss track. No new audio source or raster was added.
+
+**517/517 tests passed**; import and boot passed. Six seconds of real boss AI,
+captured every six fixed-60-Hz frames, are encoded at 10 fps for review:
+[Daimyo motion](part3/fallen_daimyo_motion.webp) ·
+[General motion](part3/burning_general_motion.webp).
+Full-resolution entrance/motion/recovery stills are in [part3](part3/).

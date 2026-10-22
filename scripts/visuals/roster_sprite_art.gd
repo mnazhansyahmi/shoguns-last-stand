@@ -44,9 +44,9 @@ const WIDTHS: Dictionary = {
 	InkFigure.Kind.SHRINE_HEALER: 20.0, InkFigure.Kind.SPEAR_GUARDIAN: 33.0,
 	InkFigure.Kind.ONMYOJI: 23.0, InkFigure.Kind.HATAMOTO: 27.0,
 	InkFigure.Kind.HOLLOW_SOLDIER: 21.0, InkFigure.Kind.ONI_BRUTE: 41.0,
-	InkFigure.Kind.FALLEN_DAIMYO: 36.0,
+	InkFigure.Kind.FALLEN_DAIMYO: 33.0,
 	InkFigure.Kind.SPECTRAL_ARCHER: 23.0, InkFigure.Kind.SHIELD_BEARER: 34.0,
-	InkFigure.Kind.FLYING_SPIRIT: 25.0, InkFigure.Kind.BURNING_GENERAL: 38.0,
+	InkFigure.Kind.FLYING_SPIRIT: 25.0, InkFigure.Kind.BURNING_GENERAL: 34.0,
 }
 ## The painted torsos are three-quarter views with an open armhole on their left (back) side, and every upper arm is a
 ## sleeve tube with an open shoulder end: assembled as is they read as paper-doll sockets. Each armhole (centre and
@@ -153,7 +153,7 @@ static func frame(kind: InkFigure.Kind, part_name: StringName) -> Transform2D:
 		width = spec.thigh_w.x * 1.15
 	elif String(part_name).begins_with("shin"):
 		bone = spec.shin
-		width = minf(spec.shin_w.x, 9.0)
+		width = spec.shin_w.x if kind in [InkFigure.Kind.FALLEN_DAIMYO, InkFigure.Kind.BURNING_GENERAL] else minf(spec.shin_w.x, 9.0)
 	elif String(part_name).begins_with("upper"):
 		bone = spec.upper_arm
 		width = spec.arm_w.x * 1.35
@@ -190,10 +190,8 @@ static func frame(kind: InkFigure.Kind, part_name: StringName) -> Transform2D:
 				rect = Rect2(-34.0, -99.0, 23.0, 36.0)
 			elif part_name == &"hem" and kind == InkFigure.Kind.YUMI_ARCHER:
 				rect = Rect2(-20.0, -27.0, 16.0, 44.0)
-			elif part_name == &"hem" and kind == InkFigure.Kind.FALLEN_DAIMYO:
-				rect = Rect2(-24.0, -33.0, 23.0, 76.0)
-			elif part_name == &"hem" and kind == InkFigure.Kind.BURNING_GENERAL:
-				rect = Rect2(-24.0, -33.0, 23.0, 76.0)
+			elif part_name == &"hem" and kind in [InkFigure.Kind.FALLEN_DAIMYO, InkFigure.Kind.BURNING_GENERAL]:
+				rect = Rect2(-24.0, -29.0, 22.0, 68.0)
 	_frames[key] = Transform2D(0.0, rect.size / source.size, 0.0, rect.position)
 	return _frames[key]
 
