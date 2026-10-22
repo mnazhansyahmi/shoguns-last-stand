@@ -369,7 +369,7 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 			s.fore_w = Vector2(6.0, 5.0)
 			s.hand_r = 3.4
 			s.neck = Vector2(2.0, -34.0)
-			s.head_top = 112.0
+			s.head_top = 106.0
 			s.back_hand_on_weapon = Vector2(-18.0, 0.0)
 			s.cadence = 11.0
 			s.windup_rate = 16.0

@@ -33,3 +33,17 @@ timber under its root, and checks that grading never affects Region 1.
 [grayscale](part1/region1_crowd_a_grayscale.png) ·
 [Region 2 color](part1/region2_crowd_a.png) /
 [grayscale](part1/region2_crowd_a_grayscale.png).
+
+## Part 2 — Grips and proportions
+
+Measured shaft/hilt registration replaces stretched bounding-box fitting on
+eleven painted weapons. Uniform scaling preserves the club, spear and odachi
+shapes. Both arms solve to the same rigid weapon; bows retain their tested
+middle grip and drawn nock. Staff casters and shield users retain their free
+casting/shield hand. Hatamoto's head is 26×30 figure units, down from 32×36.
+Ground clearance includes both painted alpha and the procedural rig envelope.
+
+**516/516 tests passed**, including new opaque-hilt/uniform-scale and full
+transition reach tests. Import, boot and all thirteen rendered sheets are clean.
+[All wielders, eight poses each](part2/) · [Before sheets](grips_before/).
+No new raster assets were generated for this part.

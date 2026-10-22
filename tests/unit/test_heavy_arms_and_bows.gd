@@ -4,6 +4,39 @@ const HEAVIES: Array[InkFigure.Kind] = [InkFigure.Kind.ONI_BRUTE, InkFigure.Kind
 const STATES: Array[StringName] = [&"idle", &"run", &"windup", &"heavy_windup", &"strike", &"hurt", &"dead"]
 
 
+func test_painted_weapon_registration_pins_real_hilts_and_preserves_shape() -> void:
+	for kind: int in WeaponRegistration.POINTS:
+		var source: Rect2
+		var texture: Texture2D
+		var frame: Transform2D
+		if PaintedEquipment.WEAPONS.has(kind):
+			source = EquipmentAtlasRegions.REGIONS[PaintedEquipment.WEAPONS[kind]]
+			texture = PaintedEquipment.atlas()
+			frame = PaintedEquipment.frame(kind as InkFigure.Kind, &"weapon")
+		else:
+			source = RosterSpriteArt.region(kind as InkFigure.Kind, 15)
+			texture = RosterSpriteArt.atlas(kind as InkFigure.Kind)
+			frame = RosterSpriteArt.frame(kind as InkFigure.Kind, &"weapon")
+		var point: Vector4 = WeaponRegistration.POINTS[kind]
+		var pixel: Vector2 = Vector2(point.x, point.y)
+		assert_true((frame * (pixel - source.position)).length() < 0.001, "real painted grip sits on the solved hand")
+		assert_true(texture.get_image().get_pixelv(Vector2i(pixel)).a > 0.8, "fingers hold opaque shaft/hilt pixels")
+		assert_almost_eq(frame.x.length(), frame.y.length(), "weapon is not flattened to a stick")
+		var visual: UnitVisual = UnitVisual.new()
+		visual.figure_kind = kind as InkFigure.Kind
+		add_to_tree(visual)
+		visual.set_process(false)
+		for state: StringName in STATES:
+			visual.play_state(state)
+			for tick: int in 20:
+				visual._process(1.0 / 60.0)
+				var fig: InkFigure = visual.get_figure()
+				var reach: float = fig.spec.upper_arm + fig.spec.fore_arm
+				assert_true(fig.front_hand.distance_to(fig.spec.shoulder_front) <= reach + 0.1, "no disconnected wrist during transitions")
+				if not is_nan(fig.spec.back_hand_on_weapon.x):
+					assert_true((fig.torso_xf * fig.back_hand).distance_to(fig.weapon_xf * fig.spec.back_hand_on_weapon) < 0.01, "second hand follows the same rigid weapon")
+
+
 func test_heavy_arms_keep_solved_joints_and_reachable_two_handed_grips() -> void:
 	for kind: InkFigure.Kind in HEAVIES:
 		var figure: InkFigure = InkFigure.new()

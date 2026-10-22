@@ -258,7 +258,8 @@ func refresh() -> void:
 	weapon_xf = torso_xf * weapon_local
 	_rest_weapon_on_ground()
 	weapon_local = torso_xf.affine_inverse() * weapon_xf
-	if kind == Kind.ONI_BRUTE or FigureKinds.animation_kind(kind) == Kind.FALLEN_DAIMYO:
+	var bow_hands: bool = FigureKinds.animation_kind(kind) == Kind.YUMI_ARCHER or (spec.has_back_bow and pose.sheathed > 0.5)
+	if not bow_hands and kind != Kind.FLYING_SPIRIT:
 		# During transitions and ground clearance, the two grip targets must remain
 		# inside both arm reach discs. Move the held weapon, never stretch a bone.
 		for pass_index: int in 3:
@@ -275,7 +276,6 @@ func refresh() -> void:
 			weapon_local = torso_xf.affine_inverse() * weapon_xf
 
 	front_hand = weapon_local.origin
-	var bow_hands: bool = FigureKinds.animation_kind(kind) == Kind.YUMI_ARCHER or (spec.has_back_bow and pose.sheathed > 0.5)
 	if not is_nan(spec.back_hand_on_weapon.x) and not bow_hands:
 		back_hand = weapon_local * spec.back_hand_on_weapon
 	elif bow_hands:

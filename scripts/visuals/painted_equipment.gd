@@ -15,6 +15,7 @@ static var _atlas: Texture2D
 static var _textures: Dictionary = {}
 static var _frames: Dictionary = {}
 static var _wood: Rect2
+static var _weapon_bounds: Dictionary = {}
 
 
 static func atlas() -> Texture2D:
@@ -46,6 +47,9 @@ static func texture(kind: InkFigure.Kind, name: StringName) -> AtlasTexture:
 static func frame(kind: InkFigure.Kind, name: StringName) -> Transform2D:
 	var key: String = "%d:%s" % [kind, name]
 	if not _frames.has(key):
+		if name == &"weapon" and WeaponRegistration.POINTS.has(kind):
+			_frames[key] = WeaponRegistration.frame(kind, EquipmentAtlasRegions.REGIONS[cell(kind, name)])
+			return _frames[key]
 		var points: PackedVector2Array = FigurePainter._original_vertices(FigurePainter.part(kind, name))
 		var target: Rect2 = Rect2(points[0], Vector2.ZERO)
 		for point: Vector2 in points: target = target.expand(point)
@@ -54,6 +58,13 @@ static func frame(kind: InkFigure.Kind, name: StringName) -> Transform2D:
 		var source: Rect2 = EquipmentAtlasRegions.REGIONS[cell(kind, name)]
 		_frames[key] = Transform2D(0.0, target.size / source.size, 0.0, target.position)
 	return _frames[key]
+
+
+static func weapon_bounds(kind: InkFigure.Kind) -> PackedVector2Array:
+	if not _weapon_bounds.has(kind):
+		_weapon_bounds[kind] = SamuraiSpriteArt.alpha_bounds(atlas().get_image(),
+			EquipmentAtlasRegions.REGIONS[cell(kind, &"weapon")], frame(kind, &"weapon"))
+	return _weapon_bounds[kind]
 
 
 static func draw_bow(ci: CanvasItem, figure: InkFigure) -> void:

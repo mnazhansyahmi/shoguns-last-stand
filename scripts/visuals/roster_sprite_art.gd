@@ -28,7 +28,7 @@ const HEAD_RECTS: Dictionary = {
 	InkFigure.Kind.SHRINE_HEALER: Rect2(-10, -20, 22, 24),
 	InkFigure.Kind.SPEAR_GUARDIAN: Rect2(-13, -30, 29, 33),
 	InkFigure.Kind.ONMYOJI: Rect2(-11, -27, 22, 31),
-	InkFigure.Kind.HATAMOTO: Rect2(-16, -34, 32, 36),
+	InkFigure.Kind.HATAMOTO: Rect2(-13, -28, 26, 30),
 	InkFigure.Kind.HOLLOW_SOLDIER: Rect2(-12, -17, 26, 22),
 	# His cut neck tucks in behind the shoulders (the head is drawn behind the torso, see NECKS).
 	InkFigure.Kind.ONI_BRUTE: Rect2(-21, -21, 39, 29),
@@ -141,6 +141,9 @@ static func frame(kind: InkFigure.Kind, part_name: StringName) -> Transform2D:
 	var key: String = "%d:%s" % [kind, part_name]
 	if _frames.has(key): return _frames[key]
 	var source: Rect2 = region(kind, cell_for(kind, part_name))
+	if part_name == &"weapon" and WeaponRegistration.POINTS.has(kind):
+		_frames[key] = WeaponRegistration.frame(kind, source)
+		return _frames[key]
 	var spec: FigureKinds.Spec = FigureKinds.spec(kind)
 	var rect: Rect2
 	var bone: float = 0.0

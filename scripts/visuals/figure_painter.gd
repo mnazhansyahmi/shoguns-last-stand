@@ -75,12 +75,18 @@ static func ground_contacts(kind: InkFigure.Kind) -> GroundContacts:
 ## The vertices of a kind's weapon in weapon space (empty if it carries none).
 static func weapon_points(kind: InkFigure.Kind) -> PackedVector2Array:
 	if not _weapon_points.has(kind):
+		var points: PackedVector2Array = PackedVector2Array()
+		if PaintedEquipment.WEAPONS.has(kind):
+			points.append_array(PaintedEquipment.weapon_bounds(kind))
+		if kind in [InkFigure.Kind.SHIELD_BEARER, InkFigure.Kind.BURNING_GENERAL]:
+			points.append_array(RosterSpriteArt.bounds(kind, &"weapon"))
 		var batch: InkBatch = part(kind, &"weapon")
 		if FigureKinds.animation_kind(kind) == InkFigure.Kind.YUMI_ARCHER:
 			batch = bow(0.0, kind)
 		# Only hull vertices can be lowest after a rigid rotation. Interior armour/weapon detail
 		# must not turn every figure refresh into hundreds of redundant ground queries.
-		_weapon_points[kind] = Geometry2D.convex_hull(_original_vertices(batch)) if batch != null else PackedVector2Array()
+		if batch != null: points.append_array(_original_vertices(batch))
+		_weapon_points[kind] = Geometry2D.convex_hull(points)
 	return _weapon_points[kind]
 
 
