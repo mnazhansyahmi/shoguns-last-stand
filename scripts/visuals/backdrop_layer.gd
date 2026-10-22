@@ -32,10 +32,15 @@ var _sway_material: ShaderMaterial
 
 
 func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	if sway:
 		_sway_material = ShaderMaterial.new()
 		_sway_material.shader = load("res://scripts/visuals/shaders/painted_grass.gdshader") as Shader
 		material = _sway_material
+	elif layer == BambooOutskirtsPainter.Layer.GROUND:
+		var ground: ShaderMaterial = ShaderMaterial.new()
+		ground.shader = preload("res://scripts/visuals/shaders/ground_blend.gdshader")
+		material = ground
 	elif additive:
 		var blend: CanvasItemMaterial = CanvasItemMaterial.new()
 		blend.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD

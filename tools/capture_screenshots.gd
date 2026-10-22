@@ -1194,6 +1194,12 @@ func _capture(shot_name: String) -> void:
 	var path: String = _out_dir.path_join(_tag + shot_name + ".png")
 	var error: Error = image.save_png(path)
 	print("%s -> %s (%s)" % [shot_name, ProjectSettings.globalize_path(path), error_string(error)])
+	if shot_name.begins_with("crowd_"):
+		# A true 100% pixel crop, without resampling or a different camera zoom.
+		var crop_size: Vector2i = Vector2i(640, 440).min(image.get_size())
+		var crop_at: Vector2i = Vector2i(image.get_width() / 2 - crop_size.x / 2,
+			mini(roundi(image.get_height() * 0.52), image.get_height() - crop_size.y))
+		image.get_region(Rect2i(crop_at, crop_size)).save_png(_out_dir.path_join(_tag + shot_name + "_100pct.png"))
 
 
 func _capture_icons() -> void:

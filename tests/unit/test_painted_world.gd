@@ -3,11 +3,17 @@ extends "res://tests/test_case.gd"
 
 func test_regions_use_different_painted_scenery_and_transparent_layers() -> void:
 	assert_true(PaintedWorld.BAMBOO != PaintedWorld.VILLAGE, "region identity is separate artwork")
-	for atlas: Texture2D in [PaintedWorld.BAMBOO, PaintedWorld.VILLAGE]:
-		var image: Image = atlas.get_image()
-		assert_true(image.get_width() >= 900 and image.get_height() >= 1500, "painted atlas has usable resolution")
-		assert_true(image.get_pixelv(Vector2i(image.get_width() / 2, image.get_height() / 10)).a > 0.9, "sky is opaque")
-		assert_true(image.get_pixelv(Vector2i(image.get_width() / 2, int(image.get_height() * 0.84))).a < 0.1, "foreground leaves a clear action band")
+	for region: Array[Texture2D] in [PaintedWorld.BAMBOO, PaintedWorld.VILLAGE]:
+		assert_eq(region.size(), 5, "separate sky, mountains, scenery, earth and grass")
+		for index: int in region.size():
+			assert_true(PaintedWorld.texels_per_screen_pixel(index) >= 1.0, "native texel density at 1080p and 1.5 zoom, layer %d" % index)
+			var first: Rect2 = PaintedWorld.tile_rect(index, 0)
+			var next: Rect2 = PaintedWorld.tile_rect(index, 1)
+			assert_almost_eq(first.end.x, next.position.x, "neighboring tiles meet without a gap")
+		var sky: Image = region[0].get_image()
+		assert_true(sky.get_pixelv(sky.get_size() / 2).a > 0.9, "sky is opaque")
+		var grass: Image = region[4].get_image()
+		assert_true(grass.get_pixelv(Vector2i(grass.get_width() / 2, 20)).a < 0.1, "grass has clean empty space above it")
 
 
 func test_region_fire_is_bounded_and_damage_switch_preserves_gate_state() -> void:

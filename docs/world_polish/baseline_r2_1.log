@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 617.42 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5060 Laptop GPU
+
+flags --region2 | enemies 30, allies 6, frames 900
+frame ms: avg 8.86  p95 10.77  max 25.35 | render cpu avg 2.33  gpu avg 0.76
+FAIL: average frame budget < 8.50 ms

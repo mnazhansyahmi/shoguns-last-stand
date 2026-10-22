@@ -1,5 +1,27 @@
 # Asset licences
 
+## Sharp world layers — 2026-10-22
+
+Tool: OpenAI built-in **image_gen**, original artwork for this project. Each
+texture is a separately generated painting, not an enlarged atlas crop. Native
+files are 2172×724 (sky/mountains/scenery) or 1536×1024 (earth/grass).
+Runtime tiles preserve aspect ratio and meet or exceed 1 texel per screen pixel
+at 1920×1080 and 1.5× camera zoom. Generated alpha is preserved; Godot fixes
+transparent borders and generates mipmaps. Exact prompts:
+
+| Image | Use | Date | Prompt |
+| --- | --- | --- | --- |
+| `assets/art/world/sharp/bamboo_sky.png` | Sunset sky | 2026-10-22 | [Prompt](../assets/art/world/sharp/bamboo_sky.png.prompt.txt) |
+| `assets/art/world/sharp/bamboo_mountains.png` | Shrine and ridges | 2026-10-22 | [Prompt](../assets/art/world/sharp/bamboo_mountains.png.prompt.txt) |
+| `assets/art/world/sharp/bamboo_scenery.png` | Bamboo and shrine scenery | 2026-10-22 | [Prompt](../assets/art/world/sharp/bamboo_scenery.png.prompt.txt) |
+| `assets/art/world/sharp/bamboo_ground.png` | Continuous earth band | 2026-10-22 | [Prompt](../assets/art/world/sharp/bamboo_ground.png.prompt.txt) |
+| `assets/art/world/sharp/bamboo_grass.png` | Reeds and leaves | 2026-10-22 | [Prompt](../assets/art/world/sharp/bamboo_grass.png.prompt.txt) |
+| `assets/art/world/sharp/village_sky.png` | Red smoky sky | 2026-10-22 | [Prompt](../assets/art/world/sharp/village_sky.png.prompt.txt) |
+| `assets/art/world/sharp/village_mountains.png` | Distant burning castle | 2026-10-22 | [Prompt](../assets/art/world/sharp/village_mountains.png.prompt.txt) |
+| `assets/art/world/sharp/village_scenery.png` | Ruined houses and fences | 2026-10-22 | [Prompt](../assets/art/world/sharp/village_scenery.png.prompt.txt) |
+| `assets/art/world/sharp/village_ground.png` | Continuous scorched earth band | 2026-10-22 | [Prompt](../assets/art/world/sharp/village_ground.png.prompt.txt) |
+| `assets/art/world/sharp/village_grass.png` | Charred reeds and debris | 2026-10-22 | [Prompt](../assets/art/world/sharp/village_grass.png.prompt.txt) |
+
 ## Painted world assets — 2026-10-22
 
 Original AI-generated artwork, made with the OpenAI built-in **image_gen** tool
