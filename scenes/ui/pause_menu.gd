@@ -9,6 +9,7 @@ signal main_menu_requested
 signal settings_changed(settings: GameSettings)
 signal settings_closed(settings: GameSettings)
 signal progress_reset
+signal briefing_requested
 
 @onready var _menu: Control = %Menu
 @onready var _resume_button: Button = %ResumeButton
@@ -29,6 +30,14 @@ func _ready() -> void:
 	_settings_panel.progress_reset.connect(progress_reset.emit)
 	_settings_panel.changed.connect(settings_changed.emit)
 	_settings_panel.closed.connect(_on_settings_closed)
+	var briefing: Button = Button.new()
+	briefing.name = "EnemyBriefingButton"
+	briefing.text = "Enemy briefing"
+	briefing.custom_minimum_size = Vector2(460, 124)
+	briefing.add_theme_font_size_override("font_size", 40)
+	_resume_button.get_parent().add_child(briefing)
+	_resume_button.get_parent().move_child(briefing, _settings_button.get_index())
+	briefing.pressed.connect(briefing_requested.emit)
 
 
 func open(settings: GameSettings) -> void:

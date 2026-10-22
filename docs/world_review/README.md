@@ -49,3 +49,23 @@ player/wave cluster extents at all tested UI scales.
 Full suite: **506 passed, 0 failed**. [Tests](part_2/tests_2.log).
 [Entrance](part_2/boss_entrance.png), [boss and onryo](part_2/boss_battle.png).
 The full onryo image and exact prompt are recorded in the asset licence ledger.
+
+## 3. Briefing cards and settings tabs
+
+Interactive battles pause before wave 1 for one painted portrait/name/counter
+card per enemy type, including the boss. Any key, mouse click, touch or gamepad
+button dismisses the panel; dismissal input is consumed before combat resumes.
+Pause has an Enemy briefing button, returning to Pause on dismissal. Headless
+simulators and staged render/perf fixtures intentionally opt out of the modal.
+
+NEW is based on persisted `seen_enemies`, recorded before combat so a loss does
+not repeat the tag. Old saves infer known foes from cleared stages. The save
+version remains compatible and all existing progression data is preserved.
+
+Settings uses adjacent connected tab plates, matching selected/content colour,
+an open bottom border, clear underline and a section heading. Setting buttons
+retain their separate style, targets and behavior; reset confirmation remains.
+
+Full suite: **509 passed, 0 failed**. [Tests](part_3/tests_3.log).
+[Briefing](part_3/enemy_briefing.png), [Audio](part_3/settings_audio.png),
+[Display](part_3/settings_display.png), [Gameplay](part_3/settings_gameplay.png).

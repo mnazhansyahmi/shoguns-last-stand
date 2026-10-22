@@ -1,0 +1,636 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_painted_world.gd
+  PASS  test_regions_use_different_painted_scenery_and_transparent_layers
+  PASS  test_region_fire_is_bounded_and_damage_switch_preserves_gate_state
+test_readable_enemies.gd
+  PASS  test_onryo_is_a_full_human_sized_floating_painting_with_ground_shadow
+  PASS  test_general_is_taller_than_oni_and_has_bounded_attached_fire
+  PASS  test_boss_bar_never_intersects_player_bars_at_large_ui_scales
+test_enemy_briefing.gd
+  PASS  test_briefing_lists_every_type_once_and_remembers_first_encounters
+  PASS  test_old_saves_know_completed_stages_and_key_dismissal_consumes_input
+  PASS  test_settings_tabs_are_joined_to_their_titled_content_panel
+test_health_component.gd
+  PASS  test_starts_at_max_health
+  PASS  test_take_damage_reduces_health
+  PASS  test_overkill_clamps_at_zero
+  PASS  test_ignores_zero_and_negative_damage
+  PASS  test_heal_restores_and_caps_at_max
+  PASS  test_cannot_heal_when_dead
+  PASS  test_died_emitted_exactly_once
+  PASS  test_reset_revives_and_allows_dying_again
+  PASS  test_invulnerability_blocks_damage_until_it_expires
+  PASS  test_health_changed_reports_values
+test_combat_components.gd
+  PASS  test_hit_damages_hostile_target
+  PASS  test_one_hit_per_target_per_activation
+  PASS  test_no_friendly_fire
+  PASS  test_inactive_hitbox_deals_no_damage
+  PASS  test_invulnerable_target_is_not_hit
+  PASS  test_knockback_uses_fixed_direction
+  PASS  test_faction_layers_only_see_hostile_hurtboxes
+  PASS  test_cooldown_component
+test_summoning.gd
+  PASS  test_ally_data_matches_spec
+  PASS  test_energy_regenerates_and_caps_at_max
+  PASS  test_summon_consumes_energy
+  PASS  test_summon_rejected_without_enough_energy
+  PASS  test_summon_respects_cooldown
+  PASS  test_summon_respects_max_units
+  PASS  test_dead_ally_frees_a_unit_slot
+  PASS  test_invalid_slot_rejected
+test_wave_director.gd
+  PASS  test_stage_1_resource_matches_spec
+  PASS  test_wave_spawns_with_interval
+  PASS  test_wave_completes_when_all_enemies_die
+  PASS  test_wave_completes_if_enemy_freed_unexpectedly
+  PASS  test_dead_enemy_freed_later_is_not_double_counted
+  PASS  test_next_wave_waits_for_clear_and_break
+WARNING: WaveDirector: wave 1 had no living enemy for 5 s; completing it (1 stale entries).
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _watch_wave (res://scripts/systems/wave_director.gd:217)
+       [1] tick (res://scripts/systems/wave_director.gd:80)
+       [2] test_a_wave_left_without_living_enemies_completes_after_the_grace (res://tests/unit/test_wave_director.gd:155)
+       [3] _run_all (res://tests/run_tests.gd:103)
+  PASS  test_a_wave_left_without_living_enemies_completes_after_the_grace
+WARNING: WaveDirector: no damage dealt for 30 s in wave 1/1 (CLEARING): 2 alive, 0 still to spawn: Hollow Soldier at x 1829, Hollow Soldier at x 1831.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _watch_wave (res://scripts/systems/wave_director.gd:231)
+       [1] tick (res://scripts/systems/wave_director.gd:80)
+       [2] test_a_wave_where_nobody_deals_damage_is_reported (res://tests/unit/test_wave_director.gd:171)
+       [3] _run_all (res://tests/run_tests.gd:103)
+  PASS  test_a_wave_where_nobody_deals_damage_is_reported
+test_target_lifetime.gd
+  PASS  test_ally_target_freed_mid_fight_picks_new_target
+  PASS  test_ally_target_freed_with_no_enemies_left_idles
+  PASS  test_enemy_target_freed_mid_fight_resumes_advance
+  PASS  test_hit_from_freed_source_still_applies
+test_progression.gd
+  PASS  test_reward_data_values
+  PASS  test_victory_reward_is_kills_plus_bonus
+  PASS  test_defeat_reward_is_partial_without_bonus
+  PASS  test_no_kills_defeat_gives_nothing
+  PASS  test_record_battle_updates_progress
+  PASS  test_level_thresholds
+  PASS  test_catalog_has_the_six_spec_upgrades
+  PASS  test_costs_rise_with_level
+  PASS  test_purchase_succeeds_with_enough_gold
+  PASS  test_purchase_rejected_without_enough_gold
+  PASS  test_purchase_rejected_at_max_level
+  PASS  test_spirit_capacity_preserves_original_tiers_and_adds_region_two_levels
+  PASS  test_the_battle_uses_the_upgraded_spirit_pool
+  PASS  test_upgrades_apply_to_stat_copies
+  PASS  test_upgraded_stats_reach_battle_units
+  PASS  test_battle_results_preserve_rewards_replay_warning_and_reduced_motion
+test_save_manager.gd
+  PASS  test_first_run_starts_new_game
+  PASS  test_save_load_round_trip
+  PASS  test_save_file_is_versioned_json
+  PASS  test_second_save_keeps_previous_as_backup
+WARNING: SaveManager: Save file was damaged (invalid JSON at line 0). Restored from backup.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] load_progress (res://scripts/systems/save_manager.gd:57)
+       [1] test_corrupted_save_falls_back_to_backup (res://tests/unit/test_save_manager.gd:95)
+       [2] _run_all (res://tests/run_tests.gd:103)
+  PASS  test_corrupted_save_falls_back_to_backup
+WARNING: SaveManager: Save file was damaged (invalid JSON at line 0). Restored from backup.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] load_progress (res://scripts/systems/save_manager.gd:57)
+       [1] test_saving_after_corruption_keeps_good_backup (res://tests/unit/test_save_manager.gd:107)
+       [2] _run_all (res://tests/run_tests.gd:103)
+  PASS  test_saving_after_corruption_keeps_good_backup
+WARNING: SaveManager: Save file and backup were damaged (empty file / root is not an object). Starting fresh.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] load_progress (res://scripts/systems/save_manager.gd:62)
+       [1] test_both_corrupted_starts_fresh (res://tests/unit/test_save_manager.gd:121)
+       [2] _run_all (res://tests/run_tests.gd:103)
+  PASS  test_both_corrupted_starts_fresh
+  PASS  test_invalid_contents_are_rejected
+  PASS  test_reset_progress_clears_everything
+test_settings.gd
+  PASS  test_defaults
+  PASS  test_missing_file_gives_defaults
+  PASS  test_settings_round_trip
+WARNING: SettingsStore: invalid settings reset to default: music_volume, ui_scale, vibration, touch_mode
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _with_warning (res://scripts/systems/settings_store.gd:114)
+       [1] load_settings (res://scripts/systems/settings_store.gd:54)
+       [2] test_invalid_values_fall_back_per_key (res://tests/unit/test_settings.gd:66)
+       [3] _run_all (res://tests/run_tests.gd:103)
+  PASS  test_invalid_values_fall_back_per_key
+WARNING: SettingsStore: unsupported settings version; using defaults
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _with_warning (res://scripts/systems/settings_store.gd:114)
+       [1] load_settings (res://scripts/systems/settings_store.gd:36)
+       [2] test_unsupported_version_gives_defaults (res://tests/unit/test_settings.gd:79)
+       [3] _run_all (res://tests/run_tests.gd:103)
+  PASS  test_unsupported_version_gives_defaults
+  PASS  test_sanitize_clamps
+  PASS  test_touch_mode_rules
+  PASS  test_audio_settings_drive_buses
+  PASS  test_settings_controls_page_opens_returns_and_has_real_gamepad_bindings
+  PASS  test_settings_tabs_group_controls_and_keep_touch_targets
+test_touch_controls.gd
+  PASS  test_left_handed_layout_mirrors_clusters
+  PASS  test_action_buttons_mirror_inside_cluster
+  PASS  test_layout_respects_safe_area
+  PASS  test_clusters_never_overlap
+  PASS  test_touch_targets_meet_44pt_minimum
+  PASS  test_scene_layout_mirrors_widgets
+  PASS  test_move_and_attack_at_the_same_time
+  PASS  test_dead_zone_ignores_small_offsets
+  PASS  test_summon_button_presses_summon_action
+  PASS  test_deactivating_releases_held_actions
+  PASS  test_menu_controls_meet_44pt_minimum
+  PASS  test_settings_toggles_are_full_size_buttons
+  PASS  test_touch_widgets_are_semi_transparent_until_pressed
+  PASS  test_ground_lift_keeps_units_above_controls
+  PASS  test_auto_mode_ignores_mouse_emulation
+  PASS  test_freeing_controls_releases_held_actions
+  PASS  test_touch_outside_widgets_is_not_consumed
+  PASS  test_summon_bar_fits_one_to_six_allies_everywhere
+  PASS  test_six_allies_fit_in_one_row_on_a_phone_and_two_rows_when_narrow
+  PASS  test_only_unlocked_summon_buttons_are_shown_and_touchable
+  PASS  test_summon_buttons_wear_their_ally_accent
+test_targeting_and_defeat.gd
+  PASS  test_hollow_soldier_prefers_player_over_ally
+  PASS  test_oni_brute_prefers_allies
+  PASS  test_nearest_target_of_the_same_kind
+  PASS  test_targets_outside_aggro_range_are_ignored
+  PASS  test_gate_is_attacked_when_no_defender_blocks
+  PASS  test_gate_destroyed_exactly_once_at_zero_health
+  PASS  test_battlefield_pauses_when_app_loses_focus
+  PASS  test_battlefield_leaves_no_connections_behind
+  PASS  test_leaving_during_the_last_wave_is_not_a_victory
+  PASS  test_gate_destruction_ends_battle_in_defeat
+test_game_feel.gd
+  PASS  test_every_required_sound_has_a_file
+WARNING: AudioManager: no sound for 'no_such_sound'.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] play_sfx (res://scripts/systems/audio_manager.gd:203)
+       [1] test_audio_manager_plays_on_sfx_bus (res://tests/unit/test_game_feel.gd:58)
+       [2] _run_all (res://tests/run_tests.gd:103)
+  PASS  test_audio_manager_plays_on_sfx_bus
+  PASS  test_rapid_repeats_are_throttled
+  PASS  test_buttons_click
+  PASS  test_heavy_hits_and_kills_trigger_hit_stop
+  PASS  test_hit_stop_ends_after_about_50ms
+  PASS  test_leaving_the_battle_never_keeps_the_freeze
+  PASS  test_heavy_hit_shake_respects_setting
+  PASS  test_damage_numbers_spawn_and_expire
+  PASS  test_hurtbox_reports_heavy_and_kill_flags
+  PASS  test_vibration_needs_setting_and_phone
+  PASS  test_region_economy_curve
+  PASS  test_rapid_hits_on_one_target_merge_into_one_number
+  PASS  test_overlapping_numbers_stack_upward_with_spacing
+  PASS  test_at_most_six_numbers_are_on_screen
+test_stages.gd
+  PASS  test_region_has_five_loadable_stages
+  PASS  test_difficulty_rises_each_stage
+  PASS  test_stages_unlock_in_order
+  PASS  test_unlocks_survive_save_and_load
+  PASS  test_next_stage_follows_region_order
+  PASS  test_replay_gives_less_gold
+  PASS  test_first_clear_offers_next_stage_and_replay_does_not
+  PASS  test_stage_select_shows_a_card_per_stage_with_locked_ones_unplayable
+test_art_style.gd
+  PASS  test_backdrop_behind_fighters_contrasts_with_ink
+  PASS  test_accents_and_ui_text_are_readable
+  PASS  test_contrast_formula_matches_wcag
+  PASS  test_unit_data_picks_the_right_figure
+  PASS  test_units_build_their_figure_from_data
+  PASS  test_every_figure_plays_every_state
+  PASS  test_strike_snaps_toward_its_pose
+  PASS  test_combo_alternates_cuts
+  PASS  test_death_falls_then_dissolves_within_corpse_time
+  PASS  test_fading_figure_fades_as_one_shape_and_returns
+  PASS  test_respawn_stands_back_up
+  PASS  test_hit_flash_fades
+  PASS  test_facing_mirrors_the_figure
+  PASS  test_parallax_follows_camera_by_depth
+  PASS  test_backdrop_layers_go_back_to_front
+  PASS  test_fog_drift_wraps
+  PASS  test_gate_shows_damage_and_goes_dark
+  PASS  test_strikes_leave_a_slash_trail_that_fades
+  PASS  test_oni_slam_sends_a_shockwave
+  PASS  test_entrances_splash_ink_or_portal_smoke
+  PASS  test_death_dissolves_into_ink_within_corpse_time
+  PASS  test_dash_leaves_afterimages_in_place
+  PASS  test_hits_throw_sparks_up_to_a_cap
+  PASS  test_spirit_slash_glow_keeps_the_hitbox
+  PASS  test_project_uses_the_one_ink_theme
+  PASS  test_menus_use_theme_variations_not_colour_overrides
+  PASS  test_title_samurai_stands_against_the_moon
+  PASS  test_figures_share_cached_parts_and_only_move_them
+  PASS  test_marker_marks_only_the_player
+  PASS  test_zoomed_parallax_keeps_sky_unmagnified_and_ground_in_the_world
+  PASS  test_battle_camera_zooms_and_follows_the_player_inside_the_field
+  PASS  test_edge_indicators_point_at_the_hidden_gate_and_incoming_enemies
+  PASS  test_glows_are_merged_per_part_and_not_lost
+  PASS  test_enemy_health_bar_appears_only_after_damage
+  PASS  test_overlapping_enemy_bars_stack_upward
+  PASS  test_damage_numbers_are_bigger_with_a_solid_ink_outline
+test_samurai.gd
+  PASS  test_katana_never_clips_the_body_in_any_pose
+  PASS  test_katana_never_clips_the_body_during_a_swing
+  PASS  test_arms_never_stretch_in_any_pose
+  PASS  test_hand_swings_on_an_arc_around_the_shoulder
+  PASS  test_cut_overshoots_then_settles
+  PASS  test_cut_accelerates_into_the_strike
+  PASS  test_windup_pulls_back_before_the_cut
+  PASS  test_cloth_chain_keeps_its_link_length_and_trails_the_anchor
+  PASS  test_skirt_swings_back_when_running_and_forward_when_stopping
+  PASS  test_scarf_streams_behind_a_running_samurai_and_hangs_when_still
+  PASS  test_cloth_does_not_explode_on_teleport_or_flip
+  PASS  test_oni_club_stays_clear_of_its_head
+test_samurai_art.gd
+  PASS  test_painted_limb_anchors_match_the_skeleton_joints
+  PASS  test_painted_parts_are_cached_and_atlas_regions_stay_in_the_source
+  PASS  test_body_detail_density_and_filtering_match_the_painted_head
+  PASS  test_painted_characters_keep_their_distinct_equipment
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/art/samurai/slim_parts.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2780)
+   GDScript backtrace (most recent call first):
+       [0] test_original_art_has_transparent_backgrounds_and_solid_character_pixels (res://tests/unit/test_samurai_art.gd:47)
+       [1] _run_all (res://tests/run_tests.gd:103)
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/art/samurai/slim_menu.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2780)
+   GDScript backtrace (most recent call first):
+       [0] test_original_art_has_transparent_backgrounds_and_solid_character_pixels (res://tests/unit/test_samurai_art.gd:47)
+       [1] _run_all (res://tests/run_tests.gd:103)
+  PASS  test_original_art_has_transparent_backgrounds_and_solid_character_pixels
+  PASS  test_every_ally_and_enemy_has_its_own_cached_painted_body
+  PASS  test_roster_limb_joint_registration_preserves_every_bone_length
+  PASS  test_painted_shoulders_have_no_open_sockets
+  PASS  test_the_samurai_holds_the_hilt_and_has_no_flat_coat_tail
+  PASS  test_the_ponytail_never_folds_into_a_blot
+  PASS  test_bows_are_slim_painted_wood
+  PASS  test_every_head_stays_on_its_body_in_every_pose
+  PASS  test_gripping_hands_draw_over_their_weapons
+test_decorative_motion.gd
+  PASS  test_title_painting_pins_face_hands_body_and_soles_with_only_free_cloth_motion
+  PASS  test_every_ally_has_live_anchored_cloth_that_moves_at_idle
+  PASS  test_hair_follows_turns_and_teleports_without_stretching
+  PASS  test_frozen_portrait_bakers_get_hair_and_cloth_on_the_first_frame
+  PASS  test_reduced_motion_persists_and_keeps_combat_pose_changes
+test_ultimate.gd
+  PASS  test_meter_fills_from_damage_dealt_and_taken
+  PASS  test_meter_caps_signals_ready_once_and_consumes
+  PASS  test_locked_meter_gains_nothing
+  PASS  test_meter_takes_its_tuning_from_the_samurai_stats
+  PASS  test_ultimate_key_is_i
+  PASS  test_cannot_use_ultimate_until_charged
+  PASS  test_ultimate_hits_every_enemy_in_range_once_and_empties_the_meter
+  PASS  test_ultimate_is_a_panic_button_and_cannot_be_hurt_or_repeated
+  PASS  test_dead_samurai_cannot_use_the_ultimate
+  PASS  test_strike_range_follows_the_screen_when_there_is_a_camera
+  PASS  test_ultimate_freezes_the_game_briefly_through_battle_feedback
+  PASS  test_sweep_runs_in_real_time_during_the_freeze_then_frees_itself
+  PASS  test_hud_bar_shows_charge_and_pulses_when_ready
+  PASS  test_touch_button_glows_when_ready_and_presses_the_action
+  PASS  test_ultimate_button_is_big_and_clear_of_the_other_action_buttons
+  PASS  test_battle_hits_charge_the_meter_but_the_ultimate_does_not
+test_allies.gd
+  PASS  test_roster_has_six_allies_in_order_with_the_specified_costs
+  PASS  test_allies_unlock_after_stages_one_to_four
+  PASS  test_every_unlock_stage_exists_and_stages_unlock_in_order
+  PASS  test_new_allies_have_their_own_figure_and_accent
+  PASS  test_healer_walks_to_the_most_injured_ally_and_heals_it
+  PASS  test_healer_never_overheals_and_ignores_far_or_dead_allies
+  PASS  test_healer_does_not_attack_enemies
+  PASS  test_guardian_taunts_enemies_in_range_away_from_other_allies
+  PASS  test_guardian_is_a_tank
+  PASS  test_onmyoji_fireball_explodes_on_every_enemy_around_the_target_once
+  PASS  test_onmyoji_keeps_to_range_and_stands_behind_the_front_line
+  PASS  test_hatamoto_is_the_elite_fighter_and_sweeps_wide
+  PASS  test_each_new_ally_has_an_upgrade_that_changes_its_stats
+  PASS  test_upgrade_menu_locks_upgrades_for_allies_not_yet_unlocked
+  PASS  test_battle_offers_only_unlocked_allies_in_roster_order
+  PASS  test_upgrades_reach_the_summoned_allies
+  PASS  test_result_screen_announces_a_newly_unlocked_ally
+  PASS  test_healer_prioritises_injured_allies_then_heals_samurai_at_half_strength_with_number
+  PASS  test_healer_does_not_heal_out_of_range_dead_or_freed_samurai
+  PASS  test_healer_tops_up_small_samurai_wounds_and_upgrades_scale_before_halving
+  PASS  test_healer_completes_an_ally_blessing_already_in_progress
+test_atmosphere.gd
+  PASS  test_every_stage_has_its_own_theme
+  PASS  test_every_theme_keeps_the_fighters_readable
+  PASS  test_sky_gets_lighter_toward_the_horizon
+  PASS  test_wind_strength_changes_over_time_and_stays_in_range
+  PASS  test_windier_stages_blow_harder
+  PASS  test_backdrop_has_clouds_rays_reeds_and_leaves
+  PASS  test_menus_hide_the_front_atmosphere_so_buttons_stay_clear
+  PASS  test_reeds_bend_with_the_wind_through_the_shader
+  PASS  test_backdrop_advances_the_wind_clock_and_pulses_the_rays
+  PASS  test_battle_uses_its_stages_theme
+  PASS  test_leaves_fall_and_drift_downwind_and_are_reborn_when_they_leave
+  PASS  test_foreground_leaves_are_bigger_and_a_stronger_wind_blows_them_faster
+  PASS  test_every_body_part_carries_the_rim_light_copy
+  PASS  test_rim_copy_is_drawn_first_and_shares_the_shapes
+  PASS  test_procedural_and_painted_figures_share_their_respective_rim_materials
+  PASS  test_shaders_compile_with_the_expected_uniforms
+  PASS  test_rim_is_soft_sunlight_in_every_themes_warm_sun_colour
+test_life.gd
+  PASS  test_variation_stays_in_its_ranges
+  PASS  test_variation_scales_the_figure_and_is_repeatable_per_seed
+  PASS  test_a_crowd_is_never_in_step
+  PASS  test_enemies_and_allies_get_their_own_speed_and_spacing
+  PASS  test_head_turns_and_stumbles_happen_and_end
+  PASS  test_no_variation_means_no_events
+  PASS  test_idle_personalities_differ_by_character
+  PASS  test_every_character_has_tattered_cloth
+  PASS  test_tatters_flutter_between_cached_phases
+  PASS  test_cloth_phase_follows_each_figures_own_clock
+  PASS  test_tatters_are_drawn_by_the_figure
+  PASS  test_every_character_has_a_glowing_detail_that_flickers
+  PASS  test_glows_flicker_out_of_step
+  PASS  test_allies_wear_a_lighter_tone_than_the_enemies
+  PASS  test_allies_are_drawn_in_their_own_lanes
+  PASS  test_lanes_change_the_picture_not_the_fight
+  PASS  test_a_health_bar_hides_two_seconds_after_the_last_hit
+  PASS  test_a_health_bar_fades_before_it_goes
+  PASS  test_bars_of_a_crowd_do_not_all_stay_on_screen
+  PASS  test_leaves_do_not_enter_keep_out_rectangles
+  PASS  test_the_battlefield_keeps_leaves_off_the_hud_and_controls
+  PASS  test_hit_flash_is_short_and_keeps_the_figure_dark
+  PASS  test_the_ultimate_sweep_is_a_short_crescent_not_a_line_across_the_screen
+  PASS  test_a_hit_is_reported_once_per_victim_per_attack
+  PASS  test_damage_numbers_are_smaller
+  PASS  test_two_allies_are_never_drawn_on_the_same_spot
+  PASS  test_ally_bars_show_only_after_a_hit_short_and_stacked_by_lane
+  PASS  test_staggering_checks_actual_bar_positions_when_head_heights_differ
+  PASS  test_hollow_soldiers_vary_in_look_size_hat_hunch_and_step
+test_boss.gd
+  PASS  test_the_boss_is_data_driven_like_other_enemies
+  PASS  test_three_phases_each_faster_and_harder
+  PASS  test_five_attack_kinds_each_with_a_readable_windup
+  PASS  test_the_daimyo_figure_has_tattered_armour_one_accent_and_a_cursed_blade
+  PASS  test_each_phase_changes_how_he_looks
+  PASS  test_he_changes_phase_at_66_and_33_percent_with_a_pause
+  PASS  test_a_phase_change_cancels_the_attack_in_progress
+  PASS  test_later_phases_are_faster
+  PASS  test_a_sweep_is_telegraphed_then_hits_in_front_of_him
+  PASS  test_the_sweep_hitbox_is_in_front_of_him_not_behind
+  PASS  test_the_slam_reaches_both_ways
+  PASS  test_the_leap_jumps_to_the_target_and_lands_with_a_blast
+  PASS  test_the_cursed_wave_is_a_projectile_that_hits_once
+  PASS  test_the_summon_calls_hollow_soldiers_after_a_long_windup
+  PASS  test_he_does_not_summon_while_his_minions_are_alive_or_before_phase_3
+  PASS  test_attacks_fit_the_distance_to_the_target
+  PASS  test_he_goes_for_the_player_then_allies_then_the_gate
+  PASS  test_his_minions_fall_with_him_and_he_hides_his_world_bar
+  PASS  test_the_stage_is_won_only_when_the_boss_dies
+  PASS  test_the_boss_wave_of_stage_5_is_the_last_and_has_a_few_minions
+  PASS  test_the_boss_bar_shows_his_name_and_health_at_the_top
+  PASS  test_the_daimyos_blade_stays_above_the_ground_in_every_pose
+test_army.gd
+  PASS  test_the_ally_cap_starts_at_six_and_grows_one_per_stage_to_eleven
+  PASS  test_the_command_upgrade_adds_one_ally_per_level_up_to_four
+  PASS  test_the_battlefield_uses_the_cap_from_the_save
+  PASS  test_the_default_stance_is_charge_and_it_toggles
+  PASS  test_the_stance_reaches_every_ally_on_the_field_and_new_ones
+  PASS  test_charging_allies_go_to_enemies_far_away_and_holding_allies_do_not
+  PASS  test_charging_allies_stop_at_the_front_line
+  PASS  test_charging_allies_wait_where_they_are_when_no_enemy_is_left
+  PASS  test_the_f_key_is_bound_to_the_stance_action
+  PASS  test_the_hud_shows_the_current_stance
+  PASS  test_the_stance_button_fits_on_phone_screens_without_covering_other_controls
+  PASS  test_the_stance_touch_button_presses_the_stance_action_and_shows_the_state
+test_skills.gd
+  PASS  test_there_are_three_skill_upgrades_worth_forty_percent_at_the_top
+  PASS  test_dash_slash_and_ultimate_get_shorter_with_levels
+  PASS  test_each_upgrade_changes_only_its_own_skill
+  PASS  test_the_upgraded_cooldowns_reach_the_player_and_the_ultimate_meter
+  PASS  test_q_and_e_are_bound_to_the_new_skills
+  PASS  test_the_bow_unlocks_after_stage_1_and_the_war_cry_after_stage_2
+  PASS  test_pressing_a_locked_skill_says_so_and_does_nothing
+  PASS  test_the_bow_fires_a_light_quick_arrow_with_a_very_short_cooldown
+  PASS  test_the_arrow_reaches_a_far_enemy
+  PASS  test_the_war_cry_goes_out_once_and_cools_down_for_25_seconds
+  PASS  test_the_war_cry_rallies_only_the_allies_near_him
+  PASS  test_a_rallied_ally_attacks_faster
+  PASS  test_the_new_skills_have_hud_bars_and_touch_buttons_that_press_their_keys
+  PASS  test_all_touch_buttons_fit_the_phone_without_overlapping
+test_audio_assets.gd
+  PASS  test_stop_all_releases_players_and_fades_and_is_reusable
+  PASS  test_there_are_four_music_slots_and_each_has_a_real_track
+  PASS  test_the_stage_select_prefers_the_tokaido_track_when_it_is_there
+  PASS  test_the_music_loops_and_plays_on_the_music_bus
+WARNING: AudioManager: no music for 'no_such_slot'.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] play_music_track (res://scripts/systems/audio_manager.gd:251)
+       [1] test_changing_the_slot_crossfades_and_the_same_slot_does_nothing (res://tests/unit/test_audio_assets.gd:116)
+       [2] _run_all (res://tests/run_tests.gd:103)
+  PASS  test_changing_the_slot_crossfades_and_the_same_slot_does_nothing
+  PASS  test_music_follows_the_scenes
+  PASS  test_the_music_volume_setting_drives_the_music_bus
+  PASS  test_the_weak_generated_sounds_are_replaced_by_kenney_sounds
+  PASS  test_the_sonniss_sounds_replace_the_generated_ones_and_keep_them_as_the_fallback
+  PASS  test_no_large_original_recording_is_left_in_the_project
+  PASS  test_death_groans_are_randomized_and_the_oni_and_boss_are_pitched_down
+  PASS  test_the_boss_music_has_a_quiet_eerie_loop_under_it
+  PASS  test_the_gore_sounds_come_from_the_pixabay_recordings_with_the_generated_ones_as_fallback
+  PASS  test_a_long_recording_is_cut_off_by_its_max_length
+  PASS  test_enemies_are_hit_with_the_gore_sounds_and_everyone_else_with_metal
+  PASS  test_a_missing_recorded_sound_falls_back_to_the_generated_one
+  PASS  test_credits_text_turns_the_markdown_into_bbcode
+  PASS  test_the_credits_show_only_the_creator_and_the_required_music_credit
+  PASS  test_the_credits_screen_shows_everything_in_the_credits_file
+  PASS  test_the_main_menu_has_a_credits_button_that_opens_the_screen
+  PASS  test_every_third_party_file_is_used_and_recorded
+  PASS  test_the_project_rules_record_assets_in_the_licences_file_and_credit_only_when_required
+  PASS  test_the_licences_file_is_never_shown_or_exported
+test_skill_animations.gd
+  PASS  test_the_samurai_carries_a_yumi_on_his_back
+  PASS  test_the_bow_shot_takes_the_yumi_out_and_puts_it_back_in_0_3_seconds
+  PASS  test_the_shot_is_keyed_to_the_players_timing
+  PASS  test_his_arms_never_stretch_during_the_bow_or_the_war_cry
+  PASS  test_the_war_cry_katana_stays_clear_of_his_body
+  PASS  test_the_arrow_leaves_from_the_bow_string
+  PASS  test_the_war_cry_has_its_own_pose_and_the_shout_sound
+  PASS  test_the_ring_reaches_the_full_range_and_allies_flash_gold_as_it_passes
+test_key_hints.gd
+  PASS  test_keys_are_read_from_the_input_map
+  PASS  test_every_touch_button_shows_its_key
+  PASS  test_the_hud_skill_icons_show_their_keys_and_the_hint_line_lists_them
+  PASS  test_a_locked_skill_shows_a_padlock_and_the_stage_that_unlocks_it
+  PASS  test_the_hint_text_fits_inside_its_bar_or_button
+test_ground.gd
+  PASS  test_no_leg_or_weapon_goes_below_the_ground_for_any_kind
+  PASS  test_the_samurais_bow_and_war_cry_keep_his_legs_and_weapon_above_the_ground
+  PASS  test_every_key_pose_keeps_legs_and_weapons_above_the_ground
+test_hud_layout.gd
+  PASS  test_the_action_buttons_sit_in_arcs_around_attack
+  PASS  test_the_arc_layout_still_fits_phones_at_every_scale_and_for_both_hands
+  PASS  test_touch_mode_hides_the_skill_icon_row_but_keyboard_mode_keeps_it
+  PASS  test_the_edge_tabs_never_overlap_the_hud
+test_gore.gd
+WARNING: SettingsStore: invalid settings reset to default: blood
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _with_warning (res://scripts/systems/settings_store.gd:114)
+       [1] load_settings (res://scripts/systems/settings_store.gd:54)
+       [2] test_blood_is_on_by_default_and_saved (res://tests/unit/test_gore.gd:63)
+       [3] _run_all (res://tests/run_tests.gd:103)
+  PASS  test_blood_is_on_by_default_and_saved
+  PASS  test_the_settings_panel_has_a_blood_toggle
+  PASS  test_hits_throw_ink_blood_and_leave_a_stain
+  PASS  test_the_blood_setting_off_means_no_blood_and_no_stains
+  PASS  test_heavy_hits_kills_and_the_spirit_slash_bleed_more
+  PASS  test_stains_fade_away_and_are_capped
+  PASS  test_retained_stain_keeps_its_geometry_and_the_original_fade_and_lifetime
+  PASS  test_drops_fall_to_the_ground_and_vanish
+  PASS  test_the_spirit_slash_marks_its_hits
+  PASS  test_hits_get_a_layered_flesh_sound
+test_legs.gd
+  PASS  test_every_kind_stands_on_two_visible_legs
+  PASS  test_the_hatamoto_keeps_the_guardians_plain_legs_and_the_samurai_is_leaner
+test_leg_ik.gd
+  PASS  test_every_kind_keeps_bone_lengths_and_forward_knees_through_all_poses
+  PASS  test_human_idle_knees_bend_less_than_fifteen_degrees
+  PASS  test_planted_feet_stay_fixed_and_flat_at_different_speeds_and_facings
+  PASS  test_walk_support_run_flight_and_stopped_phase
+  PASS  test_close_and_distant_targets_adjust_hips_without_stretching
+  PASS  test_all_authored_combo_and_heavy_keys_keep_fixed_legs
+  PASS  test_samurai_full_speed_cadence_and_pelvis_are_continuous
+test_fireball.gd
+  PASS  test_the_onmyoji_launches_a_fireball_instead_of_an_instant_burst
+  PASS  test_the_fireball_leaves_from_the_tip_of_his_staff
+  PASS  test_the_fireball_explodes_on_the_enemy_and_hurts_the_group_once
+  PASS  test_a_fireball_with_no_target_flies_on_and_burns_out
+  PASS  test_the_fireball_and_the_explosion_are_drawn_over_the_fighters
+test_upgrade_menu.gd
+  PASS  test_every_upgrade_is_on_a_tab
+  PASS  test_each_tab_shows_only_its_upgrades
+  PASS  test_cards_show_pips_levels_effects_and_costs
+  PASS  test_region_two_cards_show_unlock_requirements_and_new_prices
+  PASS  test_an_unaffordable_cost_is_red_and_tapping_says_why
+  PASS  test_buying_updates_the_card_and_the_gold
+  PASS  test_the_gold_is_shown_big
+  PASS  test_locked_allies_show_a_silhouette_and_the_stage_to_clear
+  PASS  test_pictures_are_portraits_for_the_samurai_and_allies_and_icons_for_skills
+  PASS  test_each_skill_stat_has_its_own_icon
+  PASS  test_page_keys_and_focus_change_tab
+  PASS  test_tabs_and_cost_buttons_are_big_touch_targets
+  PASS  test_bow_and_war_cry_upgrades_persist_and_change_only_their_stats
+  PASS  test_settings_reset_requires_confirmation_and_uses_the_owners_save
+test_perf_paths.gd
+  PASS  test_cached_cloth_matches_original_trajectory_with_turns_and_variable_steps
+  PASS  test_cached_ribbon_mesh_matches_original_for_curls_and_taper
+  PASS  test_a_segment_is_the_same_quad_as_a_two_point_stroke
+  PASS  test_a_disc_is_a_fan_of_triangles_around_its_centre
+  PASS  test_a_triangulated_blot_is_drawn_without_triangulating_it_again
+  PASS  test_blood_is_freed_once_the_spray_is_gone_and_every_drop_has_landed
+  PASS  test_a_figure_standing_still_keeps_its_stance_and_a_move_still_steps
+  PASS  test_a_settled_pose_stops_blending_and_the_next_state_starts_it_again
+test_hud_icons.gd
+  PASS  test_the_top_left_is_two_blocks_the_bars_and_one_row_of_icons
+  PASS  test_the_icons_are_round_skill_icons_in_order_with_their_keys
+  PASS  test_a_cooling_skill_shows_a_dark_sweep_and_its_seconds_and_a_ready_one_glows_without_text
+  PASS  test_a_locked_skill_is_dimmed_with_a_padlock_and_says_how_to_unlock_it_only_as_a_tooltip
+  PASS  test_the_stance_is_an_icon_a_sword_for_charge_and_a_shield_for_hold
+  PASS  test_every_symbol_draws_at_any_size_without_an_error
+  PASS  test_the_icon_row_is_for_the_keyboard_and_touch_mode_keeps_its_rules
+  PASS  test_the_gate_tab_shows_only_while_the_gate_is_attacked_or_was_just_damaged
+  PASS  test_figure_art_is_shared_and_poses_are_frozen_game_figures
+  PASS  test_keyboard_summons_use_clickable_cached_portraits_and_keep_costs
+  PASS  test_tutorial_controls_only_show_on_uncleared_stage_one_and_debug_text_is_gone
+  PASS  test_button_plate_and_badge_text_shaping_is_cached_and_bounded
+  PASS  test_skill_icons_restore_shared_figure_pictures_and_keep_state_layers
+test_main_menu.gd
+  PASS  test_continue_starts_the_first_uncleared_stage
+  PASS  test_with_every_stage_cleared_continue_replays_the_last_stage_played
+  PASS  test_a_new_save_is_fresh_and_a_save_that_has_played_is_not
+  PASS  test_the_last_stage_played_is_saved_with_the_progress
+  PASS  test_the_menu_has_the_six_buttons_in_order
+  PASS  test_continue_says_start_on_a_new_save_and_names_the_stage_it_will_play
+  PASS  test_the_stage_line_sits_inside_continue_clear_of_its_label
+  PASS  test_hover_or_focus_brightens_the_border_and_fades_in_the_glow
+  PASS  test_hover_and_focus_are_silent_and_press_plays_one_soft_click
+  PASS  test_the_buttons_come_in_one_after_another
+test_stage_cards.gd
+  PASS  test_every_stage_has_its_own_atmosphere_a_tagline_and_only_stage_five_has_a_boss
+  PASS  test_a_card_per_stage_with_its_state
+  PASS  test_no_cleared_or_locked_text_is_left_on_the_screen
+  PASS  test_the_selected_card_is_the_next_stage_and_the_side_panel_shows_only_its_details
+  PASS  test_a_locked_stage_shows_what_unlocks_it_and_cannot_be_played
+  PASS  test_confirm_or_a_double_click_starts_a_stage_but_a_tap_only_selects_it
+  PASS  test_cards_balance_across_rows_and_share_the_width
+  PASS  test_the_preview_covers_the_card_and_paints_with_the_stage_theme_only
+  PASS  test_the_boss_stage_is_the_one_that_gets_the_crest
+test_motion_smoother.gd
+  PASS  test_the_drawn_position_lies_between_the_last_two_ticks
+  PASS  test_a_teleport_snaps_instead_of_sliding
+  PASS  test_a_flipped_body_gets_its_offset_in_its_own_space
+  PASS  test_the_camera_follows_where_the_player_is_drawn
+test_battle_hud.gd
+  PASS  test_the_medallion_uses_the_purpose_painted_bust_without_a_rig_viewport
+  PASS  test_a_hit_leaves_a_ghost_of_the_lost_health_that_drains_away
+  PASS  test_low_health_pulses_the_blade_and_the_medallion_rim
+  PASS  test_the_ultimate_ring_fills_and_glows_when_ready
+  PASS  test_spirit_and_gate_show_their_numbers
+  PASS  test_the_blade_runs_from_the_guard_to_its_point
+  PASS  test_touch_mode_keeps_the_vitals
+test_region_2.gd
+  PASS  test_the_campaign_has_two_regions_and_region_2_has_stages_6_to_10
+  PASS  test_difficulty_and_rewards_continue_from_stage_5
+  PASS  test_stage_6_opens_only_after_stage_5
+  PASS  test_the_stage_select_has_a_tab_per_region_and_opens_on_the_next_stages_region
+  PASS  test_a_locked_region_shows_its_cards_padlocked
+  PASS  test_region_2_burns
+  PASS  test_the_stage_details_count_every_foe_and_explain_the_new_ones
+  PASS  test_the_side_panel_shows_the_new_foes
+  PASS  test_the_pre_battle_info_names_the_foes_and_how_to_beat_them
+  PASS  test_embers_rise_and_glow_layer_flickers
+test_region_2_enemies.gd
+  PASS  test_each_new_enemy_uses_its_own_painted_kind_and_keeps_gameplay_props
+  PASS  test_the_spectral_archer_stays_at_range_and_hunts_allies_first
+  PASS  test_the_spectral_archer_backs_off_from_a_close_target_between_shots
+  PASS  test_the_shield_blocks_frontal_hits_but_not_hits_from_behind
+  PASS  test_a_heavy_blow_breaks_the_shield_for_good
+  PASS  test_the_hatamoto_is_the_shield_breaker
+  PASS  test_arrows_stop_on_the_shield
+  PASS  test_only_arrows_and_fire_reach_the_flying_spirit
+  PASS  test_only_archers_and_the_onmyoji_go_after_a_spirit
+  PASS  test_flyers_do_not_hold_up_the_marching_line
+  PASS  test_an_archer_standing_to_shoot_does_not_hold_up_the_fighters
+  PASS  test_painted_bow_and_spirit_replace_the_temporary_weapon_and_wisp
+  PASS  test_the_burning_general_has_fire_attacks_and_three_phases
+  PASS  test_pillars_of_fire_burst_where_the_warnings_burned
+  PASS  test_the_wall_of_flame_is_a_fire_wave
+test_region_2_art.gd
+  PASS  test_region_two_enemies_use_distinct_painted_kinds_without_body_tints
+  PASS  test_flying_spirit_has_a_visible_painted_body_and_no_leg_nodes
+  PASS  test_shield_break_keeps_the_bearers_painted_body_and_hands
+test_region_2_upgrades.gd
+  PASS  test_original_upgrade_prices_and_owned_levels_are_preserved
+  PASS  test_region_two_purchases_require_clearing_region_one
+  PASS  test_full_catalog_fits_stage_ten_budget_but_not_stage_nine
+  PASS  test_gate_armour_and_fire_resistance_mitigate_real_hits_once
+  PASS  test_upgrades_reach_gate_player_and_newly_summoned_allies
+  PASS  test_only_burning_general_fire_attacks_are_tagged_as_fire
+  PASS  test_region_one_purchase_caps_follow_unique_stages_cleared
+  PASS  test_region_two_tiers_and_defences_open_in_steps_through_stage_ten
+  PASS  test_legacy_levels_above_purchase_cap_keep_their_bonus_and_save
+test_heavy_arms_and_bows.gd
+  PASS  test_heavy_arms_keep_solved_joints_and_reachable_two_handed_grips
+  PASS  test_heavy_shoulder_caps_sample_opaque_paint_at_the_joint
+  PASS  test_heavy_arms_remain_reachable_through_complete_motion_transitions
+  PASS  test_archers_grip_the_visual_bow_middle_and_quantized_string_nock
+test_oni_armour.gd
+  PASS  test_light_and_allied_hits_damage_without_stopping_oni_attacks
+  PASS  test_player_heavy_and_spirit_hits_pierce_oni_armour
+  PASS  test_freed_source_does_not_bypass_armour_or_raise_errors
+  PASS  test_oni_keeps_his_telegraph_with_faster_approach_and_recovery
+
+509 tests, 509 passed, 0 failed

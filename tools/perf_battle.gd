@@ -51,6 +51,7 @@ func _run() -> void:
 	if _flags.has("--region2"):
 		SceneRoutes.battle_stage = load("res://data/stages/stage_8.tres") as StageData
 	var field: Node = BATTLEFIELD.instantiate()
+	field.set("enemy_briefing_enabled", false)
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)

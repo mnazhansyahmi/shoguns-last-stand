@@ -8,6 +8,12 @@ extends SceneTree
 const MAIN_MENU: PackedScene = preload("res://scenes/main_menu/main_menu.tscn")
 const STAGE_SELECT: PackedScene = preload("res://scenes/stage_select/stage_select.tscn")
 const BATTLEFIELD: PackedScene = preload("res://scenes/battlefield/battlefield.tscn")
+
+
+func _staged_field() -> Node:
+	var field: Node = BATTLEFIELD.instantiate()
+	field.set("enemy_briefing_enabled", false)
+	return field
 const HOLLOW: EnemyData = preload("res://data/enemies/hollow_soldier.tres")
 const ONI: EnemyData = preload("res://data/enemies/oni_brute.tres")
 const DATA_DIR: String = "user://screenshots"
@@ -234,7 +240,7 @@ func _capture_battle() -> void:
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	var stages: Array[StageData] = StageProgression.all_stages()
 	SceneRoutes.battle_stage = stages[clampi(_stage_number, 1, stages.size()) - 1]
-	var field: Node = BATTLEFIELD.instantiate()
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -319,7 +325,7 @@ func _capture_results() -> void:
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	SceneRoutes.battle_stage = StageProgression.default_region().stages[4]
-	var field: Node = BATTLEFIELD.instantiate()
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -363,7 +369,7 @@ func _capture_hud() -> void:
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	SceneRoutes.battle_stage = StageProgression.default_region().stages[clampi(_stage_number, 1, 5) - 1]
-	var field: Node = BATTLEFIELD.instantiate()
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -476,7 +482,7 @@ func _capture_boss() -> void:
 	progress.stages_cleared = ["stage_1", "stage_2", "stage_3", "stage_4"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	SceneRoutes.battle_stage = StageProgression.default_region().stages[4]
-	var field: Node = BATTLEFIELD.instantiate()
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -543,7 +549,7 @@ func _capture_playtest() -> void:
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	var stages: Array[StageData] = StageProgression.all_stages()
 	SceneRoutes.battle_stage = stages[clampi(_stage_number, 1, stages.size()) - 1]
-	var field: Node = BATTLEFIELD.instantiate()
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -632,7 +638,7 @@ func _capture_crowd() -> void:
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	var stages: Array[StageData] = StageProgression.all_stages()
 	SceneRoutes.battle_stage = stages[clampi(_stage_number, 1, stages.size()) - 1]
-	var field: Node = BATTLEFIELD.instantiate()
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)
@@ -1231,7 +1237,7 @@ func _capture_healing() -> void:
 	progress.stages_cleared = ["stage_1", "stage_2"] as Array[String]
 	SaveManager.new(DATA_DIR + "/save.json").save_progress(progress)
 	SceneRoutes.battle_stage = StageProgression.default_region().stages[2]
-	var field: Node = BATTLEFIELD.instantiate()
+	var field: Node = _staged_field()
 	field.set("save_path", DATA_DIR + "/save.json")
 	field.set("settings_path", DATA_DIR + "/settings.cfg")
 	root.add_child(field)

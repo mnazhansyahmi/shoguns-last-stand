@@ -163,16 +163,20 @@ func test_the_pre_battle_info_names_the_foes_and_how_to_beat_them() -> void:
 	field.set("save_path", SAVE_DIR + "battle_save.json")
 	field.set("settings_path", SAVE_DIR + "battle_settings.cfg")
 	add_to_tree(field)
-	var text: String = (field.get_node("Hud") as GameHud).get_briefing_text()
-	assert_true(text.begins_with("Foes: Hollow Soldier"), "it lists the foes: %s" % text)
-	assert_true(text.contains("Flying Spirit: ") and text.contains("Shield Bearer: ") and text.contains("Spectral Archer: "), "with how to beat each new one")
+	var briefing: EnemyBriefing = field.get("_enemy_briefing") as EnemyBriefing
+	briefing.open(_stage(9), PlayerProgress.new())
+	assert_eq(briefing.card_count, _stage(9).enemy_types().size(), "cards list every foe once")
+	assert_true(EnemyBriefing.TIPS.has(InkFigure.Kind.FLYING_SPIRIT) and EnemyBriefing.TIPS.has(InkFigure.Kind.SHIELD_BEARER) and EnemyBriefing.TIPS.has(InkFigure.Kind.SPECTRAL_ARCHER), "special foes have concise counter tips")
+	assert_eq((field.get_node("Hud") as GameHud).get_briefing_text(), "", "plain text list is removed")
 	field.free()
 	SceneRoutes.battle_stage = _stage(1)
 	var plain: Node = load("res://scenes/battlefield/battlefield.tscn").instantiate()
 	plain.set("save_path", SAVE_DIR + "battle_save.json")
 	plain.set("settings_path", SAVE_DIR + "battle_settings.cfg")
 	add_to_tree(plain)
-	assert_eq((plain.get_node("Hud") as GameHud).get_briefing_text(), "", "a stage of familiar foes needs no briefing")
+	var familiar: EnemyBriefing = plain.get("_enemy_briefing") as EnemyBriefing
+	familiar.open(_stage(1), PlayerProgress.new())
+	assert_eq(familiar.card_count, _stage(1).enemy_types().size(), "even the first stage introduces its enemies")
 	plain.free()
 	SceneRoutes.battle_stage = null
 	tree_root.get_tree().paused = false

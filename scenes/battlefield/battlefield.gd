@@ -10,6 +10,10 @@ const UPGRADE_CATALOG: UpgradeCatalog = preload("res://data/upgrades/upgrade_cat
 ## Every ally; the ones whose stage has been cleared fill the summon slots in this order.
 const ALLY_ROSTER: AllyRoster = preload("res://data/allies/roster.tres")
 const DEBUG_HOLLOW_SOLDIER: EnemyData = preload("res://data/enemies/hollow_soldier.tres")
+@export var enemy_briefing_enabled: bool = true
+var _enemy_briefing: EnemyBriefing
+var _briefing_from_pause: bool = false
+var _briefing_input_guard: int = 0
 const DEBUG_ONI_BRUTE: EnemyData = preload("res://data/enemies/oni_brute.tres")
 const PLAYER_RESPAWN_DELAY: float = 5.0
 const SUMMON_ACTIONS: Array[StringName] = [&"summon_1", &"summon_2", &"summon_3", &"summon_4", &"summon_5", &"summon_6"]
@@ -109,6 +113,10 @@ func _ready() -> void:
 	_pause_menu.main_menu_requested.connect(_leave_battle.bind(SceneRoutes.MAIN_MENU))
 	_pause_menu.settings_changed.connect(_on_settings_changed)
 	_pause_menu.settings_closed.connect(_on_settings_closed)
+	_pause_menu.briefing_requested.connect(_open_enemy_briefing.bind(true))
+	_enemy_briefing = EnemyBriefing.new()
+	add_child(_enemy_briefing)
+	_enemy_briefing.dismissed.connect(_close_enemy_briefing)
 	_result_screen.retry_requested.connect(_on_retry_requested)
 	_result_screen.next_stage_requested.connect(_on_next_stage_requested)
 	_result_screen.upgrades_requested.connect(SceneRoutes.go_to.bind(get_tree(), SceneRoutes.UPGRADE_MENU))
@@ -123,9 +131,9 @@ func _ready() -> void:
 	_hud.set_remaining(0)
 	_hud.set_tutorial_hint(_wave_director.stage.stage_id if _wave_director.stage != null else "", _was_cleared_before)
 	_hud.hide_status()
-	# The pre-battle info: the foes coming and how to beat the ones that need a plan, until wave 1 starts.
-	if _wave_director.stage != null:
-		_hud.show_briefing(StageBriefing.battle_text(_wave_director.stage), maxf(_wave_director.stage.first_wave_delay, 3.0))
+	# Interactive play waits for the briefing; noninteractive simulations opt out.
+	if enemy_briefing_enabled and DisplayServer.get_name() != "headless" and _wave_director.stage != null:
+		_open_enemy_briefing(false)
 	_apply_settings()
 	for warning: String in [_save_manager.last_warning, _settings_store.last_warning]:
 		if not warning.is_empty():
@@ -140,6 +148,9 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if _briefing_input_guard > 0:
+		_briefing_input_guard -= 1
+		return
 	if Input.is_action_just_pressed("pause"):
 		_on_pause_pressed()
 	if not get_tree().paused and not _is_game_over:
@@ -200,6 +211,9 @@ func _unhandled_input(event: InputEvent) -> void:
 # --- Pause and settings -----------------------------------------------------
 
 func _on_pause_pressed() -> void:
+	if _enemy_briefing != null and _enemy_briefing.visible:
+		_enemy_briefing.dismiss()
+		return
 	if _is_game_over:
 		SceneRoutes.go_to(get_tree(), SceneRoutes.MAIN_MENU)
 	elif _pause_menu.is_settings_open():
@@ -220,6 +234,28 @@ func _pause() -> void:
 func _resume() -> void:
 	_pause_menu.close()
 	get_tree().paused = false
+
+
+func _open_enemy_briefing(from_pause: bool = false) -> void:
+	if _wave_director.stage == null: return
+	_briefing_from_pause = from_pause
+	get_tree().paused = true
+	_touch.release_all()
+	_hud.release_summons()
+	_pause_menu.close()
+	_enemy_briefing.open(_wave_director.stage, _progress, not from_pause)
+	if not from_pause and _save_manager.save_progress(_progress) != OK:
+		_hud.show_message("Could not save enemy discoveries.", 3.0)
+
+
+func _close_enemy_briefing() -> void:
+	_briefing_input_guard = 2
+	if _briefing_from_pause:
+		_pause_menu.open(_settings)
+	else:
+		# Consume the dismissal frame before combat polling can see the key.
+		await get_tree().process_frame
+		if is_inside_tree(): get_tree().paused = false
 
 
 func _on_settings_changed(settings: GameSettings) -> void:

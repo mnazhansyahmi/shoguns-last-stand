@@ -226,16 +226,27 @@ func is_controls_open() -> bool:
 
 func _build_tabs() -> void:
 	var content: VBoxContainer = $Center/Panel/Margin/VBox
+	content.add_theme_constant_override("separation", 0)
 	var tabs: HBoxContainer = HBoxContainer.new()
 	tabs.name = "Tabs"
-	tabs.add_theme_constant_override("separation", 16)
+	tabs.add_theme_constant_override("separation", 0)
 	content.add_child(tabs)
 	content.move_child(tabs, 1)
 	var pages: VBoxContainer = VBoxContainer.new()
 	pages.name = "Pages"
 	pages.custom_minimum_size.y = 400.0
-	content.add_child(pages)
-	content.move_child(pages, 2)
+	var shell: PanelContainer = PanelContainer.new()
+	shell.name = "TabContent"
+	var panel_style: StyleBoxFlat = StyleBoxFlat.new()
+	panel_style.bg_color = Color("242128")
+	panel_style.border_color = Color("746141")
+	panel_style.set_border_width_all(1)
+	panel_style.border_width_top = 0
+	panel_style.set_content_margin_all(24)
+	shell.add_theme_stylebox_override("panel", panel_style)
+	content.add_child(shell)
+	content.move_child(shell, 2)
+	shell.add_child(pages)
 	var group: ButtonGroup = ButtonGroup.new()
 	for index: int in TAB_NAMES.size():
 		var button: Button = Button.new()
@@ -244,6 +255,20 @@ func _build_tabs() -> void:
 		button.toggle_mode = true
 		button.button_group = group
 		button.theme_type_variation = &"ToggleButton"
+		var resting: StyleBoxFlat = StyleBoxFlat.new()
+		resting.bg_color = Color("151319")
+		resting.border_color = Color("746141")
+		resting.set_border_width_all(1)
+		var selected: StyleBoxFlat = resting.duplicate() as StyleBoxFlat
+		selected.bg_color = panel_style.bg_color
+		selected.border_width_bottom = 0
+		button.add_theme_stylebox_override("normal", resting)
+		button.add_theme_stylebox_override("hover", resting)
+		button.add_theme_stylebox_override("pressed", selected)
+		button.add_theme_stylebox_override("hover_pressed", selected)
+		button.draw.connect(func() -> void:
+			if button.button_pressed:
+				button.draw_line(Vector2(30, button.size.y - 9), Vector2(button.size.x - 30, button.size.y - 9), Color("deb85b"), 4))
 		button.custom_minimum_size = Vector2(300, 124)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.add_theme_font_size_override("font_size", 34)
@@ -255,6 +280,12 @@ func _build_tabs() -> void:
 		page.name = TAB_NAMES[index] + "Page"
 		page.add_theme_constant_override("separation", 16)
 		pages.add_child(page)
+		var section: Label = Label.new()
+		section.name = "SectionTitle"
+		section.text = TAB_NAMES[index] + " settings"
+		section.add_theme_font_size_override("font_size", 34)
+		section.modulate = Color("deb85b")
+		page.add_child(section)
 		_pages.append(page)
 	var audio_grid: GridContainer = content.get_node("Sliders")
 	audio_grid.reparent(_pages[Tab.AUDIO])
@@ -288,6 +319,7 @@ func select_tab(index: int) -> void:
 	for page: int in _pages.size():
 		_pages[page].visible = page == int(_tab)
 		_tab_buttons[page].set_pressed_no_signal(page == int(_tab))
+		_tab_buttons[page].queue_redraw()
 
 
 func get_selected_tab() -> Tab:

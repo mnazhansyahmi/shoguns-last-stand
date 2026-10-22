@@ -22,6 +22,7 @@ func _run() -> void:
 	SceneRoutes.battle_stage = load("res://data/stages/stage_10.tres") as StageData
 	var field: Node = load("res://scenes/battlefield/battlefield.tscn").instantiate()
 	field.set("save_path", "user://world_review/save.json")
+	field.set("enemy_briefing_enabled", false)
 	field.set("settings_path", "user://world_review/settings.cfg")
 	root.add_child(field)
 	(field.get_node("Hud").get_node("%BriefingLabel") as Label).hide()
@@ -30,6 +31,16 @@ func _run() -> void:
 	var player: Node2D = field.get_node("World/Player") as Node2D
 	player.position.x = 900
 	await _frames(30)
+	if _mode == "briefing":
+		field.call("_open_enemy_briefing", false)
+		await _frames(3)
+		await _save("enemy_briefing")
+		field.free()
+		paused = false
+		SceneRoutes.battle_stage = null
+		await AudioManager.shutdown_audio(self)
+		quit()
+		return
 	var spawner: EnemySpawner = field.get_node("World/EnemySpawner") as EnemySpawner
 	var boss: Enemy = spawner.spawn(load("res://data/enemies/burning_general.tres") as EnemyData)
 	boss.position.x = 1240
