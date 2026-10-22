@@ -36,10 +36,10 @@ func _ready() -> void:
 	_clock = randf() * 10.0
 	if _figure == null:
 		return
-	if kind == Kind.BOW or kind == Kind.SHIELD:
+	if kind == Kind.BOW or (kind == Kind.SHIELD and _figure.kind != InkFigure.Kind.SHIELD_BEARER):
 		hide_weapon(_figure)
 	elif kind == Kind.WISP:
-		_figure.visible = false
+		_figure.visible = _figure.kind == InkFigure.Kind.FLYING_SPIRIT
 
 
 ## Hides the figure's own held weapon (its "weapon" part), so the prop's weapon stands in for it.
@@ -123,6 +123,9 @@ func _draw_bow() -> void:
 
 ## A tall wooden tate shield in front of the body, iron-rimmed with a pale crest; once broken its halves fall and fade.
 func _draw_shield() -> void:
+	if _figure != null and _figure.kind == InkFigure.Kind.SHIELD_BEARER:
+		_draw_painted_shield()
+		return
 	var center: Vector2 = _hand() + Vector2(_height * 0.02, _height * 0.08)
 	var half: Vector2 = Vector2(_height * 0.15, _height * 0.27)
 	var alpha: float = 1.0
@@ -151,6 +154,22 @@ func _draw_shield() -> void:
 				draw_line(xf * Vector2(x, -half.y + 4.0), xf * Vector2(x, half.y - 4.0), Color(InkPalette.INK, 0.6 * alpha), 1.5)
 
 
+func _draw_painted_shield() -> void:
+	var age: float = maxf(_broken_time, 0.0) / SHIELD_FALL_TIME
+	if age >= 1.0: return
+	var source: Rect2 = RosterSpriteArt.region(_figure.kind, 3)
+	var anchor: Vector2 = to_local(_figure.to_global(_figure.torso_xf * _figure.back_hand))
+	var size: Vector2 = Vector2(_height * 0.31, _height * 0.61)
+	for side: int in 2:
+		var direction: float = -1.0 if side == 0 else 1.0
+		var offset: Vector2 = Vector2(direction * age * 20.0, age * age * 150.0)
+		draw_set_transform(anchor + offset, direction * age * 0.8)
+		var part_source: Rect2 = Rect2(source.position + Vector2(source.size.x * 0.5 * side, 0.0), source.size * Vector2(0.5, 1.0))
+		var target: Rect2 = Rect2(Vector2((float(side) - 1.0) * size.x * 0.5, -size.y * 0.5), size * Vector2(0.5, 1.0))
+		draw_texture_rect_region(RosterSpriteArt.atlas(_figure.kind), target, part_source, Color(1, 1, 1, 1.0 - age))
+	draw_set_transform(Vector2.ZERO)
+
+
 ## The shield's outline (whole, or the half on `side` when it has split down a jagged crack).
 static func _shield_outline(half: Vector2, side: float) -> PackedVector2Array:
 	if side == 0.0:
@@ -166,6 +185,9 @@ static func _shield_outline(half: Vector2, side: float) -> PackedVector2Array:
 ## A glowing ink wisp: a dark flame of ink with a spirit-blue glow and two pale eyes, floating and bobbing, its tail
 ## streaming behind; it swells as it winds up and dives when it strikes.
 func _draw_wisp() -> void:
+	if _figure != null and _figure.kind == InkFigure.Kind.FLYING_SPIRIT:
+		# The painted, legless onryo replaces the temporary circle-and-ribbon body.
+		return
 	var alpha: float = 1.0
 	if _dying_time >= 0.0:
 		alpha = maxf(1.0 - _dying_time / WISP_FADE_TIME, 0.0)

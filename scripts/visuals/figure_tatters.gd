@@ -35,6 +35,8 @@ class Def:
 
 ## The tatters of a kind, or null for a kind without any.
 static func def(kind: InkFigure.Kind) -> Def:
+	if FigureKinds.animation_kind(kind) != kind:
+		return def(FigureKinds.animation_kind(kind))
 	var d: Def = Def.new()
 	d.seed_value = int(kind) * 31 + 7
 	match kind:

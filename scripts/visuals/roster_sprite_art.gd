@@ -10,6 +10,8 @@ const NAMES: Dictionary = {
 	InkFigure.Kind.ONMYOJI: "onmyoji", InkFigure.Kind.HATAMOTO: "hatamoto",
 	InkFigure.Kind.HOLLOW_SOLDIER: "hollow_soldier", InkFigure.Kind.ONI_BRUTE: "oni_brute",
 	InkFigure.Kind.FALLEN_DAIMYO: "fallen_daimyo",
+	InkFigure.Kind.SPECTRAL_ARCHER: "spectral_archer", InkFigure.Kind.SHIELD_BEARER: "shield_bearer",
+	InkFigure.Kind.FLYING_SPIRIT: "flying_spirit", InkFigure.Kind.BURNING_GENERAL: "burning_general",
 }
 const CELLS: Dictionary = {
 	&"head": 0, &"torso": 1, &"skirt": 2, &"hem": 2,
@@ -32,6 +34,10 @@ const HEAD_RECTS: Dictionary = {
 	InkFigure.Kind.ONI_BRUTE: Rect2(-21, -21, 39, 29),
 	# The helmet sits down on his collar (its painted cords hang over the cuirass).
 	InkFigure.Kind.FALLEN_DAIMYO: Rect2(-17, -26, 35, 35),
+	InkFigure.Kind.SPECTRAL_ARCHER: Rect2(-11, -19, 24, 25),
+	InkFigure.Kind.SHIELD_BEARER: Rect2(-14, -25, 29, 30),
+	InkFigure.Kind.FLYING_SPIRIT: Rect2(-12, -18, 26, 30),
+	InkFigure.Kind.BURNING_GENERAL: Rect2(-17, -26, 35, 35),
 }
 const WIDTHS: Dictionary = {
 	InkFigure.Kind.ASHIGARU: 21.0, InkFigure.Kind.YUMI_ARCHER: 21.0,
@@ -39,6 +45,8 @@ const WIDTHS: Dictionary = {
 	InkFigure.Kind.ONMYOJI: 23.0, InkFigure.Kind.HATAMOTO: 27.0,
 	InkFigure.Kind.HOLLOW_SOLDIER: 21.0, InkFigure.Kind.ONI_BRUTE: 41.0,
 	InkFigure.Kind.FALLEN_DAIMYO: 36.0,
+	InkFigure.Kind.SPECTRAL_ARCHER: 23.0, InkFigure.Kind.SHIELD_BEARER: 34.0,
+	InkFigure.Kind.FLYING_SPIRIT: 25.0, InkFigure.Kind.BURNING_GENERAL: 38.0,
 }
 ## The painted torsos are three-quarter views with an open armhole on their left (back) side, and every upper arm is a
 ## sleeve tube with an open shoulder end: assembled as is they read as paper-doll sockets. Each armhole (centre and
@@ -53,6 +61,10 @@ const ARMHOLES: Dictionary = {
 	InkFigure.Kind.ONMYOJI: [Vector2(19, 100), Vector2(32, 64)],
 	InkFigure.Kind.HATAMOTO: [Vector2(29, 100), Vector2(42, 72)],
 	InkFigure.Kind.FALLEN_DAIMYO: [Vector2(52, 90), Vector2(54, 78)],
+	InkFigure.Kind.SPECTRAL_ARCHER: [Vector2(20, 90), Vector2(32, 55)],
+	InkFigure.Kind.SHIELD_BEARER: [Vector2(25, 90), Vector2(38, 60)],
+	InkFigure.Kind.FLYING_SPIRIT: [Vector2(20, 90), Vector2(32, 55)],
+	InkFigure.Kind.BURNING_GENERAL: [Vector2(35, 90), Vector2(42, 65)],
 }
 ## Kinds whose painted head ends in a cut neck: their head is drawn behind the torso, and a neck of the torso's own
 ## skin (centre, radii, sampled around; torso-cell pixels) rises from the shoulders into the head's jaw, so the head
@@ -86,7 +98,18 @@ static var _bounds: Dictionary = {}
 
 
 static func has_part(kind: InkFigure.Kind, part_name: StringName) -> bool:
+	if kind in [InkFigure.Kind.SHIELD_BEARER, InkFigure.Kind.BURNING_GENERAL] and part_name == &"weapon":
+		return true
+	if kind == InkFigure.Kind.SPECTRAL_ARCHER and part_name == &"quiver":
+		return true
 	return NAMES.has(kind) and CELLS.has(part_name)
+
+
+static func cell_for(kind: InkFigure.Kind, part_name: StringName) -> int:
+	if part_name == &"weapon": return 15
+	if part_name == &"quiver": return 3
+	if part_name == &"hem" and kind in [InkFigure.Kind.HATAMOTO, InkFigure.Kind.BURNING_GENERAL]: return 3
+	return CELLS[part_name]
 
 
 static func atlas(kind: InkFigure.Kind) -> Texture2D:
@@ -108,7 +131,7 @@ static func texture(kind: InkFigure.Kind, part_name: StringName) -> AtlasTexture
 	if not _textures.has(key):
 		var part: AtlasTexture = AtlasTexture.new()
 		part.atlas = atlas(kind)
-		part.region = region(kind, 3 if kind == InkFigure.Kind.HATAMOTO and part_name == &"hem" else CELLS[part_name])
+		part.region = region(kind, cell_for(kind, part_name))
 		part.filter_clip = true
 		_textures[key] = part
 	return _textures[key]
@@ -117,7 +140,7 @@ static func texture(kind: InkFigure.Kind, part_name: StringName) -> AtlasTexture
 static func frame(kind: InkFigure.Kind, part_name: StringName) -> Transform2D:
 	var key: String = "%d:%s" % [kind, part_name]
 	if _frames.has(key): return _frames[key]
-	var source: Rect2 = region(kind, 3 if kind == InkFigure.Kind.HATAMOTO and part_name == &"hem" else CELLS[part_name])
+	var source: Rect2 = region(kind, cell_for(kind, part_name))
 	var spec: FigureKinds.Spec = FigureKinds.spec(kind)
 	var rect: Rect2
 	var bone: float = 0.0
@@ -144,6 +167,9 @@ static func frame(kind: InkFigure.Kind, part_name: StringName) -> Transform2D:
 			_frames[key] = Transform2D(0.0, Vector2(bone / a.distance_to(b), width / source.size.y), 0.0, Vector2.ZERO) * Transform2D((b - a).angle(), a).affine_inverse()
 		return _frames[key]
 	match part_name:
+		&"weapon":
+			rect = Rect2(-15.0, -4.0, 111.0 if kind == InkFigure.Kind.BURNING_GENERAL else 88.0, 8.0)
+		&"quiver": rect = Rect2(-21.0, -35.0, 15.0, 36.0)
 		&"head": rect = HEAD_RECTS[kind]
 		&"torso":
 			var body_width: float = WIDTHS[kind]
@@ -153,6 +179,7 @@ static func frame(kind: InkFigure.Kind, part_name: StringName) -> Transform2D:
 		&"pauldron_front", &"pauldron_back": rect = Rect2(-8.0, -3.0, 16.0, 14.0)
 		_:
 			var skirt_height: float = 22.0
+			if kind == InkFigure.Kind.FLYING_SPIRIT: skirt_height = 53.0
 			if kind in [InkFigure.Kind.SHRINE_HEALER, InkFigure.Kind.ONMYOJI]: skirt_height = 35.0
 			var skirt_width: float = float(WIDTHS[kind]) * 1.15
 			rect = Rect2(-skirt_width * 0.5, -4.0, skirt_width, skirt_height)
@@ -162,6 +189,8 @@ static func frame(kind: InkFigure.Kind, part_name: StringName) -> Transform2D:
 				rect = Rect2(-20.0, -27.0, 16.0, 44.0)
 			elif part_name == &"hem" and kind == InkFigure.Kind.FALLEN_DAIMYO:
 				rect = Rect2(-24.0, -33.0, 23.0, 76.0)
+			elif part_name == &"hem" and kind == InkFigure.Kind.BURNING_GENERAL:
+				rect = Rect2(-24.0, -33.0, 23.0, 76.0)
 	_frames[key] = Transform2D(0.0, rect.size / source.size, 0.0, rect.position)
 	return _frames[key]
 
@@ -169,7 +198,7 @@ static func frame(kind: InkFigure.Kind, part_name: StringName) -> Transform2D:
 static func bounds(kind: InkFigure.Kind, part_name: StringName) -> PackedVector2Array:
 	var key: String = "%d:%s" % [kind, part_name]
 	if not _bounds.has(key):
-		var source: Rect2 = region(kind, 3 if kind == InkFigure.Kind.HATAMOTO and part_name == &"hem" else CELLS[part_name])
+		var source: Rect2 = region(kind, cell_for(kind, part_name))
 		_bounds[key] = SamuraiSpriteArt.alpha_bounds(_images[kind], source, frame(kind, part_name))
 	return _bounds[key]
 

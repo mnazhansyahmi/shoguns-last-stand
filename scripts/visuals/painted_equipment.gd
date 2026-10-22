@@ -23,6 +23,8 @@ static func atlas() -> Texture2D:
 
 
 static func cell(kind: InkFigure.Kind, name: StringName) -> int:
+	if FigureKinds.animation_kind(kind) != kind:
+		return -1 # New enemies own their painted weapons/props, not the Region 1 equipment atlas.
 	if name == &"weapon": return WEAPONS.get(kind, -1)
 	if name == &"shield": return 8
 	if name == &"quiver": return 10

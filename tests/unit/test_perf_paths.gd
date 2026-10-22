@@ -49,6 +49,11 @@ func test_a_triangulated_blot_is_drawn_without_triangulating_it_again() -> void:
 func test_blood_is_freed_once_the_spray_is_gone_and_every_drop_has_landed() -> void:
 	var blood: InkBlood = InkBlood.new()
 	blood.setup(1.0, 60.0, false, false, false)
+	# Exercise early cleanup with a known short flight. Random production launches
+	# can legitimately remain airborne until the lifetime cap, making this flaky.
+	var velocities: PackedVector2Array = blood.get("_velocities")
+	velocities.fill(Vector2(200.0, -100.0))
+	blood.set("_velocities", velocities)
 	add_to_tree(blood)
 	assert_eq(blood.live_drops(), InkBlood.amount(false, false, false), "all the drops start in the air")
 	var ticks: int = 0

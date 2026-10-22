@@ -8,7 +8,8 @@ extends Node2D
 ## Soldier's hem are repainted. Feet are at the origin and the figure faces +x; the parent
 ## mirrors it for facing left. Glowing spots are additive child parts that fade by alpha.
 
-enum Kind { SAMURAI, ASHIGARU, YUMI_ARCHER, HOLLOW_SOLDIER, ONI_BRUTE, SHRINE_HEALER, SPEAR_GUARDIAN, ONMYOJI, HATAMOTO, FALLEN_DAIMYO }
+enum Kind { SAMURAI, ASHIGARU, YUMI_ARCHER, HOLLOW_SOLDIER, ONI_BRUTE, SHRINE_HEALER, SPEAR_GUARDIAN, ONMYOJI, HATAMOTO, FALLEN_DAIMYO,
+	SPECTRAL_ARCHER, SHIELD_BEARER, FLYING_SPIRIT, BURNING_GENERAL }
 
 ## Figure units per figure height (all proportions are authored at height 100).
 const UNIT: float = 100.0
@@ -255,7 +256,7 @@ func refresh() -> void:
 	weapon_local = torso_xf.affine_inverse() * weapon_xf
 
 	front_hand = pose.grip
-	var bow_hands: bool = kind == Kind.YUMI_ARCHER or (spec.has_back_bow and pose.sheathed > 0.5)
+	var bow_hands: bool = FigureKinds.animation_kind(kind) == Kind.YUMI_ARCHER or (spec.has_back_bow and pose.sheathed > 0.5)
 	if not is_nan(spec.back_hand_on_weapon.x) and not bow_hands:
 		back_hand = weapon_local * spec.back_hand_on_weapon
 	elif bow_hands:
@@ -501,6 +502,8 @@ static func _segment_xf(space: Transform2D, a: Vector2, b: Vector2, length: floa
 
 ## The figure node itself draws only the ground shadow, once (it doesn't follow the pose).
 func _draw() -> void:
+	if kind == Kind.FLYING_SPIRIT:
+		return # A ground shadow must not travel up with its airborne figure pivot.
 	var shadow: InkBatch = FigurePainter.part(kind, &"shadow")
 	if shadow != null:
 		var s: float = get_unit_scale()

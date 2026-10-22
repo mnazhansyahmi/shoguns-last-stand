@@ -47,6 +47,7 @@ const TEST_SCRIPTS: Array[String] = [
 	"res://tests/unit/test_battle_hud.gd",
 	"res://tests/unit/test_region_2.gd",
 	"res://tests/unit/test_region_2_enemies.gd",
+	"res://tests/unit/test_region_2_art.gd",
 ]
 
 

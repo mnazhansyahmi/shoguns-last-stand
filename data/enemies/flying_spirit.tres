@@ -34,6 +34,6 @@ attack = SubResource("Resource_attack")
 flying = true
 hover_height = 70.0
 body_size = Vector2(40, 80)
-figure = 3
+figure = 12
 prop = 3
 counter_hint = "Floats out of reach. Only the Bow, Yumi Archers and the Onmyoji hit it"

@@ -146,6 +146,15 @@ const _FRONT_ARM: Array[StringName] = [&"upper_f", &"fore_f"]
 
 ## Draw order of a kind's parts, back to front.
 static func layout(kind: InkFigure.Kind) -> Array[StringName]:
+	if FigureKinds.animation_kind(kind) != kind:
+		var inherited: Array[StringName] = layout(FigureKinds.animation_kind(kind))
+		if kind == InkFigure.Kind.FLYING_SPIRIT:
+			for name: StringName in _BACK_LIMBS + _FRONT_LEG + [&"weapon", &"grip_b"]:
+				inherited.erase(name)
+		elif kind == InkFigure.Kind.SHIELD_BEARER:
+			inherited.erase(&"shield") # The breakable tate follows the actual back hand.
+			inherited.erase(&"grip_b")
+		return inherited
 	# The ground shadow is drawn by the InkFigure node itself (one canvas item fewer per figure).
 	var order: Array[StringName] = []
 	match kind:
@@ -218,6 +227,8 @@ static func layout(kind: InkFigure.Kind) -> Array[StringName]:
 
 ## True for the six allies, who wear the lighter blue-slate ink (InkPalette.ALLY_INK).
 static func is_ally_tone(kind: InkFigure.Kind) -> bool:
+	if FigureKinds.animation_kind(kind) != kind:
+		return false
 	return kind != InkFigure.Kind.SAMURAI and kind != InkFigure.Kind.HOLLOW_SOLDIER and kind != InkFigure.Kind.ONI_BRUTE \
 			and kind != InkFigure.Kind.FALLEN_DAIMYO
 
@@ -462,7 +473,7 @@ static func _build(kind: InkFigure.Kind) -> Dictionary:
 	var shadow: InkBatch = InkBatch.new()
 	shadow.ellipse(Vector2.ZERO, Vector2(spec.shadow_width, 3.2), Color(InkPalette.INK, InkFigure.SHADOW_ALPHA))
 	parts[&"shadow"] = shadow
-	match kind:
+	match FigureKinds.animation_kind(kind):
 		InkFigure.Kind.SAMURAI:
 			_build_samurai(parts)
 		InkFigure.Kind.ASHIGARU:
@@ -476,7 +487,7 @@ static func _build(kind: InkFigure.Kind) -> Dictionary:
 		InkFigure.Kind.FALLEN_DAIMYO:
 			DaimyoFigurePainter.build(parts)
 		_:
-			AllyFigurePainter.build(kind, parts)
+			AllyFigurePainter.build(FigureKinds.animation_kind(kind), parts)
 	if RosterSpriteArt.NAMES.has(kind):
 		RosterSpriteArt.build_body(kind, parts)
 	if parts.has(&"fore_b") and layout(kind).has(&"grip_b"):

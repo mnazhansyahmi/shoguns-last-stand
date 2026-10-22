@@ -455,6 +455,8 @@ func _apply_look() -> void:
 		_prop.setup(data.prop, _visual, data.body_size.y, data.hover_height)
 		_visual.add_child(_prop)
 	if data.flying:
+		if data.figure == InkFigure.Kind.FLYING_SPIRIT:
+			_visual.get_figure().position.y = -data.hover_height
 		_hurtbox_shape.position.y -= data.hover_height
 		_health_bar.set_base_position(Vector2(0.0, -data.hover_height - data.body_size.y - 12.0))
 

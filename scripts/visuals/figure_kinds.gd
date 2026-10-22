@@ -77,7 +77,26 @@ class Spec:
 	var has_back_bow: bool = false
 
 
+## Region 2 shares proven bone/pose contracts, never another kind's painted body.
+static func animation_kind(kind: InkFigure.Kind) -> InkFigure.Kind:
+	match kind:
+		InkFigure.Kind.SPECTRAL_ARCHER: return InkFigure.Kind.YUMI_ARCHER
+		InkFigure.Kind.SHIELD_BEARER: return InkFigure.Kind.SPEAR_GUARDIAN
+		InkFigure.Kind.FLYING_SPIRIT: return InkFigure.Kind.ONMYOJI
+		InkFigure.Kind.BURNING_GENERAL: return InkFigure.Kind.FALLEN_DAIMYO
+	return kind
+
+
 static func spec(kind: InkFigure.Kind) -> Spec:
+	if animation_kind(kind) != kind:
+		var enemy: Spec = spec(animation_kind(kind))
+		enemy.is_enemy = true
+		enemy.accent = Color(0.45, 0.85, 0.92) if kind in [InkFigure.Kind.SPECTRAL_ARCHER, InkFigure.Kind.FLYING_SPIRIT] else Color(0.9, 0.35, 0.12)
+		enemy.death_accent = enemy.accent
+		if kind == InkFigure.Kind.SHIELD_BEARER:
+			enemy.heavy_gait = true
+			enemy.back_hand_on_weapon = Vector2(NAN, 0.0)
+		return enemy
 	var s: Spec = Spec.new()
 	match kind:
 		InkFigure.Kind.SAMURAI:
@@ -406,6 +425,8 @@ static func spec(kind: InkFigure.Kind) -> Spec:
 ## The key pose for an animation state. `step` is the combo step (0..2) for windup/strike;
 ## `heavy` selects the heavy attack poses.
 static func pose(kind: InkFigure.Kind, state: StringName, step: int = 0, heavy: bool = false) -> FigurePose:
+	if animation_kind(kind) != kind:
+		return pose(animation_kind(kind), state, step, heavy)
 	match kind:
 		InkFigure.Kind.SAMURAI:
 			return _samurai(state, step, heavy)
@@ -561,6 +582,8 @@ static func samurai_title_pose() -> FigurePose:
 
 ## How a state moves for springy kinds (see PoseSpring).
 static func feel(kind: InkFigure.Kind, state: StringName, heavy: bool = false) -> PoseSpring.Feel:
+	if animation_kind(kind) != kind:
+		return feel(animation_kind(kind), state, heavy)
 	if kind == InkFigure.Kind.FALLEN_DAIMYO:
 		return _daimyo_feel(state)
 	if kind == InkFigure.Kind.HATAMOTO:

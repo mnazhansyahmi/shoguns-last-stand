@@ -57,17 +57,12 @@ func _tick(enemy: Enemy, seconds: float) -> void:
 
 # --- Data -------------------------------------------------------------------------
 
-func test_each_new_enemy_reuses_a_painted_body_with_a_tint_and_a_prop() -> void:
-	for data: EnemyData in [ARCHER, SHIELD, SPIRIT]:
-		assert_eq(data.figure, InkFigure.Kind.HOLLOW_SOLDIER, "%s reuses the Hollow Soldier's body" % data.display_name)
-		assert_true(data.prop != EnemyProp.Kind.NONE, "%s carries its own weapon or effect" % data.display_name)
-		assert_true(not data.counter_hint.is_empty(), "%s says how to beat it" % data.display_name)
-	assert_true(ARCHER.tint.b > ARCHER.tint.r, "the archer is ghostly blue")
-	assert_eq(ARCHER.prop, EnemyProp.Kind.BOW, "with a bow")
-	assert_eq(SHIELD.prop, EnemyProp.Kind.SHIELD, "the Shield Bearer has a shield")
-	assert_eq(SPIRIT.prop, EnemyProp.Kind.WISP, "the spirit is an ink wisp")
-	assert_eq(GENERAL.figure, InkFigure.Kind.FALLEN_DAIMYO, "the General is the Daimyo's body")
-	assert_true(GENERAL.tint.r > 1.0 and GENERAL.tint.b < 1.0, "burning")
+func test_each_new_enemy_uses_its_own_painted_kind_and_keeps_gameplay_props() -> void:
+	for data: EnemyData in [ARCHER, SHIELD, SPIRIT, GENERAL]:
+		assert_true(data.figure >= InkFigure.Kind.SPECTRAL_ARCHER, "dedicated Region 2 art")
+		assert_eq(data.tint, Color.WHITE, "paint supplies the colour")
+	assert_eq(ARCHER.figure, InkFigure.Kind.SPECTRAL_ARCHER, "ghostly archer")
+	assert_eq(SHIELD.prop, EnemyProp.Kind.SHIELD, "breakable tate")
 	assert_eq(GENERAL.prop, EnemyProp.Kind.FIRE_AURA, "wreathed in fire")
 
 
@@ -203,17 +198,13 @@ func test_an_archer_standing_to_shoot_does_not_hold_up_the_fighters() -> void:
 	assert_true(archer.call(&"_is_blocked_by_other_enemy", 1), "while an archer backing off still bumps into a fighter")
 
 
-func test_props_replace_the_body_weapon_and_the_wisp_hides_the_body() -> void:
+func test_painted_bow_and_spirit_replace_the_temporary_weapon_and_wisp() -> void:
 	var archer: Enemy = _enemy(ARCHER)
-	var prop: EnemyProp = archer.get_node("Visual/Prop") as EnemyProp
-	assert_true(prop != null and prop.kind == EnemyProp.Kind.BOW, "the archer holds a bow")
 	var figure: InkFigure = (archer.get_node("Visual") as UnitVisual).get_figure()
-	for node: Node in figure.find_children("*", "", true, false):
-		var part: FigurePart = node as FigurePart
-		if part != null and part.part_name == &"weapon":
-			assert_true(not part.visible, "instead of the soldier's own blade")
+	assert_true(figure.has_node("bow") and not figure.has_node("weapon"), "painted archer holds a live yumi without a soldier blade")
+	assert_true(not archer.has_node("Visual/Prop"), "no duplicate placeholder bow")
 	var spirit: Enemy = _enemy(SPIRIT)
-	assert_true(not (spirit.get_node("Visual") as UnitVisual).get_figure().visible, "the spirit shows only its wisp")
+	assert_true((spirit.get_node("Visual") as UnitVisual).get_figure().visible, "painted onryo stays visible")
 	var bearer: Enemy = _enemy(SHIELD)
 	_blade(1.0, true).try_hit(bearer.get_hurtbox())
 	assert_true(not (bearer.get_node("Visual/Prop") as EnemyProp).is_shield_up(), "a broken shield falls away")

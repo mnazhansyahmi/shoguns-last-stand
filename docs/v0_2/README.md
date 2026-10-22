@@ -17,3 +17,21 @@ The pause-menu early-exit fix is kept once, with its last-wave regression test.
 - [Region 1 battle](part_1/region_1_crowd_a.png), [Region 2 battle](part_1/region_2_crowd_a.png).
   Battles are staged captures using isolated save files. Region 2 includes its
   four enemy types; their temporary art is replaced in Part 2.
+
+## Part 2 — Painted enemies
+
+Four original transparent atlases replace the tinted stand-ins: Spectral Archer,
+Shield Bearer, Flying Spirit and Burning General. They retain the shared pose,
+IK, joint patch and weapon grip contracts. The onryo has a visible funeral robe
+and trailing ink instead of leg nodes. The painted wooden tate splits when broken.
+Texture mipmaps match the existing painted roster.
+
+- Import and headless boot passed. Full suite: **480 passed, 0 failed**.
+  [Import](part_2/import.log), [boot](part_2/boot.log), [tests](part_2/tests.log).
+- [Eight poses for each enemy](part_2/poses.png).
+- [Painted Region 2 battle](part_2/battle.png).
+- Generated with the built-in image tool on 2026-10-22. Exact prompts and source
+  references are in [asset licenses](../ASSET_LICENSES.md) and
+  `assets/art/roster/region_2_provenance.json`.
+- The blood cleanup test now uses a known short flight velocity rather than a
+  random trajectory; this removes its unrelated intermittent early-expiry failure.
