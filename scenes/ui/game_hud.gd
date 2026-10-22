@@ -104,7 +104,7 @@ func _ready() -> void:
 	# Ticks at one third and two thirds mark where the phases change.
 	_boss_bar.segments = 3
 	_boss_bar.visible = false
-	_wave_box.add_child(_boss_bar)
+	add_child(_boss_bar)
 	_pause_button.pressed.connect(pause_requested.emit)
 	_top_left.resized.connect(_update_pivots)
 	_wave_box.resized.connect(_update_pivots)
@@ -150,6 +150,44 @@ func show_boss(boss_name: String) -> void:
 	_boss_bar.caption = boss_name
 	_boss_bar.visible = true
 	_boss_bar.queue_redraw()
+	_place_boss_bar()
+
+
+func show_boss_entrance(boss_name: String) -> void:
+	var card: PanelContainer = PanelContainer.new()
+	card.name = "BossEntrance"
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.09, 0.035, 0.025, 0.92)
+	style.border_color = Color(0.9, 0.39, 0.12)
+	style.set_border_width_all(2)
+	style.content_margin_left = 40
+	style.content_margin_right = 40
+	style.content_margin_top = 18
+	style.content_margin_bottom = 18
+	card.add_theme_stylebox_override("panel", style)
+	var label: Label = Label.new()
+	label.text = "LORD OF THE BURNING VILLAGE\n" + boss_name
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 56)
+	card.add_child(label)
+	add_child(card)
+	card.position = Vector2((get_viewport().get_visible_rect().size.x - 1100) * 0.5, 310)
+	card.size.x = 1100
+	var tween: Tween = create_tween()
+	tween.tween_interval(2.0)
+	tween.tween_property(card, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(card.queue_free)
+
+
+func _place_boss_bar() -> void:
+	if _boss_bar == null: return
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	_boss_bar.scale = Vector2.ONE * _ui_scale
+	_boss_bar.size = Vector2(minf(780.0, (view.x - 64) / _ui_scale), 50)
+	# Always below the *actual* vitals/skills cluster, including enlarged UI.
+	_boss_bar.position = Vector2((view.x - _boss_bar.size.x * _ui_scale) * 0.5,
+		maxf(block_bottom(_top_left), block_bottom(_wave_box)) + 20)
 
 
 func set_boss_health(current: float, maximum: float) -> void:
@@ -392,6 +430,7 @@ func _update_pivots() -> void:
 	_top_left.pivot_offset = Vector2.ZERO
 	_wave_box.pivot_offset = Vector2(_wave_box.size.x * 0.5, 0.0)
 	_pause_button.pivot_offset = Vector2(_pause_button.size.x, 0.0)
+	_place_boss_bar()
 	# The top-left cluster grows/shrinks (ability row in keyboard mode): keep the tabs below it.
 	if _safe_rect.size != Vector2.ZERO:
 		_place_indicators(_safe_rect)

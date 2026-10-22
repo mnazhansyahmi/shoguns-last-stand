@@ -20,6 +20,8 @@ var _hover: float = 0.0
 var _clock: float = 0.0
 var _broken_time: float = -1.0
 var _dying_time: float = -1.0
+var _painted_aura: BurningGeneralVisual
+var _shadow: Sprite2D
 
 
 ## Call before adding to the visual. `height` is the figure's height, `hover` how high a flyer floats.
@@ -40,6 +42,25 @@ func _ready() -> void:
 		hide_weapon(_figure)
 	elif kind == Kind.WISP:
 		_figure.visible = _figure.kind == InkFigure.Kind.FLYING_SPIRIT
+		if _figure.kind == InkFigure.Kind.FLYING_SPIRIT:
+			_shadow = Sprite2D.new()
+			_shadow.position.y = -2
+			var shadow: GradientTexture2D = GradientTexture2D.new()
+			shadow.width = 100
+			shadow.height = 20
+			shadow.fill = GradientTexture2D.FILL_RADIAL
+			shadow.fill_from = Vector2(0.5, 0.5)
+			shadow.fill_to = Vector2(1, 0.5)
+			var gradient: Gradient = Gradient.new()
+			gradient.colors = PackedColorArray([Color(0.06, 0.04, 0.05, 0.32), Color(0.06, 0.04, 0.05, 0)])
+			shadow.gradient = gradient
+			_shadow.texture = shadow
+			add_child(_shadow)
+	elif kind == Kind.FIRE_AURA:
+		_painted_aura = BurningGeneralVisual.new()
+		_painted_aura.visual = _visual
+		_painted_aura.body_height = _height
+		add_child(_painted_aura)
 
 
 ## Hides the figure's own held weapon (its "weapon" part), so the prop's weapon stands in for it.
@@ -72,6 +93,10 @@ func _process(delta: float) -> void:
 		_broken_time += delta
 	if _dying_time >= 0.0:
 		_dying_time += delta
+	if _shadow != null:
+		_shadow.modulate.a = maxf(0.0, 1.0 - _dying_time / WISP_FADE_TIME) if _dying_time >= 0.0 else 1.0
+		return
+	if _painted_aura != null: return
 	if _visual == null or _visual.is_on_screen():
 		queue_redraw()
 
@@ -224,6 +249,7 @@ func _draw_wisp() -> void:
 
 ## The Burning General's fire: low flames licking up around his feet and a hot glow on his body.
 func _draw_fire_aura() -> void:
+	if _painted_aura != null: return
 	var rage: int = _figure.rage if _figure != null else 1
 	var strength: float = 0.6 + 0.2 * float(rage - 1)
 	InkBrush.glow(self, Vector2(0.0, -_height * 0.45), _height * 0.7, Color(InkPalette.HATAMOTO_ORANGE, 0.16 * strength))

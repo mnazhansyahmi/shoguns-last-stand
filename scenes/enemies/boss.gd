@@ -309,6 +309,14 @@ func _process_attack(delta: float) -> void:
 ## The wind-up is over: the attack lands.
 func _fire() -> void:
 	_clear_telegraphs()
+	if data.figure == InkFigure.Kind.BURNING_GENERAL:
+		var blaze: PaintedFireBurst = PaintedFireBurst.new()
+		blaze.trail = true
+		blaze.span = Vector2(380, 125)
+		blaze.duration = 0.55
+		get_parent().add_child(blaze)
+		blaze.global_position = global_position + Vector2(facing * 120.0, -70.0)
+		blaze.scale.x = facing
 	match _current.kind:
 		BossAttackData.Kind.SWEEP:
 			_activate_hitbox(_current, true)

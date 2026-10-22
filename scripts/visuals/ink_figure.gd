@@ -124,6 +124,7 @@ var _upper_front: Transform2D
 var _fore_front: Transform2D
 var _upper_back: Transform2D
 var _fore_back: Transform2D
+var _onryo_paint: Sprite2D
 
 
 func _ready() -> void:
@@ -152,7 +153,7 @@ func set_kind(value: Kind) -> void:
 	gait.reset()
 	_arm_front_key = Vector2(INF, INF)
 	_arm_back_key = Vector2(INF, INF)
-	secondary = SecondaryMotion.new(spec.loose_armour) if spec.cloth or spec.loose_armour else null
+	secondary = SecondaryMotion.new(spec.loose_armour) if (spec.cloth or spec.loose_armour) and value != Kind.FLYING_SPIRIT else null
 	pose.copy_from(FigureKinds.pose(value, &"idle"))
 	if is_inside_tree():
 		_build_parts()
@@ -298,6 +299,11 @@ func refresh() -> void:
 		_fore_back = _segment_xf(Transform2D.IDENTITY, back_elbow, back_hand, spec.fore_arm)
 
 	_step_secondary()
+	if is_instance_valid(_onryo_paint):
+		var ghost_scale: float = height / float(_onryo_paint.texture.get_height())
+		_onryo_paint.scale = Vector2.ONE * ghost_scale
+		_onryo_paint.position.y = -sin(clock * 2.1) * 5.0 * (0.15 if GameSettings.reduced_decorative_motion else 1.0)
+		(_onryo_paint.material as ShaderMaterial).set_shader_parameter("motion", 0.15 if GameSettings.reduced_decorative_motion else 1.0)
 	if _parts.is_empty():
 		return
 	_update_slots()
@@ -537,6 +543,9 @@ func _draw() -> void:
 
 ## (Re)creates the part nodes for the current kind, back to front.
 func _build_parts() -> void:
+	if is_instance_valid(_onryo_paint):
+		_onryo_paint.free()
+		_onryo_paint = null
 	# Anisotropic mip sampling preserves folds on the non-uniform torso/limb
 	# frames without the crawling fine grain of unfiltered minification.
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC if kind == Kind.SAMURAI else CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
@@ -655,14 +664,27 @@ func _build_parts() -> void:
 		elif part_name in [&"bow", &"yumi_back"]:
 			part.material = Atmosphere.painted_rim_material()
 		add_child(part)
+		if kind == Kind.FLYING_SPIRIT:
+			part.visible = false
 		_parts.append(part)
-		var permanent_hidden: bool = (RosterSpriteArt.NAMES.has(kind) and part_name in [&"mane", &"pauldron_front", &"pauldron_back"]) or (kind == Kind.SAMURAI and part_name == &"hem")
+		var permanent_hidden: bool = kind == Kind.FLYING_SPIRIT or (RosterSpriteArt.NAMES.has(kind) and part_name in [&"mane", &"pauldron_front", &"pauldron_back"]) or (kind == Kind.SAMURAI and part_name == &"hem")
 		if not permanent_hidden:
 			_active_parts.append(part)
 			_part_slots.append(FigurePainter.SLOTS[part_name])
 		elif part.dynamic:
 			_dynamic_parts.erase(part)
 		by_name[part_name] = part
+	if kind == Kind.FLYING_SPIRIT:
+		_onryo_paint = Sprite2D.new()
+		_onryo_paint.name = "OnryoPainting"
+		_onryo_paint.texture = preload("res://assets/art/roster/onryo_full.png")
+		_onryo_paint.centered = false
+		_onryo_paint.offset = -_onryo_paint.texture.get_size() * Vector2(0.62, 0.97)
+		var paint: ShaderMaterial = ShaderMaterial.new()
+		paint.shader = preload("res://scripts/visuals/shaders/onryo.gdshader")
+		paint.set_shader_parameter("phase", flicker_phase)
+		_onryo_paint.material = paint
+		add_child(_onryo_paint)
 	_apply_bare_head()
 	for definition: Dictionary in FigurePainter.glows(kind):
 		var glow: FigurePart = FigurePart.new()

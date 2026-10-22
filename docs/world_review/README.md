@@ -31,3 +31,21 @@ The fresh baseline is 0.16 ms faster; these separate short samples do not prove
 zero regression. Final measurements after all parts will recheck the full build.
 Raw logs are in this folder. Region 2 staged art renders include the General
 even on stage 8, to review effects; they are not normal stage 8 wave compositions.
+
+## 2. Readable new enemies
+
+Flying Spirits now use a complete painted onryo with a 130 px human-sized body,
+80 px hover, a soft ground shadow, bob and flowing robe shader. The segmented
+body is hidden and its redundant cloth solver is disabled; air targeting and
+damage filtering remain. Death/spawn opacity still wraps the whole painting.
+
+The General is 310 px tall (Oni: 190), with painted fire on both shoulders and
+the odachi, 16 bounded rising embers, glowing painted eyes and local heat haze.
+Fire trails accompany attacks; pillars now use painted flames with their old
+damage hitboxes. His entrance adds a fire burst, settings-respecting camera
+shake and a name card. The boss health bar is positioned below the actual
+player/wave cluster extents at all tested UI scales.
+
+Full suite: **506 passed, 0 failed**. [Tests](part_2/tests_2.log).
+[Entrance](part_2/boss_entrance.png), [boss and onryo](part_2/boss_battle.png).
+The full onryo image and exact prompt are recorded in the asset licence ledger.

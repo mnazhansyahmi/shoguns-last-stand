@@ -15,6 +15,7 @@ var _source: Node
 var _age: float = 0.0
 var _hitbox: HitboxComponent
 var _phase: float = 0.0
+var _painting: PaintedFlame
 
 
 ## Call before adding to the tree. The node's position is on the ground at the pillar's centre.
@@ -29,6 +30,9 @@ func setup(damage: float, knockback: float, size: Vector2, active_time: float, s
 func _ready() -> void:
 	z_index = 2
 	_phase = randf() * TAU
+	_painting = PaintedFlame.new()
+	_painting.flame_size = _size * Vector2(1.4, 1.2)
+	add_child(_painting)
 	_hitbox = HitboxComponent.new()
 	_hitbox.name = "Hitbox"
 	_hitbox.faction = Faction.Type.ENEMIES
@@ -50,7 +54,7 @@ func _process(delta: float) -> void:
 	if _age >= LIFETIME:
 		queue_free()
 		return
-	queue_redraw()
+	_painting.modulate.a = 1.0 - smoothstep(_active_time, LIFETIME, _age)
 
 
 func is_burning() -> bool:
@@ -58,6 +62,10 @@ func is_burning() -> bool:
 
 
 func _draw() -> void:
+	return # Painted fire retains its draw; the existing hitbox controls damage.
+
+
+func _draw_legacy() -> void:
 	var rise: float = clampf(_age / RISE_TIME, 0.0, 1.0)
 	var fade: float = 1.0 - smoothstep(_active_time, LIFETIME, _age)
 	var height: float = _size.y * ease(rise, 0.4) * (0.55 + 0.45 * fade)
