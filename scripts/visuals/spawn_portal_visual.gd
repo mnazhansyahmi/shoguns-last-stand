@@ -8,6 +8,9 @@ const ARMS: int = 4
 
 var _clock: float = 0.0
 var _glow_layer: Node2D
+var _burning: bool = false
+var _painting: Sprite2D
+var _paint_material: ShaderMaterial
 
 
 func _ready() -> void:
@@ -17,15 +20,40 @@ func _ready() -> void:
 	_glow_layer.show_behind_parent = true
 	add_child(_glow_layer)
 	_glow_layer.draw.connect(_draw_glow)
+	_painting = Sprite2D.new()
+	_painting.name = "PaintedPortal"
+	_painting.position = Vector2(0, -155)
+	add_child(_painting)
+	apply_region(PaintedWorld.burning())
+
+
+func apply_region(burning: bool) -> void:
+	_burning = burning
+	if _painting == null: return
+	var art: AtlasTexture = AtlasTexture.new()
+	art.atlas = PaintedWorld.PORTALS
+	art.region = Rect2(Vector2(PaintedWorld.PORTALS.get_width() * (0.5 if burning else 0.0), 0),
+		PaintedWorld.PORTALS.get_size() * Vector2(0.5, 1))
+	art.filter_clip = true
+	_painting.texture = art
+	_painting.scale = Vector2(260, 410) / art.region.size
+	_paint_material = ShaderMaterial.new()
+	_paint_material.shader = preload("res://scripts/visuals/shaders/painted_portal.gdshader")
+	_paint_material.set_shader_parameter("region_x", 0.5 if burning else 0.0)
+	_painting.material = _paint_material
 
 
 func _process(delta: float) -> void:
 	_clock += delta
-	queue_redraw()
-	_glow_layer.queue_redraw()
+	if _paint_material != null:
+		_paint_material.set_shader_parameter("motion", 0.15 if GameSettings.reduced_decorative_motion else 1.0)
 
 
 func _draw() -> void:
+	return # Retained painted portal supplies the torii and swirling ink.
+
+
+func _draw_legacy() -> void:
 	var torii: Color = InkPalette.INK_BACK.lerp(InkPalette.MIST, 0.3)
 	# Left post upright, right post leaning; the top beam is snapped and hangs down on the right.
 	InkBrush.fill_convex(self, PackedVector2Array([Vector2(-86.0, 0.0), Vector2(-66.0, 0.0),

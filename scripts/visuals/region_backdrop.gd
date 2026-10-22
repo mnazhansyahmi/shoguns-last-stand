@@ -14,11 +14,21 @@ extends Node2D
 var _rays: CanvasItem
 ## The burning village's flame glow (empty in the bamboo scenery); it flickers.
 var _fires: CanvasItem
+var _painted_fires: Array[PaintedFlame] = []
 
 
 func _ready() -> void:
 	_rays = get_node_or_null("Rays") as CanvasItem
 	_fires = get_node_or_null("Fires") as CanvasItem
+	if _fires != null:
+		for i: int in 6:
+			var flame: PaintedFlame = PaintedFlame.new()
+			flame.cell = i % 3
+			flame.flame_size = Vector2(140 + i % 2 * 60, 190 + i % 3 * 35)
+			flame.phase = float(i) * 2.7
+			flame.position = Vector2(-420 + i * 590, 780)
+			_fires.add_child(flame)
+			_painted_fires.append(flame)
 	apply_theme(theme)
 	if front_fog:
 		return
@@ -41,6 +51,8 @@ func set_keep_out(rects: Array[Rect2]) -> void:
 func apply_theme(new_theme: AtmosphereTheme) -> void:
 	theme = new_theme
 	Atmosphere.set_theme(new_theme)
+	for flame: PaintedFlame in _painted_fires:
+		flame.visible = PaintedWorld.burning(Atmosphere.current())
 	for child: Node in get_children():
 		var layer: BackdropLayer = child as BackdropLayer
 		if layer != null:

@@ -70,6 +70,10 @@ func _ready() -> void:
 	if _wave_director.stage != null:
 		# The stage's own sky, light and falling leaves.
 		_backdrop.apply_theme(_wave_director.stage.atmosphere)
+		var burning: bool = PaintedWorld.burning(_wave_director.stage.atmosphere)
+		(_gate.get_node("Visual") as GateVisual).apply_region(burning)
+		for node: Node in $World.find_children("*", "", true, false):
+			if node is SpawnPortalVisual: (node as SpawnPortalVisual).apply_region(burning)
 		_was_cleared_before = _progress.is_stage_cleared(_wave_director.stage.stage_id)
 
 	_player.health_changed.connect(_hud.set_player_health)

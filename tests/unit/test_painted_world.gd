@@ -1,0 +1,30 @@
+extends "res://tests/test_case.gd"
+
+
+func test_regions_use_different_painted_scenery_and_transparent_layers() -> void:
+	assert_true(PaintedWorld.BAMBOO != PaintedWorld.VILLAGE, "region identity is separate artwork")
+	for atlas: Texture2D in [PaintedWorld.BAMBOO, PaintedWorld.VILLAGE]:
+		var image: Image = atlas.get_image()
+		assert_true(image.get_width() >= 900 and image.get_height() >= 1500, "painted atlas has usable resolution")
+		assert_true(image.get_pixelv(Vector2i(image.get_width() / 2, image.get_height() / 10)).a > 0.9, "sky is opaque")
+		assert_true(image.get_pixelv(Vector2i(image.get_width() / 2, int(image.get_height() * 0.84))).a < 0.1, "foreground leaves a clear action band")
+
+
+func test_region_fire_is_bounded_and_damage_switch_preserves_gate_state() -> void:
+	var backdrop: RegionBackdrop = add_to_tree(load("res://scenes/backdrops/bamboo_outskirts.tscn").instantiate()) as RegionBackdrop
+	var theme: AtmosphereTheme = AtmosphereTheme.new()
+	theme.scenery = AtmosphereTheme.Scenery.BURNING_VILLAGE
+	backdrop.apply_theme(theme)
+	assert_eq(backdrop._painted_fires.size(), 6, "fire quads have a fixed limit")
+	for flame: PaintedFlame in backdrop._painted_fires:
+		assert_true(flame.visible and flame.texture is AtlasTexture, "burning village uses painted fire")
+	var gate: GateVisual = add_to_tree(GateVisual.new()) as GateVisual
+	gate.set_damage(0.7)
+	gate.apply_region(true)
+	assert_almost_eq(gate.get_damage(), 0.7, "changing region preserves damage")
+	gate.set_destroyed()
+	for flame: PaintedFlame in gate._painted_fires: assert_true(not flame.visible, "destroyed gate stops attached fire")
+	theme.scenery = AtmosphereTheme.Scenery.BAMBOO_OUTSKIRTS
+	backdrop.apply_theme(theme)
+	for flame: PaintedFlame in backdrop._painted_fires: assert_true(not flame.visible, "bamboo has no village blaze")
+	Atmosphere.set_theme(null)

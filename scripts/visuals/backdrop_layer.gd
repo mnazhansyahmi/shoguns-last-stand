@@ -34,7 +34,7 @@ var _sway_material: ShaderMaterial
 func _ready() -> void:
 	if sway:
 		_sway_material = ShaderMaterial.new()
-		_sway_material.shader = load("res://scripts/visuals/shaders/reed_sway.gdshader") as Shader
+		_sway_material.shader = load("res://scripts/visuals/shaders/painted_grass.gdshader") as Shader
 		material = _sway_material
 	elif additive:
 		var blend: CanvasItemMaterial = CanvasItemMaterial.new()
@@ -53,6 +53,7 @@ func _process(delta: float) -> void:
 	if _sway_material != null:
 		_sway_material.set_shader_parameter("wind", Atmosphere.wind_strength())
 		_sway_material.set_shader_parameter("time", Atmosphere.time)
+		_sway_material.set_shader_parameter("motion", 0.15 if GameSettings.reduced_decorative_motion else 1.0)
 	if drift_speed != 0.0:
 		_drift = fposmod(_drift + drift_speed * delta, tile_width)
 	var viewport: Viewport = get_viewport()
@@ -87,6 +88,7 @@ static func layer_transform(center: Vector2, reference: Vector2, layer_depth: fl
 
 
 func _draw() -> void:
+	if PaintedWorld.paint(self, layer, theme if theme != null else Atmosphere.current()): return
 	if drift_speed == 0.0:
 		BambooOutskirtsPainter.paint(self, layer, seed_value, theme)
 		return

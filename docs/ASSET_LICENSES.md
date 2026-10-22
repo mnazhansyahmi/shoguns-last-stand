@@ -1,5 +1,21 @@
 # Asset licences
 
+## Painted world assets — 2026-10-22
+
+Original AI-generated artwork, made with the OpenAI built-in **image_gen** tool
+for this project. No third-party source artwork was copied. Exact generation
+prompts are stored alongside each asset and linked below. Atlas source cells
+are sampled directly in Godot; generated alpha is preserved.
+
+| Image | Use | Date | Exact prompt |
+| --- | --- | --- | --- |
+| `assets/art/world/bamboo_parallax.png` | Bamboo sky, shrine mountains, forest, earth, foreground | 2026-10-22 | [Prompt](../assets/art/world/bamboo_parallax.png.prompt.txt) |
+| `assets/art/world/village_parallax.png` | Red sky, smoky mountains, ruined houses, scorched earth, burnt grass | 2026-10-22 | [Prompt](../assets/art/world/village_parallax.png.prompt.txt) |
+| `assets/art/world/gates.png` | Both regional gates, intact/damaged/destroyed atlas | 2026-10-22 | [Prompt](../assets/art/world/gates.png.prompt.txt) |
+| `assets/art/world/portals.png` | Cursed torii and burning rift atlas | 2026-10-22 | [Prompt](../assets/art/world/portals.png.prompt.txt) |
+| `assets/art/world/fire.png` | Painted fire textures animated by shader | 2026-10-22 | [Prompt](../assets/art/world/fire.png.prompt.txt) |
+
+
 The full list of third-party assets in the game: where each came from, its licence, and where the game uses it.
 This file is a record for the project. It is NOT shown in the game and NOT included in exports.
 
